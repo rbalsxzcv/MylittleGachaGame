@@ -1,65 +1,47 @@
 [
   {
-    "id": "r_mina",
-    "name": "미나",
-    "rarity": "R",
-    "title": "새내기 견습 마법사",
-    "description": "마법 학교에 갓 입학한 견습생.\n주문을 자주 틀리지만 실패한 마법에서 의외의 결과를 만들어내는 재주가 있다.",
-    "image": "assets/chars/r_mina.png",
-    "addedAt": "2026-11-15T00:00:00+09:00"
-  },
-  {
-    "id": "r_doha",
-    "name": "도하",
-    "rarity": "R",
-    "title": "골목길 배달부",
-    "description": "자전거 한 대로 도시의 모든 골목을 누비는 배달부.\n길을 잃은 사람을 보면 그냥 지나치지 못한다.",
-    "image": "assets/chars/r_doha.png",
-    "addedAt": "2026-11-15T00:00:00+09:00"
-  },
-  {
-    "id": "r_seoli",
-    "name": "설이",
-    "rarity": "R",
-    "title": "도서관 지킴이",
-    "description": "오래된 도서관의 밤을 지키는 조용한 사서.\n책장 사이에서 들려오는 작은 소리까지 모두 기억하고 있다.",
-    "image": "assets/chars/r_seoli.png",
-    "addedAt": "2026-11-15T00:00:00+09:00"
-  },
-  {
-    "id": "sr_ayeon",
-    "name": "아연",
+    "id": "sr_1",
+    "name": "시논",
     "rarity": "SR",
-    "title": "달빛 검객",
-    "description": "보름달이 뜨는 밤에만 검을 뽑는다는 떠돌이 검객.\n말수는 적지만 약속은 반드시 지킨다.",
-    "image": "assets/chars/sr_ayeon.png",
-    "addedAt": "2026-11-15T00:00:00+09:00"
+    "title": "웃지않는 소녀",
+    "description": "어릴 적 모든 것을 잃고 거친 거리에서 살아남아 용병단으로 흘러들어온 과묵한 도적 소녀입니다.\n웃는 법을 잊어 늘 차가운 무표정을 짓고 있지만, 머리를 쓰다듬어 주면 뺨을 붉히며 어쩔 줄 몰라 하는 귀여운 반전이 있습니다.",
+    "image": "assets/chars/sr_1.png",
+    "addedAt": "2026-11-19T22:23:00+09:00"
   },
   {
-    "id": "sr_kai",
-    "name": "카이",
-    "rarity": "SR",
-    "title": "폭풍의 연금술사",
-    "description": "번개를 병에 담는 실험에 인생을 건 연금술사.\n실험실이 자주 폭발하지만 본인은 늘 즐겁다.",
-    "image": "assets/chars/sr_kai.png",
-    "addedAt": "2026-11-15T00:00:00+09:00"
-  },
-  {
-    "id": "ssr_lumi",
-    "name": "루미",
+    "id": "ssr_valeria",
+    "name": "발레리아",
     "rarity": "SSR",
-    "title": "별을 엮는 무녀",
-    "description": "밤하늘의 별빛을 실처럼 엮어 소원을 들어준다는 전설의 무녀.\n사실은 단 것을 아주 좋아하는 평범한 소녀이기도 하다.",
-    "image": "assets/chars/ssr_lumi.png",
-    "addedAt": "2026-11-15T00:00:00+09:00"
+    "title": "파문당한 성기사",
+    "description": "교단에서 파문당한 뒤 하루 벌어 하루 먹고사는 떠돌이 기사. 입은 험하지만 묵직한 대검 한 방만큼은 확실한 밥값을 증명합니다.",
+    "image": "assets/chars/ssr_valeria.png",
+    "addedAt": "2026-11-19T23:22:00+09:00"
   },
   {
-    "id": "r_1",
-    "name": "사리아",
+    "id": "r_garrick",
+    "name": "가린",
     "rarity": "R",
-    "title": "사막의 무녀",
-    "description": "",
-    "image": "assets/chars/r_1.png",
-    "addedAt": "2026-11-19T19:17:00+09:00"
+    "title": "빚쟁이 석궁잡이",
+    "description": "노름빚에 쫓겨 다니는 전직 밀렵꾼 출신의 사수. 비겁하지만 목숨이 걸리면 귀신같은 사격 솜씨를 뽐냅니다.",
+    "image": "assets/chars/r_garrick.png",
+    "addedAt": "2026-11-19T23:22:00+09:00"
+  },
+  {
+    "id": "npc_broker_baran",
+    "name": "바바루아",
+    "rarity": "R",
+    "title": "시궁창 정보상",
+    "description": "뒷골목과 암시장에서 의뢰를 중개하는 능구렁이 정보상입니다.",
+    "image": "assets/chars/npc_broker_baran.png",
+    "addedAt": "2026-11-19T23:22:00+09:00"
+  },
+  {
+    "id": "npc_baron_hendrik",
+    "name": "헨드릭 남작",
+    "rarity": "R",
+    "title": "피에 굶주린 영주",
+    "description": "국경 지대를 다스리는 잔혹하고 탐욕스러운 영주입니다.",
+    "image": "assets/chars/npc_baron_hendrik.png",
+    "addedAt": "2026-11-19T23:22:00+09:00"
   }
 ]

@@ -1,11 +1,19 @@
 // 스토리 뷰어 (가로 비주얼노벨 형식)
 // 아래 대화창, 좌/우 캐릭터 그림, 탭하면 다음, 자동 진행, 건너뛰기, 대사 기록, 선택지
+// 전투 장면 { type: "battle", stageId }: 이겨야 다음으로 진행 (전에 깬 스테이지는 건너뛰기 가능)
 import { h, gemIcon } from './dom.js';
 import { back } from './router.js';
 import { openModal, confirmModal } from './modal.js';
 import { charArt } from './charCard.js';
 import { loadStory } from '../core/data.js';
 import { completeStory, isRead } from '../systems/stories.js';
+import { mountBattle } from './battleView.js';
+import { openTeamEditor } from './teamView.js';
+import { teamMembers, teamPower, presetOf } from '../systems/teams.js';
+import { isCleared, stageRecord, recordClear } from '../systems/stageProgress.js';
+
+const num = (n) => Number(n).toLocaleString('ko-KR');
+const rewardLine = (r) => [r?.gems && `보석 ${num(r.gems)}`, r?.tickets && `티켓 ${num(r.tickets)}`].filter(Boolean).join(' · ');
 
 const TYPE_SPEED_MS = 28; // 글자 하나 나오는 간격
 const AUTO_BASE_MS = 1100; // 자동 진행: 기본 대기
@@ -60,6 +68,8 @@ export function storyScreen(ctx) {
       let destroyed = false;
       let onStage = { left: null, right: null }; // 각 자리에 선 캐릭터 id
       let lastSide = null;
+      let nodeEl = null; // 전투 전 안내 패널
+      let battleUi = null; // 진행 중인 전투 화면
       const log = [];
 
       loadStory(id).then((r) => {
@@ -80,23 +90,139 @@ export function storyScreen(ctx) {
         if (bg.type === 'image') {
           bgImg.hidden = false;
           bgImg.src = bg.value;
-          bgColor.style.background = '#000';
+          bgColor.style.background = bg.color || '#000'; // 그림이 없으면 이 색이 보임
         } else {
           bgImg.hidden = true;
           bgColor.style.background = bg.value;
         }
       }
 
-      function gotoScene(target) {
+      function gotoScene(target, startLine = 0) {
         const idx = typeof target === 'number' ? target : story.scenes.findIndex((s) => s.id === target);
         if (idx < 0 || idx >= story.scenes.length) return finish();
         sceneIndex = idx;
-        lineIndex = -1;
+        lineIndex = startLine - 1;
         onStage = { left: null, right: null };
         lastSide = null;
         renderStage(null);
         setBackground(scene().background);
+        if (scene().type === 'battle') return showBattleNode(scene());
         nextLine();
+      }
+
+      // ── 전투 장면 ──
+      const stageOf = (sc) => (sc.stageId && ctx.data.stageMap.get(sc.stageId)) || null;
+      /** 건너뛰어도 되는 전투인지 (전에 깼거나, 스테이지 정보가 없음) */
+      const battlePassable = (sc) => !stageOf(sc) || isCleared(ctx.save, sc.stageId);
+
+      function showBattleNode(sc) {
+        clearTimeout(autoTimer);
+        clearInterval(typeTimer);
+        typing = false;
+        box.hidden = true;
+        choicesEl.hidden = true;
+        const stage = stageOf(sc);
+        const panel = h('div', { class: 'vn-battle-node' });
+        nodeEl = panel;
+        el.append(panel);
+        log.push({ name: '전투', text: stage?.name || '전투', choice: true });
+
+        const render = () => {
+          if (!stage) {
+            panel.replaceChildren(
+              h('div', { class: 'vbn-kicker' }, '전투'),
+              h('p', {}, `전투 정보를 찾을 수 없어요 (${sc.stageId || 'stageId 없음'})`),
+              h('div', { class: 'vbn-actions' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: () => leaveNode(true) }, '계속')),
+            );
+            return;
+          }
+          const members = teamMembers(ctx);
+          const size = members.filter(Boolean).length;
+          const hasAny = ctx.data.characters.some((c) => ctx.save.owned[c.id]);
+          const power = teamPower(ctx);
+          const rec = stageRecord(ctx.save, stage.id);
+          const low = stage.recommendedPower && power < stage.recommendedPower;
+          // replaceChildren은 false를 글자로 넣으므로 h()로 한 번 감쌈
+          panel.replaceChildren(
+            ...h(
+              'div',
+              {},
+            h('div', { class: 'vbn-kicker' }, rec.clears ? `전투 · 클리어 ${rec.clears}회` : '전투'),
+            h('div', { class: 'vbn-title' }, stage.name),
+            h(
+              'div',
+              { class: 'vbn-meta' },
+              stage.recommendedPower > 0 && h('span', {}, `권장 전투력 ${num(stage.recommendedPower)}`),
+              h('span', { class: low ? 'bad' : '' }, `「${presetOf(ctx.save).name}」 ${num(power)}`),
+              h('span', {}, `웨이브 ${stage.waves.length}`),
+              stage.turnLimit && h('span', {}, `${stage.turnLimit}라운드 제한`),
+            ),
+            h(
+              'div',
+              { class: 'vbn-team' },
+              members.map((m, i) => h('span', { class: ['vbn-member', !m && 'is-empty'] }, `${i + 1}. ${m ? `${ctx.data.charMap.get(m.charId).name} Lv.${m.level}` : '—'}`)),
+            ),
+            !rec.firstClaimed && rewardLine(stage.firstClearRewards) && h('div', { class: 'vbn-reward' }, '첫 클리어 보상 ', h('b', {}, rewardLine(stage.firstClearRewards))),
+            rewardLine(stage.rewards) && h('div', { class: 'vbn-reward muted' }, '클리어 보상 ', rewardLine(stage.rewards)),
+            !hasAny && h('p', { class: 'bad' }, '동료가 없어요 — 뽑기에서 동료를 만나 주세요'),
+            hasAny && !size && h('p', { class: 'bad' }, '편성이 비어 있어요. 편성 변경에서 캐릭터를 넣어 주세요'),
+            h(
+              'div',
+              { class: 'vbn-actions' },
+              h('button', { class: 'btn btn-primary', type: 'button', disabled: !size, onclick: () => startBattle(stage) }, '전투 시작', h('kbd', { class: 'key-hint' }, 'Enter')),
+              h('button', { class: 'btn', type: 'button', disabled: !hasAny, onclick: async () => (await openTeamEditor(ctx), render()) }, '편성 변경'),
+              rec.clears > 0 && h('button', { class: 'btn', type: 'button', onclick: () => leaveNode(true) }, '건너뛰기'),
+              h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => askExit() }, '나가기'),
+            ),
+            ).childNodes,
+          );
+        };
+        panel.render = render;
+        render();
+      }
+
+      function startBattle(stage) {
+        nodeEl.hidden = true;
+        const host = h('div', { class: 'vn-battle-layer' });
+        el.append(host);
+        const close = () => {
+          battleUi?.destroy();
+          battleUi = null;
+          host.remove();
+        };
+        const backToNode = () => {
+          close();
+          nodeEl.hidden = false;
+          nodeEl.render();
+        };
+        battleUi = mountBattle(host, {
+          ctx,
+          stage,
+          team: teamMembers(ctx),
+          onResult(summary) {
+            if (summary.result !== 'win') return null;
+            const r = recordClear(ctx.save, stage, summary.rounds);
+            ctx.commit();
+            return r;
+          },
+          resultActions: (result) =>
+            result === 'win'
+              ? [{ label: '스토리 계속', primary: true, onClick: () => (close(), leaveNode(true)) }]
+              : [
+                  { label: '다시 도전', primary: true, onClick: () => (close(), startBattle(stage)) },
+                  { label: '편성 바꾸기', onClick: backToNode },
+                  { label: '스토리 나가기', onClick: () => (close(), back()) },
+                ],
+          onQuit: backToNode,
+        });
+      }
+
+      /** 전투 장면을 마치고 (continueStory면) 다음 장면으로 */
+      function leaveNode(continueStory) {
+        nodeEl?.remove();
+        nodeEl = null;
+        box.hidden = false;
+        if (continueStory) endOfScene();
       }
 
       function endOfScene() {
@@ -140,6 +266,7 @@ export function storyScreen(ctx) {
 
       function nextLine() {
         clearTimeout(autoTimer);
+        if (nodeEl || battleUi) return;
         lineIndex += 1;
         const line = scene().lines[lineIndex];
         if (!line) return endOfScene();
@@ -199,7 +326,7 @@ export function storyScreen(ctx) {
 
       /** 탭/Space: 글자가 나오는 중이면 한 번에 보이고, 다 나왔으면 다음 줄 */
       function advance() {
-        if (!story || finished || !choicesEl.hidden) return;
+        if (!story || finished || !choicesEl.hidden || nodeEl || battleUi) return;
         if (typing) doneTyping();
         else nextLine();
       }
@@ -223,10 +350,38 @@ export function storyScreen(ctx) {
         setTimeout(() => body.parentElement?.scrollTo?.(0, 1e6), 50);
       }
 
+      /** 건너뛰기가 멈출 곳: 다음 선택지 또는 아직 깨지 않은 전투 (없으면 null → 끝까지) */
+      function findSkipStop() {
+        const scenes = story.scenes;
+        const visited = new Set();
+        let idx = sceneIndex;
+        let fromLine = lineIndex + 1;
+        while (idx >= 0 && idx < scenes.length && !visited.has(idx)) {
+          visited.add(idx);
+          const sc = scenes[idx];
+          if (sc.type === 'battle') {
+            if (!battlePassable(sc) && idx !== sceneIndex) return { type: 'battle', index: idx };
+          } else {
+            const li = sc.lines.findIndex((l, i) => i >= fromLine && l.choices.length);
+            if (li >= 0) return { type: 'choice', index: idx, line: li };
+          }
+          fromLine = 0;
+          if (sc.next === 'end') return null;
+          idx = sc.next ? scenes.findIndex((x) => x.id === sc.next) : idx + 1;
+        }
+        return null;
+      }
+
       async function askSkip() {
-        if (!story || finished) return;
-        const ok = await confirmModal('건너뛰기', '스토리 끝으로 건너뛸까요?\n끝까지 읽은 것으로 처리돼요.', { okLabel: '건너뛰기' });
-        if (ok) finish();
+        if (!story || finished || nodeEl || battleUi) return;
+        const stop = findSkipStop();
+        const msg = stop ? `다음 ${stop.type === 'battle' ? '전투' : '선택지'}까지 건너뛸까요?` : '스토리 끝으로 건너뛸까요?\n끝까지 읽은 것으로 처리돼요.';
+        const ok = await confirmModal('건너뛰기', msg, { okLabel: '건너뛰기' });
+        if (!ok || finished) return;
+        if (!stop) return finish();
+        clearInterval(typeTimer);
+        typing = false;
+        gotoScene(stop.index, stop.type === 'choice' ? stop.line : 0);
       }
 
       async function askExit() {
@@ -261,8 +416,18 @@ export function storyScreen(ctx) {
           destroyed = true;
           clearInterval(typeTimer);
           clearTimeout(autoTimer);
+          battleUi?.destroy();
         },
         onKey(e) {
+          if (battleUi) return battleUi.onKey(e);
+          if (nodeEl) {
+            if (e.code === 'Enter' || e.code === 'NumpadEnter') {
+              nodeEl.querySelector('.btn-primary:not(:disabled)')?.click();
+              return true;
+            }
+            if (e.code === 'Escape') return askExit(), true;
+            return false;
+          }
           if (finished) {
             if (['Space', 'Enter', 'NumpadEnter', 'Escape'].includes(e.code)) return back(), true;
             return false;

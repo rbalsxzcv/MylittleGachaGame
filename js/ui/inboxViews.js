@@ -1,11 +1,19 @@
 // 우편함 / 공지 / 업데이트 내역 화면과 시작 팝업
-import { h, gemIcon } from './dom.js';
+import { h, gemIcon, ticketIcon } from './dom.js';
 import { openModal } from './modal.js';
 import { toast } from './toast.js';
 import { countdownEl, startCountdowns } from './countdown.js';
 import { activeMail, isClaimed, claimMail, visibleNotices, popupNotices, unseenPatchNotes } from '../systems/inbox.js';
 import { formatGems } from '../systems/economy.js';
 import { formatKST } from '../core/time.js';
+
+/** '보석 500개 · 티켓 100장' */
+function rewardText(r) {
+  const parts = [];
+  if (r.gems) parts.push(`보석 ${formatGems(r.gems)}개`);
+  if (r.tickets) parts.push(`티켓 ${formatGems(r.tickets)}장`);
+  return parts.join(' · ');
+}
 
 // ─────────────────────────────────────────────────────────
 // 우편함
@@ -36,6 +44,7 @@ export function mailScreen(ctx) {
                 h('div', { class: 'mail-meta' }, countdownEl(m.endAt)),
               ),
               m.rewards.gems > 0 && h('div', { class: 'mail-reward' }, gemIcon(), formatGems(m.rewards.gems)),
+              m.rewards.tickets > 0 && h('div', { class: 'mail-reward' }, ticketIcon(), formatGems(m.rewards.tickets)),
               h(
                 'button',
                 { class: ['btn', !claimed && 'btn-primary'], type: 'button', disabled: claimed, onclick: () => claimOne(m) },
@@ -48,25 +57,27 @@ export function mailScreen(ctx) {
       }
 
       function claimOne(m) {
-        const gems = claimMail(ctx.save, m);
-        if (gems || isClaimed(ctx.save, m.id)) {
+        const got = claimMail(ctx.save, m);
+        if (got) {
           ctx.commit();
-          toast(gems ? `보석 ${formatGems(gems)}개를 받았어요` : '우편을 받았어요', { type: 'success' });
+          toast(rewardText(got) ? `${rewardText(got)}를 받았어요` : '우편을 받았어요', { type: 'success' });
         }
         render();
       }
 
       function claimAll() {
-        let total = 0;
+        const total = { gems: 0, tickets: 0 };
         let n = 0;
         for (const m of activeMail(ctx.data.mail)) {
-          if (isClaimed(ctx.save, m.id)) continue;
-          total += claimMail(ctx.save, m);
+          const got = claimMail(ctx.save, m);
+          if (!got) continue;
+          total.gems += got.gems;
+          total.tickets += got.tickets;
           n++;
         }
         if (n) {
           ctx.commit();
-          toast(`우편 ${n}통 · 보석 ${formatGems(total)}개를 받았어요`, { type: 'success' });
+          toast(`우편 ${n}통${rewardText(total) ? ` · ${rewardText(total)}` : ''}를 받았어요`, { type: 'success' });
         }
         render();
       }

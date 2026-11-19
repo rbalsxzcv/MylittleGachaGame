@@ -1,0 +1,171 @@
+{
+  "id": "main_01_09",
+  "title": "묘지를 넘는 발걸음",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_misty_graveyard.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "음산한 녹색 안개가 깨진 비석과 파헤쳐진 무덤 사이를 무겁게 짓눌렀다."
+        },
+        {
+          "speaker": "r_garrick",
+          "text": "으, 썩은 살점 썩는 냄새…… 비위 상해서 아침에 먹은 귀리죽 올라오겠네."
+        },
+        {
+          "speaker": "ssr_valeria",
+          "text": "귀리죽이라도 먹었으면 양반이지. 난 며칠째 솔잎 씹으며 버텼다."
+        },
+        {
+          "speaker": "sr_1",
+          "text": "정숙. 묘지 바닥에 파헤쳐진 뼈. 최근에 뭔가가 갉아먹은 흔적."
+        },
+        {
+          "speaker": "narrator",
+          "text": "도굴꾼 짓이면 주머니부터 털었을 텐데, 뼛조각만 남았네. 들짐승인가?",
+          "name": "단장"
+        },
+        {
+          "speaker": "r_garrick",
+          "text": "들짐승치고는 발자국이 황소만 한데요?! 단장, 우리 길 잘못 든 거 아냐?"
+        }
+      ],
+      "next": "s2"
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_misty_graveyard.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "크르르르…… 안갯속에서 시뻘건 안광을 번뜩이는 역병 사냥개들이 솟아났다."
+        },
+        {
+          "speaker": "sr_1",
+          "text": "부패한 사냥개 여섯 마리. 침에서 독성 악취 감지. 물리면 산재 처리 요망."
+        },
+        {
+          "speaker": "narrator",
+          "text": "우리 용병단에 산재 보험 따윈 없다. 물리면 본인 과실로 치료비 공제야.",
+          "name": "단장"
+        },
+        {
+          "speaker": "ssr_valeria",
+          "text": "시끄럽다. 아까 약속한 삼시 세끼 고기 스튜, 거짓말 아니겠지?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "저 개새끼들 가죽이라도 벗겨 팔면 특식으로 베이컨도 얹어주지.",
+          "name": "단장"
+        },
+        {
+          "speaker": "ssr_valeria",
+          "text": "좋아. 수습 기간 첫 업무는 저 똥개놈들 도축이다!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "신입 실력 좀 구경해 볼까? 다들 고기방패 뒤에 바짝 붙어라!",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "발레리아, 저놈들 대가리부터 쪼개버려!",
+              "goto": "b1"
+            },
+            {
+              "text": "가죽 상하지 않게 급소만 찔러라!",
+              "goto": "b1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "st_01_09",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_misty_graveyard.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "콰아앙! 발레리아의 흉포한 대검질 한 방에 사냥개 두 마리가 피분수를 뿜었다."
+        },
+        {
+          "speaker": "ssr_valeria",
+          "text": "하아…… 뼛속까지 썩어 문드러진 놈들이 감히 누구 앞을 가로막아?!"
+        },
+        {
+          "speaker": "r_garrick",
+          "text": "히익?! 저 여편네 칼질 한 번에 멧돼지만 한 개가 반 토막 났잖아!"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "전방 적성 개체 전원 침묵. 대검 절단면 깔끔함. 가성비 극상."
+        },
+        {
+          "speaker": "narrator",
+          "text": "야, 감탄할 시간에 이빨이나 뽑아! 암시장에 연금술 재료로 넘겨야지.",
+          "name": "단장"
+        },
+        {
+          "speaker": "r_garrick",
+          "text": "아이고, 지독한 인간…… 알았어요, 펜치 가져올 테니까 내 몫도 떼줘요!"
+        }
+      ],
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_misty_graveyard.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "피비린내 나는 개 시체들을 뒤로하자, 묘지 끝자락 너머로 저택의 석벽이 드러났다."
+        },
+        {
+          "speaker": "sr_1",
+          "text": "목표 건물 시야 확보. 저택 서쪽 식자재 반입용 철문 발견."
+        },
+        {
+          "speaker": "ssr_valeria",
+          "text": "정문은 사병들이 바글거리더니, 뒷문은 쥐새끼 한 마리 안 보이는군."
+        },
+        {
+          "speaker": "narrator",
+          "text": "쥐새끼는 없어도 자물쇠는 달려 있겠지. 가린, 네 특기 발휘할 시간이다.",
+          "name": "단장"
+        },
+        {
+          "speaker": "r_garrick",
+          "text": "남의 집 문짝 따는 거야 내 전공이지만…… 안쪽에 경비병 있으면 어쩝니까?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "있으면 머리통 깨고 들어가야지. 자, 야근 수당 두둑하게 챙기러 가자.",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}

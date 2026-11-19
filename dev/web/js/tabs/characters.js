@@ -5,6 +5,7 @@ import { state, reloadData } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
 import { openPreview } from '../preview.js';
 import { promptStep } from '../promptStep.js';
+import { openCharBattleEditor } from '../battleEditor.js';
 
 export function charactersTab(root) {
   let activeJob = null; // 지금 검토 중인 작업
@@ -163,10 +164,19 @@ export function charactersTab(root) {
           'div',
           { class: `char-item r-${c.rarity}` },
           h('div', { class: 'thumb checker' }, c.image ? h('img', { src: wsImage(c.image), alt: '', onerror: (e) => e.target.remove() }) : h('span', {}, '그림 없음')),
-          h('div', { class: 'grow' }, h('b', {}, `${c.name} `), h('span', { class: `chip r-${c.rarity}` }, c.rarity), h('div', { class: 'muted small' }, `${c.id} · ${c.title || ''}`)),
+          h(
+            'div',
+            { class: 'grow' },
+            h('b', {}, `${c.name} `),
+            h('span', { class: `chip r-${c.rarity}` }, c.rarity),
+            ' ',
+            c.kit ? h('span', { class: 'chip ok', title: `돌파 능력 ${(c.breakthroughs || []).length}개` }, `전투 ✓ 돌파 ${(c.breakthroughs || []).length}`) : h('span', { class: 'chip warn' }, '기본 스킬'),
+            h('div', { class: 'muted small' }, `${c.id} · ${c.title || ''}`),
+          ),
           h(
             'div',
             { class: 'col-buttons' },
+            h('button', { class: 'btn small', onclick: () => openCharBattleEditor(c, { onSaved: renderList }) }, '전투 데이터'),
             h('button', { class: 'btn small', onclick: () => editChar(c) }, '정보 수정'),
             h('button', { class: 'btn small', onclick: () => setReplacing(c) }, '그림 교체'),
             h('button', { class: 'btn small danger-outline', onclick: () => deleteChar(c) }, '삭제'),

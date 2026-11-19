@@ -1,0 +1,272 @@
+[
+  {
+    "id": "st_01_04",
+    "name": "암시장 뒷골목 소탕",
+    "recommendedPower": 1200,
+    "waves": [
+      [
+        {
+          "enemyId": "en_scavenger",
+          "level": 4
+        },
+        {
+          "enemyId": "en_scavenger",
+          "level": 4
+        }
+      ],
+      [
+        {
+          "enemyId": "en_scavenger",
+          "level": 4
+        },
+        {
+          "enemyId": "en_scavenger",
+          "level": 4
+        },
+        {
+          "enemyId": "en_plague_hound",
+          "level": 4
+        }
+      ]
+    ],
+    "turnLimit": 20,
+    "rewards": {
+      "tickets": 55,
+      "gems": 0
+    },
+    "firstClearRewards": {
+      "tickets": 190,
+      "gems": 50
+    }
+  },
+  {
+    "id": "st_01_06",
+    "name": "비포장도로 매복전",
+    "recommendedPower": 1400,
+    "waves": [
+      [
+        {
+          "enemyId": "en_deserter_spear",
+          "level": 6
+        },
+        {
+          "enemyId": "en_deserter_spear",
+          "level": 6
+        }
+      ],
+      [
+        {
+          "enemyId": "en_deserter_spear",
+          "level": 6
+        },
+        {
+          "enemyId": "en_plague_hound",
+          "level": 6
+        },
+        {
+          "enemyId": "en_deserter_spear",
+          "level": 6
+        }
+      ]
+    ],
+    "turnLimit": 20,
+    "rewards": {
+      "tickets": 65,
+      "gems": 0
+    },
+    "firstClearRewards": {
+      "tickets": 210,
+      "gems": 50
+    }
+  },
+  {
+    "id": "st_01_08",
+    "name": "피 묻은 구출 계약",
+    "recommendedPower": 1800,
+    "waves": [
+      [
+        {
+          "enemyId": "en_scavenger",
+          "level": 8
+        },
+        {
+          "enemyId": "en_deserter_spear",
+          "level": 8
+        }
+      ],
+      [
+        {
+          "enemyId": "en_deserter_spear",
+          "level": 8
+        },
+        {
+          "enemyId": "en_deserter_spear",
+          "level": 8
+        },
+        {
+          "enemyId": "en_manor_guard",
+          "level": 9
+        }
+      ]
+    ],
+    "turnLimit": 20,
+    "rewards": {
+      "tickets": 75,
+      "gems": 0
+    },
+    "firstClearRewards": {
+      "tickets": 230,
+      "gems": 50
+    }
+  },
+  {
+    "id": "st_01_09",
+    "name": "폐묘지의 맹수들",
+    "recommendedPower": 1900,
+    "waves": [
+      [
+        {
+          "enemyId": "en_plague_hound",
+          "level": 9
+        },
+        {
+          "enemyId": "en_plague_hound",
+          "level": 9
+        },
+        {
+          "enemyId": "en_plague_hound",
+          "level": 9
+        }
+      ],
+      [
+        {
+          "enemyId": "en_plague_hound",
+          "level": 9
+        },
+        {
+          "enemyId": "en_deserter_spear",
+          "level": 9
+        },
+        {
+          "enemyId": "en_manor_guard",
+          "level": 10
+        }
+      ]
+    ],
+    "turnLimit": 20,
+    "rewards": {
+      "tickets": 80,
+      "gems": 0
+    },
+    "firstClearRewards": {
+      "tickets": 240,
+      "gems": 50
+    }
+  },
+  {
+    "id": "st_01_10",
+    "name": "저택 후문 돌파",
+    "recommendedPower": 2300,
+    "waves": [
+      [
+        {
+          "enemyId": "en_manor_guard",
+          "level": 11
+        },
+        {
+          "enemyId": "en_deserter_spear",
+          "level": 10
+        }
+      ],
+      [
+        {
+          "enemyId": "en_manor_guard",
+          "level": 11
+        },
+        {
+          "enemyId": "en_manor_guard",
+          "level": 11
+        },
+        {
+          "enemyId": "en_plague_hound",
+          "level": 10
+        }
+      ]
+    ],
+    "turnLimit": 20,
+    "rewards": {
+      "tickets": 85,
+      "gems": 0
+    },
+    "firstClearRewards": {
+      "tickets": 250,
+      "gems": 50
+    }
+  },
+  {
+    "id": "st_01_11",
+    "name": "연회장 진압 작전",
+    "recommendedPower": 2400,
+    "waves": [
+      [
+        {
+          "enemyId": "en_manor_guard",
+          "level": 12
+        },
+        {
+          "enemyId": "en_manor_guard",
+          "level": 12
+        }
+      ],
+      [
+        {
+          "enemyId": "en_manor_guard",
+          "level": 12
+        },
+        {
+          "enemyId": "en_deserter_spear",
+          "level": 11
+        },
+        {
+          "enemyId": "en_manor_guard",
+          "level": 12
+        }
+      ]
+    ],
+    "turnLimit": 20,
+    "rewards": {
+      "tickets": 90,
+      "gems": 0
+    },
+    "firstClearRewards": {
+      "tickets": 260,
+      "gems": 50
+    }
+  },
+  {
+    "id": "st_01_12",
+    "name": "영주 추심 결전",
+    "recommendedPower": 2600,
+    "waves": [
+      [
+        {
+          "enemyId": "en_manor_guard",
+          "level": 13
+        },
+        {
+          "enemyId": "en_boss_baron_hendrik",
+          "level": 15
+        }
+      ]
+    ],
+    "turnLimit": 25,
+    "rewards": {
+      "tickets": 95,
+      "gems": 0
+    },
+    "firstClearRewards": {
+      "tickets": 270,
+      "gems": 100
+    }
+  }
+]

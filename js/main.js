@@ -4,7 +4,7 @@ import { loadGameData } from './core/data.js';
 import { loadSave, writeSave, clearSave, createNewSave, usePreviewSaveKey } from './core/save.js';
 import { emit } from './core/events.js';
 import { now, parseDate, setNowOverride, isTimeShifted, formatKST } from './core/time.js';
-import { applyDailyLogin, addGems, DAILY_GEMS } from './systems/economy.js';
+import { applyDailyLogin, addGems, addTickets } from './systems/economy.js';
 import { syncKnownIds } from './systems/collection.js';
 import { buildPools, simulate } from './systems/gacha.js';
 import { activeBanners } from './systems/banners.js';
@@ -20,6 +20,13 @@ import { settingsScreen } from './ui/settingsView.js';
 import { storyListScreen } from './ui/storyListView.js';
 import { storyScreen } from './ui/storyView.js';
 import { mailScreen, noticesScreen, showStartupPopups } from './ui/inboxViews.js';
+import { growthScreen } from './ui/growthView.js';
+import { teamScreen } from './ui/teamView.js';
+import { unclaimedCount } from './systems/inbox.js';
+import { teamMembers } from './systems/teams.js';
+import { checkRegistry } from './battle/engine.js';
+import { simulate as simulateBattle } from './battle/sim.js';
+import { runSelfTest } from './battle/selftest.js';
 
 const $ = (id) => document.getElementById(id);
 const IS_LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
@@ -56,18 +63,33 @@ async function boot() {
     return !at || at <= t;
   });
   data.charMap = new Map(data.characters.map((c) => [c.id, c]));
+  data.enemyMap = new Map(data.enemies.map((e) => [e.id, e]));
+  data.stageMap = new Map(data.stages.map((s) => [s.id, s]));
+  if (data.vocab) {
+    const problems = checkRegistry(data.vocab);
+    if (problems.length) console.warn(`[battle] 용어집과 엔진 구현이 맞지 않아요: ${problems.join(' / ')}`);
+  }
 
-  const { save, isNew, corrupted } = loadSave();
-  if (isNew && opts.preview) save.gems = 100000;
+  // 세이브 옮기기/불러오기에 필요한 정보 (v1 중복 → 정수/티켓 환산)
+  const saveEnv = { rarityOf: (id) => data.allCharMap.get(id)?.rarity, balance: data.balance };
+  const { save, isNew, corrupted, migrated } = loadSave(saveEnv);
+  if (isNew && opts.preview) {
+    save.gems = 100000;
+    save.tickets = 100000;
+  }
   syncKnownIds(save, data.characters, isNew);
-  const dailyGems = isNew ? 0 : applyDailyLogin(save);
+  const daily = isNew ? null : applyDailyLogin(save, data.balance.dailyTickets);
 
   // 모든 화면이 공유하는 게임 상태(ctx)
   const ctx = {
     data,
     save,
+    /** 세이브 코드 불러오기용 */
+    saveEnv: () => saveEnv,
+    /** 마지막 전투 기록 (개발용 __tg.replay) */
+    lastBattle: null,
     /** 지금 진행 중인 배너 */
-    activeBanners: () => activeBanners(data.banners),
+    activeBanners: () => activeBanners(data.banners, data.characters),
 
     /** 세이브 저장 + 변경 알림 */
     commit() {
@@ -103,7 +125,12 @@ async function boot() {
   };
 
   // 화면 등록
-  const hud = initHud($('hud'), { getGems: () => ctx.save.gems, onBack: () => back() });
+  const HUD_LINKS = [
+    { id: 'mail', label: '우편', icon: '✉︎', key: 'M', onClick: () => go('mail'), dot: () => unclaimedCount(ctx.save, ctx.data.mail) > 0 },
+    { id: 'notices', label: '공지', icon: '!', key: 'N', onClick: () => go('notices') },
+    { id: 'settings', label: '설정', icon: '⚙︎', key: 'O', onClick: () => go('settings') },
+  ];
+  const hud = initHud($('hud'), { getSave: () => ctx.save, onBack: () => back(), links: HUD_LINKS });
   initRouter($('screen-layer'), (screen) => hud.update(screen), decorateScreen);
   registerScreen('home', homeScreen(ctx));
   registerScreen('gacha', gachaScreen(ctx));
@@ -114,6 +141,8 @@ async function boot() {
   registerScreen('story', storyScreen(ctx));
   registerScreen('mail', mailScreen(ctx));
   registerScreen('notices', noticesScreen(ctx));
+  registerScreen('growth', growthScreen(ctx));
+  registerScreen('team', teamScreen(ctx));
 
   ctx.commit();
   go('home');
@@ -123,7 +152,11 @@ async function boot() {
   if (isTimeShifted()) toast(`미리보기 시각: ${formatKST(now())} (KST)`, { duration: 4000 });
   if (corrupted) toast('세이브가 손상되어 새로 시작했어요', { type: 'error', duration: 4000 });
   if (isNew) toast('환영해요! 시작 선물로 보석 1,000개를 받았어요', { type: 'success', duration: 3500 });
-  if (dailyGems) toast(`오늘의 출석 보상: 보석 ${DAILY_GEMS}개`, { type: 'success', duration: 3500 });
+  if (daily) toast(`오늘의 출석 보상: 보석 ${daily.gems}개${daily.tickets ? ` · 티켓 ${daily.tickets}장` : ''}`, { type: 'success', duration: 3500 });
+  if (migrated) {
+    const parts = [migrated.essence && `정수 ${migrated.essence}개`, migrated.tickets && `티켓 ${migrated.tickets.toLocaleString('ko-KR')}장`].filter(Boolean);
+    toast(`새 육성 시스템! 중복 캐릭터가 ${parts.length ? parts.join(' · ') : '정수'}(으)로 바뀌었어요`, { type: 'success', duration: 5000 });
+  }
   if (!data.characters.length) toast('캐릭터 데이터를 불러오지 못했어요', { type: 'error', duration: 4000 });
 
   setupKeyboard(ctx);
@@ -133,7 +166,7 @@ async function boot() {
   if (opts.story) return go('story', { id: opts.story });
   if (opts.banner) {
     go('gacha', { bannerId: opts.banner });
-    const b = data.banners.find((x) => x.id === opts.banner);
+    const b = ctx.activeBanners().find((x) => x.id === opts.banner) || data.banners.find((x) => x.id === opts.banner);
     if (b) showBannerDetail(ctx, b);
     return;
   }
@@ -142,7 +175,7 @@ async function boot() {
 
 /** 키보드 단축키 (PC). 한글 입력 상태에서도 동작하도록 e.code 사용 */
 function setupKeyboard(ctx) {
-  const SHORTCUTS = { KeyG: 'gacha', KeyC: 'collection', KeyO: 'settings', KeyT: 'stories', KeyM: 'mail', KeyN: 'notices' };
+  const SHORTCUTS = { KeyG: 'gacha', KeyC: 'collection', KeyO: 'settings', KeyT: 'stories', KeyM: 'mail', KeyN: 'notices', KeyU: 'growth', KeyP: 'team' };
 
   document.addEventListener('keydown', (e) => {
     if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -191,7 +224,7 @@ function setupDevHelpers(ctx) {
     ctx,
     /** 확률 시뮬레이션 (세이브에 영향 없음). bannerId를 주면 그 배너 기준 */
     simulate: (n = 100000, bannerId) => {
-      const banner = ctx.data.banners.find((b) => b.id === bannerId) || ctx.activeBanners()[0];
+      const banner = ctx.activeBanners().find((b) => b.id === bannerId) || ctx.activeBanners()[0];
       return simulate(buildPools(ctx.data.characters, banner), n);
     },
     /** 테스트용 보석 추가 */
@@ -199,8 +232,32 @@ function setupDevHelpers(ctx) {
       addGems(ctx.save, n);
       ctx.commit();
     },
+    /** 테스트용 티켓 추가 */
+    addTickets: (n = 10000) => {
+      addTickets(ctx.save, n);
+      ctx.commit();
+    },
+    /** 지금 편성으로 스테이지 자동 전투 n판 (세이브 영향 없음) */
+    sim: (stageId, n = 200) => {
+      const stage = ctx.data.stageMap.get(stageId) || ctx.data.stages[0];
+      if (!stage) return console.warn('스테이지가 없어요');
+      const r = simulateBattle({ team: teamMembers(ctx), stage, data: ctx.data, runs: n });
+      console.log(`[${stage.id}] 승률 ${(r.winRate * 100).toFixed(1)}% · 평균 ${r.avgRounds}라운드 · 시간 초과 ${r.timeouts}`);
+      console.table(r.units);
+      return r;
+    },
+    /** 전투 엔진 자체 검사 */
+    battleTest: () => {
+      const stage = ctx.data.stages[0];
+      const team = teamMembers(ctx);
+      const r = runSelfTest(ctx.data.vocab, stage && team.some(Boolean) ? { team, stage, data: ctx.data } : {});
+      console.table(r.results);
+      return r.ok;
+    },
+    /** 마지막 전투의 시드와 행동 기록 */
+    replay: () => ctx.lastBattle,
   };
-  console.info('%c[Tiny Gacha] 개발 도우미: __tg.simulate(100000[, 배너id]), __tg.addGems(10000)', 'color:#a970ff');
+  console.info('%c[Tiny Gacha] 개발 도우미: __tg.simulate(100000[, 배너id]), __tg.addGems(10000), __tg.addTickets(10000), __tg.sim(스테이지id), __tg.battleTest()', 'color:#a970ff');
 }
 
 boot().catch((e) => {

@@ -88,16 +88,22 @@ export function inboxTab(root, { select } = {}) {
     key: 'mail',
     title: '우편 (선물)',
     blank: () => ({ id: `mail_${Date.now().toString(36)}`, title: '', body: '', rewards: { gems: 300 }, startAt: nowIso(), endAt: null }),
-    summary: (m) => `보석 ${m.rewards?.gems ?? 0} · ${fmt(m.startAt)} ~ ${fmt(m.endAt)}`,
+    summary: (m) => `보석 ${m.rewards?.gems ?? 0}${m.rewards?.tickets ? ` · 티켓 ${m.rewards.tickets}` : ''} · ${fmt(m.startAt)} ~ ${fmt(m.endAt)}`,
     fields: (v) => {
       const title = h('input', { value: v.title });
       const body = h('textarea', { rows: 3 }, v.body || '');
       const gems = h('input', { type: 'number', min: 0, step: 50, value: v.rewards?.gems ?? 0 });
+      const tickets = h('input', { type: 'number', min: 0, step: 10, value: v.rewards?.tickets ?? 0 });
       const start = dateField('받기 시작', v.startAt);
       const end = dateField('받기 마감', v.endAt);
       return {
-        el: h('div', {}, h('label', { class: 'field' }, '제목', title), h('label', { class: 'field' }, '내용', body), h('label', { class: 'field' }, '보상 보석', gems), h('div', { class: 'grid2' }, start.el, end.el), h('p', { class: 'muted small' }, '한 사람이 한 번만 받을 수 있어요 (id 기준). 이미 공개한 우편의 id를 바꾸면 다시 받을 수 있게 되니 주의!')),
-        get: () => ({ title: title.value, body: body.value, rewards: { gems: Math.max(0, parseInt(gems.value, 10) || 0) }, startAt: start.get(), endAt: end.get() }),
+        el: h('div', {}, h('label', { class: 'field' }, '제목', title), h('label', { class: 'field' }, '내용', body), h('div', { class: 'grid2' }, h('label', { class: 'field' }, '보상 보석', gems), h('label', { class: 'field' }, '보상 티켓 (레벨업 재료)', tickets)), h('div', { class: 'grid2' }, start.el, end.el), h('p', { class: 'muted small' }, '한 사람이 한 번만 받을 수 있어요 (id 기준). 이미 공개한 우편의 id를 바꾸면 다시 받을 수 있게 되니 주의!')),
+        get: () => {
+          const rewards = { gems: Math.max(0, parseInt(gems.value, 10) || 0) };
+          const t = Math.max(0, parseInt(tickets.value, 10) || 0);
+          if (t) rewards.tickets = t;
+          return { title: title.value, body: body.value, rewards, startAt: start.get(), endAt: end.get() };
+        },
       };
     },
   });

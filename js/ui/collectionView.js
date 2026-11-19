@@ -5,6 +5,7 @@ import { toast } from './toast.js';
 import { charCard, charArt, rarityBadge, starRow } from './charCard.js';
 import { isOwned, isMarkedNew, markSeen, sortCharacters, ownedCount } from '../systems/collection.js';
 import { formatKST } from '../core/time.js';
+import { charPower } from '../systems/progression.js';
 
 const FILTERS = [
   { id: 'all', label: '전체' },
@@ -21,7 +22,8 @@ export function collectionScreen(ctx) {
   return {
     title: '도감',
     mount(el) {
-      const { characters } = ctx.data;
+      // 스토리 전용 인물(pullable: false)은 도감에 없음
+      const characters = ctx.data.characters.filter((c) => c.pullable !== false);
       const grid = h('div', { class: 'collection-grid' });
       const tabs = h(
         'div',
@@ -61,7 +63,7 @@ export function collectionScreen(ctx) {
             const isNew = isMarkedNew(ctx.save, c.id);
             return charCard(c, {
               owned: !!entry,
-              stars: entry?.stars ?? 0,
+              stars: entry?.breakthrough ?? 0,
               badge: isNew ? 'NEW' : null,
               badgeClass: 'badge-new',
               onClick: () => openDetail(c),
@@ -90,7 +92,7 @@ export function collectionScreen(ctx) {
           h(
             'div',
             { class: 'detail-info' },
-            h('div', { class: 'detail-top' }, rarityBadge(c.rarity), owned && starRow(entry.stars)),
+            h('div', { class: 'detail-top' }, rarityBadge(c.rarity), owned && starRow(entry.breakthrough)),
             h('div', { class: 'detail-title' }, owned ? c.title : '아직 만나지 못한 동료'),
             h('div', { class: 'detail-name' }, owned ? c.name : '???'),
             h('p', { class: 'detail-desc' }, owned ? c.description || '소개가 아직 없어요.' : '뽑기에서 만나보세요.'),
@@ -98,6 +100,10 @@ export function collectionScreen(ctx) {
               h(
                 'dl',
                 { class: 'detail-meta' },
+                h('dt', {}, '레벨'),
+                h('dd', {}, `Lv.${entry.level} · 돌파 ${entry.breakthrough} · 정수 ${entry.essence}`),
+                h('dt', {}, '전투력'),
+                h('dd', {}, charPower(c, entry, ctx.data.balance).toLocaleString('ko-KR')),
                 h('dt', {}, '획득 횟수'),
                 h('dd', {}, `${entry.count}회`),
                 h('dt', {}, '처음 만난 날'),

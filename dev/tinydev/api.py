@@ -5,12 +5,14 @@
 - 데이터를 바꾸는 요청(POST/PUT/DELETE)은 'X-Tiny-Dev: 1' 헤더가 있어야 함
   → 다른 웹사이트가 몰래 이 서버에 요청을 보내 파일을 바꾸거나 git push 하는 것 방지
 """
+import base64
+import io
 import json
 from pathlib import Path
 
 from flask import Flask, abort, jsonify, redirect, request, send_from_directory
 
-from . import batch, comfy, config, cutout, genai, imaging, jobs, prompts, publish, settings, store, uislots
+from . import batch, bible, comfy, pack, config, cutout, genai, imaging, jobs, kit, prompts, publish, settings, store, uislots
 from .genai import GenError
 from .timeutil import now_iso, parse
 
@@ -190,12 +192,70 @@ def _check_list(items, label):
 
 @app.put("/api/list/<key>")
 def save_list(key):
-    """배너/공지/우편/스토리 목록 전체 저장"""
-    if key not in ("banners", "notices", "mail", "storyIndex"):
+    """배너/공지/우편/스토리/적/스테이지 목록 전체 저장 (적은 전투 데이터 오류가 있으면 거부)"""
+    if key not in ("banners", "notices", "mail", "storyIndex", "enemies", "stages"):
         abort(404)
     items = _check_list(request.get_json(silent=True), key)
+    if key == "enemies":
+        errors = [i for e in items for i in kit.battle_issues(e, enemy=True) if i["level"] == "error"]
+        if errors:
+            return jsonify(error="전투 데이터에 오류가 있어요", issues=errors), 400
     store.write_list(key, items)
     return jsonify(ok=True, count=len(items))
+
+
+@app.get("/api/balance")
+def balance_get():
+    return jsonify(store.read_balance())
+
+
+@app.put("/api/balance")
+def balance_put():
+    data = body()
+    from . import validate as _v
+
+    # 검사기의 밸런스 부분만 쓰려고 빈 콘텐츠와 함께 돌림
+    report = _v.validate({"characters": [], "banners": [], "storyIndex": [], "notices": [], "mail": [], "balance": data, "ui": {}}, lambda _p: True)
+    errors = [i for i in report.items if i["level"] == "error" and i["where"].startswith("balance")]
+    if errors:
+        return jsonify(error="밸런스 값에 오류가 있어요", issues=errors), 400
+    store.write_balance(data)
+    return jsonify(ok=True)
+
+
+@app.post("/api/assets/upload")
+def asset_upload():
+    """그림 올리기 (적 그림 등): dataURL → PNG, 긴 변 512px로 줄여 assets/<dir>/<name>.png"""
+    data = body()
+    sub = data.get("dir")
+    if sub not in ("enemies",):
+        raise ValueError("이 폴더에는 올릴 수 없어요")
+    name = data.get("name")
+    if not store.valid_id(name):
+        raise ValueError("파일 이름은 영문/숫자/_/- 로 지어 주세요")
+    raw = str(data.get("data") or "")
+    if "," in raw:
+        raw = raw.split(",", 1)[1]
+    try:
+        blob = base64.b64decode(raw, validate=True)
+    except ValueError as e:
+        raise ValueError("그림 데이터를 읽지 못했어요") from e
+    if len(blob) > 15 * 1024 * 1024:
+        raise ValueError("그림이 너무 커요 (15MB 이하)")
+    from PIL import Image
+
+    try:
+        img = Image.open(io.BytesIO(blob))
+        img.load()
+    except Exception as e:  # noqa: BLE001 — 어떤 형식 오류든 사용자에게 같은 안내
+        raise ValueError("PNG/JPEG/WebP 그림만 올릴 수 있어요") from e
+    img = img.convert("RGBA")
+    img.thumbnail((config.CHAR_LONG_SIDE, config.CHAR_LONG_SIDE))
+    rel = f"assets/{sub}/{name}.png"
+    dest = config.WORKSPACE / rel
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    img.save(dest, "PNG")
+    return jsonify(path=rel)
 
 
 # ─────────────────────────────────────────────────────────
@@ -345,6 +405,10 @@ def char_approve():
         "image": rel,
         "addedAt": added or (existing or {}).get("addedAt") or now_iso(),
     }
+    # 그림 교체: 전투 데이터(능력치/스킬/돌파)는 그대로 둠
+    for k in ("stats", "kit", "breakthroughs"):
+        if existing and k in existing:
+            entry[k] = existing[k]
     if existing:
         chars[chars.index(existing)] = entry
     else:
@@ -400,6 +464,92 @@ def char_update(cid):
 @app.get("/api/characters/<cid>/refs")
 def char_refs(cid):
     return jsonify(_char_refs(cid))
+
+
+# ─────────────────────────────────────────────────────────
+# 전투 데이터 (능력치 / 스킬 / 돌파) + AI 초안
+# ─────────────────────────────────────────────────────────
+def _battle_part(data):
+    """요청에서 전투 필드만 꺼냄 (빈 stats는 지움 → 희귀도 기본값)"""
+    out = {}
+    if isinstance(data.get("stats"), dict) and data["stats"]:
+        out["stats"] = data["stats"]
+    if isinstance(data.get("kit"), dict):
+        out["kit"] = data["kit"]
+    if isinstance(data.get("breakthroughs"), list):
+        out["breakthroughs"] = data["breakthroughs"]
+    return out
+
+
+@app.put("/api/characters/<cid>/battle")
+def char_battle_put(cid):
+    """캐릭터 전투 데이터 저장. 검사 오류가 있으면 저장하지 않음 (경고는 저장 후 함께 돌려줌)"""
+    data = body()
+    chars = store.read_list("characters")
+    existing = next((x for x in chars if x.get("id") == cid), None)
+    if not existing:
+        raise FileNotFoundError("캐릭터가 없어요")
+    part = _battle_part(data)
+    issues = kit.battle_issues({"id": cid, **part})
+    errors = [i for i in issues if i["level"] == "error"]
+    if errors:
+        return jsonify(error=f"전투 데이터 오류 {len(errors)}개", issues=errors), 400
+    for k in ("stats", "kit", "breakthroughs"):
+        existing.pop(k, None)
+    existing.update(part)
+    store.write_list("characters", chars)
+    return jsonify(character=existing, issues=issues)
+
+
+@app.post("/api/battle/check")
+def battle_check():
+    """저장하지 않고 검사만 (폼 편집 중 확인용)"""
+    data = body()
+    return jsonify(issues=kit.battle_issues({"id": data.get("id") or "?", **_battle_part(data), **({"passives": data["passives"]} if isinstance(data.get("passives"), list) else {})}, enemy=bool(data.get("enemy"))))
+
+
+def _clean_kit_draft(raw):
+    if not isinstance(raw, dict):
+        raise GenError("AI 초안 형식이 잘못됐어요 (객체가 아님)")
+    out = _battle_part(raw)
+    if "kit" not in out:
+        raise GenError("AI 초안에 kit이 없어요")
+    out.setdefault("breakthroughs", [])
+    return out
+
+
+@app.post("/api/char/kit-draft")
+def char_kit_draft():
+    """설정 + 희귀도 → Gemini가 스킬 3개 + 돌파 5개 제안. 검사 오류가 있으면 한 번 더 고쳐 쓰게 함"""
+    data = body()
+    rarity = data.get("rarity")
+    if rarity not in ("R", "SR", "SSR"):
+        raise ValueError("희귀도를 골라 주세요")
+    cid = data.get("charId") if store.valid_id(data.get("charId")) else None
+    inp = {
+        "name": text(data, "name", 40, required=True, label="이름"),
+        "rarity": rarity,
+        "title": text(data, "title", 60),
+        "lore": text(data, "lore", 2000),
+        "feedback": text(data, "feedback", 1000),
+        "previous": data.get("previous") if isinstance(data.get("previous"), dict) else None,
+    }
+    vocab = kit.load_vocab()
+    examples = [c for c in store.read_list("characters") if c.get("kit") and c.get("breakthroughs") and c.get("id") != cid]
+    examples.sort(key=lambda c: c.get("rarity") != rarity)
+    rarity_stats = (store.read_balance().get("rarityStats") or {})
+    retried = False
+    errors = None
+    for attempt in range(2):
+        prompt = prompts.kit_draft(inp, vocab, examples[:2], rarity_stats, errors)
+        raw = genai.generate_text(prompt, json_mode=True, mock=lambda: prompts.mock_kit(inp))
+        draft = _clean_kit_draft(genai.parse_json_text(raw))
+        issues = kit.battle_issues({"id": cid or "draft", **draft})
+        errors = [i for i in issues if i["level"] == "error"]
+        if not errors or genai.is_mock():
+            break
+        retried = True
+    return jsonify(draft=draft, issues=issues, retried=retried)
 
 
 @app.delete("/api/characters/<cid>")
@@ -537,6 +687,21 @@ def batch_apply():
 # ─────────────────────────────────────────────────────────
 # 스토리
 # ─────────────────────────────────────────────────────────
+@app.get("/api/stages/<sid>/refs")
+def stage_refs(sid):
+    """이 스테이지를 전투 장면으로 쓰는 스토리"""
+    out = []
+    for s in store.read_list("storyIndex"):
+        try:
+            story = store.read_story(s["id"]) or {}
+        except (store.JsonError, ValueError):
+            continue
+        for sc in story.get("scenes") or []:
+            if isinstance(sc, dict) and sc.get("type") == "battle" and sc.get("stageId") == sid:
+                out.append({"storyId": s["id"], "title": s.get("title"), "sceneId": sc.get("id")})
+    return jsonify(out)
+
+
 @app.get("/api/stories/<sid>")
 def story_get(sid):
     story = store.read_story(sid)
@@ -560,11 +725,12 @@ def story_delete(sid):
     index = [s for s in store.read_list("storyIndex") if s.get("id") != sid]
     store.write_list("storyIndex", index)
     store.move_to_trash(store.story_path(sid))
+    bible.remove_chapter(sid)
     return jsonify(ok=True)
 
 
-def clean_draft(draft, allowed):
-    """AI 초안 정리: 모르는 화자는 narrator로, 장면 id/이동 대상 정리"""
+def clean_draft(draft, allowed, stage_ids=(), bg_names=()):
+    """AI 초안 정리: 모르는 화자는 narrator(이름 표시 유지)로, 장면 id/이동 대상/전투 장면/배경 이름 정리"""
     if not isinstance(draft, dict) or not isinstance(draft.get("scenes"), list):
         raise GenError("AI 초안 형식이 잘못됐어요 (scenes 없음)")
     warnings = []
@@ -577,22 +743,42 @@ def clean_draft(draft, allowed):
         while sid in used:
             sid = f"{sid}_{i + 1}"
         used.add(sid)
+        if sc.get("type") == "battle":
+            if sc.get("stageId") in stage_ids:
+                scene = {"id": sid, "type": "battle", "stageId": sc["stageId"]}
+                if isinstance(sc.get("next"), str) and sc["next"]:
+                    scene["next"] = sc["next"]
+                scenes.append(scene)
+            else:
+                warnings.append(f"없는 스테이지 '{sc.get('stageId')}'의 전투 장면을 뺐어요")
+            continue
         bg = sc.get("background") if isinstance(sc.get("background"), dict) else {}
-        color = bg.get("value") if bg.get("type") == "color" and isinstance(bg.get("value"), str) else "#1b1440"
+        palette = ["#1b1440", "#2a2152", "#33264f", "#24304a", "#2b1f3a"]
+        if bg.get("type") == "bg" and bg.get("name") in bg_names:
+            # 설정집 배경 → 그림 경로 (그림이 생기기 전에는 색으로 보임)
+            background = {"type": "image", "value": f"assets/bg/{bg['name']}.jpg", "color": palette[i % len(palette)]}
+        else:
+            if bg.get("type") == "bg":
+                warnings.append(f"장면 {sid}: 모르는 배경 '{bg.get('name')}' → 색 배경")
+            color = bg.get("value") if bg.get("type") == "color" and isinstance(bg.get("value"), str) else palette[i % len(palette)]
+            background = {"type": "color", "value": color}
         lines = []
         for ln in sc.get("lines") or []:
             if not isinstance(ln, dict) or not isinstance(ln.get("text"), str):
                 continue
             sp = ln.get("speaker") if isinstance(ln.get("speaker"), str) else "narrator"
             line = {"speaker": sp, "text": ln["text"].strip()}
+            name = ln.get("name").strip()[:20] if isinstance(ln.get("name"), str) and ln["name"].strip() else ""
             if sp != "narrator" and sp not in allowed:
-                warnings.append(f"알 수 없는 화자 '{sp}' → narrator로 바꿈 (이름 표시는 유지)")
-                line = {"speaker": "narrator", "name": sp, "text": ln["text"].strip()}
+                warnings.append(f"목록에 없는 화자 '{sp}' → 지문 + 이름 표시로 바꿈")
+                line = {"speaker": "narrator", "name": name or sp, "text": ln["text"].strip()}
+            elif name:
+                line["name"] = name
             choices = [{"text": str(c.get("text", "")).strip(), "goto": str(c.get("goto") or "")} for c in (ln.get("choices") or []) if isinstance(c, dict)]
             if choices:
                 line["choices"] = choices[:2]
             lines.append(line)
-        scene = {"id": sid, "background": {"type": "color", "value": color}, "lines": lines}
+        scene = {"id": sid, "background": background, "lines": lines}
         if isinstance(sc.get("next"), str) and sc["next"]:
             scene["next"] = sc["next"]
         scenes.append(scene)
@@ -601,31 +787,220 @@ def clean_draft(draft, allowed):
         if s.get("next") and s["next"] not in ids:
             warnings.append(f"장면 {s['id']}의 next '{s['next']}'가 없어서 지움")
             s.pop("next")
-        for ln in s["lines"]:
+        for ln in s.get("lines", []):
             for c in ln.get("choices", []):
                 if c["goto"] and c["goto"] not in ids:
                     warnings.append(f"선택지 '{c['text']}'의 이동 장면 '{c['goto']}'가 없어서 비움")
                     c["goto"] = ""
-    if not scenes:
-        raise GenError("AI 초안에 장면이 없어요")
-    return {"title": str(draft.get("title") or "").strip(), "scenes": scenes}, warnings
+    if not any(s.get("lines") for s in scenes):
+        raise GenError("AI 초안에 대사가 없어요")
+    out = {"title": str(draft.get("title") or "").strip()[:60], "scenes": scenes}
+    for key, limit in (("summary", 80), ("recap", bible.RECAP_LIMIT)):
+        if isinstance(draft.get(key), str) and draft[key].strip():
+            out[key] = draft[key].strip()[:limit]
+    return out, warnings
+
+
+# ── 스토리 설정집 (세계관 / 장별 개요·요약) ──
+@app.get("/api/story-bible")
+def story_bible_get():
+    return jsonify(bible.load())
+
+
+@app.put("/api/story-bible")
+def story_bible_put():
+    data = body()
+    b = bible.set_world(text(data, "world", bible.WORLD_LIMIT), text(data, "style", bible.STYLE_LIMIT))
+    return jsonify(b)
+
+
+@app.put("/api/story-bible/chapters/<sid>")
+def story_bible_chapter_put(sid):
+    data = body()
+    ch = bible.set_chapter(
+        sid,
+        outline=text(data, "outline", bible.OUTLINE_LIMIT) if "outline" in data else None,
+        recap=text(data, "recap", bible.RECAP_LIMIT) if "recap" in data else None,
+    )
+    return jsonify(ch)
+
+
+def _story_group(meta):
+    """같은 묶음(종류 + 캐릭터 스토리면 같은 캐릭터)에서 이 장보다 앞선 장들 (장 순서)"""
+    kind, cid, ch, sid = meta.get("kind", "main"), meta.get("characterId"), int(meta.get("chapter") or 1), meta.get("id")
+    group = [s for s in store.read_list("storyIndex") if s.get("kind") == kind and (kind != "character" or s.get("characterId") == cid) and s.get("id") != sid and int(s.get("chapter") or 0) < ch]
+    return sorted(group, key=lambda s: int(s.get("chapter") or 0))
+
+
+def _names():
+    return {c["id"]: c.get("name", c["id"]) for c in store.read_list("characters")}
+
+
+def _stage_names():
+    return {s["id"]: s.get("name", s["id"]) for s in store.read_list("stages") if isinstance(s, dict) and "id" in s}
+
+
+def _make_recap(sid, title, story_body, world):
+    script = prompts.script_text(story_body, _names(), _stage_names(), limit=12000)
+    if not script.strip():
+        return ""
+    recap = genai.generate_text(prompts.recap_prompt(world, title, script), mock=lambda: prompts.mock_recap(title, script)).strip()
+    bible.set_chapter(sid, recap=recap)
+    return recap
+
+
+def _recap_stale(sid, entry):
+    """요약 시각보다 대본 파일이 나중에 바뀌었는지"""
+    at = parse(entry.get("recapAt") or "")
+    path = store.story_path(sid)
+    return bool(at and path.exists() and path.stat().st_mtime > at.timestamp() + 2)
+
+
+@app.post("/api/stories/<sid>/recap")
+def story_recap(sid):
+    """지금 저장된 대본(또는 보낸 scenes)을 요약해서 설정집에 저장"""
+    data = request.get_json(silent=True) or {}
+    story = {"scenes": data["scenes"]} if isinstance(data.get("scenes"), list) else (store.read_story(sid) or {})
+    meta = next((s for s in store.read_list("storyIndex") if s.get("id") == sid), {})
+    recap = _make_recap(sid, text(data, "title", 60) or meta.get("title", sid), story, bible.load()["world"])
+    if not recap:
+        raise ValueError("요약할 대사가 없어요")
+    return jsonify(recap=recap)
+
+
+def draft_chapter(meta, outline, length="auto", character_ids=(), allow_battles=False, feedback="", previous=None, pack=None, required_stage=None):
+    """장 개요 → 대본 (챕터 팩 생성에서도 씀). 반환: (draft, warnings, context)"""
+    meta = {
+        "id": meta.get("id") if store.valid_id(meta.get("id")) else None,
+        "kind": meta.get("kind") if meta.get("kind") in ("main", "character", "event") else "main",
+        "chapter": max(1, int(meta.get("chapter") or 1)),
+        "title": str(meta.get("title") or "")[:60],
+        "characterId": meta.get("characterId") if store.valid_id(meta.get("characterId")) else None,
+    }
+    length = length if length in prompts.STORY_LENGTH else "auto"
+    chars_all = {c["id"]: c for c in store.read_list("characters")}
+    picked = [i for i in character_ids or [] if i in chars_all]
+    chars = [chars_all[i] for i in picked] if picked else list(chars_all.values())
+    b = bible.load()
+
+    # 앞 장들: 요약이 없으면 대본에서 먼저 만들어 둠 (최대 8개까지 한 번에)
+    prev, made = [], 0
+    group = _story_group(meta)
+    for s in group:
+        entry = b["chapters"].get(s["id"]) or {}
+        recap = entry.get("recap", "")
+        if recap and _recap_stale(s["id"], entry):
+            recap = ""  # 요약을 만든 뒤에 대본을 고쳤음 → 다시 요약
+        if not recap and made < 8:
+            try:
+                recap = _make_recap(s["id"], s.get("title", s["id"]), store.read_story(s["id"]) or {}, b["world"])
+                made += 1
+            except (store.JsonError, ValueError):
+                recap = ""
+        prev.append({"id": s["id"], "chapter": s.get("chapter"), "title": s.get("title", s["id"]), "recap": recap})
+    prev_script = ""
+    if group:
+        try:
+            prev_script = prompts.script_text(store.read_story(group[-1]["id"]) or {}, _names(), _stage_names())
+        except (store.JsonError, ValueError):
+            prev_script = ""
+
+    stages = [{"id": k, "name": v} for k, v in _stage_names().items()] if allow_battles else []
+    backgrounds = [{"name": k, "label": v.get("label") or k} for k, v in sorted(b["backgrounds"].items())]
+    ctx = {
+        "meta": meta,
+        "outline": outline,
+        "world": b["world"],
+        "style": b["style"],
+        "prev": prev,
+        "prev_script": prev_script,
+        "chars": chars,
+        "length": length,
+        "stages": stages,
+        "backgrounds": backgrounds,
+        "pack": pack,
+        "required_stage": required_stage,
+        "feedback": feedback or "",
+        "previous": previous if isinstance(previous, dict) else None,
+    }
+    raw = genai.generate_text(prompts.chapter_draft(ctx), json_mode=True, mock=lambda: prompts.mock_chapter(ctx))
+    stage_ids = {s["id"] for s in stages} | ({required_stage["id"]} if required_stage else set())
+    draft, warnings = clean_draft(genai.parse_json_text(raw), set(chars_all), stage_ids, {x["name"] for x in backgrounds})
+    if required_stage and not any(sc.get("type") == "battle" and sc.get("stageId") == required_stage["id"] for sc in draft["scenes"]):
+        # AI가 전투를 빠뜨리면 마지막 장면 앞에 넣음
+        draft["scenes"].insert(max(0, len(draft["scenes"]) - 1), {"id": "b1" if not any(x["id"] == "b1" for x in draft["scenes"]) else "battle_1", "type": "battle", "stageId": required_stage["id"]})
+        warnings.append("AI가 전투 장면을 빠뜨려서 마지막 장면 앞에 넣었어요")
+    if meta["id"]:
+        bible.set_chapter(meta["id"], outline=outline)
+    context = {
+        "world": bool(b["world"].strip()),
+        "style": bool(b["style"].strip()),
+        "previous": [{"id": p["id"], "chapter": p["chapter"], "title": p["title"], "hasRecap": bool(p["recap"])} for p in prev],
+        "previousScript": group[-1]["id"] if group and prev_script else None,
+        "recapsMade": made,
+    }
+    return draft, warnings, context
 
 
 @app.post("/api/stories/draft")
 def story_draft():
-    """AI 초안: 개요 + 등장 캐릭터 설명으로 스토리 생성 (거절 시 피드백과 이전 초안을 넣어 다시 쓰기)"""
+    """장 개요 → 대본. 세계관 + 앞 장 요약(없으면 먼저 만듦) + 직전 장 대본을 함께 읽고 이어 씀.
+    거절하면 수정 요청 + 이전 초안을 넣어 다시 씀"""
     data = body()
-    meta = data.get("meta") or {}
-    outline = text(data, "outline", 3000, required=True, label="줄거리 개요")
-    count = max(1, min(8, int(data.get("sceneCount") or 3)))
-    chars_all = {c["id"]: c for c in store.read_list("characters")}
-    chars = [chars_all[i] for i in data.get("characterIds") or [] if i in chars_all]
-    feedback = text(data, "feedback", 1500)
-    previous = data.get("previous") if isinstance(data.get("previous"), dict) else None
-    prompt = prompts.story_draft(meta, outline, chars, count, feedback, previous)
-    raw = genai.generate_text(prompt, json_mode=True, mock=lambda: prompts.mock_story(meta, outline, chars, count, feedback))
-    draft, warnings = clean_draft(genai.parse_json_text(raw), set(chars_all))
-    return jsonify(draft=draft, warnings=warnings)
+    draft, warnings, context = draft_chapter(
+        data.get("meta") or {},
+        text(data, "outline", bible.OUTLINE_LIMIT, required=True, label="이번 장 개요"),
+        length=data.get("length"),
+        character_ids=data.get("characterIds") or [],
+        allow_battles=bool(data.get("allowBattles")),
+        feedback=text(data, "feedback", 1500),
+        previous=data.get("previous"),
+    )
+    return jsonify(draft=draft, warnings=warnings, context=context)
+
+
+# ─────────────────────────────────────────────────────────
+# 챕터 팩 (챕터 12장 + 캐릭터 + 배경 + 적 + 스테이지)
+# ─────────────────────────────────────────────────────────
+@app.get("/api/pack")
+def pack_state():
+    return jsonify(pack=pack.snapshot(), nextArc=pack.next_arc(), saved=bible.load()["packs"])
+
+
+@app.post("/api/pack/plan")
+def pack_plan():
+    """챕터 개요 → 구성안 (거절하면 수정 요청 + 이전 구성안으로 다시)"""
+    data = body()
+    arc = int(data.get("arc") or pack.next_arc())
+    if arc < 1 or arc > 999:
+        raise ValueError("챕터 번호는 1~999")
+    plan, warnings = pack.make_plan(
+        text(data, "outline", 6000, required=True, label="챕터 개요"),
+        arc,
+        feedback=text(data, "feedback", 2000),
+        previous=data.get("previous") if isinstance(data.get("previous"), dict) else None,
+    )
+    return jsonify(plan=plan, warnings=warnings)
+
+
+@app.post("/api/pack/start")
+def pack_start():
+    data = body()
+    plan = data.get("plan")
+    if not isinstance(plan, dict):
+        raise ValueError("구성안이 필요해요")
+    opts = data.get("options") if isinstance(data.get("options"), dict) else {}
+    options = {
+        "length": opts.get("length") if opts.get("length") in prompts.STORY_LENGTH else "auto",
+        "autoBackgrounds": bool(opts.get("autoBackgrounds")),
+        "overwrite": bool(opts.get("overwrite")),
+    }
+    return jsonify(pack=pack.start(plan, options))
+
+
+@app.post("/api/pack/cancel")
+def pack_cancel():
+    return jsonify(pack=pack.cancel())
 
 
 # ─────────────────────────────────────────────────────────

@@ -2,7 +2,7 @@
 import { api } from './api.js';
 
 export const state = {
-  data: { characters: [], banners: [], storyIndex: [], notices: [], mail: [], version: { contentVersion: 0 }, errors: {} },
+  data: { characters: [], banners: [], storyIndex: [], notices: [], mail: [], enemies: [], stages: [], balance: {}, version: { contentVersion: 0 }, errors: {} },
   status: null,
   settings: null, // 그림 엔진, ComfyUI 설정 (dev/settings.json)
 };
@@ -24,7 +24,7 @@ export async function reloadStatus() {
 
 export const charById = (id) => state.data.characters.find((c) => c.id === id);
 
-/** 목록 저장 (banners / notices / mail / storyIndex) */
+/** 목록 저장 (banners / notices / mail / storyIndex / enemies / stages) */
 export async function saveList(key, items) {
   await api.put(`/api/list/${key}`, items);
   state.data[key] = items;

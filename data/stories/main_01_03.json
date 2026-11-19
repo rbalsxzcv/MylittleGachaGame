@@ -1,0 +1,198 @@
+{
+  "id": "main_01_03",
+  "title": "환불은 피로 받는다",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "서릿발 같은 칼날이 순식간에 단장의 목젖 바로 앞을 파고들었다."
+        },
+        {
+          "speaker": "sr_1",
+          "text": "“환불 불가. 규정상 선금은 계약 파기 시 위약금으로 귀속.”"
+        },
+        {
+          "speaker": "narrator",
+          "text": "“야, 목에 칼침 놓으면서 약관 조항 읊는 도적이 어디 있어?”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 찔끔 배어 나오는 핏방울 따윈 신경도 쓰지 않고 혀를 찼다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“그리고 계약 파기는 내가 아니라 고용주가 친 뒤통수거든?”",
+          "name": "단장"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "“원수 갚는 일엔 흥미 없어. 피 냄새 나고, 세탁비만 깨져.”"
+        },
+        {
+          "speaker": "narrator",
+          "text": "“복수? 내가 그딴 영양가 없는 짓에 야근 수당을 쓸 놈으로 보여?”",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "칼날을 손가락으로 튕기며 장부를 펼친다.",
+              "goto": "s2"
+            },
+            {
+              "text": "시논의 머리를 덥석 쓰다듬는다.",
+              "goto": "s3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "챙, 하는 경쾌한 금속음과 함께 단장이 시논의 단검을 튕겨냈다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“계약 변경이다. 사기 친 놈들 털어서 잔금 세 배로 쳐준다.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "“……세 배?”"
+        },
+        {
+          "speaker": "narrator",
+          "text": "시논의 메마른 눈동자에 아주 미세한 동요가 일었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "그녀는 천천히 칼날끝을 내리며 숟가락을 내려놓았다."
+        }
+      ],
+      "next": "s4"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "단장이 뻔뻔하게 손을 뻗어 시논의 헝클어진 머리통을 벅벅 문질렀다."
+        },
+        {
+          "speaker": "sr_1",
+          "text": "“……힉?! 뭐, 뭐 하는 짓이야?!”"
+        },
+        {
+          "speaker": "narrator",
+          "text": "얼음장 같던 시논의 뺨이 순식간에 홍당무처럼 새빨갛게 달아올랐다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“어린애처럼 굴지 마라. 배신자 털어서 몫의 세 배를 쥐여줄 테니까.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "“……손 치워. 목 자른다. 그리고…… 세 배, 진짜지?”"
+        }
+      ],
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "단장은 피 묻은 가짜 의뢰서와 찢어진 도장을 탁자에 펼쳐 보였다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“헨드릭 남작 놈 금고에 든 금화랑, 정보상 바란의 삥땅 장부까지 전부.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "“정보상 바란…… 그 박쥐 영감이 사기 의뢰를 물어다 준 건가.”"
+        },
+        {
+          "speaker": "narrator",
+          "text": "“정답. 중개 수수료를 양쪽에서 처먹고 우릴 사지에 밀어 넣었지.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "“……약관 제4조. 부당 중개 및 수수료 편취는 사형.”"
+        },
+        {
+          "speaker": "narrator",
+          "text": "시논은 품속에 단검을 챙겨 넣으며 자리에서 벌떡 일어났다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“좋아, 재계약 성립. 일단 바란 그 쥐새끼 은신처부터 털러 간다.”",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_slum_black_market.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "주점을 빠져나온 두 사람은 음침한 연기가 자욱한 암시장으로 들어섰다."
+        },
+        {
+          "speaker": "sr_1",
+          "text": "“바란의 은신처는 3번 구역 폐창고 지하. 하지만 경비가 많아.”"
+        },
+        {
+          "speaker": "narrator",
+          "text": "“경비? 그냥 푼돈에 목숨 거는 깡패들이지. 가성비 안 나오는 놈들.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "어두컴컴한 골목 구석에서 흉기를 든 불한당들이 서서히 다가왔다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“쯧, 벌써부터 파리 꼬이네. 시논, 청소비는 네 수당에서 깐다?”",
+          "name": "단장"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "“……사기꾼. 닥치고 뒤나 봐.”"
+        }
+      ]
+    }
+  ]
+}

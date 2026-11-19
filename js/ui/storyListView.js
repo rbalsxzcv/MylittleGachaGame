@@ -51,8 +51,20 @@ export function storyListScreen(ctx) {
         );
 
         const items = storiesOf(kind);
+        // 메인 스토리: 챕터(12장 묶음)마다 머리글 + 챕터 안에서의 장 번호
+        const rows = [];
+        let lastArc = undefined;
+        const arcCount = new Map();
+        for (const { story, state } of items) {
+          if (story.arc != null) arcCount.set(story.arc, (arcCount.get(story.arc) || 0) + 1);
+          if (kind === 'main' && story.arc != null && story.arc !== lastArc) {
+            rows.push(h('div', { class: 'story-arc' }, `챕터 ${story.arc}`, story.arcTitle && h('span', {}, ` · ${story.arcTitle}`)));
+          }
+          lastArc = story.arc;
+          rows.push(storyRow(story, state, story.arc != null ? arcCount.get(story.arc) : null));
+        }
         list.replaceChildren(
-          ...items.map(({ story, state }) => storyRow(story, state)),
+          ...rows,
           ...(items.length === 0 ? [h('p', { class: 'collection-empty' }, kind === 'event' ? '지금 진행 중인 이벤트 스토리가 없어요' : '아직 스토리가 없어요')] : []),
         );
         const focus = params.focus && list.querySelector(`[data-story="${params.focus}"]`);
@@ -63,11 +75,11 @@ export function storyListScreen(ctx) {
         }
       }
 
-      function storyRow(story, state) {
+      function storyRow(story, state, arcIndex) {
         const read = isRead(ctx.save, story.id);
         const char = story.characterId ? ctx.data.allCharMap.get(story.characterId) : null;
         const period = periodOf(story);
-        const chapterLabel = story.kind === 'event' ? '이벤트' : `제${story.chapter}장`;
+        const chapterLabel = story.kind === 'event' ? '이벤트' : arcIndex ? `챕터 ${story.arc} · ${arcIndex}장` : `제${story.chapter}장`;
         return h(
           'button',
           {

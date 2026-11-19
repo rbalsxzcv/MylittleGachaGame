@@ -32,6 +32,10 @@ python -m http.server 8000
 | `__tg.simulate(100000)` | 10만 번 뽑기 시뮬레이션 (세이브 영향 없음) |
 | `__tg.simulate(100000, 'pickup_starfest')` | 특정 배너 기준. 픽업 비율은 약 66%(50% + 확정)면 정상이에요 |
 | `__tg.addGems(10000)` | 테스트용 보석 추가 |
+| `__tg.addTickets(10000)` | 테스트용 티켓 추가 |
+| `__tg.sim('st_main_02_1', 200)` | 지금 편성으로 스테이지 자동 전투 200판 (세이브 영향 없음) |
+| `__tg.battleTest()` | 전투 엔진 자체 검사 (공식, 결정론, HP 범위) |
+| `__tg.replay()` | 마지막 전투의 시드와 행동 기록 (같은 시드 + 행동 = 같은 결과) |
 
 주소 뒤에 다음 옵션을 붙이면 미리보기를 할 수 있어요(localhost 전용).
 - `?preview=1`: 실제 세이브와 분리된 미리보기 세이브를 써요.
@@ -41,12 +45,16 @@ python -m http.server 8000
 ## 조작
 | 키 | 동작 |
 |---|---|
-| G / C / T / M / N / O | 뽑기 / 도감 / 스토리 / 우편 / 공지 / 설정 |
+| G / T / U / P / C | 뽑기 / 스토리 / 육성 / 편성 / 도감 |
+| M / N / O | 우편 / 공지 / 설정 (위쪽 아이콘) |
 | F | 전체화면 |
 | Esc, Backspace | 뒤로 / 팝업 닫기 |
 | 1 / 0 / I / ← → | (뽑기) 1회 / 10회 / 상세·확률 / 배너 전환 |
 | Space, Enter / A / S | (결과) 다음 카드 / 모두 열기 / 건너뛰기 |
 | Space / A / L / S / 1~4 | (스토리) 다음 / 자동 / 대사 기록 / 건너뛰기 / 선택지 |
+| 1 / 2 / 3 / ← → | (육성) 레벨업 / 스킬 / 돌파 탭, ↑ ↓ 캐릭터 |
+| 1~5 | (편성) 칸 고르기 |
+| 1 / 2 / 3 · A · R · Esc | (전투) 기본/스킬/궁극기 → 숫자로 대상 · AUTO · 즉시 결과 · 취소/나가기 |
 
 터치 기기에서는 모든 기능을 탭으로 쓸 수 있어요.
 
@@ -55,11 +63,23 @@ python -m http.server 8000
 - **천장**: 50번째 뽑기까지 SSR이 없으면 50번째는 SSR 확정이에요. 상시 배너와 픽업 배너는 천장 카운트를 따로 세요.
 - **10회 뽑기**는 SR 이상 1장이 확정이에요.
 - **픽업**: SSR이 나오면 50% 확률로 픽업 캐릭터예요. 놓치면 다음 SSR은 픽업 확정이에요.
-- 중복 캐릭터를 얻으면 별 +1이에요 (최대 5개).
-- 첫 시작에 보석 1,000개를 받아요. 매일 첫 접속(한국 시간 자정 기준)마다 300개를 받아요.
+- 중복 캐릭터를 얻으면 **정수 +1**이에요. 정수 1개로 돌파 1단계(최대 5)를 열어요. 돌파 + 정수가 5가 된 뒤의 중복은 티켓으로 바뀌어요 (SSR 200 · SR 80 · R 30).
+- 카드의 별(★)은 돌파 단계예요. 희귀도는 SSR = 5★, SR = 4★, R = 3★로 봐요.
+- 첫 시작에 보석 1,000개를 받아요. 매일 첫 접속(한국 시간 자정 기준)마다 보석 300개 + 티켓 30장을 받아요.
+
+### 육성 / 편성 / 전투
+- 숫자는 모두 `data/balance.json`에서 바꿀 수 있어요.
+- 능력치 = 기본 × (1 + 0.08 × (레벨 − 1)), 레벨 제한 없음. 치명타 확률/피해(기본 5% / 50%)는 레벨로 오르지 않고 능력으로만 바뀌어요.
+- 레벨 lv → lv+1 비용: `ceil(10 × lv^1.25)` 티켓. 티켓은 스테이지 클리어, 출석, 우편으로 받아요.
+- 전투력 = 2·공격 + 1.5·방어 + 0.2·HP + 300·치명타 확률 + 100·치명타 피해.
+- 전투는 턴제예요. 라운드마다 아군 1→5번, 그다음 적이 행동해요. 기본 공격(기력 +20), 스킬(대기 시간, 기력 +30), 궁극기(기력 100). 맞으면 기력 +10.
+- 피해 = 능력치 × 배율 × 100/(100 + 방어) × 치명타(1 + 치명타 피해) × 강화, 내림, 최소 1.
+- AUTO: HP 50% 미만 아군이 있으면 치유 → 궁극기 → 스킬 → 기본 공격. 즉시 결과는 끝까지 한 번에 진행해요.
+- 스테이지는 스토리 안의 전투 장면에서만 싸워요. 이겨야 다음 장면으로 가요. 전에 깬 전투는 건너뛸 수 있고, 다시 싸우면 클리어 보상을 또 받아요 (첫 클리어 보상은 한 번).
 - 스토리를 처음 다 읽으면 보상을 받아요. 우편은 기간 안에 한 번만 받을 수 있어요.
 - 모든 시간은 **한국 시간(KST)** 기준으로 판정하고 표시해요.
-- 진행 상황은 브라우저(localStorage)에 저장돼요. **설정 → 세이브 코드**로 다른 기기에 옮길 수 있어요.
+- 진행 상황은 브라우저(localStorage, `tinygacha_save_v2`)에 저장돼요. **설정 → 세이브 코드**(`TG2:`)로 다른 기기에 옮길 수 있어요.
+- 예전 세이브(v1)는 처음 열 때 자동으로 옮겨져요. 중복 획득은 정수(최대 5)로, 넘치는 몫은 티켓으로 바뀌어요. v1 원본은 백업으로 그대로 남아요. 예전 세이브 코드(`TG1:`)도 불러올 수 있어요.
 
 ## 콘텐츠 데이터 형식
 
@@ -73,8 +93,46 @@ python -m http.server 8000
 ```
 - `id`는 영문, 숫자, `_`, `-`만 써요. 세이브가 id로 기록되니 **바꾸지 마세요**.
 - `image`는 배경이 투명한 PNG(긴 변 512px)예요. 비어 있거나 파일이 없으면 희귀도 색 카드로 대신 표시돼요.
-- `addedAt`(공개 시각) 전에는 뽑기와 도감에 나오지 않아요. 픽업 배너 시작 시각과 맞추면 신규 캐릭터 데뷔가 돼요.
+- `addedAt`(공개 시각) 전에는 뽑기와 도감에 나오지 않아요.
+- `"pullable": false`면 스토리 전용 인물이에요 (뽑기, 로테이션, 도감에 안 나오고 스토리에서만 화자로 나옴).
+- 메인 스토리 목록(`stories/index.json`)의 `arc`, `arcTitle`은 챕터(12장 묶음) 번호와 제목이에요. 게임 목록에 챕터 머리글과 "챕터 1 · 3장"으로 보여요.
+- 배경 그림 장면은 `{ "type": "image", "value": "assets/bg/x.jpg", "color": "#2a2152" }`처럼 `color`를 함께 쓰면, 그림이 아직 없을 때 그 색으로 보여요. 픽업 배너 시작 시각과 맞추면 신규 캐릭터 데뷔가 돼요.
 - 새로 추가된 캐릭터는 도감에 **NEW**로 표시돼요.
+
+캐릭터 전투 데이터(선택, 보통 개발 도구 **캐릭터 탭 → 전투 데이터**로 편집):
+```json
+{ "stats": { "atk": 125, "def": 55, "hp": 1250, "critRate": 0.05, "critDmg": 0.5 },
+  "kit": {
+    "basic":    { "name": "별가루 화살", "description": "...", "targeting": "enemy_single", "effects": [{ "type": "damage", "mult": 1.0 }] },
+    "skill":    { "name": "별실 매듭", "targeting": "ally_all", "cooldown": 2, "effects": [{ "type": "buff", "stat": "atk", "pct": 20, "turns": 2 }] },
+    "ultimate": { "name": "소원의 별자리", "targeting": "enemy_all", "effects": [{ "type": "damage", "mult": 1.6 }, { "type": "heal", "mult": 0.8, "target": "ally_all" }] } },
+  "breakthroughs": [
+    { "name": "반짝이는 손끝", "trigger": "onCrit", "targeting": "self", "effects": [{ "type": "energy_gain", "n": 10 }] },
+    { "name": "별의 축복", "modifiers": [{ "type": "ultimate_cost", "delta": -20 }] } ] }
+```
+- 빠진 `stats` 칸은 희귀도 기본값, 빠진 `kit` 칸은 `balance.json`의 기본 스킬을 써요. `breakthroughs`는 최대 5개, N번째가 돌파 N단계에서 켜져요.
+- 쓸 수 있는 대상·효과·발동 조건·조건·수정자는 **`js/battle/vocab.json`** 한 곳에 정의돼 있어요 (게임, 개발 도구 폼, 배포 검사, AI 초안이 모두 이 파일을 읽음).
+  - 대상: `self`, `ally_single`, `ally_all`, `ally_lowest_hp`, `enemy_single`, `enemy_all`, `enemy_random_n`(+`count`), 돌파 능력만 `trigger_target`
+  - 효과: `damage`, `heal`, `shield`, `buff`, `debuff`, `energy_gain`, `cooldown_reduce`, `dot`, `cleanse`, `taunt` (효과마다 `target`, `chance` 선택)
+  - 발동: `onBattleStart`, `onTurnStart`, `onBasic`, `onSkill`, `onUltimate`, `onCrit`, `onKill`, `onHit`, `onHpBelow`(+`pct`) · 조건 `conditions` · 횟수 `limit`
+  - 상시 수정자: `action_targeting`, `ultimate_cost`, `cooldown`, `energy_gain`, `stat_bonus`, `effect_power`, `extra_effects`
+- 새 효과 종류를 추가할 때만 코드가 필요해요: `js/battle/effects/`에 모듈 하나 + `effects/index.js`에 한 줄 + `vocab.json`에 한 항목.
+
+### `data/enemies.json` / `data/stages.json` / `data/balance.json`
+```json
+[{ "id": "slime_king", "name": "왕 슬라임", "image": "assets/enemies/slime_king.png", "boss": true,
+   "stats": { "atk": 80, "def": 30, "hp": 1500 },
+   "kit": { "basic": { ... }, "skill": { ... }, "ultimate": null },
+   "passives": [{ "name": "분노", "trigger": "onHpBelow", "pct": 50, "limit": 1, "targeting": "self", "effects": [ ... ] }] }]
+```
+```json
+[{ "id": "st_main_02_1", "name": "골목길의 별가루 소동", "recommendedPower": 1200,
+   "waves": [[{ "enemyId": "slime_star", "level": 1 }], [{ "enemyId": "shadow_cat", "level": 2 }]],
+   "turnLimit": 20, "rewards": { "tickets": 40, "gems": 0 }, "firstClearRewards": { "tickets": 150, "gems": 50 } }]
+```
+- 적은 캐릭터와 같은 스킬/효과 엔진을 써요. 패시브는 항상 켜져 있어요. 그림이 없으면 기본 카드로 보여요.
+- 웨이브는 최대 6명. `turnLimit`(라운드)을 넘기면 패배, `null`이면 제한 없음.
+- `balance.json`: 성장률, 레벨업 비용, 희귀도 기본 능력치, 기력, 정수→티켓, 출석 티켓, 전투력 가중치, 기본 스킬.
 
 ### `data/banners.json`
 ```json
@@ -85,6 +143,9 @@ python -m http.server 8000
    "relatedStoryId": "event_starfest" }]
 ```
 - `type`은 `standard`(상시) 또는 `pickup`(픽업)이에요.
+- **자동 로테이션 픽업**: `pickupIds` 대신 `"rotation": { "rarity": "SSR", "count": 2, "days": 7, "anchor": "2026-11-16T00:00:00+09:00" }`.
+  - `anchor`부터 `days`일마다 그 희귀도의 뽑을 수 있는 캐릭터(공개 시각 → id 순서)에서 다음 `count`명이 픽업돼요. 새 캐릭터는 자동으로 순서에 들어가요.
+  - 남은 시간은 이번 로테이션이 끝나는 시각이에요. 대상 캐릭터가 없으면 배너가 숨겨져요. 그림이 없으면 픽업 캐릭터 그림이 배너에 보여요.
 - 진행 중인 배너만 홈 캐러셀에 남은 시간과 함께 보여요. 시작 전이거나 끝난 배너는 숨겨져요.
 - 진행 중인 상시 배너가 없으면 기본 상시 모집이 자동으로 나와요.
 
@@ -119,13 +180,14 @@ python -m http.server 8000
 - `name`으로 표시 이름을 바꿀 수 있어요(예: `"???"`). `side`는 `left` 또는 `right`예요.
 - 장면은 순서대로 진행돼요. `next`로 다른 장면에 합류하거나 `"end"`로 끝낼 수 있어요.
 - 선택지의 `goto`에는 장면 id나 `"end"`를 써요.
+- 전투 장면: `{ "id": "b1", "type": "battle", "stageId": "st_main_02_1", "next": "merge" }`. 이겨야 다음 장면으로 가요. 건너뛰기(S)는 다음 선택지나 아직 깨지 않은 전투에서 멈춰요.
 
 ### `data/notices.json` / `data/mail.json` / `data/version.json`
 ```json
 [{ "id": "notice_welcome", "title": "제목", "body": "내용", "date": "2026-11-15T00:00:00+09:00", "popup": true }]
 ```
 ```json
-[{ "id": "mail_launch", "title": "오픈 기념 선물", "body": "내용", "rewards": { "gems": 1000 },
+[{ "id": "mail_launch", "title": "오픈 기념 선물", "body": "내용", "rewards": { "gems": 1000, "tickets": 100 },
    "startAt": "2026-11-15T00:00:00+09:00", "endAt": "2027-01-01T00:00:00+09:00" }]
 ```
 ```json
@@ -150,11 +212,12 @@ python -m http.server 8000
 index.html, style.css, manifest.webmanifest
 js/
   main.js        시작점 (데이터 → 세이브 → 화면 → 시작 팝업)
-  core/          스테이지 크기 조정, 데이터 로더/검증, 세이브, KST 시간, 난수, 이벤트
-  systems/       게임 규칙 (재화, 가챠·픽업, 도감, 배너 일정, 스토리 해금, 우편·공지)
-  ui/            화면 (홈, 뽑기, 결과, 도감, 스토리 목록/뷰어, 우편, 공지, 설정)
+  core/          스테이지 크기 조정, 데이터 로더/검증, 세이브, KST 시간, 난수(시드 포함), 이벤트
+  systems/       게임 규칙 (재화, 가챠·픽업, 도감, 육성, 편성, 스테이지 기록, 배너 일정, 스토리 해금, 우편·공지)
+  battle/        전투 엔진 (DOM 없음, 시드로 재현): vocab.json, effects/, 대상·조건·수정자, AI, 설명 문장, 시뮬레이터
+  ui/            화면 (홈, 뽑기, 결과, 도감, 육성, 편성, 전투, 스토리 목록/뷰어, 우편, 공지, 설정)
 data/            콘텐츠 JSON
-assets/          chars/(캐릭터), banners/(배너), bg/(스토리 배경), icon.svg
+assets/          chars/(캐릭터), banners/(배너), bg/(스토리 배경), enemies/(적), icon.svg
 dev/             로컬 전용 개발 도구 (dev/README.md)
 ```
 새 기능(미션, 출석, 상점 등)은 다음 순서로 붙일 수 있어요.

@@ -134,7 +134,7 @@ export function fmt(iso) {
 /** 날짜 입력 + '제한 없음' 체크박스 */
 export function dateField(label, iso, { allowEmpty = true, emptyLabel = '제한 없음' } = {}) {
   const input = h('input', { type: 'datetime-local', value: isoToLocal(iso) });
-  const none = allowEmpty && h('input', { type: 'checkbox', checked: !iso });
+  const none = allowEmpty ? h('input', { type: 'checkbox', checked: !iso }) : null;
   const sync = () => (input.disabled = !!none?.checked);
   none?.addEventListener('change', sync);
   sync();

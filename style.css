@@ -1121,3 +1121,295 @@ button.ccard:active { transform: scale(0.97); }
 .menu-icon .theme-icon { width: 40px; height: 40px; object-fit: contain; }
 .menu-icon:has(.theme-icon) { background: none; }
 .gem-img { display: inline-block; width: 22px; height: 22px; object-fit: contain; margin: 0 2px; vertical-align: middle; flex: none; }
+
+/* ==========================================================
+   Phase 4: 육성 / 편성 / 전투 (정적 UI — transition/animation 없음)
+   ========================================================== */
+
+/* ── 공용 ── */
+.ticket-icon {
+  display: inline-block;
+  width: 20px;
+  height: 14px;
+  margin: 0 4px;
+  border-radius: 3px;
+  background:
+    radial-gradient(circle at 0 50%, var(--bg-1) 3px, transparent 3.5px),
+    radial-gradient(circle at 100% 50%, var(--bg-1) 3px, transparent 3.5px),
+    linear-gradient(135deg, #ffe7a3, #ffb648);
+  flex: none;
+}
+.btn-small { min-height: 42px; padding: 0 16px; font-size: 17px; border-radius: 12px; }
+.btn.btn-selected { background: #fff; color: #120f26; border-color: #fff; }
+.btn.on { background: var(--ok); color: #06291a; border-color: transparent; }
+.bad { color: var(--danger) !important; }
+.text-input {
+  width: 100%;
+  height: 52px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  font: inherit;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.chip {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.5;
+  background: rgba(255, 255, 255, 0.14);
+  white-space: nowrap;
+}
+.chip-buff { background: rgba(95, 224, 165, 0.22); color: #b6ffd9; }
+.chip-debuff { background: rgba(255, 92, 122, 0.25); color: #ffc2cd; }
+.menu-sub { display: block; font-size: 13px; font-weight: 700; color: var(--muted); }
+.menu-btn:disabled { cursor: default; }
+.menu-btn:disabled:active { transform: none; }
+
+/* HUD: 우편/공지/설정 아이콘 + 티켓 */
+.hud-links { display: flex; gap: 8px; }
+.hud-link {
+  position: relative;
+  height: 48px;
+  padding: 0 14px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 24px;
+  border: 1px solid var(--line);
+  background: var(--panel-strong);
+  font-size: 16px;
+  font-weight: 800;
+}
+.hud-link-icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, 0.1); font-size: 17px; }
+.hud-link-icon .theme-icon { width: 26px; height: 26px; object-fit: contain; }
+.hud-link .menu-dot { top: 2px; right: 2px; width: 12px; height: 12px; }
+.gem-pill.ticket-pill { min-width: 140px; }
+#hud .gem-pill { min-width: 150px; }
+
+/* 썸네일: 세로 그림의 윗부분만 */
+.grow-thumb .art, .pick-art .art, .slot-art .art, .bunit-art .art { align-items: flex-start; }
+.grow-thumb .art-img, .pick-art .art-img, .slot-art .art-img, .bunit-art .art-img { width: 100%; height: auto; max-height: none; }
+.grow-thumb .art-fallback, .pick-art .art-fallback, .slot-art .art-fallback, .bunit-art .art-fallback { font-size: 13px; }
+
+/* ── 육성 ── */
+.grow-layout { position: absolute; top: 88px; left: 30px; right: 30px; bottom: 20px; display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
+.grow-side { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.grow-side .filter-tab { min-width: 0; flex: 1; height: 44px; }
+.grow-list { flex: 1; min-height: 0; overflow-y: auto; display: grid; align-content: start; gap: 8px; padding-right: 4px; touch-action: pan-y; }
+.grow-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px 8px 8px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--rc);
+  background: var(--panel-strong);
+  text-align: left;
+}
+.grow-row.active { background: color-mix(in srgb, var(--rc) 24%, #1a1538); border-color: var(--rc); }
+.grow-thumb { width: 64px; height: 72px; border-radius: 10px; overflow: hidden; background: rgba(0, 0, 0, 0.3); }
+.grow-row-name { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; }
+.grow-row-name .rarity-badge { font-size: 12px; padding: 1px 7px; }
+.grow-row-sub { display: flex; align-items: center; gap: 8px; font-size: 15px; color: var(--muted); }
+.grow-row-sub .stars { font-size: 13px; }
+.grow-row-power { font-size: 14px; color: #ffe08a; font-weight: 700; }
+.grow-row .menu-dot { top: 8px; right: 8px; }
+.grow-empty { text-align: center; color: var(--muted); padding: 40px 0; }
+.grow-detail { min-height: 0; display: flex; flex-direction: column; padding: 18px 22px; border-radius: 20px; background: var(--panel-strong); border: 1px solid var(--line); }
+.grow-none { margin: auto; }
+.grow-head { display: flex; gap: 20px; align-items: center; }
+.grow-art { width: 120px; height: 140px; border-radius: 14px; overflow: hidden; border: 2px solid var(--rc); background: rgba(0, 0, 0, 0.3); flex: none; }
+.grow-art .art { align-items: flex-start; }
+.grow-art .art-img { width: 100%; height: auto; max-height: none; }
+.grow-name { font-size: 34px; font-weight: 900; }
+.grow-meta { display: flex; gap: 18px; color: var(--muted); font-size: 18px; }
+.grow-meta b { color: var(--text); }
+.grow-tabs { display: flex; gap: 6px; margin: 14px 0 10px; border-bottom: 1px solid var(--line); }
+.grow-tab { padding: 10px 22px; border: 0; border-bottom: 3px solid transparent; background: none; font-weight: 800; font-size: 18px; color: var(--muted); }
+.grow-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+.grow-body { flex: 1; min-height: 0; overflow-y: auto; touch-action: pan-y; padding-right: 4px; }
+.grow-level { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.grow-level-left { display: grid; gap: 14px; }
+.grow-pick { display: flex; gap: 8px; }
+.grow-pick .btn { flex: 1; min-height: 50px; padding: 0 10px; }
+.grow-cost { display: flex; align-items: center; gap: 12px; font-size: 18px; }
+.grow-cost b { display: inline-flex; align-items: center; font-size: 26px; }
+.grow-confirm { width: 100%; }
+.grow-stats { width: 100%; border-collapse: collapse; font-size: 17px; }
+.grow-stats th, .grow-stats td { padding: 6px 10px; text-align: right; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.grow-stats th:first-child, .grow-stats td:first-child { text-align: left; color: var(--muted); }
+.grow-stats td.up { color: var(--ok); font-weight: 800; }
+.grow-stats .power-row td { font-weight: 900; color: #ffe08a; }
+.grow-skills { display: grid; gap: 10px; }
+.skill-card { padding: 12px 16px; border-radius: 14px; background: rgba(0, 0, 0, 0.25); border-left: 4px solid var(--accent-2); }
+.skill-card.skill-ultimate { border-left-color: var(--ssr); }
+.skill-card.skill-basic { border-left-color: var(--r); }
+.skill-head { display: flex; align-items: baseline; gap: 10px; }
+.skill-head b { font-size: 19px; }
+.skill-kind { font-size: 13px; font-weight: 800; color: var(--muted); }
+.skill-desc { margin: 4px 0 0; font-size: 16px; color: #e6defc; }
+.skill-effects, .skill-applied, .break-lines { margin: 6px 0 0; padding-left: 20px; font-size: 15px; line-height: 1.5; }
+.skill-applied { color: #ffe08a; list-style: '✦ '; }
+.break-info { display: flex; align-items: baseline; gap: 16px; margin-bottom: 10px; font-size: 18px; }
+.break-info b { font-size: 24px; color: #9ff3ff; }
+.break-nodes { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.break-node { display: grid; grid-template-columns: 74px 1fr auto; gap: 14px; align-items: center; padding: 10px 14px; border-radius: 14px; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--line); }
+.break-node.is-unlocked { border-color: rgba(255, 216, 77, 0.6); background: rgba(255, 216, 77, 0.08); }
+.break-node.is-ready { border-color: var(--accent); }
+.break-node.is-locked { opacity: 0.6; }
+.break-step { font-weight: 900; color: #ffd84d; }
+.break-node.is-locked .break-step { color: var(--muted); }
+.break-main { display: grid; gap: 2px; }
+.break-state { font-size: 14px; font-weight: 800; color: var(--muted); }
+.break-node.is-unlocked .break-state { color: #ffd84d; }
+
+/* ── 편성 ── */
+.team-screen { position: absolute; top: 96px; left: 40px; right: 40px; bottom: 24px; display: flex; flex-direction: column; }
+.team-panel { display: flex; flex-direction: column; gap: 16px; }
+.team-tabs .filter-tab { display: inline-flex; align-items: center; gap: 8px; }
+.team-using { font-size: 12px; padding: 1px 7px; border-radius: 6px; background: var(--ok); color: #06291a; }
+.team-slots { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+.team-slot {
+  position: relative;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 2px solid var(--rc, var(--line));
+  background: var(--panel-strong);
+  text-align: left;
+}
+.team-slot.is-empty { align-items: center; justify-content: center; gap: 8px; border-style: dashed; border-color: var(--line); }
+.slot-no { position: absolute; top: 8px; right: 10px; z-index: 1; font-weight: 900; font-size: 20px; text-shadow: 0 1px 4px #000; }
+.slot-plus { font-size: 48px; color: var(--muted); line-height: 1; }
+.slot-art { flex: 1; min-height: 0; overflow: hidden; background: rgba(0, 0, 0, 0.3); }
+.team-slot > .rarity-badge { position: absolute; top: 8px; left: 8px; font-size: 13px; padding: 2px 8px; }
+.slot-plate { padding: 8px 12px 10px; background: rgba(0, 0, 0, 0.45); }
+.slot-name { font-weight: 900; font-size: 19px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot-sub { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+.slot-sub .stars { font-size: 12px; }
+.slot-power { font-size: 15px; font-weight: 800; color: #ffe08a; }
+.team-actions { display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
+.team-power { margin-right: auto; font-size: 22px; }
+.team-power b { font-size: 30px; color: #ffe08a; }
+.team-note { margin-top: auto; }
+.modal-team { width: 1180px; }
+.modal-team .team-slot { height: 300px; }
+.modal-pick { width: 1000px; }
+.pick-grid { display: grid; grid-template-columns: repeat(auto-fill, 140px); gap: 12px; justify-content: center; white-space: normal; }
+.pick-card { position: relative; height: 196px; padding: 0; overflow: hidden; display: flex; flex-direction: column; border-radius: 14px; border: 2px solid var(--rc); background: var(--panel-strong); text-align: left; }
+.pick-card.is-current { box-shadow: 0 0 0 3px #fff; }
+.pick-art { flex: 1; min-height: 0; overflow: hidden; background: rgba(0, 0, 0, 0.3); }
+.pick-card > .rarity-badge { position: absolute; top: 6px; left: 6px; font-size: 12px; padding: 1px 7px; }
+.pick-slot { position: absolute; top: 6px; right: 6px; font-size: 12px; font-weight: 900; padding: 1px 7px; border-radius: 6px; background: var(--ok); color: #06291a; }
+.pick-name { padding: 4px 8px 0; font-weight: 800; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pick-sub { padding: 0 8px 6px; font-size: 13px; color: var(--muted); }
+
+/* ── 전투 ── */
+.battle { position: absolute; inset: 0; background: radial-gradient(ellipse at 40% 10%, #3a2a78 0%, var(--bg-1) 55%, var(--bg-0) 100%); }
+.battle-top { position: absolute; top: 0; left: 0; right: 0; height: 64px; display: flex; align-items: center; gap: 14px; padding: 0 16px; background: rgba(0, 0, 0, 0.35); border-bottom: 1px solid var(--line); }
+.battle-top .spacer { flex: 1; }
+.battle-stage { font-weight: 900; font-size: 20px; }
+.battle-meta { display: flex; gap: 12px; font-size: 16px; color: var(--muted); }
+.battle-turn { font-weight: 800; color: #ffe08a; font-size: 17px; }
+.battle-enemies, .battle-allies { position: absolute; left: 16px; right: 356px; display: flex; justify-content: center; align-items: flex-start; gap: 10px; }
+.battle-enemies { top: 74px; height: 270px; }
+.battle-allies { top: 432px; bottom: 12px; }
+.battle-actions { position: absolute; top: 352px; left: 16px; right: 356px; height: 72px; display: flex; align-items: center; gap: 10px; }
+.battle-hint { flex: 1; font-size: 17px; color: var(--muted); }
+.act-btn { position: relative; min-width: 170px; height: 66px; padding: 4px 14px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; border-radius: 14px; border: 1px solid var(--line); background: var(--panel-strong); text-align: left; }
+.act-btn b { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.act-btn small { font-size: 12px; color: var(--muted); }
+.act-kind { font-size: 12px; font-weight: 800; color: var(--muted); }
+.act-btn.act-ultimate:not(:disabled) { border-color: var(--ssr); background: linear-gradient(135deg, rgba(255, 194, 61, 0.28), var(--panel-strong)); }
+.act-btn.is-selected { box-shadow: 0 0 0 3px #fff; }
+.act-btn:disabled { opacity: 0.4; cursor: default; }
+.act-btn .key-hint { position: absolute; top: 6px; right: 8px; }
+.bunit { position: relative; width: 170px; padding: 6px; display: flex; flex-direction: column; gap: 4px; border-radius: 14px; border: 2px solid var(--rc, rgba(255, 92, 122, 0.5)); background: var(--panel-strong); text-align: left; font-size: 14px; }
+.side-enemy.bunit { width: 140px; border-color: rgba(255, 92, 122, 0.55); }
+.side-enemy.bunit.is-boss { width: 180px; border-color: var(--danger); }
+.bunit-art { height: 120px; border-radius: 10px; overflow: hidden; background: rgba(0, 0, 0, 0.3); }
+.side-enemy .bunit-art { height: 110px; }
+.enemy-fallback { width: 100%; height: 100%; display: grid; place-items: center; background: linear-gradient(165deg, #5a2140, #1f1030); font-size: 26px; font-weight: 900; color: #ffc2cd; }
+.bunit-name { font-weight: 800; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bunit-name small { color: var(--muted); font-weight: 700; }
+.bar { position: relative; height: 18px; border-radius: 6px; overflow: hidden; background: rgba(0, 0, 0, 0.45); }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; display: block; }
+.bar span { position: relative; display: block; text-align: center; font-size: 12px; font-weight: 800; line-height: 18px; text-shadow: 0 1px 2px #000; }
+.bar-hp i { background: linear-gradient(90deg, #2fbf7a, var(--ok)); }
+.side-enemy .bar-hp i { background: linear-gradient(90deg, #d23a5a, var(--danger)); }
+.bar-en { height: 14px; }
+.bar-en span { line-height: 14px; font-size: 11px; }
+.bar-en i { background: linear-gradient(90deg, #4b7bff, #8fd0ff); }
+.bar-en.is-ready i { background: linear-gradient(90deg, #ffb648, var(--ssr)); }
+.bunit-chips { display: flex; flex-wrap: wrap; gap: 3px; min-height: 20px; }
+.bunit.is-acting { box-shadow: 0 0 0 3px #ffe08a; }
+.bunit.is-target { cursor: pointer; box-shadow: 0 0 0 3px #fff; }
+.bunit.is-target:hover { background: color-mix(in srgb, #fff 10%, var(--panel-strong)); }
+.bunit.is-dead { opacity: 0.35; filter: grayscale(1); }
+.bunit-dead { position: absolute; top: 50px; left: 0; right: 0; text-align: center; font-weight: 900; font-size: 18px; }
+.battle-log { position: absolute; top: 74px; right: 12px; width: 332px; bottom: 12px; overflow-y: auto; padding: 10px 12px; border-radius: 16px; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--line); touch-action: pan-y; user-select: text; -webkit-user-select: text; }
+.battle-log-title { font-weight: 800; color: var(--muted); font-size: 14px; margin-bottom: 6px; }
+.battle-log-list { list-style: none; margin: 0; padding: 0; font-size: 13.5px; line-height: 1.5; }
+.battle-log-list li { padding: 1px 0; }
+.log-round { margin-top: 6px; padding-top: 4px !important; border-top: 1px solid var(--line); font-weight: 900; color: var(--muted); }
+.log-wave { font-weight: 900; color: #ffc2cd; }
+.log-action { font-weight: 800; color: #fff; }
+.log-damage { color: #ffd3dc; }
+.log-crit { color: #ffd84d; font-weight: 800; }
+.log-heal, .log-buff { color: #b6ffd9; }
+.log-debuff { color: #ffb0c0; }
+.log-passive { color: #d2c6ff; }
+.log-death { color: var(--danger); font-weight: 800; }
+.log-end { font-weight: 900; font-size: 15px; color: #ffe08a; }
+.battle-result-layer { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; background: rgba(5, 4, 15, 0.72); }
+.battle-result { width: 640px; padding: 26px 30px; border-radius: 22px; background: linear-gradient(160deg, #2b2357, #191433); border: 1px solid var(--line); display: grid; gap: 10px; }
+.result-title { font-size: 48px; font-weight: 900; letter-spacing: 8px; text-align: center; }
+.battle-result.is-win .result-title { color: #ffe08a; }
+.battle-result.is-lose .result-title { color: #ffc2cd; }
+.battle-result > .muted { text-align: center; }
+.result-reward { text-align: center; font-size: 18px; }
+.result-reward.first b { color: #9ff3ff; }
+.result-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.result-table th, .result-table td { padding: 4px 8px; text-align: right; border-bottom: 1px solid rgba(255, 255, 255, 0.08); white-space: nowrap; }
+.result-table th:first-child, .result-table td:first-child { text-align: left; }
+.result-table tr.is-dead td:first-child { color: var(--muted); text-decoration: line-through; }
+.dmg-bar { display: inline-block; height: 8px; margin-right: 6px; border-radius: 4px; background: var(--accent); vertical-align: middle; }
+.result-actions { display: flex; gap: 10px; justify-content: center; margin-top: 6px; }
+
+/* 스토리 속 전투 */
+.vn-battle-node { position: absolute; left: 50%; top: 50%; width: 680px; margin-left: -340px; transform: translateY(-50%); z-index: 3; display: grid; gap: 10px; padding: 26px 30px; border-radius: 22px; background: linear-gradient(160deg, rgba(43, 35, 87, 0.97), rgba(25, 20, 51, 0.97)); border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); }
+.vbn-kicker { font-size: 15px; font-weight: 900; letter-spacing: 4px; color: #ffc2cd; }
+.vbn-title { font-size: 34px; font-weight: 900; }
+.vbn-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 17px; color: var(--muted); }
+.vbn-team { display: flex; flex-wrap: wrap; gap: 6px; }
+.vbn-member { padding: 3px 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); font-size: 15px; }
+.vbn-member.is-empty { color: var(--muted); }
+.vbn-reward { font-size: 17px; }
+.vbn-reward b { color: #9ff3ff; }
+.vbn-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.vn-battle-layer { position: absolute; inset: 0; z-index: 5; }
+
+/* 배너: 그림이 없을 때 픽업 캐릭터를 나란히 */
+.banner-featured { position: absolute; inset: 0; display: flex; justify-content: flex-end; align-items: flex-end; gap: 0; padding-right: 4%; }
+.banner-featured-char { height: 100%; width: 42%; margin-left: -8%; display: flex; }
+.banner-featured-char .art { align-items: flex-end; }
+.banner-featured-char .art-img { filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5)); }
+.banner-featured-char .art-fallback { height: 70%; margin-top: auto; border-radius: 14px 14px 0 0; font-size: 14px; }
+
+/* 스토리 목록: 챕터 머리글 */
+.story-arc { margin: 14px 0 4px; padding: 6px 4px; font-size: 18px; font-weight: 900; color: #ffe08a; border-bottom: 1px solid var(--line); }
+.story-arc span { color: var(--text); font-weight: 700; }
+.story-arc:first-child { margin-top: 0; }

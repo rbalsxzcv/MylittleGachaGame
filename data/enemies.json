@@ -1,0 +1,254 @@
+[
+  {
+    "id": "en_scavenger",
+    "name": "시체 약탈꾼",
+    "image": "",
+    "boss": false,
+    "stats": {
+      "atk": 60,
+      "def": 18,
+      "hp": 400,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "kit": {
+      "basic": {
+        "name": "녹슨 칼 찌르기",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.0,
+            "stat": "atk",
+            "hits": 1
+          }
+        ]
+      },
+      "skill": null,
+      "ultimate": null
+    },
+    "passives": []
+  },
+  {
+    "id": "en_plague_hound",
+    "name": "역병 사냥개",
+    "image": "",
+    "boss": false,
+    "stats": {
+      "atk": 60,
+      "def": 16,
+      "hp": 380,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "kit": {
+      "basic": {
+        "name": "물어뜯기",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.8,
+            "stat": "atk",
+            "hits": 1
+          },
+          {
+            "type": "dot",
+            "mult": 0.2,
+            "turns": 2,
+            "chance": 50
+          }
+        ]
+      },
+      "skill": {
+        "name": "부패의 이빨",
+        "description": "",
+        "targeting": "enemy_all",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.4,
+            "stat": "atk",
+            "hits": 1
+          },
+          {
+            "type": "dot",
+            "mult": 0.25,
+            "turns": 2
+          }
+        ],
+        "cooldown": 3
+      },
+      "ultimate": null
+    },
+    "passives": []
+  },
+  {
+    "id": "en_deserter_spear",
+    "name": "탈영병 창병",
+    "image": "",
+    "boss": false,
+    "stats": {
+      "atk": 60,
+      "def": 18,
+      "hp": 400,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "kit": {
+      "basic": {
+        "name": "창 찌르기",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.0,
+            "stat": "atk",
+            "hits": 1
+          }
+        ]
+      },
+      "skill": null,
+      "ultimate": null
+    },
+    "passives": []
+  },
+  {
+    "id": "en_manor_guard",
+    "name": "남작 근위대 중장병",
+    "image": "",
+    "boss": false,
+    "stats": {
+      "atk": 64,
+      "def": 34,
+      "hp": 975,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "kit": {
+      "basic": {
+        "name": "철퇴 내려치기",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.0,
+            "stat": "atk",
+            "hits": 1
+          }
+        ]
+      },
+      "skill": {
+        "name": "철벽 방진",
+        "description": "",
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "shield",
+            "mult": 0.15,
+            "stat": "hp",
+            "turns": 2
+          },
+          {
+            "type": "taunt",
+            "turns": 1
+          }
+        ],
+        "cooldown": 3
+      },
+      "ultimate": null
+    },
+    "passives": []
+  },
+  {
+    "id": "en_boss_baron_hendrik",
+    "name": "탐욕의 헨드릭 남작",
+    "image": "",
+    "boss": true,
+    "stats": {
+      "atk": 86,
+      "def": 36,
+      "hp": 2000,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "kit": {
+      "basic": {
+        "name": "레이피어 연속 찌르기",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.0,
+            "stat": "atk",
+            "hits": 1
+          }
+        ]
+      },
+      "skill": {
+        "name": "금기의 피안개",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.6,
+            "stat": "atk",
+            "hits": 1
+          },
+          {
+            "type": "debuff",
+            "stat": "def",
+            "pct": 20,
+            "turns": 2
+          }
+        ],
+        "cooldown": 3
+      },
+      "ultimate": {
+        "name": "채무자의 단두대",
+        "description": "",
+        "targeting": "enemy_all",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.2,
+            "stat": "atk",
+            "hits": 1
+          },
+          {
+            "type": "debuff",
+            "stat": "atk",
+            "pct": 15,
+            "turns": 2
+          }
+        ]
+      }
+    },
+    "passives": [
+      {
+        "name": "분노",
+        "description": "HP가 절반 아래면 공격력이 올라요.",
+        "trigger": "onHpBelow",
+        "pct": 50,
+        "limit": 1,
+        "targeting": "self",
+        "conditions": [],
+        "effects": [
+          {
+            "type": "buff",
+            "stat": "atk",
+            "pct": 30,
+            "turns": 3
+          }
+        ],
+        "modifiers": []
+      }
+    ]
+  }
+]

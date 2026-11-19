@@ -256,3 +256,53 @@ a.chip { text-decoration: none; }
 .batch-item.running { border-color: var(--warn); background: #fffaf0; }
 .batch-item.error { border-color: #f1c2cd; background: #fff5f7; }
 .batch-item.skipped, .batch-item.cancelled { opacity: 0.6; }
+
+/* ── 전투 데이터 폼 (battleForm) ── */
+.num-input { width: 86px; }
+.bf-param { display: inline-grid; gap: 2px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.bf-param.wide { display: grid; margin: 6px 0; }
+.bf-param.grow { min-width: 160px; }
+.bf-param select, .bf-param input:not(.num-input) { min-width: 120px; }
+.bf-skill, .bf-passive { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: #fcfbff; display: grid; gap: 6px; }
+.bf-passive { margin-bottom: 10px; }
+.bf-ultimate { border-left: 4px solid var(--ssr); }
+.bf-skill.bf-skill { border-left-width: 4px; }
+.bf-basic { border-left-color: var(--r); }
+.bf-skill.bf-skill:not(.bf-basic):not(.bf-ultimate) { border-left-color: var(--sr); }
+.bf-title { font-weight: 800; font-size: 13px; color: var(--accent); }
+.bf-effects, .bf-list { display: grid; gap: 6px; }
+.bf-effect { padding: 6px 8px; border: 1px dashed var(--line); border-radius: 8px; background: #fff; }
+.bf-nested { margin: 4px 0 0 18px; padding-left: 10px; border-left: 2px solid var(--accent-soft); }
+.bf-mod { padding: 6px 8px; border: 1px dashed #e2d7ff; border-radius: 8px; background: #fbf9ff; display: grid; gap: 6px; }
+.bf-sub { display: grid; gap: 4px; }
+.bf-preview { margin: 4px 0 0; padding: 6px 10px 6px 26px; border-radius: 8px; background: #f3f0fc; font-size: 12.5px; color: #3d3566; }
+.bf-preview:empty { display: none; }
+.bf-stats .bf-param { min-width: 96px; }
+.empty-skill { background: #f6f5fa; }
+
+/* ── 전투 데이터 편집기 ── */
+.battle-editor { display: grid; gap: 12px; }
+.be-summary { padding: 8px 12px; border-radius: 10px; background: #f3f0fc; }
+.warn-text { color: var(--warn); font-weight: 700; margin-top: 4px; }
+.be-skills { display: grid; gap: 10px; }
+.be-forms section { margin-bottom: 8px; }
+.battle-scene { border-left: 4px solid var(--err); background: #fff7f9; }
+.small-thumb { width: 40px; height: 40px; }
+.big-thumb { width: 120px; height: 120px; }
+.big-thumb img { width: 100%; height: 100%; object-fit: contain; }
+
+/* ── 밸런스 탭 ── */
+.sim-team { display: grid; gap: 6px; margin-bottom: 10px; }
+.sim-team select { min-width: 150px; }
+.sim-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 8px; }
+.sim-stats > div { padding: 10px; border-radius: 10px; background: #f6f4fb; }
+.sim-stats b { font-size: 22px; }
+.sim-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sim-table th, .sim-table td { padding: 5px 8px; border-bottom: 1px solid #f0edf7; text-align: right; }
+.sim-table th:first-child, .sim-table td:first-child { text-align: left; }
+.sim-group td { background: #f6f4fb; text-align: left !important; }
+.dmg-bar { display: inline-block; height: 8px; border-radius: 4px; background: var(--accent); vertical-align: middle; }
+.rar-label { width: 36px; }
+.bf-effects > .btn, .bf-list > .btn { justify-self: start; }
+.sim-team .inline, .bf-param span { white-space: nowrap; }
+.pack-row { padding: 6px 0; border-bottom: 1px solid #f0edf7; }

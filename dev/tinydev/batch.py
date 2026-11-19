@@ -15,7 +15,7 @@ from .genai import GenError
 from .timeutil import now_iso, stamp
 
 MAX_RETRY = 2
-GROUPS = [("char", "캐릭터"), ("banner", "배너"), ("ui_bg", "화면 배경"), ("ui_icon", "로고 · 아이콘")]
+GROUPS = [("char", "캐릭터"), ("banner", "배너"), ("bg", "스토리 배경"), ("ui_bg", "화면 배경"), ("ui_icon", "로고 · 아이콘")]
 
 _lock = threading.Lock()
 _cancel = threading.Event()
@@ -34,6 +34,12 @@ def targets():
         out.append({"key": f"char:{c['id']}", "group": "char", "label": f"{c.get('name', c['id'])} ({c.get('rarity', '')})", "path": c.get("image") or "", "has": _exists(c.get("image"))})
     for b in store.read_list("banners"):
         out.append({"key": f"banner:{b['id']}", "group": "banner", "label": b.get("title") or b["id"], "path": b.get("bannerImage") or "", "has": _exists(b.get("bannerImage"))})
+    # 스토리 배경: 설정집(챕터 팩)에 등록된 배경 → assets/bg/<이름>.jpg
+    from . import bible
+
+    for name, bg in sorted(bible.load().get("backgrounds", {}).items()):
+        path = f"assets/bg/{name}.jpg"
+        out.append({"key": f"bg:{name}", "group": "bg", "label": bg.get("label") or name, "path": path, "has": _exists(path)})
     ui = store.read_ui()
     for s in uislots.SLOTS:
         path = uislots.get_path(ui, s["key"])
@@ -48,13 +54,13 @@ def _job_input(key, extra):
         c = next((x for x in store.read_list("characters") if x.get("id") == ident), None)
         if not c:
             raise ValueError("캐릭터가 없어요")
-        look = jobs.char_look(ident)
+        look = jobs.char_look(ident) or c.get("keywords", "")
         return "char", {
             "name": c.get("name", ident),
             "rarity": c.get("rarity", "R"),
             "title": c.get("title", ""),
-            "keywords": look,  # 예전에 쓴 외형이 있으면 그대로, 없으면 Gemini가 소개 문구로 정함
-            "lore": c.get("description", ""),
+            "keywords": look,  # 예전에 쓴 외형 → 없으면 메모해 둔 외형 키워드(챕터 팩) → 없으면 Gemini가 소개 문구로 정함
+            "lore": c.get("lore") or c.get("description", ""),
             "charId": ident,
             "extra": extra,
         }
@@ -65,6 +71,14 @@ def _job_input(key, extra):
         return "banner", {"bannerId": ident, "title": b.get("title", ""), "description": b.get("description", ""), "pickupIds": b.get("pickupIds") or [], "extra": extra}
     if kind == "ui" and ident in uislots.SLOT_BY_KEY:
         return "ui", {"slot": ident, "extra": extra}
+    if kind == "bg":
+        from . import bible
+
+        bg = bible.load().get("backgrounds", {}).get(ident)
+        if not bg:
+            raise ValueError("설정집에 없는 배경이에요")
+        prompt = bg.get("prompt") or bg.get("label") or ident
+        return "bg", {"bgName": ident, "prompt": f"{prompt}. {extra}".strip(". ") if extra else prompt}
     raise ValueError(f"알 수 없는 항목: {key}")
 
 

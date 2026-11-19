@@ -1,0 +1,194 @@
+{
+  "id": "main_01_01",
+  "title": "산 자는 장부를 적는다",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "비릿한 쇠 냄새와 썩어가는 내장 냄새가 코를 찔렀다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "시체 더미 밑바닥에서 피딱지가 엉겨 붙은 손 하나가 불쑥 솟아올랐다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“커헉……! 퉤, 퉤! 입에 흙탕물 다 들어갔네.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 널브러진 부하의 시체를 옆으로 밀어내며 간신히 상체를 일으켰다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“갈비뼈는 두 개쯤 나갔고…… 팔다리는 멀쩡하군. 일단 생존.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "그는 가장 먼저 자신의 발끝을 내려다보더니 깊은 한숨을 내쉬었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“아, 씨발. 지난주에 은화 세 닢 주고 기름칠한 송아지 가죽 장화인데.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "장화 코에는 적병의 검에 찢긴 자국과 굳어버린 뇌수가 덕지덕지 묻어 있었다."
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "주변을 둘러보자 칠흑 같은 어둠 속에 수십 구의 시체가 널브러져 있었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "불과 반나절 전까지만 해도 술판을 벌이던 베테랑 용병단원들이었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“도적 떼 소탕이라더니, 대기하고 있던 건 중장보병 매복조였지.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 절뚝거리며 부단장의 시체 앞으로 다가가 주머니를 뒤적였다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“동화 열두 닢, 놋쇠 반지 하나…… 야, 너 지난달에 가불해 간 은화는 어디 갔냐?”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "죽은 자는 대답이 없었다. 단장은 익숙한 손놀림으로 품속의 작은 장부를 꺼냈다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“가불금 회수 불능. 장례비 면제 처리. 이걸로 퉁치자고, 친구.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 망자의 눈을 거칠게 감겨준 뒤 남은 주머니마저 털어냈다.",
+          "choices": [
+            {
+              "text": "다른 단원들의 품도 샅샅이 뒤진다.",
+              "goto": "s3"
+            },
+            {
+              "text": "사기 의뢰서를 먼저 확인한다.",
+              "goto": "s4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "단장은 진흙투성이가 된 시체 사이를 누비며 쓸만한 물건을 쓸어 담았다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“이빨 빠진 단검 세 자루, 마른 육포 두 토막. 오늘 야식은 해결됐네.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "슬픔에 잠길 시간 따위는 없었다. 죽은 자는 말이 없고, 산 자는 내일도 밥을 먹어야 했다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“남은 잔금이 금화 오십 개였는데…… 내 퇴직금이 한 방에 공중분해 됐어.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 피 묻은 외투 안쪽 주머니에서 붉은 밀랍으로 봉인된 의뢰서를 꺼냈다."
+        }
+      ],
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "찢어진 양피지 귀퉁이에는 낯익은 문양이 선명하게 찍혀 있었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“헨드릭 남작 가문의 사자 문장…… 그리고 암거래를 중개한 바바루아의 서명.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "처음부터 용병단을 몰살시켜 선금만 털어먹고 입막음하려는 추잡한 덫이었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“선금 30% 주고 잔금 떼먹는 악덕 고용주는 대륙 어디나 똑같다니까.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장의 입꼬리가 서늘하게 말려 올라갔다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“단원 스물두 명 목숨값에 정신적 피해보상금, 초과근무 수당까지…….”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "“남작 나리, 이번 청구서는 피로 적어 드리겠습니다.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 진흙탕 속에 꽂혀 있던 검을 뽑아 허리춤에 찼다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“그전에 밑천부터 모아야지. 선금 꿀꺽하고 튄 그 꼬맹이 도적부터 털러 간다.”",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "절뚝이는 단장의 발걸음이 빈민가 뒷골목을 향해 어둠 속으로 사라졌다."
+        }
+      ]
+    }
+  ]
+}

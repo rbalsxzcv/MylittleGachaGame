@@ -1,0 +1,177 @@
+{
+  "id": "main_01_07",
+  "title": "파문 기사의 불량 재고",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "피비린내 찌든 수풀을 헤치자 처참한 혈투가 펼쳐졌다."
+        },
+        {
+          "speaker": "r_garrick",
+          "text": "히익! 저 덩치 좀 봐! 사람을 반으로 접어놨는데요?!"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "……광휘교단 이단 사냥꾼 여덟. 중앙에 고립된 표적 하나."
+        },
+        {
+          "speaker": "narrator",
+          "text": "어디 보자. 찌그러진 흉갑에 부러진 성물 표식…….",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "발레리아! 교단의 은총을 거부한 대가는 오직 참수뿐이다!",
+          "name": "교단 사냥꾼"
+        },
+        {
+          "speaker": "ssr_valeria",
+          "text": "지랄 염병도 정성이다, 교단 개새끼들아! 덤벼!"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "콰아앙! 거대한 대검이 허공을 가르며 사냥꾼을 날려버렸다."
+        },
+        {
+          "speaker": "r_garrick",
+          "text": "세상에, 저런 괴물이 왜 저기서 혼자 쥐어터지고 있대요?"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "복부 자상 둘. 다리 힘 풀림. 출혈 과다로 3분 내 사망각."
+        },
+        {
+          "speaker": "narrator",
+          "text": "저 상태로 사냥꾼 세 놈을 골로 보냈다고? 완전 물건인데?",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "저런 근육질 탱커 하나 정규직으로 들이면 야근이 편해지지.",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "저 튼튼한 놈, 헐값에 주워가자.",
+              "goto": "s3_a"
+            },
+            {
+              "text": "사냥꾼들 지갑 털 겸 끼어들자.",
+              "goto": "s3_b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3_a",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "폐급 처리반에 딱 어울리는 SSR급 악성 재고잖아!",
+          "name": "단장"
+        },
+        {
+          "speaker": "r_garrick",
+          "text": "또 사람 주워요?! 내 식판 소시지 지분 줄어들겠네!"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "……식비 추가 지출 예상. 하지만 생존율은 상승."
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장이 씩 웃으며 허리춤의 칼자루를 툭 쳤다."
+        }
+      ],
+      "next": "s4"
+    },
+    {
+      "id": "s3_b",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "교단 사냥꾼 놈들 주머니에 은화 냄새가 진동하는데?",
+          "name": "단장"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "공감. 목숨값 횡재 가능. 배후 타격 각도 완벽함."
+        },
+        {
+          "speaker": "r_garrick",
+          "text": "에라, 모르겠다! 사냥꾼들 털어서 볼트 값이나 벌죠!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "용병단의 눈빛이 돈 냄새를 맡고 일제히 번뜩였다."
+        }
+      ],
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "털썩. 발레리아가 대검을 바닥에 박은 채 한쪽 무릎을 꿇었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "끝이다, 파문당한 사냥개 년! 교단의 이름으로 목을 벤다!",
+          "name": "교단 사냥꾼"
+        },
+        {
+          "speaker": "ssr_valeria",
+          "text": "큭…… 빌어먹을 교황청 샌님들…… 여기까지인가……."
+        },
+        {
+          "speaker": "narrator",
+          "text": "어이, 스톱! 남의 예비 사원 목을 왜 공짜로 베려고 해?",
+          "name": "단장"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "기습 진입. 목덜미 목표 셋, 확보."
+        },
+        {
+          "speaker": "narrator",
+          "text": "가릭, 쏴라! 신규 입사자 면접 보러 가야 하니까!",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,9 @@
-// 도감(컬렉션): 보유 캐릭터, 중복 시 별(최대 5), NEW 표시
+// 도감(컬렉션): 보유 캐릭터, 중복 → 정수(돌파 재료), NEW 표시
 
 import { nowKstIso, now } from '../core/time.js';
+import { grantDuplicate } from './progression.js';
 
+/** 카드의 별 칸 수 = 최대 돌파 단계 */
 export const MAX_STARS = 5;
 const RARITY_ORDER = { SSR: 3, SR: 2, R: 1 };
 
@@ -10,19 +12,18 @@ export function isOwned(save, id) {
 }
 
 /**
- * 뽑은 캐릭터를 도감에 추가
- * @returns {{isNew:boolean, stars:number, starUp:boolean}}
+ * 뽑은 캐릭터를 도감에 추가. 중복이면 정수 +1 (이미 최대면 티켓으로)
+ * @returns {{isNew:boolean, essence:number, tickets:number, breakthrough:number}}
  */
-export function addCharacter(save, id, t = now()) {
-  const entry = save.owned[id];
+export function addCharacter(save, char, balance, t = now()) {
+  const entry = save.owned[char.id];
   if (!entry) {
-    save.owned[id] = { stars: 1, count: 1, firstAt: nowKstIso(t) };
-    return { isNew: true, stars: 1, starUp: false };
+    save.owned[char.id] = { level: 1, essence: 0, breakthrough: 0, count: 1, firstAt: nowKstIso(t) };
+    return { isNew: true, essence: 0, tickets: 0, breakthrough: 0 };
   }
   entry.count += 1;
-  const before = entry.stars;
-  entry.stars = Math.min(MAX_STARS, entry.stars + 1);
-  return { isNew: false, stars: entry.stars, starUp: entry.stars > before };
+  const got = grantDuplicate(save, char, balance);
+  return { isNew: false, ...got, breakthrough: entry.breakthrough };
 }
 
 /**

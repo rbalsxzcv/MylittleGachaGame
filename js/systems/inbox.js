@@ -1,6 +1,6 @@
 // 우편함 / 공지 / 업데이트 내역
 import { inPeriod, parseDate, now } from '../core/time.js';
-import { addGems } from './economy.js';
+import { grantRewards } from './economy.js';
 
 // ── 우편 ──────────────────────────────────────────────
 /** 지금 받을 수 있는 기간의 우편 (최근 시작 순) */
@@ -12,12 +12,12 @@ export function activeMail(mail, t = now()) {
 
 export const isClaimed = (save, id) => save.claimedMail.includes(id);
 
-/** 우편 받기 (한 번만). 받은 보석 수 반환, 이미 받았거나 기간이 아니면 0 */
+/** 우편 받기 (한 번만). 받은 보상 {gems, tickets}, 이미 받았거나 기간이 아니면 null */
 export function claimMail(save, m, t = now()) {
-  if (isClaimed(save, m.id) || !inPeriod(m.startAt, m.endAt, t)) return 0;
+  if (isClaimed(save, m.id) || !inPeriod(m.startAt, m.endAt, t)) return null;
   save.claimedMail.push(m.id);
-  addGems(save, m.rewards.gems);
-  return m.rewards.gems;
+  grantRewards(save, m.rewards);
+  return { gems: m.rewards.gems || 0, tickets: m.rewards.tickets || 0 };
 }
 
 export function unclaimedCount(save, mail) {

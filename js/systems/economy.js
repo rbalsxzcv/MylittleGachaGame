@@ -1,4 +1,4 @@
-// 재화(보석) 관리와 일일 출석 보상
+// 재화(보석, 티켓) 관리와 일일 출석 보상
 
 import { kstDateKey, now } from '../core/time.js';
 
@@ -19,16 +19,28 @@ export function addGems(save, amount) {
   save.gems = Math.max(0, save.gems + Math.floor(amount));
 }
 
+export function addTickets(save, amount) {
+  save.tickets = Math.max(0, (save.tickets || 0) + Math.floor(amount));
+}
+
+/** 보상 묶음 {gems, tickets} 지급 */
+export function grantRewards(save, rewards) {
+  if (!rewards) return;
+  if (rewards.gems) addGems(save, rewards.gems);
+  if (rewards.tickets) addTickets(save, rewards.tickets);
+}
+
 /**
- * 오늘(KST) 첫 접속이면 보석 300개 지급
- * @returns {number} 지급한 보석 수 (이미 받았으면 0)
+ * 오늘(KST) 첫 접속이면 보석 300개 + 티켓 지급
+ * @returns {{gems:number, tickets:number}|null} 이미 받았으면 null
  */
-export function applyDailyLogin(save, t = now()) {
+export function applyDailyLogin(save, dailyTickets = 0, t = now()) {
   const today = kstDateKey(t);
-  if (save.lastLoginDate === today) return 0;
+  if (save.lastLoginDate === today) return null;
   save.lastLoginDate = today;
   addGems(save, DAILY_GEMS);
-  return DAILY_GEMS;
+  addTickets(save, dailyTickets);
+  return { gems: DAILY_GEMS, tickets: dailyTickets };
 }
 
 /** 숫자 표시: 1,000 */

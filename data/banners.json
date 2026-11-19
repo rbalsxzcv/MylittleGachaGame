@@ -1,27 +1,42 @@
 [
   {
-    "id": "standard_main",
+    "id": "standard",
     "title": "상시 모집",
     "type": "standard",
     "pickupIds": [],
     "startAt": null,
     "endAt": null,
-    "bannerImage": "assets/banners/standard_main.jpg",
-    "description": "모든 캐릭터가 등장하는 상시 모집입니다.\n50회 안에 SSR이 나오지 않으면 50번째는 SSR 확정!",
+    "bannerImage": "assets/banners/standard.jpg",
+    "description": "모든 동료가 등장하는 상시 모집이에요.\n50회 안에 SSR이 나오지 않으면 50번째는 SSR 확정!",
     "relatedStoryId": null
   },
   {
-    "id": "pickup_starfest",
-    "title": "별빛 축제 픽업",
+    "id": "pickup_rotation",
+    "title": "SSR 로테이션 픽업",
+    "type": "pickup",
+    "rotation": {
+      "rarity": "SSR",
+      "count": 2,
+      "days": 7,
+      "anchor": "2026-11-16T00:00:00+09:00"
+    },
+    "startAt": null,
+    "endAt": null,
+    "bannerImage": "assets/banners/pickup_rotation.jpg",
+    "description": "일주일마다 SSR 동료 2명이 차례로 픽업돼요.\nSSR이 나오면 50% 확률로 픽업 동료, 놓치면 다음 SSR은 픽업 확정!",
+    "relatedStoryId": null
+  },
+  {
+    "id": "pickup_1",
+    "title": "빛바랜 맹세",
     "type": "pickup",
     "pickupIds": [
-      "ssr_lumi",
-      "sr_ayeon"
+      "ssr_valeria"
     ],
-    "startAt": "2026-11-15T00:00:00+09:00",
-    "endAt": "2026-12-07T00:00:00+09:00",
-    "bannerImage": "assets/banners/pickup_starfest.jpg",
-    "description": "별빛 축제 기간 한정! 「별을 엮는 무녀」 루미의 등장 확률 UP\nSSR이 나오면 50% 확률로 루미, 놓치면 다음 SSR은 루미 확정!",
-    "relatedStoryId": "event_starfest"
+    "startAt": null,
+    "endAt": null,
+    "bannerImage": "assets/banners/pickup_1.jpg",
+    "description": "",
+    "relatedStoryId": null
   }
 ]

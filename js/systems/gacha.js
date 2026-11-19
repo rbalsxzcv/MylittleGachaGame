@@ -46,7 +46,7 @@ export function buildPools(characters, banner) {
   const pools = { R: [], SR: [], SSR: [], pickup: { R: [], SR: [], SSR: [] } };
   const pickupIds = new Set(banner?.type === 'pickup' ? banner.pickupIds || [] : []);
   for (const c of characters) {
-    if (!pools[c.rarity]) continue;
+    if (!pools[c.rarity] || c.pullable === false) continue; // 스토리 전용 인물은 뽑기에 안 나옴
     pools[c.rarity].push(c);
     if (pickupIds.has(c.id)) pools.pickup[c.rarity].push(c);
   }

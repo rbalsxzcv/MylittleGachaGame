@@ -47,10 +47,11 @@ export function rarityBadge(rarity) {
   return h('span', { class: `rarity-badge rar-${rarity}` }, rarity);
 }
 
+/** 별 칸 = 돌파 단계 (0~5) */
 export function starRow(stars) {
   return h(
     'span',
-    { class: 'stars', 'aria-label': `별 ${stars}개` },
+    { class: 'stars', 'aria-label': `돌파 ${stars}단계`, title: `돌파 ${stars}` },
     Array.from({ length: MAX_STARS }, (_, i) => h('span', { class: i < stars ? 'star on' : 'star' }, '★')),
   );
 }

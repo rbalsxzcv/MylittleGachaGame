@@ -1,58 +1,206 @@
 [
   {
-    "id": "main_01",
+    "id": "main_01_01",
     "kind": "main",
     "chapter": 1,
-    "title": "작은 소원의 시작",
-    "summary": "견습 마법사 미나가 실수로 연 별빛의 문.",
-    "unlock": [],
-    "reward": { "gems": 50 }
+    "arc": 1,
+    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
+    "title": "산 자는 장부를 적는다",
+    "summary": "시체밭에서 눈을 뜬 단장은 손익계산서를 두드린다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
   },
   {
-    "id": "main_02",
+    "id": "main_01_02",
     "kind": "main",
     "chapter": 2,
-    "title": "골목길의 길잡이",
-    "summary": "길을 잃은 미나 앞에 나타난 배달부 도하.",
-    "unlock": [{ "type": "prevChapter" }],
-    "reward": { "gems": 50 }
+    "arc": 1,
+    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
+    "title": "식어빠진 스튜와 무표정",
+    "summary": "선금을 들고 잠수한 암살자를 찾아 썩은 주점으로 향한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
   },
   {
-    "id": "main_03",
+    "id": "main_01_03",
     "kind": "main",
     "chapter": 3,
-    "title": "밤의 도서관",
-    "summary": "별빛의 문에 대한 단서를 찾아 도서관으로.",
-    "unlock": [{ "type": "prevChapter" }],
-    "reward": { "gems": 50 }
+    "arc": 1,
+    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
+    "title": "환불은 피로 받는다",
+    "summary": "칼끝이 오가는 살벌한 환불 협상과 새 계약 체결",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
   },
   {
-    "id": "char_lumi_01",
-    "kind": "character",
-    "chapter": 1,
-    "characterId": "ssr_lumi",
-    "title": "무녀의 간식 시간",
-    "summary": "별을 엮는 무녀에게도 쉬는 시간은 필요하다.",
-    "unlock": [{ "type": "ownsCharacter", "characterId": "ssr_lumi" }],
-    "reward": { "gems": 30 }
+    "id": "main_01_04",
+    "kind": "main",
+    "chapter": 4,
+    "arc": 1,
+    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
+    "title": "암시장의 잡음 청소",
+    "summary": "암시장 골목을 막아선 시체 약탈꾼들을 무력으로 교정한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
   },
   {
-    "id": "char_kai_01",
-    "kind": "character",
-    "chapter": 1,
-    "characterId": "sr_kai",
-    "title": "오늘의 폭발",
-    "summary": "카이의 실험실은 오늘도 시끄럽다.",
-    "unlock": [{ "type": "ownsCharacter", "characterId": "sr_kai" }],
-    "reward": { "gems": 30 }
+    "id": "main_01_05",
+    "kind": "main",
+    "chapter": 5,
+    "arc": 1,
+    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
+    "title": "가성비 인재 채용",
+    "summary": "정보상을 족쳐 흑막을 캐내고, 헐값에 석궁수를 영입한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
   },
   {
-    "id": "event_starfest",
-    "kind": "event",
-    "chapter": 1,
-    "title": "별빛 축제의 밤",
-    "summary": "일 년에 한 번, 별이 가장 가까워지는 밤.",
-    "unlock": [{ "type": "period", "startAt": "2026-11-15T00:00:00+09:00", "endAt": "2026-12-07T00:00:00+09:00" }],
-    "reward": { "gems": 100 }
+    "id": "main_01_06",
+    "kind": "main",
+    "chapter": 6,
+    "arc": 1,
+    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
+    "title": "남작의 입막음 부대",
+    "summary": "영지로 향하는 길목, 매복한 탈영병들과 마주친다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "main_01_07",
+    "kind": "main",
+    "chapter": 7,
+    "arc": 1,
+    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
+    "title": "파문 기사의 불량 재고",
+    "summary": "교단 사냥꾼에 포위된 파문 기사를 발견한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "main_01_08",
+    "kind": "main",
+    "chapter": 8,
+    "arc": 1,
+    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
+    "title": "식대 포함 정규직 계약",
+    "summary": "죽어가는 파문 기사를 헐값에 채용하기 위한 난입",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "main_01_09",
+    "kind": "main",
+    "chapter": 9,
+    "arc": 1,
+    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
+    "title": "묘지를 넘는 발걸음",
+    "summary": "남작 저택으로 향하는 안개 낀 폐허 묘지에서 굶주린 역병 사냥개 무리와 마주친다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "main_01_10",
+    "kind": "main",
+    "chapter": 10,
+    "arc": 1,
+    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
+    "title": "저택 뒷문 따기",
+    "summary": "남작 저택 뒷문을 뚫고 정예 근위대와 격돌한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "main_01_11",
+    "kind": "main",
+    "chapter": 11,
+    "arc": 1,
+    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
+    "title": "채권 추심단의 방문",
+    "summary": "연회장을 피바다로 물들이며 남작의 친위대를 도륙한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "main_01_12",
+    "kind": "main",
+    "chapter": 12,
+    "arc": 1,
+    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
+    "title": "최종 정산서 발행",
+    "summary": "배신자 남작의 목을 꺾고 밀린 빚을 강제 추심한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 100
+    }
   }
 ]

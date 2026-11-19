@@ -306,64 +306,300 @@ def mock_describe(inp):
     return f"「{title}」라 불리는 {name}.\n겉보기와 달리 의외로 수줍음이 많다.{extra} [모의 모드]"
 
 
-# ── 스토리 초안 ───────────────────────────────────────────
-STORY_SCHEMA = """{
-  "title": "스토리 제목",
+# ── 스토리 장 생성 ────────────────────────────────────────
+# 개요 한두 문단 → 대본. 세계관 + 앞 장 요약 + 직전 장 대본을 함께 읽고 이어 씀
+STORY_LENGTH = {
+    "auto": "개요의 사건 양에 맞게 스스로 판단 (보통 장면 3~6개, 장면마다 대사 5~10줄)",
+    "short": "짧게: 장면 2~3개, 장면마다 대사 4~6줄",
+    "normal": "보통: 장면 3~5개, 장면마다 대사 5~8줄",
+    "long": "길게: 장면 5~8개, 장면마다 대사 6~12줄",
+}
+
+CHAPTER_SCHEMA = """{
+  "title": "이 장의 제목",
+  "summary": "목록에 보일 한 줄 소개 (40자 이내, 결말 스포일러 없이)",
+  "recap": "이 장에서 실제로 일어난 일 요약 3~6문장 (다음 장을 쓸 때 참고용: 등장인물, 사건, 관계 변화, 남은 떡밥)",
   "scenes": [
     {
       "id": "s1",
       "background": {"type": "color", "value": "#1b1440"},
-      "next": null,
       "lines": [
         {"speaker": "narrator", "text": "지문"},
         {"speaker": "캐릭터id", "text": "대사"},
+        {"speaker": "narrator", "name": "목록에 없는 인물 이름", "text": "그 인물의 대사"},
         {"speaker": "캐릭터id", "text": "선택지가 나오는 대사", "choices": [{"text": "선택1", "goto": "s2"}, {"text": "선택2", "goto": "s3"}]}
       ]
-    }
+    }%s
+  ]
+}"""
+
+BATTLE_SCENE_EXAMPLE = """,
+    {"id": "b1", "type": "battle", "stageId": "스테이지id", "next": "s3"}"""
+
+
+def script_text(body, names, stage_names=None, limit=8000):
+    """스토리 본문 → 읽기 쉬운 대본 글 (AI 입력용)"""
+    out = []
+    for sc in (body or {}).get("scenes") or []:
+        if not isinstance(sc, dict):
+            continue
+        if sc.get("type") == "battle":
+            out.append(f"[전투: {(stage_names or {}).get(sc.get('stageId'), sc.get('stageId'))}]")
+            continue
+        out.append(f"# 장면 {sc.get('id')}")
+        for ln in sc.get("lines") or []:
+            if not isinstance(ln, dict):
+                continue
+            sp = ln.get("speaker", "narrator")
+            who = ln.get("name") or ("지문" if sp == "narrator" else names.get(sp, sp))
+            out.append(f"{who}: {ln.get('text', '')}")
+            if ln.get("choices"):
+                out.append("  (선택지: " + " / ".join(str(c.get("text", "")) for c in ln["choices"] if isinstance(c, dict)) + ")")
+    text = "\n".join(out)
+    return text if len(text) <= limit else text[: limit // 3] + "\n…(중략)…\n" + text[-(limit * 2 // 3):]
+
+
+def chapter_draft(ctx):
+    """ctx: meta, outline, world, style, prev (list of {chapter,title,recap}), prev_script, chars, length, stages, feedback, previous"""
+    meta = ctx["meta"]
+    roster = "\n".join(f"- id: {c['id']} / 이름: {c['name']} / 칭호: {c.get('title', '')} / 소개: {c.get('description', '')}" for c in ctx["chars"])
+    prev = "\n".join(f"- {p['chapter']}장 「{p['title']}」: {p['recap'] or '(요약 없음)'}" for p in ctx["prev"])
+    stages = ctx.get("stages") or []
+    text = f"""당신은 모바일 수집형 RPG의 비주얼노벨형 스토리 작가입니다. 한국어로 이 장의 대본을 써 주세요.
+
+[세계관]
+{ctx['world'] or '(아직 없음: 개요와 등장인물만으로 자연스럽게)'}
+
+[문체 / 톤]
+{ctx['style'] or '따뜻하고 가벼운 판타지. 대사는 짧고 캐릭터마다 말투가 달라야 함'}
+
+[지금까지의 줄거리] ({meta.get('kind', 'main')} {meta.get('chapter', 1)}장 이전)
+{prev or '(이번이 첫 장)'}
+
+[직전 장 대본] (말투, 마지막 상황, 호칭을 이어받기 위한 참고)
+{ctx['prev_script'] or '(없음)'}
+
+{_pack_block(ctx)}[이번 장] {meta.get('chapter', 1)}장 {('「' + meta['title'] + '」') if meta.get('title') else '(제목은 정해 주세요)'}
+개요: {ctx['outline']}
+
+[등장 캐릭터] speaker에는 아래 id 또는 "narrator"만 쓰기
+{roster or '- (등록된 캐릭터 없음)'}
+- 목록에 없는 인물이 필요하면 speaker는 "narrator", name에 그 인물 이름을 쓰기 (예: 마을 사람, 수수께끼의 목소리)
+
+[규칙]
+- 분량: {STORY_LENGTH.get(ctx['length'], STORY_LENGTH['auto'])}. 한 줄은 60자 이내.
+- 개요의 사건을 빠짐없이, 앞 장들과 모순 없이. 세계관의 고유 명사와 설정을 지키기.
+- 앞 장의 요약에 있는 떡밥은 개요와 관련 있을 때만 이어 받기. 개요에 없는 큰 사건(죽음, 정체 공개 등)을 마음대로 만들지 않기.
+- 장면이 바뀌는 곳(장소/시간 변화)에서 장면을 나누기. 배경은 분위기에 맞는 어두운 계열 색(#hex).
+- 선택지는 꼭 필요할 때만, 최대 2개. goto는 장면 id. 갈라진 장면은 "next"로 다시 합류하거나 "end"로 끝내기.
+- 마지막 장면은 다음 장이 궁금해지게 끝내기.
+"""
+    bgs = ctx.get("backgrounds") or []
+    if bgs:
+        text += '- 배경: 장면마다 아래 배경 중 어울리는 것을 "background": {"type": "bg", "name": "이름"} 으로 (맞는 게 없을 때만 {"type": "color", "value": "#hex"}):\n' + "\n".join(f"  - {b['name']}: {b['label']}" for b in bgs) + "\n"
+    req = ctx.get("required_stage")
+    if req:
+        text += f'- 전투: 이 장에는 전투 장면을 꼭 1개 넣기 → {{"id": "b1", "type": "battle", "stageId": "{req["id"]}"}} (스테이지: {req["name"]}). 전투 전에 상황을 대사로 보여 주고, 전투 뒤 장면으로 이어가기.\n'
+    if stages and not req:
+        text += "- 전투가 어울리는 곳에만 전투 장면을 넣을 수 있어요 (없어도 됨). stageId는 아래 중에서만:\n" + "\n".join(f"  - {s['id']}: {s['name']}" for s in stages) + "\n"
+    schema = CHAPTER_SCHEMA % (BATTLE_SCENE_EXAMPLE if stages or req else "")
+    if bgs:
+        schema = schema.replace('"background": {"type": "color", "value": "#1b1440"}', '"background": {"type": "bg", "name": "배경 이름"}')
+    text += f"\n오직 JSON만 출력. 형식:\n{schema}\n"
+    if ctx.get("previous"):
+        text += f"\n이전 초안:\n{json.dumps(ctx['previous'], ensure_ascii=False)[:8000]}\n"
+    if ctx.get("feedback"):
+        text += f"\n이전 초안에 대한 수정 요청 (반드시 반영, 나머지는 최대한 유지): {ctx['feedback']}\n"
+    return text
+
+
+def _pack_block(ctx):
+    """챕터 팩으로 만드는 중이면 챕터 전체 구성을 보여 줌 (복선/흐름 맞추기)"""
+    pack = ctx.get("pack")
+    if not pack:
+        return ""
+    lines = [f"[이번 챕터] 챕터 {pack['arc']} 「{pack['title']}」: {pack.get('summary', '')}", f"챕터 전체 구성 ({len(pack['chapters'])}장, 지금은 {pack['position']}장을 써요):"]
+    for c in pack["chapters"]:
+        mark = "▶ " if c["n"] == pack["position"] else ""
+        lines.append(f"- {mark}{c['n']}장 「{c['title']}」: {c['outline']}")
+    return "\n".join(lines) + "\n\n"
+
+
+def recap_prompt(world, title, script):
+    return f"""아래는 모바일 게임 스토리의 한 장 대본입니다. 다음 장을 쓰는 작가가 참고할 수 있게 요약해 주세요.
+
+[세계관 참고]
+{world[:3000] or '(없음)'}
+
+[장 제목] {title}
+
+[대본]
+{script}
+
+규칙: 한국어 3~6문장. 등장인물, 실제로 일어난 사건, 관계/감정 변화, 해결되지 않은 떡밥을 포함. 대본에 없는 내용은 쓰지 않기. 요약 글만 출력."""
+
+
+def mock_chapter(ctx):
+    names = {c["id"]: c["name"] for c in ctx["chars"]}
+    ids = list(names) or []
+    a = ids[0] if ids else None
+    count = {"short": 2, "normal": 3, "long": 5}.get(ctx["length"], 3)
+    scenes = []
+    for i in range(count):
+        lines = [{"speaker": "narrator", "text": f"[모의 모드] {ctx['meta'].get('chapter', 1)}장 장면 {i + 1}. {ctx['outline'][:40]}"}]
+        if a:
+            lines.append({"speaker": a, "text": "여기가… 처음 와 보는 곳이야."})
+        else:
+            lines.append({"speaker": "narrator", "name": "여행자", "text": "여기가… 처음 와 보는 곳이야."})
+        if ctx["prev"]:
+            lines.append({"speaker": "narrator", "text": f"(앞 장 「{ctx['prev'][-1]['title']}」에서 이어짐)"})
+        if ctx.get("feedback"):
+            lines.append({"speaker": "narrator", "text": f"(수정 요청 반영: {ctx['feedback'][:40]})"})
+        bgs = ctx.get("backgrounds") or []
+        bg = {"type": "bg", "name": bgs[i % len(bgs)]["name"]} if bgs else {"type": "color", "value": ["#1b1440", "#2a2152", "#33264f", "#24304a"][i % 4]}
+        scenes.append({"id": f"s{i + 1}", "background": bg, "lines": lines})
+    if ctx.get("required_stage"):
+        scenes.insert(len(scenes) - 1, {"id": "b1", "type": "battle", "stageId": ctx["required_stage"]["id"]})
+    elif ctx.get("stages"):
+        scenes.insert(len(scenes) - 1, {"id": "b1", "type": "battle", "stageId": ctx["stages"][0]["id"]})
+    return json.dumps(
+        {
+            "title": ctx["meta"].get("title") or f"모의 {ctx['meta'].get('chapter', 1)}장",
+            "summary": "[모의 모드] 새로운 모험이 시작된다",
+            "recap": f"[모의 모드] {ctx['outline'][:80]}",
+            "scenes": scenes,
+        },
+        ensure_ascii=False,
+    )
+
+
+def mock_recap(title, script):
+    return f"[모의 모드] 「{title}」 요약: {script[:80].replace(chr(10), ' ')}…"
+
+
+# ── 전투 스킬 세트 초안 (스킬 3개 + 돌파 5개) ──────────────
+def _param_text(key, spec):
+    kind = spec.get("kind")
+    if kind in ("number", "int"):
+        return f"{key}: {'정수' if kind == 'int' else '소수'} {spec.get('min')}~{spec.get('max')}"
+    if kind == "enum":
+        return f"{key}: {spec.get('of')}"
+    if kind == "targeting":
+        return f"{key}: 대상 지정 값"
+    if kind == "effects":
+        return f"{key}: 효과 목록"
+    return key
+
+
+def vocab_summary(vocab):
+    """AI에게 줄 용어집 요약 (이 목록에 없는 값은 쓰면 안 됨)"""
+    groups = vocab.get("statGroups", {})
+    out = ["[대상 targeting]"]
+    for k, t in vocab["targeting"].items():
+        out.append(f"- {k}: {t['label']}" + (" (돌파 능력에서만)" if t.get("passiveOnly") else "") + (" + count(1~10)" if t.get("count") else ""))
+    out.append("\n[효과 effects] 각 효과는 {\"type\": ..., 파라미터...}. 선택: \"target\"(이 효과만 다른 대상), \"chance\"(1~100 %)")
+    for k, e in vocab["effects"].items():
+        params = ", ".join(_param_text(pk, ps) for pk, ps in (e.get("params") or {}).items()) or "파라미터 없음"
+        out.append(f"- {k} ({e['label']}): {params}")
+    out.append(f"  능력치 묶음: scaleStats={groups.get('scaleStats')}, buffStats={groups.get('buffStats')}, bonusStats={groups.get('bonusStats')}")
+    out.append("\n[발동 조건 trigger] (돌파 능력)")
+    for k, t in vocab["triggers"].items():
+        extra = ", ".join(_param_text(pk, ps) for pk, ps in (t.get("params") or {}).items())
+        out.append(f"- {k}: {t['label']}" + (f" ({extra})" if extra else ""))
+    out.append("\n[추가 조건 conditions] 모두 만족해야 발동")
+    for k, c in vocab["conditions"].items():
+        extra = ", ".join(_param_text(pk, ps) for pk, ps in (c.get("params") or {}).items())
+        out.append(f"- {k}: {c['label']}" + (f" ({extra})" if extra else ""))
+    out.append("\n[수정자 modifiers] 발동 조건 없이 항상 적용되는 능력")
+    for k, m in vocab["modifiers"].items():
+        extra = ", ".join(_param_text(pk, ps) for pk, ps in (m.get("params") or {}).items())
+        out.append(f"- {k} ({m['label']}): {extra}")
+    return "\n".join(out)
+
+
+KIT_SCHEMA = """{
+  "stats": {"atk": 100, "def": 40, "hp": 900, "critRate": 0.05, "critDmg": 0.5},
+  "kit": {
+    "basic":    {"name": "...", "description": "...", "targeting": "enemy_single", "effects": [{"type": "damage", "mult": 1.0, "stat": "atk", "hits": 1}]},
+    "skill":    {"name": "...", "description": "...", "targeting": "...", "cooldown": 2, "effects": [...]},
+    "ultimate": {"name": "...", "description": "...", "targeting": "...", "effects": [...]}
+  },
+  "breakthroughs": [
+    {"name": "...", "description": "...", "trigger": "onCrit", "conditions": [], "targeting": "self", "effects": [{"type": "energy_gain", "n": 10}]},
+    {"name": "...", "description": "...", "modifiers": [{"type": "ultimate_cost", "delta": -20}]}
   ]
 }"""
 
 
-def story_draft(meta, outline, chars, scene_count, feedback=None, previous=None):
-    roster = "\n".join(f"- id: {c['id']} / 이름: {c['name']} / 칭호: {c.get('title', '')} / 소개: {c.get('description', '')}" for c in chars)
-    text = f"""당신은 모바일 게임의 비주얼노벨형 스토리 작가입니다. 한국어로 스토리를 써 주세요.
+def kit_draft(inp, vocab, examples, rarity_stats, errors=None):
+    rs = rarity_stats.get(inp["rarity"]) or {}
+    ex = "\n".join(json.dumps({k: c.get(k) for k in ("name", "rarity", "description", "stats", "kit", "breakthroughs")}, ensure_ascii=False) for c in examples)
+    text = f"""당신은 턴제 수집형 RPG의 전투 기획자입니다. 아래 캐릭터의 전투 데이터(스킬 3개 + 돌파 능력 5개)를 JSON으로 설계해 주세요.
 
-스토리 정보
-- 종류: {meta.get('kind', 'main')} / 제목(가제): {meta.get('title', '')}
-- 줄거리 개요: {outline}
+캐릭터
+- 이름: {inp['name']} / 희귀도: {inp['rarity']} / 칭호: {inp.get('title', '')}
+- 설정: {inp.get('lore') or '(없음)'}
 
-등장 캐릭터 (speaker에는 반드시 아래 id 또는 "narrator"만 사용)
-{roster or '- (없음: narrator만 사용)'}
+전투 규칙 요약
+- 팀 5명 vs 적 웨이브. 아군 1→5번, 그다음 적 순서로 행동.
+- 기본 공격(basic): 대기 없음, 기력 +20. 스킬(skill): cooldown 턴 동안 다시 못 씀(1~4 권장), 기력 +30. 궁극기(ultimate): 기력 100 소모. 맞으면 기력 +10.
+- 피해 = 능력치 × mult × 100/(100+방어) × 치명타. mult 1.0 = 공격력 100%.
+- 이 희귀도의 기본 능력치: {json.dumps(rs, ensure_ascii=False)}, 치명타 확률 0.05, 치명타 피해 0.5. stats는 이 값의 ±25% 안에서 역할에 맞게.
 
-규칙
-- 장면 {scene_count}개 안팎, 장면마다 대사 4~8줄, 한 줄은 60자 이내
-- 캐릭터 소개에 맞는 말투와 성격 유지
-- 선택지는 필요할 때만, 최대 2개. 선택지의 goto는 장면 id. 갈라진 장면은 "next"로 다시 합류시키거나 "end"로 끝냄
-- 배경은 장면 분위기에 맞는 어두운 계열 색(#hex)
-- 오직 JSON만 출력. 형식:
-{STORY_SCHEMA}
+설계 규칙
+- 캐릭터 설정에 맞는 '전투 방식'(예: 지속 피해, 치유, 보호막, 치명타, 기력 순환)을 하나 정하고, 스킬과 돌파 능력 모두 그 방식을 살려 주세요.
+- 돌파 능력 5개는 각자 다른 능력. 단순 능력치 상승(stat_bonus)은 최대 1개. 발동형(trigger)과 상시형(modifiers)을 섞어 주세요.
+- 숫자 범위: 피해 mult 기본 0.8~1.2, 스킬 1.2~2.5(전체 대상이면 0.6~1.0), 궁극기 1.4~3.0(전체 대상이면 1.0~1.8). 치유 mult 0.5~1.5. 강화/약화 pct 10~40, turns 1~3.
+- name/description은 한국어, 설정의 분위기에 맞게. description은 한 문장.
+- 아래 용어집에 있는 값만 쓰세요. 없는 type/trigger/targeting을 만들면 안 됩니다.
+
+{vocab_summary(vocab)}
+
+기존 캐릭터 예시 (형식 참고):
+{ex or '(없음)'}
+
+오직 JSON만 출력. 형식:
+{KIT_SCHEMA}
 """
-    if previous:
-        text += f"\n이전 초안:\n{json.dumps(previous, ensure_ascii=False)[:6000]}\n"
-    if feedback:
-        text += f"\n이전 초안에 대한 수정 요청 (반드시 반영): {feedback}\n"
+    if inp.get("previous"):
+        text += f"\n이전 초안:\n{json.dumps(inp['previous'], ensure_ascii=False)[:6000]}\n"
+    if inp.get("feedback"):
+        text += f"\n이전 초안에 대한 수정 요청 (반드시 반영): {inp['feedback']}\n"
+    if errors:
+        text += "\n이전 응답에 아래 오류가 있었어요. 모두 고쳐서 다시 출력하세요:\n" + "\n".join(f"- {e['where']}: {e['message']}" for e in errors[:20]) + "\n"
     return text
 
 
-def mock_story(meta, outline, chars, scene_count, feedback=None):
-    ids = [c["id"] for c in chars] or ["narrator"]
-    a = ids[0]
-    b = ids[1] if len(ids) > 1 else a
-    name = {c["id"]: c["name"] for c in chars}
-    scenes = []
-    for i in range(max(1, min(scene_count, 4))):
-        sid = f"s{i + 1}"
-        lines = [
-            {"speaker": "narrator", "text": f"[모의 모드] 장면 {i + 1}. {outline[:40]}"},
-            {"speaker": a, "text": f"{name.get(b, '그쪽')}, 오늘은 무슨 일이야?"},
-            {"speaker": b, "text": "글쎄, 뭔가 재미있는 일이 생길 것 같은 예감이 들어."},
-        ]
-        if feedback:
-            lines.append({"speaker": "narrator", "text": f"(수정 요청 반영: {feedback[:40]})"})
-        scenes.append({"id": sid, "background": {"type": "color", "value": ["#1b1440", "#2a2152", "#33264f", "#24304a"][i % 4]}, "next": None, "lines": lines})
-    return json.dumps({"title": meta.get("title") or "모의 스토리", "scenes": scenes}, ensure_ascii=False)
+def mock_kit(inp):
+    """모의 모드: 이름에 따라 정해지는 가짜 스킬 세트 (형식은 진짜와 같음)"""
+    import hashlib
+
+    h = int(hashlib.sha1((inp.get("name") or "").encode("utf-8")).hexdigest()[:6], 16)
+    style = ["dot", "heal", "crit"][h % 3]
+    name = inp.get("name") or "동료"
+    tag = f" ({inp['feedback'][:12]})" if inp.get("feedback") else ""
+    dmg = lambda m, **kw: {"type": "damage", "mult": m, "stat": "atk", "hits": 1, **kw}  # noqa: E731
+    if style == "dot":
+        skill = {"name": f"{name}의 독안개{tag}", "description": "적 전체에 지속 피해를 남겨요.", "targeting": "enemy_all", "cooldown": 2, "effects": [dmg(0.6), {"type": "dot", "mult": 0.3, "turns": 2}]}
+    elif style == "heal":
+        skill = {"name": f"{name}의 손길{tag}", "description": "가장 지친 동료를 치유해요.", "targeting": "ally_lowest_hp", "cooldown": 2, "effects": [{"type": "heal", "mult": 1.2, "stat": "atk"}]}
+    else:
+        skill = {"name": f"{name}의 일격{tag}", "description": "적 하나를 강하게 노려요.", "targeting": "enemy_single", "cooldown": 2, "effects": [dmg(2.0)]}
+    return json.dumps(
+        {
+            "stats": {"critRate": 0.12} if style == "crit" else {},
+            "kit": {
+                "basic": {"name": "가벼운 공격", "description": "[모의 모드] 기본 공격", "targeting": "enemy_single", "effects": [dmg(1.0)]},
+                "skill": skill,
+                "ultimate": {"name": f"{name}의 비기", "description": "[모의 모드] 적 전체 공격", "targeting": "enemy_all", "effects": [dmg(1.5)]},
+            },
+            "breakthroughs": [
+                {"name": "집중", "description": "치명타 시 기력을 얻어요.", "trigger": "onCrit", "targeting": "self", "effects": [{"type": "energy_gain", "n": 10}]},
+                {"name": "숙련", "description": "스킬 대기 시간이 줄어요.", "modifiers": [{"type": "cooldown", "delta": -1}]},
+                {"name": "각성", "description": "궁극기 기력 소모가 줄어요.", "modifiers": [{"type": "ultimate_cost", "delta": -20}]},
+                {"name": "버팀", "description": "HP가 30% 아래면 보호막.", "trigger": "onHpBelow", "pct": 30, "limit": 1, "targeting": "self", "effects": [{"type": "shield", "mult": 1.5, "stat": "def", "turns": 2}]},
+                {"name": "단련", "description": "공격력이 올라요.", "modifiers": [{"type": "stat_bonus", "stat": "atk", "pct": 10}]},
+            ],
+        },
+        ensure_ascii=False,
+    )

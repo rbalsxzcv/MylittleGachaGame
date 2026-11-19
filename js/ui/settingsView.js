@@ -58,7 +58,7 @@ export function settingsScreen(ctx) {
 
       // ── 불러오기 ──
       async function onImport() {
-        const area = h('textarea', { class: 'code-area', rows: 6, spellcheck: 'false', placeholder: 'TG1: 로 시작하는 코드를 붙여넣으세요' });
+        const area = h('textarea', { class: 'code-area', rows: 6, spellcheck: 'false', placeholder: 'TG2: (또는 예전 TG1:)로 시작하는 코드를 붙여넣으세요' });
         const error = h('p', { class: 'form-error', role: 'alert' });
         let parsed = null;
 
@@ -73,7 +73,7 @@ export function settingsScreen(ctx) {
               primary: true,
               value: 'ok',
               onClick: () => {
-                const r = parseCode(area.value);
+                const r = parseCode(area.value, ctx.saveEnv());
                 if (!r.ok) {
                   error.textContent = r.error;
                   return false;

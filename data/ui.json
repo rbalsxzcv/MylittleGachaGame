@@ -2,8 +2,21 @@
   "backgrounds": {
     "home": "assets/ui/bg_home.jpg",
     "gacha": "assets/ui/bg_gacha.jpg",
-    "reveal": "assets/ui/bg_reveal.jpg",
-    "collection": "assets/ui/bg_collection.jpg"
+    "notices": "assets/ui/bg_notices.jpg",
+    "mail": "assets/ui/bg_mail.jpg",
+    "settings": "assets/ui/bg_settings.jpg",
+    "stories": "assets/ui/bg_stories.jpg",
+    "collection": "assets/ui/bg_collection.jpg",
+    "reveal": "assets/ui/bg_reveal.jpg"
   },
-  "icons": {}
+  "icons": {
+    "logo": "assets/ui/icon_logo.png",
+    "gem": "assets/ui/icon_gem.png",
+    "menu_gacha": "assets/ui/icon_menu_gacha.png",
+    "menu_collection": "assets/ui/icon_menu_collection.png",
+    "menu_stories": "assets/ui/icon_menu_stories.png",
+    "menu_mail": "assets/ui/icon_menu_mail.png",
+    "menu_notices": "assets/ui/icon_menu_notices.png",
+    "menu_settings": "assets/ui/icon_menu_settings.png"
+  }
 }

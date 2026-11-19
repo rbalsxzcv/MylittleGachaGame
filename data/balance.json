@@ -1,0 +1,93 @@
+{
+  "growth": 0.08,
+  "levelCost": {
+    "base": 10,
+    "exp": 1.25
+  },
+  "crit": {
+    "rate": 0.05,
+    "dmg": 0.5
+  },
+  "rarityStats": {
+    "R": {
+      "atk": 100,
+      "def": 40,
+      "hp": 900
+    },
+    "SR": {
+      "atk": 115,
+      "def": 46,
+      "hp": 1035
+    },
+    "SSR": {
+      "atk": 130,
+      "def": 52,
+      "hp": 1170
+    }
+  },
+  "energy": {
+    "max": 100,
+    "basic": 20,
+    "skill": 30,
+    "hit": 10,
+    "ultimateCost": 100
+  },
+  "essenceTickets": {
+    "SSR": 200,
+    "SR": 80,
+    "R": 30
+  },
+  "maxBreakthrough": 5,
+  "dailyTickets": 30,
+  "power": {
+    "atk": 2,
+    "def": 1.5,
+    "hp": 0.2,
+    "critRate": 300,
+    "critDmg": 100
+  },
+  "powerWarnPct": 25,
+  "maxRounds": 200,
+  "defaultKit": {
+    "basic": {
+      "name": "기본 공격",
+      "description": "적 하나를 공격해요.",
+      "targeting": "enemy_single",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1,
+          "stat": "atk",
+          "hits": 1
+        }
+      ]
+    },
+    "skill": {
+      "name": "강타",
+      "description": "적 하나에게 큰 피해를 줘요.",
+      "targeting": "enemy_single",
+      "cooldown": 2,
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.8,
+          "stat": "atk",
+          "hits": 1
+        }
+      ]
+    },
+    "ultimate": {
+      "name": "필살기",
+      "description": "적 전체를 공격해요.",
+      "targeting": "enemy_all",
+      "effects": [
+        {
+          "type": "damage",
+          "mult": 1.4,
+          "stat": "atk",
+          "hits": 1
+        }
+      ]
+    }
+  }
+}

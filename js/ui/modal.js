@@ -94,3 +94,20 @@ export function confirmModal(title, message, { okLabel = '확인', cancelLabel =
     ],
   });
 }
+
+/** 한 줄 입력 받기. 취소하면 null */
+export async function promptModal(title, value = '', { maxLength = 40 } = {}) {
+  const input = h('input', { class: 'text-input', type: 'text', maxlength: String(maxLength) });
+  input.value = value;
+  let text = null;
+  const r = await openModal({
+    title,
+    body: input,
+    dismissValue: null,
+    buttons: [
+      { label: '취소', value: null },
+      { label: '확인', value: 'ok', primary: true, onClick: () => void (text = input.value.trim()) },
+    ],
+  });
+  return r === 'ok' && text ? text : null;
+}

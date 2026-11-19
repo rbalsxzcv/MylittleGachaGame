@@ -12,14 +12,19 @@ import subprocess
 from . import config, store, validate
 from .timeutil import now_iso, parse
 
-LIST_KEYS = ("characters", "banners", "storyIndex", "notices", "mail")
+LIST_KEYS = ("characters", "banners", "storyIndex", "notices", "mail", "enemies", "stages")
 PUBLIC_FILE = {
     "characters": "data/characters.json",
     "banners": "data/banners.json",
     "storyIndex": "data/stories/index.json",
     "notices": "data/notices.json",
     "mail": "data/mail.json",
+    "enemies": "data/enemies.json",
+    "stages": "data/stages.json",
 }
+BATTLE_FIELDS = ("stats", "kit", "breakthroughs")
+# 개발 도구 전용 메모 (외형 키워드, 작가용 설정 — 스포일러가 있을 수 있음) → 공개 파일에는 넣지 않음
+DEV_ONLY_FIELDS = {"characters": ("keywords", "lore"), "enemies": ("keywords", "memo")}
 
 
 def _start_of(kind, item):
@@ -66,6 +71,11 @@ def _load_workspace():
     except store.JsonError as e:
         content["ui"] = {"backgrounds": {}, "icons": {}}
         syntax.append({"level": "error", "where": store.UI_FILE, "message": str(e)})
+    try:
+        content["balance"] = store.read_balance()
+    except store.JsonError as e:
+        content["balance"] = {}
+        syntax.append({"level": "error", "where": store.BALANCE_FILE, "message": str(e)})
     return content, syntax
 
 
@@ -84,6 +94,9 @@ def _referenced_assets(content):
     for b in content["banners"]:
         if b.get("bannerImage"):
             paths.add(b["bannerImage"])
+    for e in content.get("enemies") or []:
+        if isinstance(e, dict) and e.get("image"):
+            paths.add(e["image"])
     for body in content["stories"].values():
         for sc in (body or {}).get("scenes") or []:
             bg = (sc or {}).get("background") or {}
@@ -112,10 +125,12 @@ def plan(cutoff=None):
                 held_items.append({"type": key, "id": item.get("id"), "title": item.get("name") or item.get("title") or "", "startAt": _start_of(key, item)})
             else:
                 keep.append(item)
-        out[key] = keep
+        drop = DEV_ONLY_FIELDS.get(key, ())
+        out[key] = [{k: v for k, v in it.items() if k not in drop} if isinstance(it, dict) else it for it in keep] if drop else keep
     index_ids = {s.get("id") for s in out["storyIndex"] if isinstance(s, dict)}
     out["stories"] = {sid: body for sid, body in ws["stories"].items() if sid in index_ids}
     out["ui"] = ws["ui"]  # UI 에셋은 기간이 없어서 보류하지 않음
+    out["balance"] = ws["balance"]
 
     # ── 2) 검사 ──
     report = validate.validate(out, store.asset_exists_ws, held)
@@ -128,6 +143,7 @@ def plan(cutoff=None):
     for sid, body in out["stories"].items():
         targets[f"data/stories/{sid}.json"] = ("json", body)
     targets[f"data/{store.UI_FILE}"] = ("json", out["ui"])
+    targets[f"data/{store.BALANCE_FILE}"] = ("json", out["balance"])
     for rel in sorted(_referenced_assets(out)):
         if store.asset_exists_ws(rel):
             targets[rel] = ("asset", config.WORKSPACE / rel)
@@ -176,8 +192,23 @@ def draft_notes(out):
     for c in out["characters"]:
         if c["id"] not in pub["characters"]:
             notes.append(f"새 캐릭터: {c.get('name')} ({c.get('rarity')})")
-        elif pub["characters"][c["id"]] != c:
+            continue
+        old = pub["characters"][c["id"]]
+        if any(old.get(k) != c.get(k) for k in BATTLE_FIELDS):
+            notes.append(f"전투 데이터 수정: {c.get('name')}")
+        if any(old.get(k) != c.get(k) for k in set(old) | set(c) if k not in BATTLE_FIELDS):
             notes.append(f"캐릭터 정보 수정: {c.get('name')}")
+    for st in out["stages"]:
+        if st["id"] not in pub["stages"]:
+            notes.append(f"새 스테이지: {st.get('name')}")
+        elif pub["stages"][st["id"]] != st:
+            notes.append(f"스테이지 수정: {st.get('name')}")
+    changed_enemies = [e.get("name") for e in out["enemies"] if pub["enemies"].get(e["id"]) != e]
+    if changed_enemies:
+        notes.append(f"적 추가/수정: {', '.join(changed_enemies)}")
+    pub_bal = _public_json(f"data/{store.BALANCE_FILE}")
+    if out.get("balance") and pub_bal != out["balance"]:
+        notes.append("전투/육성 밸런스 조정")
     for b in out["banners"]:
         if b["id"] not in pub["banners"]:
             label = "픽업 모집" if b.get("type") == "pickup" else "모집"

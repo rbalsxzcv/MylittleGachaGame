@@ -8,20 +8,26 @@ import { countdownEl, startCountdowns } from './countdown.js';
 import { getFeatured, hasUnseenNew } from '../systems/collection.js';
 import { bannerSignature } from '../systems/banners.js';
 import { hasUnreadUnlocked } from '../systems/stories.js';
-import { unclaimedCount } from '../systems/inbox.js';
+import { canBreakthrough } from '../systems/progression.js';
 import { RATES, PITY_LIMIT } from '../systems/gacha.js';
 import { iconOr } from './theme.js';
 
 // 메뉴 정의 — 새 기능(미션, 출석, 상점 등)은 여기에 한 줄 추가하면 됩니다.
-// key: 키보드 단축키 표시용 (실제 처리는 main.js), dot: 빨간 점 표시 조건
+// key: 키보드 단축키 표시용 (실제 처리는 main.js), dot: 빨간 점 표시 조건, soon: 준비 중(누를 수 없음)
+// 우편 / 공지 / 설정은 위쪽 HUD 아이콘 (main.js의 HUD_LINKS)
 const MENU = [
   { id: 'gacha', label: '뽑기', icon: '✦', key: 'G', screen: 'gacha', primary: true },
-  { id: 'collection', label: '도감', icon: '❖', key: 'C', screen: 'collection', dot: (ctx) => hasUnseenNew(ctx.save, ctx.data.charMap) },
   { id: 'stories', label: '스토리', icon: '❝', key: 'T', screen: 'stories', dot: (ctx) => hasUnreadUnlocked(ctx) },
-  { id: 'mail', label: '우편', icon: '✉︎', key: 'M', screen: 'mail', dot: (ctx) => unclaimedCount(ctx.save, ctx.data.mail) > 0 },
-  { id: 'notices', label: '공지', icon: '!', key: 'N', screen: 'notices' },
-  { id: 'settings', label: '설정', icon: '⚙︎', key: 'O', screen: 'settings' },
+  { id: 'growth', label: '육성', icon: '▲', key: 'U', screen: 'growth', dot: (ctx) => canGrowAny(ctx) },
+  { id: 'team', label: '편성', icon: '⚑', key: 'P', screen: 'team' },
+  { id: 'collection', label: '도감', icon: '❖', key: 'C', screen: 'collection', dot: (ctx) => hasUnseenNew(ctx.save, ctx.data.charMap) },
+  { id: 'event', label: '이벤트', icon: '★', soon: true },
 ];
+
+/** 돌파할 수 있는 캐릭터가 있으면 육성 메뉴에 빨간 점 */
+function canGrowAny(ctx) {
+  return ctx.data.characters.some((c) => canBreakthrough(ctx.save.owned[c.id], ctx.data.balance));
+}
 
 export function homeScreen(ctx) {
   return {
@@ -50,7 +56,7 @@ export function homeScreen(ctx) {
           h(
             'div',
             { class: 'featured-plate' },
-            h('div', { class: 'fp-top' }, rarityBadge(featured.rarity), starRow(entry?.stars ?? 1)),
+            h('div', { class: 'fp-top' }, rarityBadge(featured.rarity), starRow(entry?.breakthrough ?? 0)),
             featured.title && h('div', { class: 'fp-title' }, featured.title),
             h('div', { class: 'fp-name' }, featured.name),
           ),
@@ -73,7 +79,7 @@ export function homeScreen(ctx) {
           h(
             'div',
             { class: 'banner-card' },
-            bannerVisual(banner),
+            bannerVisual(banner, charMap),
             h('span', { class: ['banner-tag', banner.type === 'pickup' && 'is-pickup'] }, banner.type === 'pickup' ? '픽업' : '상시'),
             h(
               'div',
@@ -93,13 +99,15 @@ export function homeScreen(ctx) {
           h(
             'button',
             {
-              class: ['menu-btn', m.primary && 'menu-primary'],
+              class: ['menu-btn', m.primary && 'menu-primary', m.soon && 'menu-soon'],
               type: 'button',
               dataset: { menu: m.id },
-              onclick: () => go(m.screen),
+              disabled: m.soon,
+              'aria-disabled': m.soon ? 'true' : null,
+              onclick: m.soon ? null : () => go(m.screen),
             },
             h('span', { class: 'menu-icon', 'aria-hidden': 'true' }, iconOr(`menu_${m.id}`, m.icon)),
-            h('span', { class: 'menu-label' }, m.label),
+            h('span', { class: 'menu-label' }, m.label, m.soon && h('small', { class: 'menu-sub' }, '준비 중')),
             m.key && h('kbd', { class: 'key-hint' }, m.key),
             h('span', { class: 'menu-dot', hidden: true }),
           ),
@@ -149,13 +157,21 @@ export function homeScreen(ctx) {
   };
 }
 
-/** 배너 그림. 이미지가 없거나 실패하면 그라데이션으로 대체 */
-export function bannerVisual(banner) {
+/**
+ * 배너 그림. 그림이 없으면 그라데이션 (픽업 캐릭터가 있으면 그 캐릭터들을 나란히)
+ * @param {object} banner
+ * @param {Map} [charMap] 픽업 캐릭터 그림을 그릴 때 사용
+ */
+export function bannerVisual(banner, charMap) {
   const wrap = h('div', { class: ['banner-visual', banner.type === 'pickup' && 'is-pickup'] });
+  const featured = () => {
+    const chars = (banner.pickupIds || []).map((id) => charMap?.get(id)).filter(Boolean);
+    if (chars.length) wrap.append(h('div', { class: 'banner-featured' }, chars.map((c) => h('div', { class: `banner-featured-char rar-${c.rarity}` }, charArt(c)))));
+  };
   if (banner.bannerImage) {
     const img = h('img', { src: banner.bannerImage, alt: '', draggable: 'false' });
-    img.addEventListener('error', () => img.remove(), { once: true });
+    img.addEventListener('error', () => (img.remove(), featured()), { once: true });
     wrap.append(img);
-  }
+  } else featured();
   return wrap;
 }

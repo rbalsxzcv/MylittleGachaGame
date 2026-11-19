@@ -21,9 +21,12 @@ LIST_FILES = {
     "storyIndex": "stories/index.json",
     "notices": "notices.json",
     "mail": "mail.json",
+    "enemies": "enemies.json",
+    "stages": "stages.json",
 }
-ASSET_DIRS = ("chars", "banners", "bg", "ui")
+ASSET_DIRS = ("chars", "banners", "bg", "ui", "enemies")
 UI_FILE = "ui.json"  # 게임 화면 에셋(배경/아이콘) 연결 정보 — 목록이 아니라 객체
+BALANCE_FILE = "balance.json"  # 전투/육성 숫자 (객체)
 
 
 def valid_id(value):
@@ -48,12 +51,17 @@ def ensure_workspace():
 
 
 def _ensure_extras():
-    """나중에 추가된 파일/폴더를 예전 작업 공간에도 만들어 줌"""
+    """나중에 추가된 파일/폴더를 예전 작업 공간에도 만들어 줌 (공개 파일이 있으면 복사)"""
     for sub in ASSET_DIRS:
         ws_assets(sub).mkdir(parents=True, exist_ok=True)
     if not ws_data(UI_FILE).exists():
         public = config.PUBLIC_DATA / UI_FILE
         write_json(ws_data(UI_FILE), read_json(public, None) or {"backgrounds": {}, "icons": {}})
+    if not ws_data(BALANCE_FILE).exists():
+        write_json(ws_data(BALANCE_FILE), read_json(config.PUBLIC_DATA / BALANCE_FILE, None) or {})
+    for key in ("enemies", "stages"):
+        if not ws_data(LIST_FILES[key]).exists():
+            write_json(ws_data(LIST_FILES[key]), read_json(config.PUBLIC_DATA / LIST_FILES[key], None) or [])
 
 
 def read_ui():
@@ -68,6 +76,16 @@ def read_ui():
 
 def write_ui(ui):
     write_json(ws_data(UI_FILE), ui)
+
+
+def read_balance():
+    ensure_workspace()
+    b = read_json(ws_data(BALANCE_FILE), None)
+    return b if isinstance(b, dict) else {}
+
+
+def write_balance(balance):
+    write_json(ws_data(BALANCE_FILE), balance)
 
 
 def reset_workspace():
@@ -156,6 +174,11 @@ def load_all():
     except JsonError as e:
         out["ui"] = {"backgrounds": {}, "icons": {}}
         out["errors"]["ui"] = str(e)
+    try:
+        out["balance"] = read_balance()
+    except JsonError as e:
+        out["balance"] = {}
+        out["errors"]["balance"] = str(e)
     return out
 
 

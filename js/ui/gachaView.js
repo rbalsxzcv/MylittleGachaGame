@@ -45,7 +45,7 @@ export function executePull(ctx, banner, count) {
   ctx.save.guaranteed[key] = out.guaranteed;
   ctx.save.stats.pulls += count;
   const t = now();
-  const detailed = out.results.map((r) => ({ ...r, ...addCharacter(ctx.save, r.char.id, t) }));
+  const detailed = out.results.map((r) => ({ ...r, ...addCharacter(ctx.save, r.char, ctx.data.balance, t) }));
   ctx.commit(); // 연출 전에 저장 → 새로고침해도 결과가 사라지지 않음
   return detailed;
 }
@@ -170,7 +170,7 @@ export function gachaScreen(ctx) {
           h(
             'div',
             { class: 'gacha-banner' },
-            bannerVisual(banner),
+            bannerVisual(banner, ctx.data.charMap),
             h(
               'div',
               { class: 'gacha-banner-info' },
@@ -244,13 +244,13 @@ export function revealScreen(ctx) {
       let done = false;
 
       const cards = results.map((r, i) => {
-        // 앞면: 결과 카드 + 배지(NEW / ★+1 / MAX)
-        let badge = 'MAX';
-        let badgeClass = 'badge-max';
-        if (r.isNew) (badge = 'NEW'), (badgeClass = 'badge-new');
-        else if (r.starUp) (badge = '★+1'), (badgeClass = 'badge-star');
+        // 앞면: 결과 카드 + 배지(NEW / 정수 +1 / 티켓 +N)
+        let badge = 'NEW';
+        let badgeClass = 'badge-new';
+        if (!r.isNew && r.essence) (badge = '정수 +1'), (badgeClass = 'badge-star');
+        else if (!r.isNew) (badge = `티켓 +${r.tickets}`), (badgeClass = 'badge-max');
 
-        const front = charCard(r.char, { owned: true, stars: r.stars, badge, badgeClass });
+        const front = charCard(r.char, { owned: true, stars: r.breakthrough, badge, badgeClass });
         const card = h(
           'button',
           {

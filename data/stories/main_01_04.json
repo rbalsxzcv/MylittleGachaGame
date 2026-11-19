@@ -1,0 +1,184 @@
+{
+  "id": "main_01_04",
+  "title": "암시장의 잡음 청소",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_slum_black_market.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "썩은 기름 냄새와 피비린내가 엉킨 암시장 좁은 골목길."
+        },
+        {
+          "speaker": "narrator",
+          "text": "어둠 속에서 녹슨 도끼와 쇠스랑을 든 사내들이 불쑥 튀어나왔다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "어이, 반반한 꼬맹이랑 부상병 나으리? 보따리 곱게 두고 가시지.",
+          "name": "약탈꾼 두목"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "……목표 외 잡음 발생. 처리할까?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "거지 털어서 부자 될 일 있냐? 칼에 피 묻히면 녹만 슨다.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "주둥이가 기네? 저 계집부터 쳐서 노예상에 넘겨!",
+          "name": "약탈꾼 두목"
+        },
+        {
+          "speaker": "sr_1",
+          "text": "약관 제12조. 성희롱 및 불법 인신매매 미수는 즉결 처분."
+        },
+        {
+          "speaker": "narrator",
+          "text": "어휴, 귓구멍에 못이 박혔나. 야근 시작이다, 시논.",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "선빵으로 대가리를 깨버린다.",
+              "goto": "s2_a"
+            },
+            {
+              "text": "시논, 너한테 선발 수당 줄 테니 썰어라.",
+              "goto": "s2_b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_a",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_slum_black_market.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "말 많은 놈치고 칼 잘 쓰는 꼴을 못 봤거든!",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장이 묵직한 검자루를 거칠게 휘둘러 선두의 턱주가리를 으스러뜨렸다."
+        },
+        {
+          "speaker": "sr_1",
+          "text": "……단장 치고는 꽤 빠른 기습. 지원 개시."
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "s2_b",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_slum_black_market.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "sr_1",
+          "text": "성과급 지급 약속 접수 완료. 청소 시작."
+        },
+        {
+          "speaker": "narrator",
+          "text": "시논의 그림자가 번개처럼 허공을 가르며 약탈꾼의 발목을 찔렀다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "돈 냄새 맡으니까 움직임 날랜 것 좀 봐라. 싹 쓸어버려!",
+          "name": "단장"
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "st_01_04",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_slum_black_market.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "골목 바닥에 너부러진 불한당들이 피거품을 물며 끙끙 앓았다."
+        },
+        {
+          "speaker": "sr_1",
+          "text": "작업 종료. 소요 시간 2분 14초. 단검 날 두 개 손상."
+        },
+        {
+          "speaker": "narrator",
+          "text": "시체 뒤져서 쇳조각이랑 동전 긁어모아. 무기 정비비는 뽑아야지.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 능숙하게 두목의 품을 털어 찌그러진 은화 석 닢을 챙겼다."
+        },
+        {
+          "speaker": "sr_1",
+          "text": "……은화 세 닢. 이 정도면 오늘 저녁 호밀빵에 베이컨 추가 가능?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "베이컨은 무슨. 바란 그 영감탱이 털어서 양갈비 뜯어야지.",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_slum_black_market.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "피 웅덩이를 밟고 골목 끝자락의 삐걱거리는 철문에 도착했다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "문 너머로 시끌벅적한 주사위 굴리는 소리와 고함이 흘러나왔다."
+        },
+        {
+          "speaker": "sr_1",
+          "text": "바란의 은신처 입구. 안쪽은 사설 노름판으로 위장 중."
+        },
+        {
+          "speaker": "narrator",
+          "text": "남의 목숨값으로 주사위나 굴리고 계셨다 이거지?",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "발 비켜라, 시논. 문짝 부수고 채권 추심 들어간다.",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}

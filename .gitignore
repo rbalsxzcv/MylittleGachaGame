@@ -27,3 +27,6 @@ dev/trash/
 
 # 개발 도구 작업 환경 설정 (그림 엔진, ComfyUI 주소 등 — PC마다 다름)
 dev/settings.json
+
+# 스토리 설정집 (세계관, 장별 개요/요약 — 앞으로의 줄거리가 들어가므로 공개 저장소에 올리지 않음)
+dev/story_bible.json

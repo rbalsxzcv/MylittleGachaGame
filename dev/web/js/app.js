@@ -11,6 +11,10 @@ import { inboxTab } from './tabs/inbox.js';
 import { scheduleTab } from './tabs/schedule.js';
 import { publishTab } from './tabs/publish.js';
 import { settingsTab } from './tabs/settings.js';
+import { enemiesTab } from './tabs/enemies.js';
+import { stagesTab } from './tabs/stages.js';
+import { balanceTab } from './tabs/balance.js';
+import { packTab } from './tabs/pack.js';
 import { openPreview } from './preview.js';
 import { onBatch, refreshBatch } from './batchWatch.js';
 
@@ -18,6 +22,10 @@ const TABS = [
   ['characters', '캐릭터', charactersTab],
   ['banners', '배너', bannersTab],
   ['stories', '스토리', storiesTab],
+  ['pack', '챕터 팩', packTab],
+  ['enemies', '적', enemiesTab],
+  ['stages', '스테이지', stagesTab],
+  ['balance', '밸런스', balanceTab],
   ['ui', 'UI 에셋', uiAssetsTab],
   ['batch', '일괄 생성', batchTab],
   ['inbox', '공지 · 우편', inboxTab],
@@ -54,7 +62,7 @@ function renderStatus() {
 function route() {
   const [name, select] = location.hash.replace(/^#/, '').split('/');
   const tab = TABS.find((t) => t[0] === name) || TABS[0];
-  if (currentTab?.isDirty?.() && currentName !== tab[0] && !confirm('저장하지 않은 스토리 변경이 있어요. 이동할까요?')) {
+  if (currentTab?.isDirty?.() && currentName !== tab[0] && !confirm('저장하지 않은 변경이 있어요. 이동할까요?')) {
     history.replaceState(null, '', `#${currentName}`);
     return;
   }

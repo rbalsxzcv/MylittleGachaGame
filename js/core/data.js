@@ -2,6 +2,9 @@
 // 각 파일은 독립적으로 불러오며, 한 파일이 깨져도 게임 전체가 멈추지 않습니다.
 // 잘못된 항목은 건너뛰고(콘솔 경고) 나머지는 그대로 사용합니다.
 
+import { cleanKit, cleanStats, cleanPassiveList } from '../battle/schema.js';
+import { validateBalance } from '../systems/progression.js';
+
 export const RARITIES = ['R', 'SR', 'SSR'];
 export const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 export const STORY_KINDS = ['main', 'character', 'event'];
@@ -77,13 +80,17 @@ function cleanList(list, label, fn) {
   return out;
 }
 
+const warnData = (msg) => console.warn(`[data] ${msg}`);
+
 // ── characters.json ───────────────────────────────────────
 // 필수: id, name, rarity(R|SR|SSR)
-export function validateCharacters(json) {
+// 전투(선택): stats, kit {basic, skill, ultimate}, breakthroughs[5] — 없으면 희귀도 기본값 / 기본 스킬
+export function validateCharacters(json, vocab) {
   return cleanList(asList(json, 'characters'), 'characters', (raw) => {
     const name = str(raw.name).trim();
     if (!name) throw new Error('name 없음');
     if (!RARITIES.includes(raw.rarity)) throw new Error('rarity는 R/SR/SSR 중 하나여야 함');
+    const where = `characters/${raw.id}`;
     return {
       id: raw.id,
       name,
@@ -92,6 +99,57 @@ export function validateCharacters(json) {
       description: str(raw.description).trim(),
       image: str(raw.image).trim(),
       addedAt: str(raw.addedAt).trim(),
+      pullable: raw.pullable !== false, // false = 스토리 전용 인물 (뽑기/도감에 안 나옴)
+      stats: cleanStats(raw.stats),
+      kit: vocab ? cleanKit(raw.kit, vocab, warnData, `${where}.kit`) : null,
+      breakthroughs: vocab ? cleanPassiveList(raw.breakthroughs, vocab, warnData, `${where}.breakthroughs`, 5) : [],
+    };
+  });
+}
+
+// ── enemies.json ──────────────────────────────────────────
+// { id, name, image, boss, stats, kit, passives[] } — 패시브는 항상 켜짐
+export function validateEnemies(json, vocab) {
+  return cleanList(asList(json, 'enemies'), 'enemies', (raw) => {
+    const name = str(raw.name).trim();
+    if (!name) throw new Error('name 없음');
+    const where = `enemies/${raw.id}`;
+    return {
+      id: raw.id,
+      name,
+      image: str(raw.image).trim(),
+      boss: raw.boss === true,
+      stats: cleanStats(raw.stats),
+      kit: cleanKit(raw.kit, vocab, warnData, `${where}.kit`),
+      passives: cleanPassiveList(raw.passives, vocab, warnData, `${where}.passives`, 8),
+    };
+  });
+}
+
+// ── stages.json ───────────────────────────────────────────
+function cleanRewards(r) {
+  return { tickets: int(r?.tickets, 0, 1_000_000, 0), gems: int(r?.gems, 0, 1_000_000, 0) };
+}
+
+export function validateStages(json) {
+  return cleanList(asList(json, 'stages'), 'stages', (raw) => {
+    const waves = (Array.isArray(raw.waves) ? raw.waves : [])
+      .map((w) =>
+        (Array.isArray(w) ? w : [])
+          .filter((e) => e && idOk(e.enemyId))
+          .slice(0, 6)
+          .map((e) => ({ enemyId: e.enemyId, level: int(e.level, 1, 100000, 1) })),
+      )
+      .filter((w) => w.length);
+    if (!waves.length) throw new Error('waves가 비어 있음');
+    return {
+      id: raw.id,
+      name: str(raw.name, raw.id).trim() || raw.id,
+      recommendedPower: int(raw.recommendedPower, 0, 1e9, 0),
+      waves,
+      turnLimit: raw.turnLimit == null || raw.turnLimit === '' ? null : int(raw.turnLimit, 1, 999, 20),
+      rewards: cleanRewards(raw.rewards),
+      firstClearRewards: cleanRewards(raw.firstClearRewards),
     };
   });
 }
@@ -100,11 +158,21 @@ export function validateCharacters(json) {
 export function validateBanners(json) {
   return cleanList(asList(json, 'banners'), 'banners', (raw) => {
     const type = raw.type === 'pickup' ? 'pickup' : 'standard';
+    // 자동 로테이션 픽업: { rarity, count, days, anchor }
+    const rot = type === 'pickup' && raw.rotation && typeof raw.rotation === 'object' ? raw.rotation : null;
     return {
       id: raw.id,
       title: str(raw.title, raw.id).trim() || raw.id,
       type,
-      pickupIds: type === 'pickup' && Array.isArray(raw.pickupIds) ? raw.pickupIds.filter(idOk) : [],
+      rotation: rot
+        ? {
+            rarity: RARITIES.includes(rot.rarity) ? rot.rarity : 'SSR',
+            count: int(rot.count, 1, 4, 2),
+            days: int(rot.days, 1, 60, 7),
+            anchor: dateOrNull(rot.anchor),
+          }
+        : null,
+      pickupIds: type === 'pickup' && !rot && Array.isArray(raw.pickupIds) ? raw.pickupIds.filter(idOk) : [],
       startAt: dateOrNull(raw.startAt),
       endAt: dateOrNull(raw.endAt),
       bannerImage: str(raw.bannerImage).trim(),
@@ -135,6 +203,8 @@ export function validateStoryIndex(json) {
       id: raw.id,
       kind: raw.kind,
       chapter: int(raw.chapter, 1, 9999, 1),
+      arc: raw.arc == null ? null : int(raw.arc, 1, 999, 1), // 챕터 번호 (메인 스토리 12장 묶음)
+      arcTitle: str(raw.arcTitle, '', 60).trim(),
       title: str(raw.title, raw.id).trim() || raw.id,
       summary: str(raw.summary).trim(),
       characterId: idOk(raw.characterId) ? raw.characterId : null,
@@ -147,7 +217,8 @@ export function validateStoryIndex(json) {
 // ── stories/<id>.json ─────────────────────────────────────
 function cleanBackground(bg) {
   if (bg && typeof bg === 'object' && bg.type === 'image' && typeof bg.value === 'string' && bg.value) {
-    return { type: 'image', value: bg.value };
+    // color: 그림이 아직 없거나 못 불러올 때 깔리는 색
+    return { type: 'image', value: bg.value, color: typeof bg.color === 'string' && /^#[0-9a-f]{3,8}$/i.test(bg.color) ? bg.color : '#000' };
   }
   const color = bg && typeof bg === 'object' && typeof bg.value === 'string' ? bg.value : typeof bg === 'string' ? bg : '';
   return { type: 'color', value: /^#[0-9a-f]{3,8}$/i.test(color) ? color : '#1b1440' };
@@ -161,6 +232,17 @@ export function validateStory(json, id) {
     let sid = idOk(s?.id) ? s.id : `s${i + 1}`;
     if (sceneIds.has(sid)) sid = `${sid}_${i + 1}`;
     sceneIds.add(sid);
+    // 전투 장면: { type: "battle", stageId, next? } — 이겨야 다음으로 진행
+    if (s?.type === 'battle') {
+      return {
+        id: sid,
+        type: 'battle',
+        stageId: idOk(s.stageId) ? s.stageId : null,
+        background: cleanBackground(s.background),
+        next: typeof s.next === 'string' && s.next ? s.next : null,
+        lines: [],
+      };
+    }
     const lines = (Array.isArray(s?.lines) ? s.lines : [])
       .filter((l) => l && typeof l === 'object' && typeof l.text === 'string')
       .map((l) => ({
@@ -174,6 +256,7 @@ export function validateStory(json, id) {
       }));
     return {
       id: sid,
+      type: 'dialogue',
       background: cleanBackground(s?.background),
       next: typeof s?.next === 'string' && s.next ? s.next : null,
       lines,
@@ -199,7 +282,7 @@ export function validateMail(json) {
     id: raw.id,
     title: str(raw.title, raw.id).trim() || raw.id,
     body: str(raw.body),
-    rewards: { gems: int(raw.rewards?.gems, 0, 1_000_000, 0) },
+    rewards: cleanRewards(raw.rewards),
     startAt: dateOrNull(raw.startAt),
     endAt: dateOrNull(raw.endAt),
   }));
@@ -238,8 +321,17 @@ export function validateUi(json) {
 // ── 전체 불러오기 ─────────────────────────────────────────
 /** 게임 시작 시 필요한 데이터를 모두 불러옵니다. (스토리 본문은 열 때 따로 불러옴) */
 export async function loadGameData() {
+  // 전투 용어집(vocab)을 먼저 읽어야 캐릭터/적의 스킬을 정리할 수 있음
+  const vocabResult = await loadJson('js/battle/vocab.json', null, (json) => {
+    if (!json?.effects || !json?.targeting) throw new Error('vocab 형식이 잘못됨');
+    return json;
+  });
+  const vocab = vocabResult.data;
   const files = [
-    ['characters', 'data/characters.json', [], validateCharacters],
+    ['balance', 'data/balance.json', validateBalance({}, vocab), (j) => validateBalance(j, vocab, warnData)],
+    ['characters', 'data/characters.json', [], (j) => validateCharacters(j, vocab)],
+    ['enemies', 'data/enemies.json', [], (j) => validateEnemies(j, vocab)],
+    ['stages', 'data/stages.json', [], validateStages],
     ['banners', 'data/banners.json', [], validateBanners],
     ['storyIndex', 'data/stories/index.json', [], validateStoryIndex],
     ['notices', 'data/notices.json', [], validateNotices],
@@ -249,7 +341,7 @@ export async function loadGameData() {
   ];
   const results = await Promise.all(files.map(([, path, fallback, validator]) => loadJson(path, fallback, validator)));
 
-  const data = { status: [] };
+  const data = { status: [{ file: 'js/battle/vocab.json', ok: vocabResult.ok, error: vocabResult.error, count: null }], vocab };
   files.forEach(([key, path], i) => {
     const r = results[i];
     data[key] = r.data;

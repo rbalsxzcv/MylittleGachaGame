@@ -48,6 +48,11 @@ export function setGemIconSrc(src) {
   gemSrc = src || '';
 }
 
+/** 티켓 아이콘 (CSS로 그린 표) */
+export function ticketIcon() {
+  return h('i', { class: 'ticket-icon', 'aria-hidden': 'true' });
+}
+
 /** 보석 아이콘 (그림 에셋이 있으면 그림, 없거나 실패하면 CSS로 그린 다이아몬드) */
 export function gemIcon() {
   const css = h('i', { class: 'gem-icon', 'aria-hidden': 'true' });
