@@ -35,6 +35,26 @@
   </div>
 
   <noscript><p class="noscript">이 게임은 JavaScript가 필요해요.</p></noscript>
+
+  <!-- index.html을 더블클릭해서(file://) 열면 브라우저가 모듈/JSON 불러오기를 막음 → 해결 방법 안내 -->
+  <script>
+    if (location.protocol === 'file:') {
+      document.addEventListener('DOMContentLoaded', function () {
+        var box = document.createElement('div');
+        box.className = 'file-warning';
+        box.innerHTML =
+          '<h1>로컬 서버로 열어 주세요</h1>' +
+          '<p>index.html을 직접 열면(file://) 브라우저 보안 때문에 게임 파일을 불러올 수 없어요.</p>' +
+          '<ol>' +
+          '<li>저장소 폴더의 <b>게임실행.bat</b>을 더블클릭하세요. 서버가 켜지고 게임이 열려요.</li>' +
+          '<li>또는 VS Code에서 index.html을 우클릭하고 <b>Open with Live Server</b>를 누르세요.</li>' +
+          '<li>또는 터미널에서 <code>python -m http.server 8000</code>을 실행한 뒤 <b>http://localhost:8000</b>을 여세요.</li>' +
+          '</ol>' +
+          '<p class="small">GitHub Pages에 올린 주소(https://)에서는 바로 동작해요.</p>';
+        document.body.appendChild(box);
+      });
+    }
+  </script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

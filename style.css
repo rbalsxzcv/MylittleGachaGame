@@ -1106,3 +1106,22 @@ button.ccard:active { transform: scale(0.97); }
 .patch-notes { white-space: normal; }
 .patch-notes h3 { margin: 0 0 6px; font-size: 19px; color: #ffe08a; }
 .patch-notes ul { margin: 0 0 16px; padding-left: 22px; line-height: 1.6; }
+
+/* ── file://로 열었을 때 안내 (index.html 인라인 스크립트가 표시) ── */
+.file-warning {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  overflow: auto;
+  padding: 40px max(24px, calc(50vw - 360px));
+  background: var(--bg-1);
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1.7;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.file-warning h1 { color: var(--accent); font-size: 28px; }
+.file-warning li { margin: 10px 0; }
+.file-warning code { background: rgba(255, 255, 255, 0.12); padding: 2px 8px; border-radius: 6px; }
+.file-warning .small { color: var(--muted); font-size: 15px; }
