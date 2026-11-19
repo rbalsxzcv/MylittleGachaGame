@@ -1,4 +1,9 @@
 {
-  "backgrounds": {},
+  "backgrounds": {
+    "home": "assets/ui/bg_home.jpg",
+    "gacha": "assets/ui/bg_gacha.jpg",
+    "reveal": "assets/ui/bg_reveal.jpg",
+    "collection": "assets/ui/bg_collection.jpg"
+  },
   "icons": {}
 }

@@ -5,7 +5,7 @@
     "rarity": "R",
     "title": "새내기 견습 마법사",
     "description": "마법 학교에 갓 입학한 견습생.\n주문을 자주 틀리지만 실패한 마법에서 의외의 결과를 만들어내는 재주가 있다.",
-    "image": "",
+    "image": "assets/chars/r_mina.png",
     "addedAt": "2026-11-15T00:00:00+09:00"
   },
   {
@@ -14,7 +14,7 @@
     "rarity": "R",
     "title": "골목길 배달부",
     "description": "자전거 한 대로 도시의 모든 골목을 누비는 배달부.\n길을 잃은 사람을 보면 그냥 지나치지 못한다.",
-    "image": "",
+    "image": "assets/chars/r_doha.png",
     "addedAt": "2026-11-15T00:00:00+09:00"
   },
   {
@@ -23,7 +23,7 @@
     "rarity": "R",
     "title": "도서관 지킴이",
     "description": "오래된 도서관의 밤을 지키는 조용한 사서.\n책장 사이에서 들려오는 작은 소리까지 모두 기억하고 있다.",
-    "image": "",
+    "image": "assets/chars/r_seoli.png",
     "addedAt": "2026-11-15T00:00:00+09:00"
   },
   {
@@ -32,7 +32,7 @@
     "rarity": "SR",
     "title": "달빛 검객",
     "description": "보름달이 뜨는 밤에만 검을 뽑는다는 떠돌이 검객.\n말수는 적지만 약속은 반드시 지킨다.",
-    "image": "",
+    "image": "assets/chars/sr_ayeon.png",
     "addedAt": "2026-11-15T00:00:00+09:00"
   },
   {
@@ -41,7 +41,7 @@
     "rarity": "SR",
     "title": "폭풍의 연금술사",
     "description": "번개를 병에 담는 실험에 인생을 건 연금술사.\n실험실이 자주 폭발하지만 본인은 늘 즐겁다.",
-    "image": "",
+    "image": "assets/chars/sr_kai.png",
     "addedAt": "2026-11-15T00:00:00+09:00"
   },
   {
@@ -50,7 +50,16 @@
     "rarity": "SSR",
     "title": "별을 엮는 무녀",
     "description": "밤하늘의 별빛을 실처럼 엮어 소원을 들어준다는 전설의 무녀.\n사실은 단 것을 아주 좋아하는 평범한 소녀이기도 하다.",
-    "image": "",
+    "image": "assets/chars/ssr_lumi.png",
     "addedAt": "2026-11-15T00:00:00+09:00"
+  },
+  {
+    "id": "r_1",
+    "name": "사리아",
+    "rarity": "R",
+    "title": "사막의 무녀",
+    "description": "",
+    "image": "assets/chars/r_1.png",
+    "addedAt": "2026-11-19T19:17:00+09:00"
   }
 ]
