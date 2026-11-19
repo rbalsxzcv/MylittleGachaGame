@@ -1,0 +1,22 @@
+# ── 개발 도구(dev/) 비밀/임시 파일 — 절대 커밋하지 않음 ──
+dev/.venv/
+dev/venv/
+dev/secrets/
+dev/history/
+dev/tmp/
+dev/.env
+.env
+# 구글 서비스 계정 키 파일 패턴
+*service-account*.json
+*credentials*.json
+*-key.json
+*.pem
+
+# ── 파이썬 ──
+__pycache__/
+*.pyc
+
+# ── OS/에디터 ──
+.DS_Store
+Thumbs.db
+desktop.ini
