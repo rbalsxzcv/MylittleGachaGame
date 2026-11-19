@@ -1,0 +1,279 @@
+"""배포: 작업 공간 → 공개 폴더(data/, assets/).
+
+1) 기준 시각(cutoff)보다 늦게 시작하는 콘텐츠는 '보류' (공개 저장소에 스포일러가 올라가지 않게)
+2) 검사(validate) — 오류가 있으면 배포 불가
+3) 공개 파일과 비교해서 바뀐 파일 목록 + 패치노트 초안
+4) 적용: 파일 쓰기 + contentVersion 올리기 + git 명령 안내
+"""
+import json
+import shutil
+import subprocess
+
+from . import config, store, validate
+from .timeutil import now_iso, parse
+
+LIST_KEYS = ("characters", "banners", "storyIndex", "notices", "mail")
+PUBLIC_FILE = {
+    "characters": "data/characters.json",
+    "banners": "data/banners.json",
+    "storyIndex": "data/stories/index.json",
+    "notices": "data/notices.json",
+    "mail": "data/mail.json",
+}
+
+
+def _start_of(kind, item):
+    """항목이 공개되는 시각 (보류 판정용)"""
+    if kind == "characters":
+        return item.get("addedAt")
+    if kind == "banners" or kind == "mail":
+        return item.get("startAt")
+    if kind == "notices":
+        return item.get("date")
+    if kind == "storyIndex":
+        unlock = item.get("unlock") or []
+        if isinstance(unlock, dict):
+            unlock = [unlock]
+        for c in unlock:
+            if isinstance(c, dict) and c.get("type") == "period":
+                return c.get("startAt")
+    return None
+
+
+def _load_workspace():
+    """작업 공간 전체 읽기. JSON 문법 오류는 따로 모음"""
+    store.ensure_workspace()
+    content, syntax = {}, []
+    for key in LIST_KEYS:
+        try:
+            content[key] = store.read_list(key)
+        except store.JsonError as e:
+            content[key] = []
+            syntax.append({"level": "error", "where": store.LIST_FILES[key], "message": str(e)})
+    stories = {}
+    folder = store.ws_data("stories")
+    if folder.exists():
+        for p in sorted(folder.glob("*.json")):
+            if p.name == "index.json":
+                continue
+            try:
+                stories[p.stem] = store.read_json(p)
+            except store.JsonError as e:
+                syntax.append({"level": "error", "where": f"stories/{p.name}", "message": str(e)})
+    content["stories"] = stories
+    return content, syntax
+
+
+def _public_json(rel):
+    try:
+        return store.read_json(config.ROOT / rel, None)
+    except store.JsonError:
+        return "__broken__"
+
+
+def _referenced_assets(content):
+    paths = set()
+    for c in content["characters"]:
+        if c.get("image"):
+            paths.add(c["image"])
+    for b in content["banners"]:
+        if b.get("bannerImage"):
+            paths.add(b["bannerImage"])
+    for body in content["stories"].values():
+        for sc in (body or {}).get("scenes") or []:
+            bg = (sc or {}).get("background") or {}
+            if bg.get("type") == "image" and bg.get("value"):
+                paths.add(bg["value"])
+    return {p for p in paths if isinstance(p, str) and p.startswith("assets/") and ".." not in p}
+
+
+def plan(cutoff=None):
+    """배포 미리 계산 (아무것도 쓰지 않음)"""
+    cutoff_dt = parse(cutoff) if cutoff else None
+    ws, syntax = _load_workspace()
+
+    # ── 1) 보류 판정 ──
+    out = {}
+    held_items, held = [], {"characters": set(), "banners": set(), "stories": set(), "notices": set(), "mail": set()}
+    held_key = {"storyIndex": "stories"}
+    for key in LIST_KEYS:
+        keep = []
+        for item in ws[key]:
+            start = parse(_start_of(key, item)) if isinstance(item, dict) else None
+            if cutoff_dt and start and start > cutoff_dt:
+                held[held_key.get(key, key)].add(item.get("id"))
+                held_items.append({"type": key, "id": item.get("id"), "title": item.get("name") or item.get("title") or "", "startAt": _start_of(key, item)})
+            else:
+                keep.append(item)
+        out[key] = keep
+    index_ids = {s.get("id") for s in out["storyIndex"] if isinstance(s, dict)}
+    out["stories"] = {sid: body for sid, body in ws["stories"].items() if sid in index_ids}
+
+    # ── 2) 검사 ──
+    report = validate.validate(out, store.asset_exists_ws, held)
+    issues = syntax + report.items
+
+    # ── 3) 바뀐 파일 ──
+    targets = {}  # 공개 경로 → ('json', 객체) | ('asset', 작업공간 경로)
+    for key in LIST_KEYS:
+        targets[PUBLIC_FILE[key]] = ("json", out[key])
+    for sid, body in out["stories"].items():
+        targets[f"data/stories/{sid}.json"] = ("json", body)
+    for rel in sorted(_referenced_assets(out)):
+        if store.asset_exists_ws(rel):
+            targets[rel] = ("asset", config.WORKSPACE / rel)
+
+    changes = []
+    for rel, (kind, value) in targets.items():
+        dest = config.ROOT / rel
+        if not dest.exists():
+            changes.append({"file": rel, "status": "added"})
+        elif kind == "json":
+            if _public_json(rel) != value:
+                changes.append({"file": rel, "status": "modified"})
+        elif dest.read_bytes() != value.read_bytes():
+            changes.append({"file": rel, "status": "modified"})
+    pub_stories = config.PUBLIC_DATA / "stories"
+    if pub_stories.exists():
+        for p in pub_stories.glob("*.json"):
+            rel = f"data/stories/{p.name}"
+            if p.name != "index.json" and rel not in targets:
+                changes.append({"file": rel, "status": "removed"})
+
+    version = _public_json("data/version.json")
+    current = version.get("contentVersion", 0) if isinstance(version, dict) else 0
+    return {
+        "cutoff": cutoff,
+        "issues": issues,
+        "errorCount": sum(1 for i in issues if i["level"] == "error"),
+        "held": held_items,
+        "changes": sorted(changes, key=lambda c: c["file"]),
+        "currentVersion": current,
+        "nextVersion": current + 1,
+        "draftNotes": draft_notes(out),
+        "_targets": targets,
+    }
+
+
+def draft_notes(out):
+    """공개 데이터와 비교해서 패치노트 초안 만들기"""
+    notes = []
+
+    def public_list(key):
+        data = _public_json(PUBLIC_FILE[key])
+        return {x.get("id"): x for x in data if isinstance(x, dict)} if isinstance(data, list) else {}
+
+    pub = {k: public_list(k) for k in LIST_KEYS}
+    for c in out["characters"]:
+        if c["id"] not in pub["characters"]:
+            notes.append(f"새 캐릭터: {c.get('name')} ({c.get('rarity')})")
+        elif pub["characters"][c["id"]] != c:
+            notes.append(f"캐릭터 정보 수정: {c.get('name')}")
+    for b in out["banners"]:
+        if b["id"] not in pub["banners"]:
+            label = "픽업 모집" if b.get("type") == "pickup" else "모집"
+            notes.append(f"{label}: {b.get('title')}")
+        elif pub["banners"][b["id"]] != b:
+            notes.append(f"모집 정보 수정: {b.get('title')}")
+    kinds = {"main": "메인", "character": "캐릭터", "event": "이벤트"}
+    for s in out["storyIndex"]:
+        label = kinds.get(s.get("kind"), "")
+        if s["id"] not in pub["storyIndex"]:
+            notes.append(f"{label} 스토리 추가: {s.get('title')}")
+        else:
+            body_pub = _public_json(f"data/stories/{s['id']}.json")
+            if pub["storyIndex"][s["id"]] != s or body_pub != out["stories"].get(s["id"]):
+                notes.append(f"{label} 스토리 수정: {s.get('title')}")
+    for n in out["notices"]:
+        if n["id"] not in pub["notices"]:
+            notes.append(f"공지: {n.get('title')}")
+    for m in out["mail"]:
+        if m["id"] not in pub["mail"]:
+            notes.append(f"우편 선물: {m.get('title')}")
+    return notes
+
+
+def apply(cutoff, notes):
+    """실제 배포: 공개 폴더에 쓰기 + 버전 올리기"""
+    p = plan(cutoff)
+    if p["errorCount"]:
+        raise ValueError(f"오류 {p['errorCount']}개를 먼저 고쳐 주세요")
+    if not p["changes"]:
+        raise ValueError("바뀐 내용이 없어요")
+
+    written = []
+    for change in p["changes"]:
+        rel = change["file"]
+        dest = config.ROOT / rel
+        if change["status"] == "removed":
+            store.move_to_trash(dest)
+            written.append(rel)
+            continue
+        kind, value = p["_targets"][rel]
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if kind == "json":
+            store.write_json(dest, value)
+        else:
+            shutil.copyfile(value, dest)
+        written.append(rel)
+
+    version = _public_json("data/version.json")
+    if not isinstance(version, dict):
+        version = {"contentVersion": 0, "patchNotes": []}
+    version["contentVersion"] = p["nextVersion"]
+    clean = [n.strip() for n in notes if isinstance(n, str) and n.strip()]
+    version.setdefault("patchNotes", []).insert(0, {"version": p["nextVersion"], "date": now_iso(), "notes": clean})
+    store.write_json(config.PUBLIC_DATA / "version.json", version)
+    written.append("data/version.json")
+
+    return {
+        "version": p["nextVersion"],
+        "files": written,
+        "commands": git_commands(written, p["nextVersion"]),
+    }
+
+
+# ── git ──────────────────────────────────────────────────
+def commit_message(version):
+    return f"콘텐츠 업데이트 v{version}"
+
+
+def git_commands(files, version):
+    quoted = " ".join(f'"{f}"' for f in files)
+    return [
+        f"git add {quoted}",
+        f'git commit -m "{commit_message(version)}"',
+        "git push",
+    ]
+
+
+def _git(*args, timeout=60):
+    r = subprocess.run(["git", *args], cwd=config.ROOT, capture_output=True, text=True, encoding="utf-8", timeout=timeout)
+    return {"cmd": "git " + " ".join(args), "code": r.returncode, "out": (r.stdout + r.stderr).strip()}
+
+
+def git_status():
+    if not shutil.which("git"):
+        return {"available": False}
+    branch = _git("rev-parse", "--abbrev-ref", "HEAD")
+    remote = _git("remote")
+    return {"available": True, "branch": branch["out"], "hasRemote": bool(remote["out"])}
+
+
+def git_commit_push(files, message, push):
+    """지정한 파일만 커밋 (다른 작업 중인 파일은 건드리지 않음) + 선택적으로 push"""
+    if not shutil.which("git"):
+        raise ValueError("git이 설치되어 있지 않아요")
+    safe = [f for f in files if isinstance(f, str) and (f.startswith("data/") or f.startswith("assets/")) and ".." not in f]
+    if not safe:
+        raise ValueError("커밋할 파일이 없어요")
+    log = [_git("add", "-A", "--", *safe)]
+    if log[-1]["code"] == 0:
+        log.append(_git("commit", "-m", message, "--", *safe))
+    if push and log[-1]["code"] == 0:
+        log.append(_git("push", timeout=120))
+    return log
+
+
+def public_json_dump(obj):
+    return json.dumps(obj, ensure_ascii=False, indent=2)

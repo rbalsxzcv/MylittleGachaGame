@@ -1,0 +1,9 @@
+# (선택) BRIA RMBG 배경 제거용 패키지 — 용량이 커요 (수 GB, 처음 한 번만)
+# 설치하지 않으면 '간단 모드'(단색 배경 지우기)로 동작합니다.
+# NVIDIA 그래픽카드용 torch는 https://pytorch.org 의 설치 명령을 따르세요.
+torch
+torchvision
+transformers
+timm
+kornia
+huggingface_hub

@@ -1,0 +1,5 @@
+# 개발 도구 기본 패키지 (가볍게 설치됨)
+flask>=3.0
+pillow>=10.0
+google-genai>=1.30
+python-dotenv>=1.0
