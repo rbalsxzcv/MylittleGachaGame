@@ -1,0 +1,16 @@
+{
+  "id": "char_kai_01",
+  "title": "오늘의 폭발",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": { "type": "color", "value": "#24304a" },
+      "lines": [
+        { "speaker": "narrator", "text": "쾅! 실험실 창문이 오늘도 흔들렸다." },
+        { "speaker": "sr_kai", "text": "콜록… 좋아, 좋아! 이번엔 번개가 병 안에서 3초나 버텼어!" },
+        { "speaker": "r_doha", "text": "배달 왔는데요… 혹시 문이 날아간 건 기분 탓이죠?" },
+        { "speaker": "sr_kai", "text": "아, 그거? 진보에는 희생이 따르는 법이지! 영수증은 저기 탁자 위에!" }
+      ]
+    }
+  ]
+}

@@ -1,21 +1,24 @@
-// 홈 화면: 대표 캐릭터(왼쪽~가운데), 배너 캐러셀, 메뉴(오른쪽)
+// 홈 화면: 대표 캐릭터(왼쪽~가운데), 배너 캐러셀(진행 중인 배너만), 메뉴(오른쪽)
 import { h } from './dom.js';
 import { on } from '../core/events.js';
 import { go } from './router.js';
-import { toast } from './toast.js';
 import { charArt, rarityBadge, starRow } from './charCard.js';
 import { createCarousel } from './carousel.js';
+import { countdownEl, startCountdowns } from './countdown.js';
 import { getFeatured, hasUnseenNew } from '../systems/collection.js';
+import { bannerSignature } from '../systems/banners.js';
+import { hasUnreadUnlocked } from '../systems/stories.js';
+import { unclaimedCount } from '../systems/inbox.js';
 import { RATES, PITY_LIMIT } from '../systems/gacha.js';
 
 // 메뉴 정의 — 새 기능(미션, 출석, 상점 등)은 여기에 한 줄 추가하면 됩니다.
-// key: 키보드 단축키 표시용 (실제 처리는 main.js)
+// key: 키보드 단축키 표시용 (실제 처리는 main.js), dot: 빨간 점 표시 조건
 const MENU = [
   { id: 'gacha', label: '뽑기', icon: '✦', key: 'G', screen: 'gacha', primary: true },
-  { id: 'collection', label: '도감', icon: '❖', key: 'C', screen: 'collection' },
-  { id: 'story', label: '스토리', icon: '❝', soon: true },
-  { id: 'mail', label: '우편', icon: '✉︎', soon: true },
-  { id: 'notice', label: '공지', icon: '!', soon: true },
+  { id: 'collection', label: '도감', icon: '❖', key: 'C', screen: 'collection', dot: (ctx) => hasUnseenNew(ctx.save, ctx.data.charMap) },
+  { id: 'stories', label: '스토리', icon: '❝', key: 'T', screen: 'stories', dot: (ctx) => hasUnreadUnlocked(ctx) },
+  { id: 'mail', label: '우편', icon: '✉︎', key: 'M', screen: 'mail', dot: (ctx) => unclaimedCount(ctx.save, ctx.data.mail) > 0 },
+  { id: 'notices', label: '공지', icon: '!', key: 'N', screen: 'notices' },
   { id: 'settings', label: '설정', icon: '⚙︎', key: 'O', screen: 'settings' },
 ];
 
@@ -25,6 +28,8 @@ export function homeScreen(ctx) {
     mount(el) {
       const { characters, charMap } = ctx.data;
       const featured = getFeatured(ctx.save, characters, charMap);
+      const banners = ctx.activeBanners();
+      const signature = bannerSignature(banners);
 
       // ── 대표 캐릭터 ──
       let featuredEl;
@@ -59,48 +64,54 @@ export function homeScreen(ctx) {
         );
       }
 
-      // ── 배너 캐러셀 ──
+      // ── 배너 캐러셀 (진행 중인 배너만) ──
       const carousel = createCarousel({
-        items: ctx.banners,
+        items: banners,
         onSelect: (banner) => go('gacha', { bannerId: banner.id }),
         renderItem: (banner) =>
           h(
             'div',
             { class: 'banner-card' },
             bannerVisual(banner),
-            h('span', { class: 'banner-tag' }, banner.type === 'pickup' ? '픽업' : '상시'),
+            h('span', { class: ['banner-tag', banner.type === 'pickup' && 'is-pickup'] }, banner.type === 'pickup' ? '픽업' : '상시'),
             h(
               'div',
               { class: 'banner-info' },
               h('div', { class: 'banner-title' }, banner.title),
               h('div', { class: 'banner-sub' }, `SSR ${RATES.SSR}% · ${PITY_LIMIT}회 천장`),
+              countdownEl(banner.endAt, 'countdown banner-countdown'),
             ),
           ),
       });
 
       // ── 메뉴 ──
-      const menuButtons = MENU.map((m) => {
-        const btn = h(
-          'button',
-          {
-            class: ['menu-btn', m.primary && 'menu-primary', m.soon && 'menu-soon'],
-            type: 'button',
-            dataset: { menu: m.id },
-            onclick: () => (m.soon ? toast(`${m.label}: 준비 중이에요`) : go(m.screen)),
-          },
-          h('span', { class: 'menu-icon', 'aria-hidden': 'true' }, m.icon),
-          h('span', { class: 'menu-label' }, m.label),
-          m.key && h('kbd', { class: 'key-hint' }, m.key),
-          h('span', { class: 'menu-dot', hidden: true }),
-        );
-        return btn;
-      });
-      const menu = h('nav', { class: 'home-menu' }, menuButtons);
+      const menu = h(
+        'nav',
+        { class: 'home-menu' },
+        MENU.map((m) =>
+          h(
+            'button',
+            {
+              class: ['menu-btn', m.primary && 'menu-primary'],
+              type: 'button',
+              dataset: { menu: m.id },
+              onclick: () => go(m.screen),
+            },
+            h('span', { class: 'menu-icon', 'aria-hidden': 'true' }, m.icon),
+            h('span', { class: 'menu-label' }, m.label),
+            m.key && h('kbd', { class: 'key-hint' }, m.key),
+            h('span', { class: 'menu-dot', hidden: true }),
+          ),
+        ),
+      );
 
-      // 도감 NEW 표시(빨간 점)
+      // 메뉴 빨간 점
       const updateBadges = () => {
-        const dot = menu.querySelector('[data-menu="collection"] .menu-dot');
-        dot.hidden = !hasUnseenNew(ctx.save, charMap);
+        for (const m of MENU) {
+          if (!m.dot) continue;
+          const dot = menu.querySelector(`[data-menu="${m.id}"] .menu-dot`);
+          dot.hidden = !m.dot(ctx);
+        }
       };
       updateBadges();
       const unsub = on('save:changed', updateBadges);
@@ -116,9 +127,15 @@ export function homeScreen(ctx) {
         el.append(h('div', { class: 'home-warning' }, '캐릭터 데이터를 불러오지 못했어요 (설정 → 데이터 상태)'));
       }
 
+      // 남은 시간 갱신 + 배너가 끝나거나 새로 시작되면 홈을 다시 그림
+      const stopCountdown = startCountdowns(el, () => {
+        if (bannerSignature(ctx.activeBanners()) !== signature) go('home', {}, { replace: true });
+      });
+
       return {
         destroy() {
           carousel.destroy();
+          stopCountdown();
           unsub();
         },
         onKey(e) {
@@ -133,7 +150,7 @@ export function homeScreen(ctx) {
 
 /** 배너 그림. 이미지가 없거나 실패하면 그라데이션으로 대체 */
 export function bannerVisual(banner) {
-  const wrap = h('div', { class: 'banner-visual' });
+  const wrap = h('div', { class: ['banner-visual', banner.type === 'pickup' && 'is-pickup'] });
   if (banner.bannerImage) {
     const img = h('img', { src: banner.bannerImage, alt: '', draggable: 'false' });
     img.addEventListener('error', () => img.remove(), { once: true });

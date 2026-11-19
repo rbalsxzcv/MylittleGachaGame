@@ -2,9 +2,14 @@
 // localStorage 키: tinygacha_save_v1
 
 import { ID_PATTERN } from './data.js';
-import { kstDateKey, nowKstIso } from './time.js';
+import { kstDateKey, nowKstIso, now } from './time.js';
 
-export const SAVE_KEY = 'tinygacha_save_v1';
+const BASE_SAVE_KEY = 'tinygacha_save_v1';
+// 개발 도구 미리보기에서는 별도 키를 써서 실제 세이브와 섞이지 않게 함
+let SAVE_KEY = BASE_SAVE_KEY;
+export function usePreviewSaveKey() {
+  SAVE_KEY = `${BASE_SAVE_KEY}_preview`;
+}
 export const SAVE_VERSION = 1;
 export const START_GEMS = 1000;
 const CODE_PREFIX = 'TG1:';
@@ -39,17 +44,22 @@ function idList(value) {
 }
 
 /** 새 세이브 생성 (첫 시작: 보석 1000개) */
-export function createNewSave(now = new Date()) {
+export function createNewSave(t = now()) {
   const save = {
     v: SAVE_VERSION,
     gems: START_GEMS,
-    createdAt: nowKstIso(now),
-    lastLoginDate: kstDateKey(now), // 첫날은 시작 보석이 출석 보상을 대신함
+    createdAt: nowKstIso(t),
+    lastLoginDate: kstDateKey(t), // 첫날은 시작 보석이 출석 보상을 대신함
     owned: {},
     knownIds: [], // 지금까지 데이터에서 본 캐릭터 id (NEW 판정용)
     newIds: [], // 새로 추가되어 아직 도감에서 확인하지 않은 id
     featuredId: null,
-    pity: { standard: 0 },
+    pity: { standard: 0, pickup: 0 }, // 배너 종류별 천장 카운트 (상시/픽업 따로)
+    guaranteed: { pickup: false }, // 픽업 50% 실패 → 다음 SSR은 픽업 확정
+    readStories: {}, // 스토리 id → 처음 다 읽은 시각
+    claimedMail: [], // 받은 우편 id
+    hiddenNotices: [], // "다시 보지 않기" 한 공지 id
+    seenContentVersion: 0, // 마지막으로 확인한 업데이트 버전
     stats: { pulls: 0 },
   };
   for (const [name, def] of slices) save[name] = def.create();
@@ -79,10 +89,22 @@ export function sanitize(raw) {
     }
   }
 
-  const pity = { standard: 0 };
+  const pity = { standard: 0, pickup: 0 };
   if (raw.pity && typeof raw.pity === 'object') {
     for (const [key, val] of Object.entries(raw.pity)) {
       if (/^[a-z0-9_-]{1,32}$/i.test(key)) pity[key] = int(val, 0, 1000, 0);
+    }
+  }
+  const guaranteed = { pickup: false };
+  if (raw.guaranteed && typeof raw.guaranteed === 'object') {
+    for (const [key, val] of Object.entries(raw.guaranteed)) {
+      if (/^[a-z0-9_-]{1,32}$/i.test(key)) guaranteed[key] = val === true;
+    }
+  }
+  const readStories = {};
+  if (raw.readStories && typeof raw.readStories === 'object' && !Array.isArray(raw.readStories)) {
+    for (const [id, at] of Object.entries(raw.readStories).slice(0, MAX_IDS)) {
+      if (ID_PATTERN.test(id)) readStories[id] = isoString(at, base.createdAt);
     }
   }
 
@@ -96,6 +118,11 @@ export function sanitize(raw) {
     newIds: idList(raw.newIds),
     featuredId: typeof raw.featuredId === 'string' && ID_PATTERN.test(raw.featuredId) ? raw.featuredId : null,
     pity,
+    guaranteed,
+    readStories,
+    claimedMail: idList(raw.claimedMail),
+    hiddenNotices: idList(raw.hiddenNotices),
+    seenContentVersion: int(raw.seenContentVersion, 0, 1_000_000, 0),
     stats: { pulls: int(raw.stats?.pulls, 0, Number.MAX_SAFE_INTEGER, 0) },
   };
 

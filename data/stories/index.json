@@ -1,0 +1,58 @@
+[
+  {
+    "id": "main_01",
+    "kind": "main",
+    "chapter": 1,
+    "title": "작은 소원의 시작",
+    "summary": "견습 마법사 미나가 실수로 연 별빛의 문.",
+    "unlock": [],
+    "reward": { "gems": 50 }
+  },
+  {
+    "id": "main_02",
+    "kind": "main",
+    "chapter": 2,
+    "title": "골목길의 길잡이",
+    "summary": "길을 잃은 미나 앞에 나타난 배달부 도하.",
+    "unlock": [{ "type": "prevChapter" }],
+    "reward": { "gems": 50 }
+  },
+  {
+    "id": "main_03",
+    "kind": "main",
+    "chapter": 3,
+    "title": "밤의 도서관",
+    "summary": "별빛의 문에 대한 단서를 찾아 도서관으로.",
+    "unlock": [{ "type": "prevChapter" }],
+    "reward": { "gems": 50 }
+  },
+  {
+    "id": "char_lumi_01",
+    "kind": "character",
+    "chapter": 1,
+    "characterId": "ssr_lumi",
+    "title": "무녀의 간식 시간",
+    "summary": "별을 엮는 무녀에게도 쉬는 시간은 필요하다.",
+    "unlock": [{ "type": "ownsCharacter", "characterId": "ssr_lumi" }],
+    "reward": { "gems": 30 }
+  },
+  {
+    "id": "char_kai_01",
+    "kind": "character",
+    "chapter": 1,
+    "characterId": "sr_kai",
+    "title": "오늘의 폭발",
+    "summary": "카이의 실험실은 오늘도 시끄럽다.",
+    "unlock": [{ "type": "ownsCharacter", "characterId": "sr_kai" }],
+    "reward": { "gems": 30 }
+  },
+  {
+    "id": "event_starfest",
+    "kind": "event",
+    "chapter": 1,
+    "title": "별빛 축제의 밤",
+    "summary": "일 년에 한 번, 별이 가장 가까워지는 밤.",
+    "unlock": [{ "type": "period", "startAt": "2026-11-15T00:00:00+09:00", "endAt": "2026-12-07T00:00:00+09:00" }],
+    "reward": { "gems": 100 }
+  }
+]

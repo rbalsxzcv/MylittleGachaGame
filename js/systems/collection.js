@@ -1,6 +1,6 @@
 // 도감(컬렉션): 보유 캐릭터, 중복 시 별(최대 5), NEW 표시
 
-import { nowKstIso } from '../core/time.js';
+import { nowKstIso, now } from '../core/time.js';
 
 export const MAX_STARS = 5;
 const RARITY_ORDER = { SSR: 3, SR: 2, R: 1 };
@@ -13,10 +13,10 @@ export function isOwned(save, id) {
  * 뽑은 캐릭터를 도감에 추가
  * @returns {{isNew:boolean, stars:number, starUp:boolean}}
  */
-export function addCharacter(save, id, now = new Date()) {
+export function addCharacter(save, id, t = now()) {
   const entry = save.owned[id];
   if (!entry) {
-    save.owned[id] = { stars: 1, count: 1, firstAt: nowKstIso(now) };
+    save.owned[id] = { stars: 1, count: 1, firstAt: nowKstIso(t) };
     return { isNew: true, stars: 1, starUp: false };
   }
   entry.count += 1;

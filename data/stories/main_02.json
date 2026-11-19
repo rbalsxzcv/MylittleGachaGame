@@ -1,0 +1,51 @@
+{
+  "id": "main_02",
+  "title": "골목길의 길잡이",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": { "type": "color", "value": "#3a2f5c" },
+      "lines": [
+        { "speaker": "narrator", "text": "문을 지나 도착한 곳은 처음 보는 골목이었다." },
+        { "speaker": "r_mina", "text": "여기가 어디지… 학교 근처는 아닌 것 같은데." },
+        { "speaker": "r_doha", "text": "거기, 길 잃었어요? 이 동네 골목은 처음 오면 다 헷갈려해요." },
+        {
+          "speaker": "r_mina",
+          "text": "(자전거를 탄 사람이다. 어떻게 할까?)",
+          "choices": [
+            { "text": "솔직하게 도움을 청한다", "goto": "honest" },
+            { "text": "괜찮은 척한다", "goto": "pretend" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "honest",
+      "background": { "type": "color", "value": "#3a2f5c" },
+      "next": "merge",
+      "lines": [
+        { "speaker": "r_mina", "text": "사실… 완전히 길을 잃었어요. 마법 학교로 가는 길을 아세요?" },
+        { "speaker": "r_doha", "text": "마법 학교? 하하, 마침 거기로 배달 가는 길이에요. 따라와요!" }
+      ]
+    },
+    {
+      "id": "pretend",
+      "background": { "type": "color", "value": "#3a2f5c" },
+      "next": "merge",
+      "lines": [
+        { "speaker": "r_mina", "text": "아, 아니요! 그냥… 산책 중이었어요!" },
+        { "speaker": "r_doha", "text": "산책이요? 그 골목, 막다른 길인데.\n…혹시 마법 학교 가는 길이면 같이 가요. 저도 그쪽이거든요." },
+        { "speaker": "r_mina", "text": "…네. 부탁드려요." }
+      ]
+    },
+    {
+      "id": "merge",
+      "background": { "type": "color", "value": "#4b3a6e" },
+      "lines": [
+        { "speaker": "narrator", "text": "도하의 자전거를 따라 걷는 동안, 하늘에는 이른 별이 하나둘 떠올랐다." },
+        { "speaker": "r_doha", "text": "근데 아까 골목에서 별가루 같은 게 날리던데, 혹시 그쪽이 한 거예요?" },
+        { "speaker": "r_mina", "text": "아마도…요? 저도 아직 잘 모르겠어요." }
+      ]
+    }
+  ]
+}

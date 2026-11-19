@@ -1,0 +1,35 @@
+[
+  {
+    "id": "standard_main",
+    "title": "상시 모집",
+    "type": "standard",
+    "pickupIds": [],
+    "startAt": null,
+    "endAt": null,
+    "bannerImage": "",
+    "description": "모든 캐릭터가 등장하는 상시 모집입니다.\n50회 안에 SSR이 나오지 않으면 50번째는 SSR 확정!",
+    "relatedStoryId": null
+  },
+  {
+    "id": "pickup_starfest",
+    "title": "별빛 축제 픽업",
+    "type": "pickup",
+    "pickupIds": ["ssr_lumi", "sr_ayeon"],
+    "startAt": "2026-11-15T00:00:00+09:00",
+    "endAt": "2026-12-07T00:00:00+09:00",
+    "bannerImage": "",
+    "description": "별빛 축제 기간 한정! 「별을 엮는 무녀」 루미의 등장 확률 UP\nSSR이 나오면 50% 확률로 루미, 놓치면 다음 SSR은 루미 확정!",
+    "relatedStoryId": "event_starfest"
+  },
+  {
+    "id": "pickup_storm",
+    "title": "폭풍 연구소 픽업",
+    "type": "pickup",
+    "pickupIds": ["sr_kai"],
+    "startAt": "2026-12-07T00:00:00+09:00",
+    "endAt": "2026-12-21T00:00:00+09:00",
+    "bannerImage": "",
+    "description": "폭풍의 연금술사 카이의 등장 확률 UP!",
+    "relatedStoryId": null
+  }
+]

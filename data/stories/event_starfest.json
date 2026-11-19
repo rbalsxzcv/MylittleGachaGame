@@ -1,0 +1,41 @@
+{
+  "id": "event_starfest",
+  "title": "별빛 축제의 밤",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": { "type": "color", "value": "#1b1440" },
+      "lines": [
+        { "speaker": "narrator", "text": "일 년에 단 한 번, 별이 가장 가까워지는 밤. 마을은 등불로 가득했다." },
+        { "speaker": "sr_ayeon", "text": "축제라… 검을 뽑을 일 없는 밤도 나쁘지 않군." },
+        { "speaker": "ssr_lumi", "text": "아연 님, 오늘 밤엔 모두의 소원을 엮어야 해요. 도와주실 거죠?" },
+        {
+          "speaker": "sr_ayeon",
+          "text": "…약속하지.",
+          "choices": [
+            { "text": "소원 등불을 함께 띄운다", "goto": "lantern" },
+            { "text": "축제 노점을 구경한다", "goto": "stall" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lantern",
+      "background": { "type": "color", "value": "#2b1f5e" },
+      "next": "end",
+      "lines": [
+        { "speaker": "narrator", "text": "수백 개의 등불이 하늘로 떠올라, 별과 나란히 빛났다." },
+        { "speaker": "ssr_lumi", "text": "보세요. 소원이 별에 닿으면, 이렇게 반짝여요." }
+      ]
+    },
+    {
+      "id": "stall",
+      "background": { "type": "color", "value": "#3d2450" },
+      "next": "end",
+      "lines": [
+        { "speaker": "ssr_lumi", "text": "저, 저기 별사탕 노점이…! 아니에요, 일하는 중이에요!" },
+        { "speaker": "sr_ayeon", "text": "…하나쯤은 괜찮겠지. 내가 사지." }
+      ]
+    }
+  ]
+}

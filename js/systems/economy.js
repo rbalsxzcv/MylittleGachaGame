@@ -1,6 +1,6 @@
 // 재화(보석) 관리와 일일 출석 보상
 
-import { kstDateKey } from '../core/time.js';
+import { kstDateKey, now } from '../core/time.js';
 
 export const DAILY_GEMS = 300;
 
@@ -23,8 +23,8 @@ export function addGems(save, amount) {
  * 오늘(KST) 첫 접속이면 보석 300개 지급
  * @returns {number} 지급한 보석 수 (이미 받았으면 0)
  */
-export function applyDailyLogin(save, now = new Date()) {
-  const today = kstDateKey(now);
+export function applyDailyLogin(save, t = now()) {
+  const today = kstDateKey(t);
   if (save.lastLoginDate === today) return 0;
   save.lastLoginDate = today;
   addGems(save, DAILY_GEMS);
