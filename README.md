@@ -5,7 +5,7 @@
 비상업 개인 프로젝트이며 결제나 수익화 요소는 없어요.
 
 - **플레이어 게임**: 이 폴더 (`index.html`, `js/`, `data/`, `assets/`)
-- **개발 도구** (캐릭터 AI 생성, 배너/스토리 편집, 배포): [`dev/README.md`](dev/README.md)
+- **개발 도구** (PC 전용. 그림 AI는 Vertex 또는 ComfyUI: 캐릭터·UI 에셋 생성과 검사, 배너/스토리 편집, 배포): [`dev/README.md`](dev/README.md)
 
 ## 로컬에서 실행하기
 
@@ -134,6 +134,16 @@ python -m http.server 8000
 - 공지는 `date`부터 보여요. `popup: true`면 게임 시작 시 팝업으로 떠요("다시 보지 않기" 가능).
 - 우편은 id 기준으로 한 번만 받을 수 있어요. 공개한 뒤에는 id를 바꾸지 마세요.
 - `contentVersion`이 올라가면 플레이어에게 "업데이트 내역" 팝업이 떠요. 개발 도구의 배포 탭이 자동으로 올려줘요.
+
+### `data/ui.json` (화면 디자인 에셋)
+```json
+{ "backgrounds": { "home": "assets/ui/bg_home.jpg", "gacha": "assets/ui/bg_gacha.jpg" },
+  "icons": { "logo": "assets/ui/icon_logo.png", "gem": "assets/ui/icon_gem.png", "menu_gacha": "assets/ui/icon_menu_gacha.png" } }
+```
+- 게임 화면의 배경, 로고, 아이콘을 그림 에셋으로 바꿔요. 개발 도구의 **UI 에셋 탭**에서 AI로 뽑아서 채워요.
+- 배경 칸: `home`, `gacha`, `reveal`, `collection`, `stories`, `mail`, `notices`, `settings`
+- 아이콘 칸: `logo`, `gem`, `menu_gacha`, `menu_collection`, `menu_stories`, `menu_mail`, `menu_notices`, `menu_settings`
+- 빠진 칸이나 불러오기에 실패한 그림은 CSS 기본 디자인으로 보여요.
 
 ## 폴더 구조
 ```

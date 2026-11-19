@@ -61,6 +61,11 @@ def _load_workspace():
             except store.JsonError as e:
                 syntax.append({"level": "error", "where": f"stories/{p.name}", "message": str(e)})
     content["stories"] = stories
+    try:
+        content["ui"] = store.read_ui()
+    except store.JsonError as e:
+        content["ui"] = {"backgrounds": {}, "icons": {}}
+        syntax.append({"level": "error", "where": store.UI_FILE, "message": str(e)})
     return content, syntax
 
 
@@ -84,6 +89,8 @@ def _referenced_assets(content):
             bg = (sc or {}).get("background") or {}
             if bg.get("type") == "image" and bg.get("value"):
                 paths.add(bg["value"])
+    for group in ("backgrounds", "icons"):
+        paths.update(v for v in (content.get("ui", {}).get(group) or {}).values() if v)
     return {p for p in paths if isinstance(p, str) and p.startswith("assets/") and ".." not in p}
 
 
@@ -108,6 +115,7 @@ def plan(cutoff=None):
         out[key] = keep
     index_ids = {s.get("id") for s in out["storyIndex"] if isinstance(s, dict)}
     out["stories"] = {sid: body for sid, body in ws["stories"].items() if sid in index_ids}
+    out["ui"] = ws["ui"]  # UI 에셋은 기간이 없어서 보류하지 않음
 
     # ── 2) 검사 ──
     report = validate.validate(out, store.asset_exists_ws, held)
@@ -119,6 +127,7 @@ def plan(cutoff=None):
         targets[PUBLIC_FILE[key]] = ("json", out[key])
     for sid, body in out["stories"].items():
         targets[f"data/stories/{sid}.json"] = ("json", body)
+    targets[f"data/{store.UI_FILE}"] = ("json", out["ui"])
     for rel in sorted(_referenced_assets(out)):
         if store.asset_exists_ws(rel):
             targets[rel] = ("asset", config.WORKSPACE / rel)
@@ -190,6 +199,19 @@ def draft_notes(out):
     for m in out["mail"]:
         if m["id"] not in pub["mail"]:
             notes.append(f"우편 선물: {m.get('title')}")
+    # UI 에셋: 칸별로 바뀐 것 (그림 파일 내용이 바뀐 경우 포함)
+    from . import uislots
+
+    pub_ui = _public_json(f"data/{store.UI_FILE}")
+    pub_ui = pub_ui if isinstance(pub_ui, dict) else {}
+    changed = []
+    for slot in uislots.SLOTS:
+        new, old = uislots.get_path(out["ui"], slot["key"]), uislots.get_path(pub_ui, slot["key"])
+        if new == old and (not new or not store.asset_exists_ws(new) or ((config.ROOT / new).exists() and (config.ROOT / new).read_bytes() == (config.WORKSPACE / new).read_bytes())):
+            continue
+        changed.append(slot["label"])
+    if changed:
+        notes.append(f"화면 디자인 변경: {', '.join(changed)}")
     return notes
 
 

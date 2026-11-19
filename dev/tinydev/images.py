@@ -113,3 +113,43 @@ def parse_hex_color(value, default=(255, 255, 255)):
         return tuple(int(v[i : i + 2], 16) for i in (0, 2, 4))
     except (AttributeError, ValueError, IndexError):
         return default
+
+
+def figure_check(rgba, alpha_threshold=40):
+    """배경 제거한 캐릭터 그림 검사 → 문제 설명(str) 또는 None
+    - 떨어져 있는 큰 덩어리가 2개 이상: 같은 캐릭터를 여러 번 그린 설정화(정면+후면 등)이거나 인물이 여럿
+    - 가로가 세로보다 넓음: 서 있는 캐릭터 한 명이라면 보통 세로로 길어요
+    """
+    import numpy as np
+
+    small = rgba.getchannel("A").copy()
+    small.thumbnail((160, 160))
+    mask = np.asarray(small) > alpha_threshold
+    h, w = mask.shape
+    if not mask.any():
+        return "캐릭터가 거의 남지 않았어요 (배경 제거 실패?)"
+    # 4방향 연결 덩어리 찾기 (작은 그림이라 단순 탐색으로 충분)
+    seen = np.zeros_like(mask)
+    areas = []
+    for y0, x0 in zip(*np.nonzero(mask)):
+        if seen[y0, x0]:
+            continue
+        stack, area = [(y0, x0)], 0
+        seen[y0, x0] = True
+        while stack:
+            y, x = stack.pop()
+            area += 1
+            for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+                if 0 <= ny < h and 0 <= nx < w and mask[ny, nx] and not seen[ny, nx]:
+                    seen[ny, nx] = True
+                    stack.append((ny, nx))
+        areas.append(area)
+    areas.sort(reverse=True)
+    big = [a for a in areas if a >= areas[0] * 0.3 and a >= mask.size * 0.02]
+    if len(big) >= 2:
+        return f"떨어진 인물(덩어리)이 {len(big)}개 보여요 — 설정화(정면+후면)이거나 여러 명일 수 있어요"
+    ys, xs = np.nonzero(mask)
+    bw, bh = xs.max() - xs.min() + 1, ys.max() - ys.min() + 1
+    if bw > bh * 1.05:
+        return f"그림이 가로로 넓어요 ({bw}:{bh}) — 서 있는 한 명이 아니라 여러 포즈를 나란히 그린 것일 수 있어요"
+    return None

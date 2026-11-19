@@ -4,6 +4,7 @@ import { api, tryApi } from '../api.js';
 import { state, saveList, reloadData } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
 import { openPreview } from '../preview.js';
+import { promptStep } from '../promptStep.js';
 
 const KINDS = [
   ['main', '메인'],
@@ -322,8 +323,15 @@ export function storiesTab(root, { select } = {}) {
     const name = h('input', { placeholder: '파일 이름 (영문) 예: night_library' });
     const prompt = h('textarea', { rows: 3, placeholder: '장면 설명 예: 밤의 오래된 도서관, 높은 책장, 창밖 달빛' });
     const area = h('div');
-    const go = async () => {
-      const job = await busy('배경 그림 생성 중…', () => tryApi(() => api.post('/api/bg/generate', { bgName: name.value.trim(), prompt: prompt.value })));
+    const bgInput = () => {
+      if (!slugOk(name.value.trim())) return toast('파일 이름은 영문/숫자/_/-로 지어 주세요', 'error'), null;
+      if (!prompt.value.trim()) return toast('장면 설명을 입력해 주세요', 'error'), null;
+      return { bgName: name.value.trim(), prompt: prompt.value };
+    };
+    const go = async (gen) => {
+      const input = bgInput();
+      if (!input) return;
+      const job = await tryApi(() => api.post('/api/bg/generate', { ...input, ...gen }));
       if (!job) return;
       area.replaceChildren(
         jobPanel(job, {
@@ -344,7 +352,14 @@ export function storiesTab(root, { select } = {}) {
     modal({
       title: '배경 그림 생성',
       wide: true,
-      body: h('div', {}, h('p', { class: 'muted small' }, '공통 스타일: dev/style_bg.txt (인물 없이 풍경만)'), h('div', { class: 'grid2' }, h('label', { class: 'field' }, '파일 이름', name), h('label', { class: 'field' }, '장면 설명', prompt)), h('button', { class: 'btn primary', onclick: go }, '생성'), area),
+      body: h(
+        'div',
+        {},
+        h('p', { class: 'muted small' }, '공통 스타일: dev/style_bg.txt (인물 없이 풍경만)'),
+        h('div', { class: 'grid2' }, h('label', { class: 'field' }, '파일 이름', name), h('label', { class: 'field' }, '장면 설명 (한국어 OK)', prompt)),
+        promptStep({ kind: 'bg', getInput: bgInput, generate: go, generateLabel: '그림 뽑기' }).el,
+        area,
+      ),
     });
   }
 

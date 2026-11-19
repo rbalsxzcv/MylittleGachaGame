@@ -22,7 +22,8 @@ LIST_FILES = {
     "notices": "notices.json",
     "mail": "mail.json",
 }
-ASSET_DIRS = ("chars", "banners", "bg")
+ASSET_DIRS = ("chars", "banners", "bg", "ui")
+UI_FILE = "ui.json"  # 게임 화면 에셋(배경/아이콘) 연결 정보 — 목록이 아니라 객체
 
 
 def valid_id(value):
@@ -40,9 +41,33 @@ def ws_assets(rel=""):
 def ensure_workspace():
     """작업 공간이 없으면 공개 데이터를 복사해서 만듦"""
     if ws_data().exists():
+        _ensure_extras()
         return False
     reset_workspace()
     return True
+
+
+def _ensure_extras():
+    """나중에 추가된 파일/폴더를 예전 작업 공간에도 만들어 줌"""
+    for sub in ASSET_DIRS:
+        ws_assets(sub).mkdir(parents=True, exist_ok=True)
+    if not ws_data(UI_FILE).exists():
+        public = config.PUBLIC_DATA / UI_FILE
+        write_json(ws_data(UI_FILE), read_json(public, None) or {"backgrounds": {}, "icons": {}})
+
+
+def read_ui():
+    ensure_workspace()
+    ui = read_json(ws_data(UI_FILE), None)
+    if not isinstance(ui, dict):
+        ui = {}
+    ui.setdefault("backgrounds", {})
+    ui.setdefault("icons", {})
+    return ui
+
+
+def write_ui(ui):
+    write_json(ws_data(UI_FILE), ui)
 
 
 def reset_workspace():
@@ -64,6 +89,7 @@ def reset_workspace():
     for key, rel in LIST_FILES.items():
         if not ws_data(rel).exists():
             write_json(ws_data(rel), [])
+    _ensure_extras()
 
 
 def _stamp():
@@ -125,6 +151,11 @@ def load_all():
     except JsonError as e:
         out["version"] = {"contentVersion": 0, "patchNotes": []}
         out["errors"]["version"] = str(e)
+    try:
+        out["ui"] = read_ui()
+    except JsonError as e:
+        out["ui"] = {"backgrounds": {}, "icons": {}}
+        out["errors"]["ui"] = str(e)
     return out
 
 

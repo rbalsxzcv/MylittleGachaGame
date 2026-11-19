@@ -221,6 +221,20 @@ export function validateVersion(json) {
   };
 }
 
+// ── ui.json (화면 배경 / 아이콘 에셋) ─────────────────────
+/** 키마다 'assets/...' 경로만 남김. 없는 칸은 CSS 기본 디자인 */
+export function validateUi(json) {
+  if (!json || typeof json !== 'object' || Array.isArray(json)) throw new Error('객체가 아님');
+  const clean = (group) => {
+    const out = {};
+    for (const [key, path] of Object.entries(json[group] || {})) {
+      if (/^[a-z0-9_]{1,40}$/i.test(key) && typeof path === 'string' && path.startsWith('assets/') && !path.includes('..')) out[key] = path;
+    }
+    return out;
+  };
+  return { backgrounds: clean('backgrounds'), icons: clean('icons') };
+}
+
 // ── 전체 불러오기 ─────────────────────────────────────────
 /** 게임 시작 시 필요한 데이터를 모두 불러옵니다. (스토리 본문은 열 때 따로 불러옴) */
 export async function loadGameData() {
@@ -231,6 +245,7 @@ export async function loadGameData() {
     ['notices', 'data/notices.json', [], validateNotices],
     ['mail', 'data/mail.json', [], validateMail],
     ['version', 'data/version.json', { contentVersion: 0, patchNotes: [] }, validateVersion],
+    ['ui', 'data/ui.json', { backgrounds: {}, icons: {} }, validateUi],
   ];
   const results = await Promise.all(files.map(([, path, fallback, validator]) => loadJson(path, fallback, validator)));
 

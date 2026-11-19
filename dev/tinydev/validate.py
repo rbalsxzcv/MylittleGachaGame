@@ -270,4 +270,19 @@ def validate(content, asset_exists, held=None):
         if not m.get("endAt"):
             r.warn(where, "종료 시각이 없어요 (계속 받을 수 있음 — 한 번만 받을 수 있으니 문제는 없음)")
 
+    # ── UI 에셋 (화면 배경 / 아이콘) ──
+    from .uislots import SLOT_BY_KEY
+
+    ui = content.get("ui") or {}
+    for group in ("backgrounds", "icons"):
+        items = ui.get(group) or {}
+        if not isinstance(items, dict):
+            r.error(f"ui/{group}", "객체 형식이어야 해요")
+            continue
+        for name, path in items.items():
+            where = f"ui/{group}.{name}"
+            if f"{group}.{name}" not in SLOT_BY_KEY:
+                r.warn(where, "게임이 사용하지 않는 칸이에요")
+            _check_asset(r, where, "그림", path, asset_exists)
+
     return r

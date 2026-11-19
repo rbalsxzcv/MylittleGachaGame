@@ -4,8 +4,10 @@
 // - 시도 기록 썸네일, 두 시도 나란히 비교
 import { h, toast, modal, promptBox, busy } from './ui.js';
 import { api, tryApi } from './api.js';
+import { ENGINE_LABEL, negativeNote } from './promptStep.js';
 
-const KIND_LABEL = { char: '캐릭터', banner: '배너 그림', bg: '배경 그림' };
+const KIND_LABEL = { char: '캐릭터', banner: '배너 그림', bg: '배경 그림', ui: 'UI 에셋' };
+const SOURCE_LABEL = { ai: 'Gemini가 쓴 프롬프트', mock: '모의 모드 프롬프트', template: '기본 틀 프롬프트', manual: '직접 수정한 프롬프트' };
 const img = (job, name) => (name ? `/history/${job.id}/${name}` : '');
 
 /**
@@ -22,7 +24,8 @@ export function jobPanel(job, { onApprove, approveLabel = '승인', approveExtra
 
   function render() {
     const attempt = current.attempts.find((a) => a.n === selected) || current.attempts.at(-1);
-    const isChar = current.kind === 'char';
+    // 배경 제거가 들어간 결과(투명 PNG): 캐릭터, UI 아이콘/로고
+    const isChar = (attempt?.result || '').endsWith('.png');
     root.replaceChildren(
       h(
         'div',
@@ -72,13 +75,24 @@ export function jobPanel(job, { onApprove, approveLabel = '승인', approveExtra
       h(
         'div',
         { class: 'attempt-meta' },
+        a.engine && h('span', { class: 'chip' }, ENGINE_LABEL[a.engine] || a.engine),
+        a.seed != null && h('span', { class: 'chip' }, `seed ${a.seed}`),
+        a.promptSource && h('span', { class: 'chip' }, SOURCE_LABEL[a.promptSource] || a.promptSource),
+        a.check && h('span', { class: 'chip error' }, `자동 검사: ${a.check}`),
+        a.genWarning && h('span', { class: 'chip warn' }, a.genWarning),
         isChar && h('span', { class: ['chip', a.method === 'rmbg' ? 'ok' : 'warn'] }, a.method === 'rmbg' ? 'RMBG 배경 제거' : '간단 모드 배경 제거'),
         a.flatten && h('span', { class: 'chip' }, `배경 평탄화 ${a.flatten}`),
         a.results.length > 1 && h('span', { class: 'chip' }, `배경 제거 ${a.results.length}번째`),
         a.warning && h('span', { class: 'muted small' }, a.warning),
       ),
       a.rejectReason && h('p', { class: 'reject-note' }, `거절 사유: ${a.rejectReason}`),
-      h('details', { class: 'prompt' }, h('summary', {}, '사용한 프롬프트 보기'), h('pre', {}, a.prompt)),
+      h(
+        'details',
+        { class: 'prompt' },
+        h('summary', {}, '사용한 프롬프트 보기'),
+        a.corePrompt && a.corePrompt !== a.prompt && [h('div', { class: 'muted small' }, SOURCE_LABEL[a.promptSource] || '핵심 프롬프트'), h('pre', {}, a.corePrompt), h('div', { class: 'muted small' }, '실제로 보낸 내용 (공통 스타일 포함)')],
+        h('pre', {}, a.prompt),
+      ),
     );
   }
 
@@ -93,8 +107,9 @@ export function jobPanel(job, { onApprove, approveLabel = '승인', approveExtra
         'div',
         { class: 'row wrap' },
         h('button', { class: 'btn primary', onclick: () => approve(a.n) }, `${approveLabel} (시도 #${a.n})`),
-        h('button', { class: 'btn danger-outline', onclick: () => reject(a.n) }, '거절 + 사유 → 다시 생성'),
-        h('button', { class: 'btn', onclick: regenerate }, '그냥 다시 생성'),
+        h('button', { class: 'btn danger-outline', onclick: () => reject(a.n) }, '거절 + 사유 → AI가 프롬프트 고쳐서 다시 생성'),
+        h('button', { class: 'btn', onclick: regenerate }, '같은 프롬프트로 다시 뽑기'),
+        h('button', { class: 'btn', onclick: () => editAndRegenerate(a) }, '프롬프트 직접 고쳐서 다시 생성'),
       ),
       isChar &&
         h(
@@ -123,7 +138,7 @@ export function jobPanel(job, { onApprove, approveLabel = '승인', approveExtra
       placeholder: '예: 손가락이 6개예요 / 머리색을 더 밝은 분홍으로 / 정면을 보게 해 주세요',
     });
     if (!reason) return;
-    const job = await busy('사유를 반영해서 다시 그리는 중… (최대 1분)', () => tryApi(() => api.post(`/api/jobs/${current.id}/reject`, { attempt: n, reason })));
+    const job = await busy('Gemini가 거절 사유를 반영해 프롬프트를 고치고 다시 그리는 중…', () => tryApi(() => api.post(`/api/jobs/${current.id}/reject`, { attempt: n, reason })));
     if (job) {
       selected = job.attempts.at(-1).n;
       update(job);
@@ -131,7 +146,30 @@ export function jobPanel(job, { onApprove, approveLabel = '승인', approveExtra
   }
 
   async function regenerate() {
-    const job = await busy('다시 그리는 중… (최대 1분)', () => tryApi(() => api.post(`/api/jobs/${current.id}/regenerate`)));
+    const job = await busy('같은 프롬프트로 다시 그리는 중…', () => tryApi(() => api.post(`/api/jobs/${current.id}/regenerate`)));
+    if (job) {
+      selected = job.attempts.at(-1).n;
+      update(job);
+    }
+  }
+
+  async function editAndRegenerate(a) {
+    const prompt = h('textarea', { rows: 8 }, a.corePrompt || a.prompt);
+    const negative = h('textarea', { rows: 2 }, a.negative || '');
+    const negWrap = h('label', { class: 'field' }, `네거티브${negativeNote()}`, negative);
+    const ok = await modal({
+      title: '프롬프트 고쳐서 다시 생성',
+      wide: true,
+      body: h('div', {}, h('label', { class: 'field' }, '프롬프트 (품질 태그와 공통 스타일은 자동으로 붙어요)', prompt), negWrap),
+      buttons: [
+        { label: '취소', value: null },
+        { label: '이 프롬프트로 생성', value: 'go', primary: true },
+      ],
+    });
+    if (ok !== 'go' || !prompt.value.trim()) return;
+    const job = await busy('그리는 중…', () =>
+      tryApi(() => api.post(`/api/jobs/${current.id}/regenerate`, { prompt: prompt.value, negative: negative.value, promptSource: 'manual' })),
+    );
     if (job) {
       selected = job.attempts.at(-1).n;
       update(job);

@@ -10,7 +10,7 @@ from pathlib import Path
 
 from flask import Flask, abort, jsonify, redirect, request, send_from_directory
 
-from . import config, cutout, genai, jobs, prompts, publish, store
+from . import batch, comfy, config, cutout, genai, imaging, jobs, prompts, publish, settings, store, uislots
 from .genai import GenError
 from .timeutil import now_iso, parse
 
@@ -131,7 +131,33 @@ def preview(path):
 @app.get("/api/status")
 def status():
     created = store.ensure_workspace()
-    return jsonify(ai=genai.status(), rmbg=cutout.status(), git=publish.git_status(), workspaceCreated=created, now=now_iso())
+    return jsonify(ai=genai.status(), image=imaging.engine_status(), rmbg=cutout.status(), git=publish.git_status(), workspaceCreated=created, now=now_iso())
+
+
+# ─────────────────────────────────────────────────────────
+# 설정 (그림 엔진, ComfyUI)
+# ─────────────────────────────────────────────────────────
+@app.get("/api/settings")
+def get_settings():
+    return jsonify(settings.load())
+
+
+@app.put("/api/settings")
+def put_settings():
+    return jsonify(settings.save(body()))
+
+
+@app.post("/api/comfy/check")
+def comfy_check():
+    """ComfyUI 연결 확인 + 체크포인트/샘플러 목록 (url을 주면 저장 전 주소로 시험)"""
+    data = request.get_json(silent=True) or {}
+    cfg = dict(settings.load()["comfy"])
+    if isinstance(data.get("url"), str) and data["url"].strip():
+        cfg["url"] = settings.clean({**settings.load(), "comfy": {**cfg, "url": data["url"]}})["comfy"]["url"]
+    try:
+        return jsonify({**comfy.check(cfg), "url": cfg["url"]})
+    except GenError as e:
+        return jsonify(ok=False, url=cfg["url"], error=str(e))
 
 
 @app.get("/api/data")
@@ -175,28 +201,30 @@ def save_list(key):
 # ─────────────────────────────────────────────────────────
 # 생성 작업 공통 (캐릭터/배너/배경)
 # ─────────────────────────────────────────────────────────
-def _build_prompt(job):
-    inp = job["input"]
-    reasons = jobs.reject_reasons(job)
-    if job["kind"] == "char":
-        return prompts.char_image(inp, reasons), "3:4", []
-    if job["kind"] == "banner":
-        chars = {c["id"]: c for c in store.read_list("characters")}
-        picked = [chars[i] for i in inp.get("pickupIds", []) if i in chars]
-        refs = []
-        for c in picked[:4]:  # 참고 이미지: 픽업 캐릭터 그림
-            if c.get("image") and store.asset_exists_ws(c["image"]):
-                refs.append(((config.WORKSPACE / c["image"]).read_bytes(), "image/png"))
-        return prompts.banner_image(inp, picked, reasons), "16:9", refs
-    return prompts.bg_image(inp, reasons), "16:9", []
+def _gen_options(data):
+    """생성 요청 공통 옵션: (개발자가 확인/수정한) 프롬프트. 그림 엔진은 ComfyUI 고정"""
+    prompt = text(data, "prompt", 4000) or None
+    negative = text(data, "negative", 2000)
+    source = data.get("promptSource") if data.get("promptSource") in ("ai", "mock", "template", "manual") else "manual"
+    return {"prompt": prompt, "negative": negative, "source": source}
 
 
-def _generate_attempt(job):
-    prompt, ratio, refs = _build_prompt(job)
-    label = job["input"].get("name") or job["input"].get("title") or job["input"].get("bgName") or ""
-    image = genai.generate_image(prompt, ratio, refs, mock_kind=job["kind"], mock_label=label)
-    jobs.add_attempt(job, prompt, image)
-    return job
+def _create_and_generate(kind, inp, data):
+    opts = _gen_options(data)
+    job = jobs.create(kind, {**inp, "engine": imaging.ENGINE})
+    return imaging.generate_attempt(job, opts["prompt"], opts["negative"], opts["source"])
+
+
+@app.post("/api/prompt/write")
+def prompt_write():
+    """생성 전에 Gemini가 쓴 프롬프트를 먼저 보고 고칠 수 있게"""
+    data = body()
+    kind = data.get("kind")
+    inputs = {"char": _char_input, "banner": _banner_input, "bg": _bg_input, "ui": _ui_input}
+    if kind not in inputs:
+        raise ValueError("잘못된 종류")
+    inp = inputs[kind](data.get("input") or {})
+    return jsonify(imaging.write_prompt(kind, inp))
 
 
 @app.get("/api/jobs")
@@ -216,12 +244,15 @@ def reject_job(job_id):
     job = jobs.load(job_id)
     reason = text(data, "reason", 1000, required=True, label="거절 사유")
     jobs.reject(job, data.get("attempt"), reason)
-    return jsonify(_generate_attempt(job))
+    return jsonify(imaging.generate_attempt(job, rewrite=True))
 
 
 @app.post("/api/jobs/<job_id>/regenerate")
 def regenerate_job(job_id):
-    return jsonify(_generate_attempt(jobs.load(job_id)))
+    """다시 생성. prompt를 주면 그 프롬프트로(직접 수정), 없으면 직전 프롬프트로 새로 뽑기"""
+    data = request.get_json(silent=True) or {}
+    opts = _gen_options(data)
+    return jsonify(imaging.generate_attempt(jobs.load(job_id), opts["prompt"], opts["negative"], opts["source"]))
 
 
 @app.post("/api/jobs/<job_id>/recut")
@@ -229,8 +260,8 @@ def recut_job(job_id):
     """같은 원본으로 배경 제거만 다시 (flatten: '#ffffff' 처럼 주면 배경을 단색으로 먼저 칠함)"""
     data = body()
     job = jobs.load(job_id)
-    if job["kind"] != "char":
-        raise ValueError("배경 제거는 캐릭터 작업에서만 할 수 있어요")
+    if not jobs.is_cutout_job(job):
+        raise ValueError("배경 제거는 캐릭터/아이콘 작업에서만 할 수 있어요")
     flatten = data.get("flatten") or None
     if flatten and not (isinstance(flatten, str) and flatten.startswith("#") and len(flatten) in (4, 7)):
         raise ValueError("색은 #ffffff 형식이어야 해요")
@@ -257,8 +288,8 @@ def _char_input(data):
 
 @app.post("/api/char/generate")
 def char_generate():
-    job = jobs.create("char", _char_input(body()))
-    return jsonify(_generate_attempt(job))
+    data = body()
+    return jsonify(_create_and_generate("char", _char_input(data), data))
 
 
 @app.post("/api/char/describe")
@@ -390,56 +421,117 @@ def char_delete(cid):
 # ─────────────────────────────────────────────────────────
 # 배너 그림 / 스토리 배경 그림
 # ─────────────────────────────────────────────────────────
-@app.post("/api/banner/generate")
-def banner_generate():
-    data = body()
+def _banner_input(data):
     bid = data.get("bannerId")
     if not store.valid_id(bid):
         raise ValueError("배너 id가 올바르지 않아요")
-    ids = [i for i in (data.get("pickupIds") or []) if store.valid_id(i)]
-    inp = {
+    return {
         "bannerId": bid,
         "title": text(data, "title", 80),
         "description": text(data, "description", 1000),
-        "pickupIds": ids,
+        "pickupIds": [i for i in (data.get("pickupIds") or []) if store.valid_id(i)],
         "extra": text(data, "extra", 1000),
     }
-    return jsonify(_generate_attempt(jobs.create("banner", inp)))
+
+
+def _bg_input(data):
+    name = data.get("bgName")
+    if not store.valid_id(name):
+        raise ValueError("배경 이름은 영문/숫자/_/- 로 지어 주세요 (예: night_library)")
+    return {"bgName": name, "prompt": text(data, "prompt", 1000, required=True, label="장면 설명")}
+
+
+def _ui_input(data):
+    slot = data.get("slot")
+    if slot not in uislots.SLOT_BY_KEY:
+        raise ValueError("알 수 없는 UI 칸이에요")
+    return {"slot": slot, "extra": text(data, "extra", 1000)}
+
+
+@app.post("/api/banner/generate")
+def banner_generate():
+    data = body()
+    return jsonify(_create_and_generate("banner", _banner_input(data), data))
 
 
 @app.post("/api/bg/generate")
 def bg_generate():
     data = body()
-    name = data.get("bgName")
-    if not store.valid_id(name):
-        raise ValueError("배경 이름은 영문/숫자/_/- 로 지어 주세요 (예: night_library)")
-    inp = {"bgName": name, "prompt": text(data, "prompt", 1000, required=True, label="장면 설명")}
-    return jsonify(_generate_attempt(jobs.create("bg", inp)))
+    return jsonify(_create_and_generate("bg", _bg_input(data), data))
+
+
+# ─────────────────────────────────────────────────────────
+# UI 에셋 (화면 배경 / 로고 / 아이콘) → data/ui.json
+# ─────────────────────────────────────────────────────────
+@app.get("/api/ui")
+def ui_get():
+    return jsonify(slots=uislots.SLOTS, ui=store.read_ui())
+
+
+@app.post("/api/ui/generate")
+def ui_generate():
+    data = body()
+    return jsonify(_create_and_generate("ui", _ui_input(data), data))
+
+
+@app.put("/api/ui")
+def ui_set():
+    """칸 하나를 비우기(path=null → CSS 기본 디자인) 또는 이미 있는 그림으로 지정"""
+    data = body()
+    slot = data.get("slot")
+    if slot not in uislots.SLOT_BY_KEY:
+        raise ValueError("알 수 없는 UI 칸이에요")
+    path = data.get("path") or None
+    if path and not store.asset_exists_ws(path):
+        raise ValueError("그림 파일이 없어요")
+    ui = uislots.set_path(store.read_ui(), slot, path)
+    store.write_ui(ui)
+    return jsonify(ui=ui)
 
 
 @app.post("/api/jobs/<job_id>/approve-image")
 def approve_image(job_id):
-    """배너/배경 그림 승인 → assets/banners/<id>.jpg 또는 assets/bg/<이름>.jpg"""
+    """배너/배경/UI 그림 승인 → assets/banners/<id>.jpg, assets/bg/<이름>.jpg, assets/ui/<칸>.png|jpg"""
     data = body()
     job = jobs.load(job_id)
-    if job["kind"] == "banner":
-        rel = f"assets/banners/{job['input']['bannerId']}.jpg"
-    elif job["kind"] == "bg":
-        rel = f"assets/bg/{job['input']['bgName']}.jpg"
-    else:
+    if job["kind"] == "char":
         raise ValueError("캐릭터는 캐릭터 승인을 사용해 주세요")
-    src = jobs.result_path(job, data.get("attempt"))
-    dest = config.WORKSPACE / rel
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_bytes(src.read_bytes())
-    jobs.mark_approved(job, data.get("attempt"), rel)
-    if job["kind"] == "banner":
-        banners = store.read_list("banners")
-        for b in banners:
-            if b.get("id") == job["input"]["bannerId"]:
-                b["bannerImage"] = rel
-        store.write_list("banners", banners)
-    return jsonify(path=rel)
+    return jsonify(path=batch.apply_job(job, data.get("attempt")))
+
+
+# ─────────────────────────────────────────────────────────
+# 일괄 생성 (그림이 필요한 항목을 ComfyUI로 한 번에)
+# ─────────────────────────────────────────────────────────
+@app.get("/api/batch/targets")
+def batch_targets():
+    return jsonify(groups=[{"id": g, "label": label} for g, label in batch.GROUPS], items=batch.targets())
+
+
+@app.get("/api/batch")
+def batch_state():
+    return jsonify(batch=batch.snapshot())
+
+
+@app.post("/api/batch/start")
+def batch_start():
+    data = body()
+    keys = [k for k in (data.get("keys") or []) if isinstance(k, str)]
+    return jsonify(batch=batch.start(keys, bool(data.get("autoApply")), data.get("stopOnError", True) is not False, text(data, "extra", 1000), data.get("retryCheck", True) is not False))
+
+
+@app.post("/api/batch/cancel")
+def batch_cancel():
+    return jsonify(batch=batch.cancel())
+
+
+@app.post("/api/batch/apply")
+def batch_apply():
+    """일괄 생성 결과 적용 (기존 캐릭터 그림 포함)"""
+    data = body()
+    job = jobs.load(data.get("jobId", ""))
+    path = batch.apply_job(job, data.get("attempt"))
+    batch.note_applied(job["id"], path)
+    return jsonify(path=path)
 
 
 # ─────────────────────────────────────────────────────────

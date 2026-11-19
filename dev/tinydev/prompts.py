@@ -1,55 +1,278 @@
-"""AI 프롬프트 만들기 + 모의 모드용 가짜 결과."""
+"""AI 프롬프트 만들기 + 모의 모드용 가짜 결과.
+
+그림은 ComfyUI + Anima(애니메이션 확산 모델)로만 그립니다. 프롬프트는 두 단계로 만듭니다.
+  1) brief(): 무엇을 그릴지 정리한 '요청서' (캐릭터 설정, 배너 내용, UI 칸 설명 …)
+  2) Gemini가 요청서 + 에셋 종류별 Anima 규칙 + 거절 사유를 읽고 태그 + 짧은 문장으로 프롬프트 작성
+     (Gemini를 쓸 수 없으면 template_prompt()의 종류별 기본 태그로 대신 만듦)
+생성 직전 순서: 품질 태그(설정) → 핵심 프롬프트 → 공통 스타일(dev/style*.txt)
+네거티브: AI가 쓴 것 → 에셋 종류별 기본(KIND_NEGATIVE) → 설정의 기본 네거티브
+"""
 import json
+import re
 
 from . import config
 
 RARITY_HINT = {
-    "R": "simple and cute outfit, modest details",
-    "SR": "detailed elegant outfit, a few accessories, light glow effects",
-    "SSR": "very ornate legendary outfit, sparkling magical effects, dramatic pose",
+    "R": "simple and cute outfit, modest details, gentle natural pose",
+    "SR": "detailed elegant outfit, a few accessories, light glow effects, confident pose",
+    "SSR": "very ornate legendary outfit, sparkling magical effects close to the body, dramatic dynamic pose",
+}
+
+# 에셋 종류(pkind)별 공통 스타일 파일
+STYLE_FILE = {"char": "style.txt", "banner": "style_banner.txt", "bg": "style_bg.txt", "ui_bg": "style_bg.txt", "ui_icon": "style_icon.txt", "logo": "style_icon.txt"}
+
+# 에셋 종류별로 항상 붙는 네거티브 (Anima 태그)
+KIND_NEGATIVE = {
+    "char": "cropped, feet out of frame, head out of frame, multiple views, reference sheet, scenery, detailed background, floor, cast shadow, frame, border",
+    "banner": "letters, logo, title, speech bubble, extra people, cropped head, frame, border",
+    "bg": "people, 1girl, 1boy, character, silhouette, ui, frame, border, letterboxing",
+    "ui_bg": "people, 1girl, 1boy, character, ui, menu, button, frame, border, cluttered",
+    "ui_icon": "multiple objects, scenery, detailed background, hand, person, cropped, frame, border, drop shadow",
+    "logo": "scenery, detailed background, person, cropped, frame, border, photo",
+}
+
+
+def style_for(kind):
+    return config.read_style(STYLE_FILE.get(kind, "style.txt"))
+
+
+def merge_tags(*parts):
+    """쉼표로 나눈 태그를 순서대로 합치고 중복 제거 (Anima는 같은 태그 반복에 약함)"""
+    out, seen = [], set()
+    for part in parts:
+        for tag in (part or "").replace("\n", ", ").split(","):
+            t = tag.strip()
+            if t and t.lower() not in seen:
+                seen.add(t.lower())
+                out.append(t)
+    return ", ".join(out)
+
+
+# ── 용도별 필수 / 금지 태그 (CFG 1이면 네거티브가 무시되므로 포지티브 쪽에서 강제) ──
+_HUMAN = re.compile(
+    r"\b(\d+(girl|boy|other)s?|multiple (girls|boys|others)|girls?|boys?|wom[ae]n|m[ae]n|person|persons|people|crowd|characters?|"
+    r"figures?|silhouettes?|humans?|solo|couple|child|children|kids?|visitors?|pedestrians?|villagers?|shopkeepers?|customers?|"
+    r"students?|audience|guards?|hands?|faces?|portrait)\b",
+    re.I,
+)
+_UI_WORDS = re.compile(r"\b(menus?|buttons?|ui|interface|hud|text|letters?|lettering|title|logo|words?|captions?)\b", re.I)
+_SHEET = re.compile(
+    r"multiple views|reference sheet|character sheet|model sheet|design sheet|concept art|turnaround|character design|"
+    r"from behind|back view|rear view|from side|side view|profile|split screen|comparison|collage|variations?|"
+    r"expression chart|inset|\b\d+(girls|boys|others)\b|multiple (girls|boys)|twins|clones?|duplicate",
+    re.I,
+)
+_COUNT = re.compile(r"^1(girl|boy|other)$", re.I)
+
+# 맨 앞에 항상 붙는 태그 + 맨 끝에 붙는 문장
+REQUIRED = {
+    "char": ("solo, full body, standing", "One single character drawn only once, alone, facing the viewer."),
+    "banner": ("", ""),
+    "bg": ("no humans, scenery", "An empty place with nobody in it."),
+    "ui_bg": ("no humans, scenery", "An empty place with nobody in it."),
+    "ui_icon": ("no humans, object focus, still life", "One single object only."),
+    "logo": ("no humans, emblem", "One single emblem only."),
+}
+
+
+def enforce(kind, prompt):
+    """에셋 용도에 맞게 프롬프트 정리 → (정리된 프롬프트, 뺀 태그 목록)
+    - 배경/아이콘/로고: 사람을 부르는 태그·문장, UI·글자 관련 문장 제거 → 'no humans'를 맨 앞에
+    - 캐릭터: 여러 시점·설정화(정면+후면) 태그 제거 → '1girl/1boy, solo, full body'를 맨 앞에
+    - 배너: 설정화 태그와 글자 관련 태그만 제거
+    """
+    keep, removed, count = [], [], ""
+    parts = (prompt or "").replace("\n", ", ").split(",")
+    segs = [x for part in parts for x in re.split(r"(?<=[.!?])\s+", part)]  # 태그 / 문장 단위로
+    for seg in segs:
+        t = seg.strip()
+        if not t:
+            continue
+        low = t.lower()
+        bad = False
+        if kind in ("bg", "ui_bg", "ui_icon", "logo"):
+            bad = low != "no humans" and bool(_HUMAN.search(t) or (kind != "logo" and _UI_WORDS.search(t)))
+        elif kind == "char":
+            if _COUNT.match(low):
+                count = count or low
+                continue
+            bad = bool(_SHEET.search(t))
+        elif kind == "banner":
+            bad = bool(_SHEET.search(t) and not re.search(r"\b\d+(girls|boys)\b", t, re.I)) or bool(re.search(r"\b(text|letters?|title|logo)\b", t, re.I))
+        (removed if bad else keep).append(t)
+    head, tail = REQUIRED[kind]
+    if kind == "char":
+        head = ", ".join(x for x in (count, head) if x)
+    return merge_tags(head, ", ".join(keep), tail), removed
+
+
+# ── 1) 그림 요청서 ─────────────────────────────────────────
+def brief(kind, inp, chars=(), theme="", slot=None):
+    """사람과 AI가 함께 읽는 '무엇을 그릴지' 설명 (kind: char/banner/bg/ui_bg/ui_icon/logo)"""
+    if kind == "char":
+        lines = [
+            "Original full-body character standee for a casual mobile collection (gacha) game.",
+            f"Name: {inp.get('name', '')}",
+            f"Title / role: {inp.get('title', '')}",
+            f"Rarity: {inp.get('rarity', 'R')} — {RARITY_HINT.get(inp.get('rarity'), '')}",
+            f"Appearance keywords (Korean ok): {inp.get('keywords') or '(none given — invent a fitting original look from the title and description)'}",
+        ]
+        if inp.get("lore"):
+            lines.append(f"Personality / lore (use it to choose the pose, prop and expression): {inp['lore']}")
+    elif kind == "banner":
+        lines = [
+            "Wide key visual for a gacha banner in a casual mobile game.",
+            f"Event title (do NOT render any text): {inp.get('title', '')}",
+            f"Theme: {inp.get('description', '')}",
+        ]
+        if chars:
+            lines.append(f"Featured characters ({len(chars)}), draw exactly these:")
+            for c in chars:
+                lines.append(f"- {c['name']} ({c.get('rarity', '')}, {c.get('title', '')}): {c.get('description', '')}")
+                look = look_tags(c.get("look", ""))
+                if look:
+                    lines.append(f"  Appearance tags used for this character's standee art (keep hair/eyes/outfit the same): {look}")
+        else:
+            lines.append("No featured characters: make it a festive themed scene with no humans.")
+    elif kind == "bg":
+        lines = ["Background art for a visual novel scene (scenery only, no people).", f"Scene: {inp.get('prompt', '')}"]
+    elif kind == "ui_bg":
+        lines = [
+            "Full-screen background art for a mobile game UI screen (scenery only, no people, no text).",
+            f"Screen: {slot['label']} — {slot['subject']}",
+            "UI elements will be drawn on top, so keep it soft and not too detailed.",
+        ]
+    elif kind == "logo":
+        lines = [
+            "Game title logo emblem asset, a single isolated emblem, centered.",
+            f"Logo: {slot['label']} — {slot['subject']}",
+            "Plain white background so it can be cut out.",
+        ]
+    else:  # ui_icon
+        lines = [
+            "Game UI icon asset, a single isolated object, centered, fills most of the frame.",
+            f"Icon: {slot['label']} — {slot['subject']}",
+            "Plain white background so it can be cut out. Readable at small sizes.",
+        ]
+    if theme and kind != "char":
+        lines.append(f"Overall game art direction (Korean ok): {theme}")
+    if inp.get("extra"):
+        lines.append(f"Additional direction from the developer: {inp['extra']}")
+    return "\n".join(lines)
+
+
+# ── 2) Anima 프롬프트 규칙 ─────────────────────────────────
+ANIMA_RULES = """Target model: Anima — an anime-style diffusion model (Qwen3 text encoder) running in ComfyUI.
+Anima understands Danbooru-style tags AND short natural-language English sentences, and works best with a mix of both.
+
+Write 'prompt' in this shape:
+  1. Tags first, in this order: subject count tag (1girl / 1boy / 2girls / no humans ...), the main subject, then details (hair, eyes, outfit, props), pose and expression, then composition / camera / lighting / background tags.
+  2. Then 1-2 short English sentences that describe the whole picture (composition, mood, what the subject is doing).
+Tag rules:
+  - lowercase English, spaces instead of underscores ('long hair', not 'long_hair'), comma-separated, 20-40 tags.
+  - no duplicate or near-duplicate tags (Anima gets worse when tags repeat), no weights like (tag:1.2).
+  - no artist names, no '@' tags, no real brands, no existing copyrighted characters or series.
+  - do NOT write quality / rating tags (masterpiece, best quality, score_*, safe) — they are prepended automatically.
+  - do not write negative phrases like 'no text' in the prompt; put unwanted things in 'negative' instead (except the count tag 'no humans', which is a normal tag).
+Write 'negative' as a few comma-separated tags this specific image must avoid (a base negative list is added automatically)."""
+
+KIND_RULES = {
+    "char": """ASSET: gacha character standee. The background will be removed automatically, then the character is shown on cards and the home screen.
+- Exactly one character: 'solo' + the right count tag (1girl or 1boy — decide from the name, title and description; if unclear use 1girl).
+- Full body from the top of the head to the shoes, nothing cropped: 'full body', 'standing' (or another full-body pose), and mention the shoes.
+- A clear, characterful POSE that fits the personality and role — never a stiff neutral stand. Use concrete pose tags such as 'hand on own hip', 'waving', 'arm up', 'holding staff', 'v', 'leaning forward', 'one eye closed', 'outstretched hand', plus 'looking at viewer' and one specific expression ('smile', 'open mouth', 'smug', 'shy' ...). One signature prop that fits the role is good.
+- The background must be empty: 'simple background', 'white background'. No scenery, floor, furniture, frame or text. Keep effects (sparkles, magic) few and close to the body so the cut-out stays clean.
+- Describe hair colour + style, eye colour, outfit pieces and colours, accessories concretely so the character stays recognisable. Rarity sets the detail level and pose energy.
+- FORBIDDEN (the asset is unusable if it happens): the character appearing more than once, front-and-back or turnaround views, a reference / character / model sheet layout, concept-art presentation with several poses, inset close-ups, a back view, a second person or a pet-sized companion standing apart. Never write tags such as 'multiple views', 'reference sheet', 'concept art', 'character design', 'turnaround', 'from behind', 'back view', 'side view', '2girls'.
+- Describe ONE moment of ONE character in ONE pose, like a single illustration — not a costume design breakdown. Keep the outfit to the 6-10 most important tags.
+- The sentence part must also talk about one character only, e.g. 'A single cheerful girl waves at the viewer...'.""",
+    "banner": """ASSET: 16:9 gacha banner key visual. The game draws the title text itself — never draw text.
+- Draw only the featured characters; the count tag must match (e.g. '2girls', '1girl 1boy'). Copy each character's hair, eyes and outfit tags from the appearance tags given so they match their standee art.
+- Dynamic, festive composition: characters on the right half, 'cowboy shot' or 'upper body', dynamic pose, looking at viewer; the lower-left area calm and less detailed for the title.
+- A themed background that fits the event (not plain), light particles, depth of field.
+- If there are no featured characters, use 'no humans' and make an inviting themed scene.""",
+    "bg": """ASSET: visual-novel scene background, 16:9. Character standees and a dialogue box are drawn on top later.
+- 'no humans', 'scenery', a specific place, time of day, weather and lighting tags, eye-level 'wide shot'.
+- Keep the centre and the bottom third simple (characters stand in the centre, the dialogue box covers the bottom); put interesting detail at the sides and top.
+- Slightly soft and painterly, not over-saturated.
+- FORBIDDEN: any person, character, silhouette, crowd, shadow of a person, statue of a person, animals in the foreground. Do not describe a place through the people in it (no 'shopkeeper', 'visitors', 'students'); describe objects, architecture, nature and light only.
+- The sentence part must describe only the place. Never mention characters, people, the dialogue box, UI or text in it.""",
+    "ui_bg": """ASSET: full-screen game UI background, 16:9. Menus, buttons and characters are drawn on top.
+- 'no humans', 'scenery', the place described; follow the layout notes in the request exactly (which side must stay calm or empty).
+- Low contrast, soft focus or 'depth of field', gentle lighting, few small details — it must not compete with the UI.
+- FORBIDDEN: any person, character, silhouette, crowd, statue of a person, UI panels, buttons, frames, text. Describe 'calm/empty areas' with scenery words (e.g. 'open sky on the right', 'plain wall on the left'), NOT with words like 'space for menus' or 'room for characters'.
+- The sentence part must describe only the place. Never mention characters, people, menus, buttons, UI or text in it.""",
+    "ui_icon": """ASSET: game UI icon. The background will be removed automatically and the icon is shown at 64-128px.
+- 'no humans', 'object focus', exactly one object, 'centered', it fills most of the frame, front view or slight three-quarter view.
+- Bold simple silhouette, thick clean outline, cel shading with one glossy highlight; few details so it reads at small size.
+- 'simple background', 'white background'; no scenery, no hands, no ground shadow.
+- FORBIDDEN: a person, a hand holding the object, a character or mascot face, several objects, a scene around the object, text.""",
+    "logo": """ASSET: the game title logo emblem. The background will be removed automatically; shown about 600px wide.
+- 'no humans', emblem / badge design, 'centered', symmetrical, 'simple background', 'white background'.
+- Anima is weak at drawing words: make a decorative emblem with an empty ribbon banner. Only if the request clearly asks for words, add them in the sentence part as: the ribbon reads "Tiny Gacha".""",
+}
+
+# Gemini 없이 쓸 때의 종류별 기본 태그
+KIND_TEMPLATE = {
+    "char": "solo, full body, standing, dynamic pose, looking at viewer, smile, simple background, white background",
+    "banner": "cowboy shot, dynamic pose, looking at viewer, festive, light particles, depth of field, wide shot",
+    "bg": "no humans, scenery, wide shot, soft lighting",
+    "ui_bg": "no humans, scenery, depth of field, soft lighting, low contrast",
+    "ui_icon": "no humans, object focus, centered, thick outline, simple background, white background",
+    "logo": "no humans, emblem, centered, symmetrical, ribbon, simple background, white background",
 }
 
 
 def _feedback_block(reasons):
     if not reasons:
         return ""
-    lines = "\n".join(f"- {r}" for r in reasons)
-    return f"\n\nIMPORTANT — fix these problems found in previous attempts (반드시 반영):\n{lines}"
+    return "Fix these problems: " + "; ".join(reasons) + "."
 
 
-# ── 이미지 ────────────────────────────────────────────────
-def char_image(inp, reasons):
-    style = config.read_style("style.txt")
-    parts = [
-        "Original character illustration for a casual mobile collection game.",
-        f"Name: {inp.get('name', '')}",
-        f"Title / role: {inp.get('title', '')}",
-        f"Rarity: {inp.get('rarity', 'R')} — {RARITY_HINT.get(inp.get('rarity'), '')}",
-        f"Appearance keywords: {inp.get('keywords', '')}",
-    ]
-    if inp.get("lore"):
-        parts.append(f"Personality / lore (use for pose and expression only): {inp['lore']}")
-    return "\n".join(parts) + _feedback_block(reasons) + (f"\n\nStyle: {style}" if style else "")
+_NOT_LOOK = set(merge_tags(KIND_TEMPLATE["char"], KIND_TEMPLATE["banner"], "masterpiece, best quality, safe").split(", "))
 
 
-def banner_image(inp, chars, reasons):
-    style = config.read_style("style_banner.txt")
-    who = "\n".join(f"- {c['name']} ({c.get('title', '')}): {c.get('description', '')}" for c in chars)
-    parts = [
-        "Key visual for a gacha banner in a casual mobile game.",
-        f"Event title (do NOT render as text): {inp.get('title', '')}",
-        f"Theme: {inp.get('description', '')}",
-    ]
-    if who:
-        parts.append(f"Featured characters (keep their designs consistent with the reference images):\n{who}")
-    if inp.get("extra"):
-        parts.append(f"Additional direction: {inp['extra']}")
-    return "\n".join(parts) + _feedback_block(reasons) + (f"\n\nStyle: {style}" if style else "")
+def look_tags(look):
+    """캐릭터 그림 프롬프트에서 구도/배경 태그를 빼고 외형만 남기기 (배너 기본 태그용)"""
+    return ", ".join(t for t in merge_tags(look).split(", ") if t and t.lower() not in _NOT_LOOK and "background" not in t.lower())
 
 
-def bg_image(inp, reasons):
-    style = config.read_style("style_bg.txt")
-    return f"Background art for a visual novel scene.\nScene: {inp.get('prompt', '')}" + _feedback_block(reasons) + (f"\n\nStyle: {style}" if style else "")
+def template_prompt(kind, inp, slot, chars, reasons):
+    """AI 없이 만드는 프롬프트 (모의 모드 / AI 작성 꺼짐) → (prompt, negative)"""
+    if kind == "char":
+        subject = ", ".join(x for x in (inp.get("keywords"), inp.get("title"), RARITY_HINT.get(inp.get("rarity"), "")) if x)
+    elif kind == "banner":
+        count = f"{len(chars)}girls" if len(chars) > 1 else ("1girl" if chars else "no humans")
+        subject = ", ".join([count] + [look_tags(c.get("look", "")) or c["name"] for c in chars] + [inp.get("description", "")])
+    elif kind == "bg":
+        subject = inp.get("prompt", "")
+    else:
+        subject = slot["subject"] if slot else ""
+    prompt = merge_tags(KIND_TEMPLATE[kind], subject, inp.get("extra", ""))
+    fix = _feedback_block(reasons)
+    return (f"{prompt}. {fix}" if fix else prompt), ""
+
+
+def writer_prompt(kind, brief_text, style, reasons, previous=None):
+    text = f"""You are a prompt engineer for an image generation model used to make original assets for a small non-commercial game.
+
+{ANIMA_RULES}
+
+{KIND_RULES[kind]}
+
+These tags are added automatically after your prompt, so do not repeat them and do not contradict them:
+STYLE: {style or '(none)'}
+
+REQUEST:
+{brief_text}
+"""
+    if previous:
+        text += f"\nPREVIOUS PROMPT (rejected by the developer):\n{previous}\n"
+    if reasons:
+        text += "\nTHE DEVELOPER REJECTED EARLIER RESULTS FOR THESE REASONS — the new prompt MUST fix all of them (reasons may be in Korean):\n"
+        text += "\n".join(f"- {r}" for r in reasons) + "\n"
+    text += '\nTranslate any Korean details into English tags. Return ONLY JSON: {"prompt": "...", "negative": "..."}'
+    return text
 
 
 # ── 캐릭터 소개 ───────────────────────────────────────────

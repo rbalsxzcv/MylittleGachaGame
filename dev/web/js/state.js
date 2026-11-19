@@ -4,11 +4,17 @@ import { api } from './api.js';
 export const state = {
   data: { characters: [], banners: [], storyIndex: [], notices: [], mail: [], version: { contentVersion: 0 }, errors: {} },
   status: null,
+  settings: null, // 그림 엔진, ComfyUI 설정 (dev/settings.json)
 };
 
 export async function reloadData() {
   state.data = await api.get('/api/data');
   return state.data;
+}
+
+export async function reloadSettings() {
+  state.settings = await api.get('/api/settings');
+  return state.settings;
 }
 
 export async function reloadStatus() {

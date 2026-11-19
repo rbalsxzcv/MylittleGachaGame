@@ -12,6 +12,7 @@ import { initRouter, registerScreen, go, back, dispatchKey, currentScreen } from
 import { initToast, toast } from './ui/toast.js';
 import { initModal, hasOpenModal, closeTopModal } from './ui/modal.js';
 import { initHud } from './ui/hud.js';
+import { setTheme, decorateScreen } from './ui/theme.js';
 import { homeScreen } from './ui/home.js';
 import { gachaScreen, revealScreen, showBannerDetail } from './ui/gachaView.js';
 import { collectionScreen } from './ui/collectionView.js';
@@ -46,6 +47,7 @@ async function boot() {
   initModal($('modal-layer'));
 
   const data = await loadGameData();
+  setTheme(data.ui); // 화면 에셋(배경/로고/아이콘) — 없으면 CSS 기본 디자인
   // 출시 시각(addedAt)이 아직 안 된 캐릭터는 게임에 나오지 않음 (픽업 데뷔용)
   const t = now();
   data.allCharMap = new Map(data.characters.map((c) => [c.id, c]));
@@ -102,7 +104,7 @@ async function boot() {
 
   // 화면 등록
   const hud = initHud($('hud'), { getGems: () => ctx.save.gems, onBack: () => back() });
-  initRouter($('screen-layer'), (screen) => hud.update(screen));
+  initRouter($('screen-layer'), (screen) => hud.update(screen), decorateScreen);
   registerScreen('home', homeScreen(ctx));
   registerScreen('gacha', gachaScreen(ctx));
   registerScreen('reveal', revealScreen(ctx));

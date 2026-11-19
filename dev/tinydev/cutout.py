@@ -88,8 +88,8 @@ def _rmbg_mask(img):
     return transforms.ToPILImage()(pred).resize(img.size)
 
 
-def make_cutout(original, flatten_color=None):
-    """원본 이미지 → 최종 캐릭터 PNG (투명 배경, 여백 제거, 긴 변 512px)
+def make_cutout(original, flatten_color=None, long_side=None):
+    """원본 이미지 → 최종 PNG (투명 배경, 여백 제거, 긴 변 long_side px — 기본 512 = 캐릭터)
 
     flatten_color: '#ffffff' 같은 값이면 먼저 배경을 그 색으로 평평하게 칠한 뒤 제거
     returns: (RGBA 이미지, 사용한 방법 'rmbg' | 'simple', 경고 메시지 또는 None)
@@ -114,5 +114,5 @@ def make_cutout(original, flatten_color=None):
         rgba.putalpha(mask)
 
     rgba = images.trim_transparent(rgba)
-    rgba = images.resize_long_side(rgba, config.CHAR_LONG_SIDE)
+    rgba = images.resize_long_side(rgba, long_side or config.CHAR_LONG_SIDE)
     return rgba, method, warning

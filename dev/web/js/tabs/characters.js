@@ -4,6 +4,7 @@ import { api, tryApi } from '../api.js';
 import { state, reloadData } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
 import { openPreview } from '../preview.js';
+import { promptStep } from '../promptStep.js';
 
 export function charactersTab(root) {
   let activeJob = null; // 지금 검토 중인 작업
@@ -22,11 +23,22 @@ export function charactersTab(root) {
   let replacingId = null;
   const replaceNote = h('p', { class: 'note', hidden: true });
 
-  async function generate() {
-    const payload = { name: f.name.value, rarity: f.rarity.value, title: f.title.value, keywords: f.keywords.value, lore: f.lore.value, charId: replacingId };
-    const job = await busy('그림 생성 + 배경 제거 중… (최대 1분)', () => tryApi(() => api.post('/api/char/generate', payload)));
-    if (job) openJob(job);
-  }
+  // 입력값 확인 → Gemini가 그림 프롬프트 작성 → (확인/수정) → ComfyUI로 생성
+  const charInput = () => {
+    const payload = { name: f.name.value.trim(), rarity: f.rarity.value, title: f.title.value, keywords: f.keywords.value.trim(), lore: f.lore.value, charId: replacingId };
+    if (!payload.name) return toast('이름을 입력해 주세요', 'error'), null;
+    if (!payload.keywords) return toast('외형 키워드를 입력해 주세요', 'error'), null;
+    return payload;
+  };
+  const step = promptStep({
+    kind: 'char',
+    getInput: charInput,
+    generateLabel: '그림 뽑기',
+    generate: async (gen) => {
+      const job = await tryApi(() => api.post('/api/char/generate', { ...charInput(), ...gen }));
+      if (job) openJob(job);
+    },
+  });
 
   function setReplacing(c) {
     replacingId = c?.id || null;
@@ -242,8 +254,9 @@ export function charactersTab(root) {
       h('label', { class: 'field' }, '칭호', f.title),
       h('label', { class: 'field' }, '외형 키워드 (그림에 반영)', f.keywords),
       h('label', { class: 'field' }, '설정 메모 (표정/포즈 참고, 소개문 재료)', f.lore),
-      h('div', { class: 'row' }, h('button', { class: 'btn primary', onclick: generate }, '생성'), h('button', { class: 'btn', onclick: () => setReplacing(null) }, '새로 입력')),
-      h('p', { class: 'muted small' }, '공통 스타일(dev/style.txt)이 모든 프롬프트 뒤에 붙어요.'),
+      step.el,
+      h('div', { class: 'row' }, h('button', { class: 'btn small', onclick: () => (setReplacing(null), step.reset()) }, '새로 입력')),
+      h('p', { class: 'muted small' }, 'Anima 캐릭터 규칙: 배경 없는 전신, 성격에 맞는 포즈. 공통 스타일(dev/style.txt)이 모든 프롬프트 뒤에 붙어요.'),
     ),
     h('section', { class: 'card' }, h('h2', {}, `캐릭터 (${state.data.characters.length})`), list),
     h('section', { class: 'card' }, h('h2', {}, '최근 생성 기록'), jobsBox),

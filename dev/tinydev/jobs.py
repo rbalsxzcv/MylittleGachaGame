@@ -11,10 +11,10 @@
 import json
 import secrets
 
-from . import config, cutout, images, store
+from . import config, cutout, images, store, uislots
 from .timeutil import now_iso, stamp
 
-KINDS = ("char", "banner", "bg")
+KINDS = ("char", "banner", "bg", "ui")
 
 
 def job_dir(job_id):
@@ -56,13 +56,36 @@ def reject_reasons(job):
     return [a["rejectReason"] for a in job["attempts"] if a.get("rejectReason")]
 
 
-def _process(job, original_img, flatten=None):
-    """원본 → 결과 이미지. 캐릭터는 배경 제거, 배너/배경은 1280x720로 맞춤"""
+def is_cutout_job(job):
+    """배경 제거가 필요한 작업: 캐릭터, UI 아이콘/로고"""
     if job["kind"] == "char":
-        img, method, warning = cutout.make_cutout(original_img, flatten)
+        return True
+    slot = uislots.SLOT_BY_KEY.get(job["input"].get("slot")) if job["kind"] == "ui" else None
+    return bool(slot and slot["kind"] in ("icon", "logo"))
+
+
+def _process(job, original_img, flatten=None):
+    """원본 → 결과 이미지
+    캐릭터: 배경 제거 + 긴 변 512px / UI 아이콘: 배경 제거 + 256px(로고 640px) / 배너·배경: 1280x720 JPG"""
+    if is_cutout_job(job):
+        long_side = None
+        if job["kind"] == "ui":
+            slot = uislots.SLOT_BY_KEY[job["input"]["slot"]]
+            long_side = uislots.LOGO_LONG_SIDE if slot["kind"] == "logo" else uislots.ICON_LONG_SIDE
+        img, method, warning = cutout.make_cutout(original_img, flatten, long_side)
         return img, "png", method, warning
     size = config.BANNER_SIZE if job["kind"] == "banner" else config.BG_SIZE
     return images.cover_resize(original_img, size), "jpg", "resize", None
+
+
+def _check(job, img):
+    """캐릭터 결과 자동 검사 (설정화 / 여러 명). 검사 중 오류는 무시"""
+    if job["kind"] != "char":
+        return None
+    try:
+        return images.figure_check(img)
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def _write_result(job, attempt, img, ext):
@@ -77,8 +100,10 @@ def _write_result(job, attempt, img, ext):
     attempt["result"] = name
 
 
-def add_attempt(job, prompt, image_bytes):
-    """새로 생성한 원본 이미지를 시도로 추가하고 결과 이미지를 만듦"""
+def add_attempt(job, prompt, image_bytes, meta=None):
+    """새로 생성한 원본 이미지를 시도로 추가하고 결과 이미지를 만듦
+    meta: corePrompt(AI/개발자가 쓴 핵심 프롬프트), negative, engine, seed, promptSource, genWarning
+    """
     n = len(job["attempts"]) + 1
     folder = job_dir(job["id"])
     original_name = f"a{n:02d}-original.png"
@@ -97,10 +122,18 @@ def add_attempt(job, prompt, image_bytes):
         "method": None,
         "warning": None,
         "flatten": None,
+        "corePrompt": prompt,
+        "negative": "",
+        "engine": None,
+        "seed": None,
+        "promptSource": None,
+        "genWarning": None,
+        "check": None,  # 캐릭터 자동 검사 결과 (문제 설명, 통과면 None)
     }
+    attempt.update({k: v for k, v in (meta or {}).items() if k in attempt})
     img, ext, method, warning = _process(job, original)
     _write_result(job, attempt, img, ext)
-    attempt["method"], attempt["warning"] = method, warning
+    attempt["method"], attempt["warning"], attempt["check"] = method, warning, _check(job, img)
     job["attempts"].append(attempt)
     save(job)
     return attempt
@@ -120,6 +153,7 @@ def redo_cutout(job, n, flatten_color=None):
     img, ext, method, warning = _process(job, original, flatten_color)
     _write_result(job, attempt, img, ext)
     attempt["method"], attempt["warning"], attempt["flatten"] = method, warning, flatten_color
+    attempt["check"] = _check(job, img)
     save(job)
     return attempt
 
@@ -143,6 +177,31 @@ def mark_approved(job, n, path):
     save(job)
 
 
+def char_look(cid):
+    """캐릭터 그림을 만들 때 쓴 외형 프롬프트 (배너에서 같은 모습으로 그리기 위해). 없으면 ''"""
+    if not config.HISTORY.exists() or not store.valid_id(cid):
+        return ""
+    rel = f"assets/chars/{cid}.png"
+    fallback = ""
+    for d in sorted(config.HISTORY.iterdir(), reverse=True):
+        if not d.name.startswith("char-"):
+            continue
+        try:
+            job = json.loads((d / "job.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        approved = job.get("approved") or {}
+        if approved.get("path") == rel:
+            try:
+                a = get_attempt(job, approved["attempt"])
+            except (ValueError, KeyError):
+                continue
+            return a.get("corePrompt") or a.get("prompt") or job["input"].get("keywords", "")
+        if not fallback and job["input"].get("charId") == cid and job["input"].get("keywords"):
+            fallback = job["input"]["keywords"]
+    return fallback
+
+
 def list_jobs(kind=None, limit=30):
     if not config.HISTORY.exists():
         return []
@@ -160,7 +219,7 @@ def list_jobs(kind=None, limit=30):
                 "kind": job["kind"],
                 "createdAt": job["createdAt"],
                 "status": job["status"],
-                "label": job["input"].get("name") or job["input"].get("bannerId") or job["input"].get("bgName") or "",
+                "label": job["input"].get("name") or job["input"].get("bannerId") or job["input"].get("bgName") or uislots.SLOT_BY_KEY.get(job["input"].get("slot"), {}).get("label") or "",
                 "attempts": len(job["attempts"]),
                 "thumb": job["attempts"][-1]["result"] if job["attempts"] else None,
             }

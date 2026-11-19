@@ -42,7 +42,17 @@ function append(el, children) {
   }
 }
 
-/** 보석 아이콘 (CSS로 그린 다이아몬드) */
+// 보석 아이콘 그림 (ui.json icons.gem). 비어 있으면 CSS 다이아몬드
+let gemSrc = '';
+export function setGemIconSrc(src) {
+  gemSrc = src || '';
+}
+
+/** 보석 아이콘 (그림 에셋이 있으면 그림, 없거나 실패하면 CSS로 그린 다이아몬드) */
 export function gemIcon() {
-  return h('i', { class: 'gem-icon', 'aria-hidden': 'true' });
+  const css = h('i', { class: 'gem-icon', 'aria-hidden': 'true' });
+  if (!gemSrc) return css;
+  const img = h('img', { class: 'gem-img', src: gemSrc, alt: '', 'aria-hidden': 'true', draggable: 'false' });
+  img.addEventListener('error', () => img.replaceWith(css), { once: true });
+  return img;
 }

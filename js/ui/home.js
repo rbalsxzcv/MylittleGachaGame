@@ -10,6 +10,7 @@ import { bannerSignature } from '../systems/banners.js';
 import { hasUnreadUnlocked } from '../systems/stories.js';
 import { unclaimedCount } from '../systems/inbox.js';
 import { RATES, PITY_LIMIT } from '../systems/gacha.js';
+import { iconOr } from './theme.js';
 
 // 메뉴 정의 — 새 기능(미션, 출석, 상점 등)은 여기에 한 줄 추가하면 됩니다.
 // key: 키보드 단축키 표시용 (실제 처리는 main.js), dot: 빨간 점 표시 조건
@@ -97,7 +98,7 @@ export function homeScreen(ctx) {
               dataset: { menu: m.id },
               onclick: () => go(m.screen),
             },
-            h('span', { class: 'menu-icon', 'aria-hidden': 'true' }, m.icon),
+            h('span', { class: 'menu-icon', 'aria-hidden': 'true' }, iconOr(`menu_${m.id}`, m.icon)),
             h('span', { class: 'menu-label' }, m.label),
             m.key && h('kbd', { class: 'key-hint' }, m.key),
             h('span', { class: 'menu-dot', hidden: true }),
@@ -118,7 +119,7 @@ export function homeScreen(ctx) {
 
       el.append(
         h('div', { class: 'home-bg' }),
-        h('div', { class: 'home-logo' }, 'Tiny ', h('b', {}, 'Gacha')),
+        h('div', { class: 'home-logo' }, iconOr('logo', h('span', {}, 'Tiny ', h('b', {}, 'Gacha')), 'logo-img')),
         featuredEl,
         h('div', { class: 'home-carousel' }, carousel.el),
         menu,

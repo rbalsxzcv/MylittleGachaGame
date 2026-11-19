@@ -12,9 +12,17 @@ let layer = null;
 let current = null;
 let onChange = null;
 
-export function initRouter(layerEl, changeCallback) {
+let decorate = null;
+
+/**
+ * @param {HTMLElement} layerEl 화면이 들어갈 곳
+ * @param {(screen)=>void} changeCallback 화면이 바뀐 뒤 호출
+ * @param {(el:HTMLElement, name:string)=>void} [decorateFn] 화면 요소를 만든 직후 호출 (배경 그림 깔기 등)
+ */
+export function initRouter(layerEl, changeCallback, decorateFn) {
   layer = layerEl;
   onChange = changeCallback;
+  decorate = decorateFn || null;
 }
 
 export function registerScreen(name, def) {
@@ -35,6 +43,11 @@ function show(name, params) {
 
   const el = h('div', { class: `screen screen-${name}` });
   layer.replaceChildren(el);
+  try {
+    decorate?.(el, name);
+  } catch (e) {
+    console.warn('[router] decorate 오류', e);
+  }
   let api = {};
   try {
     api = def.mount(el, params) || {};

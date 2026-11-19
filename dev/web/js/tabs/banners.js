@@ -4,6 +4,7 @@ import { api, tryApi } from '../api.js';
 import { state, saveList, reloadData } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
 import { openPreview } from '../preview.js';
+import { promptStep } from '../promptStep.js';
 
 const blank = () => ({ id: '', title: '', type: 'pickup', pickupIds: [], startAt: null, endAt: null, bannerImage: '', description: '', relatedStoryId: null });
 
@@ -84,11 +85,12 @@ export function bannersTab(root, { select } = {}) {
     // 키 아트 생성
     const extra = h('input', { placeholder: '추가 연출 (예: 밤하늘 축제 등불, 따뜻한 분위기)' });
     const jobArea = h('div');
-    async function genArt() {
-      if (!collect(false)) return;
-      const job = await busy('배너 그림 생성 중… (픽업 캐릭터 그림을 참고 이미지로 사용)', () =>
-        tryApi(() => api.post('/api/banner/generate', { bannerId: id.value.trim(), title: title.value, description: desc.value, pickupIds: [...picked], extra: extra.value })),
-      );
+    const bannerInput = () => (collect(false) ? { bannerId: id.value.trim(), title: title.value, description: desc.value, pickupIds: [...picked], extra: extra.value } : null);
+    const artStep = promptStep({ kind: 'banner', getInput: bannerInput, generateLabel: '그림 뽑기', generate: (gen) => genArt(gen) });
+    async function genArt(gen) {
+      const input = bannerInput();
+      if (!input) return;
+      const job = await tryApi(() => api.post('/api/banner/generate', { ...input, ...gen }));
       if (!job) return;
       const panel = jobPanel(job, {
         approveLabel: '이 그림을 배너에 사용',
@@ -181,9 +183,10 @@ export function bannersTab(root, { select } = {}) {
       h(
         'section',
         { class: 'card' },
-        h('h2', {}, '키 아트 생성 (Vertex AI)'),
-        h('p', { class: 'muted small' }, '픽업 캐릭터의 승인된 그림과 소개문을 참고해서 16:9 그림을 만들어요. 공통 스타일: dev/style_banner.txt'),
-        h('div', { class: 'row' }, extra, h('button', { class: 'btn', onclick: genArt }, '그림 생성')),
+        h('h2', {}, '키 아트 생성'),
+        h('p', { class: 'muted small' }, '픽업 캐릭터의 소개문과, 승인된 캐릭터 그림을 만들 때 쓴 외형 태그를 이어받아 Gemini가 프롬프트를 써요. 공통 스타일: dev/style_banner.txt'),
+        h('label', { class: 'field' }, '추가 연출', extra),
+        artStep.el,
         jobArea,
       ),
     );

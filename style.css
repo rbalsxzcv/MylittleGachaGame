@@ -1106,3 +1106,18 @@ button.ccard:active { transform: scale(0.97); }
 .patch-notes { white-space: normal; }
 .patch-notes h3 { margin: 0 0 6px; font-size: 19px; color: #ffe08a; }
 .patch-notes ul { margin: 0 0 16px; padding-left: 22px; line-height: 1.6; }
+
+/* ==========================================================
+   화면 에셋 (data/ui.json) — 그림이 있으면 CSS 장식 대신 사용
+   ========================================================== */
+.screen-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.screen-bg-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(10, 8, 24, 0.25), rgba(10, 8, 24, 0.45)); }
+/* 배경 그림이 있으면 CSS로 그린 배경 장식은 숨김 */
+.screen.has-bg .home-bg,
+.screen.has-bg .reveal-bg { display: none; }
+.screen-home.has-bg .screen-bg-shade { background: linear-gradient(90deg, rgba(10, 8, 24, 0.05) 40%, rgba(10, 8, 24, 0.4)); }
+/* 로고 / 아이콘 그림 */
+.home-logo .logo-img { display: block; height: 76px; width: auto; max-width: 340px; object-fit: contain; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.4)); margin-top: -10px; }
+.menu-icon .theme-icon { width: 40px; height: 40px; object-fit: contain; }
+.menu-icon:has(.theme-icon) { background: none; }
+.gem-img { display: inline-block; width: 22px; height: 22px; object-fit: contain; margin: 0 2px; vertical-align: middle; flex: none; }

@@ -24,3 +24,6 @@ desktop.ini
 # ── 개발 도구 작업 공간 (배포 전 미공개 콘텐츠 — 공개 저장소에 올리지 않음) ──
 dev/workspace/
 dev/trash/
+
+# 개발 도구 작업 환경 설정 (그림 엔진, ComfyUI 주소 등 — PC마다 다름)
+dev/settings.json
