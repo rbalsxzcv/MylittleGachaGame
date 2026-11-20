@@ -1,8 +1,8 @@
-// 홈 화면: 대표 캐릭터(왼쪽~가운데), 배너 캐러셀(진행 중인 배너만), 메뉴(오른쪽)
+// 홈 화면: 대표 캐릭터 상반신(왼쪽~가운데), 배너 캐러셀(오른쪽 위, 진행 중인 배너만), 메뉴(하단 한 줄)
 import { h } from './dom.js';
 import { on } from '../core/events.js';
 import { go } from './router.js';
-import { charArt, rarityBadge, starRow } from './charCard.js';
+import { charArt } from './charCard.js';
 import { createCarousel } from './carousel.js';
 import { countdownEl, startCountdowns } from './countdown.js';
 import { getFeatured, hasUnseenNew } from '../systems/collection.js';
@@ -41,26 +41,13 @@ export function homeScreen(ctx) {
       // ── 대표 캐릭터 ──
       let featuredEl;
       if (featured) {
-        const entry = ctx.save.owned[featured.id];
         const art = h('div', { class: 'featured-art' }, charArt(featured));
         art.addEventListener('click', () => {
           art.classList.remove('poke');
           void art.offsetWidth;
           art.classList.add('poke');
         });
-        featuredEl = h(
-          'div',
-          { class: `featured rar-${featured.rarity}` },
-          h('div', { class: 'featured-aura' }),
-          art,
-          h(
-            'div',
-            { class: 'featured-plate' },
-            h('div', { class: 'fp-top' }, rarityBadge(featured.rarity), starRow(entry?.breakthrough ?? 0)),
-            featured.title && h('div', { class: 'fp-title' }, featured.title),
-            h('div', { class: 'fp-name' }, featured.name),
-          ),
-        );
+        featuredEl = h('div', { class: `featured rar-${featured.rarity}` }, h('div', { class: 'featured-aura' }), art);
       } else {
         featuredEl = h(
           'div',

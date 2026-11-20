@@ -23,6 +23,16 @@
   --sr: #a970ff;
   --ssr: #ffc23d;
 
+  /* 글래스(반투명) 갈색 — 홈 메뉴 / HUD */
+  --glass-bg: rgba(46, 30, 20, 0.48);
+  --glass-bg-hover: rgba(70, 46, 30, 0.58);
+  --glass-border: rgba(255, 222, 186, 0.18);
+  --glass-hi: inset 0 1px 0 rgba(255, 236, 214, 0.14);
+  --glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --glass-blur: blur(14px) saturate(140%);
+  --glass-primary: rgba(122, 74, 38, 0.62);
+  --glass-primary-border: rgba(255, 196, 120, 0.55);
+
   --radius: 16px;
   --font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "Segoe UI", sans-serif;
 }
@@ -162,8 +172,11 @@ textarea { font-family: ui-monospace, Consolas, monospace; user-select: text; -w
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  border: 1px solid var(--line);
-  background: var(--panel-strong);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-hi), var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   font-size: 40px;
   line-height: 1;
   padding-bottom: 6px;
@@ -178,8 +191,11 @@ textarea { font-family: ui-monospace, Consolas, monospace; user-select: text; -w
   height: 48px;
   padding: 0 20px 0 14px;
   border-radius: 24px;
-  background: var(--panel-strong);
-  border: 1px solid var(--line);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-hi), var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   font-size: 22px;
   font-weight: 800;
   justify-content: flex-end;
@@ -361,14 +377,16 @@ button.ccard:active { transform: scale(0.97); }
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 25% 60%, rgba(255, 126, 182, 0.22), transparent 45%),
-    radial-gradient(circle at 80% 15%, rgba(139, 123, 255, 0.25), transparent 40%),
-    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 28px);
+    radial-gradient(circle at 30% 40%, rgba(255, 170, 90, 0.2), transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(150, 90, 50, 0.3), transparent 40%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 28px),
+    linear-gradient(180deg, #2a1c14, #120c08);
 }
 .home-logo {
   position: absolute;
   top: 22px;
   left: 32px;
+  z-index: 1; /* 크게 키운 대표 캐릭터보다 위 */
   font-size: 30px;
   font-weight: 600;
   letter-spacing: 1px;
@@ -377,9 +395,9 @@ button.ccard:active { transform: scale(0.97); }
 .home-logo b { color: var(--accent); font-weight: 900; }
 .home-warning {
   position: absolute;
-  left: 640px;
-  top: 300px;
-  width: 350px;
+  right: 28px;
+  top: 336px;
+  width: 380px;
   padding: 14px 18px;
   border-radius: 14px;
   background: rgba(255, 92, 122, 0.18);
@@ -387,43 +405,39 @@ button.ccard:active { transform: scale(0.97); }
   font-size: 17px;
 }
 
-.featured { position: absolute; left: 30px; top: 74px; width: 580px; height: 630px; }
+/* 대표 캐릭터: 그림을 컨테이너 높이의 1.5배로 키워 위쪽 2/3(상반신)만 보이게 함 */
+.featured { position: absolute; left: 60px; top: 0; bottom: 0; width: 700px; }
 .featured-aura {
   position: absolute;
-  inset: 40px 30px 120px;
+  inset: 60px 60px 240px;
   border-radius: 50%;
   background: radial-gradient(circle, color-mix(in srgb, var(--rc) 45%, transparent), transparent 70%);
   filter: blur(20px);
   animation: aura 4s ease-in-out infinite;
 }
 @keyframes aura { 50% { transform: scale(1.06); opacity: 0.8; } }
-.featured-art { position: absolute; inset: 0 40px 136px; cursor: pointer; }
+.featured-art {
+  position: absolute;
+  inset: 0 -120px; /* 옆으로 넓은 그림(망토, 무기)이 잘리지 않도록 좌우 여유 */
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
+}
+.featured-art .art { align-items: flex-start; }
 .featured-art .art-fallback {
-  width: 340px;
-  height: 470px;
-  margin: auto auto 0;
+  width: 360px;
+  height: 480px;
+  margin: 100px auto 0;
   border-radius: 24px;
   border: 4px solid var(--rc);
   font-size: 26px;
 }
-.featured-art .art-img { filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5)); }
+.featured-art .art-img { flex: none; height: 150%; width: auto; max-width: none; max-height: none; filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5)); }
 .featured-art.poke { animation: poke 0.45s ease; }
 @keyframes poke { 30% { transform: translateY(-14px) scale(1.02); } 60% { transform: translateY(2px); } }
-.featured-plate {
-  position: absolute;
-  left: 60px;
-  right: 60px;
-  bottom: 0;
-  padding: 14px 22px;
-  border-radius: 18px;
-  background: var(--panel-strong);
-  border: 1px solid var(--line);
-  border-left: 6px solid var(--rc);
-}
-.fp-top { display: flex; align-items: center; gap: 12px; }
-.fp-title { margin-top: 6px; font-size: 17px; color: var(--muted); }
-.fp-name { font-size: 32px; font-weight: 900; }
 .featured-empty {
+  bottom: 120px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -442,32 +456,48 @@ button.ccard:active { transform: scale(0.97); }
   color: rgba(255, 255, 255, 0.15);
 }
 .fe-text { font-size: 22px; color: var(--muted); }
+.featured-empty .btn-primary {
+  background: var(--glass-primary);
+  border-color: var(--glass-primary-border);
+  box-shadow: var(--glass-hi), var(--glass-shadow), 0 0 22px rgba(255, 170, 80, 0.25);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
 
-.home-carousel { position: absolute; left: 640px; bottom: 36px; width: 350px; height: 230px; }
+.home-carousel { position: absolute; right: 28px; top: 88px; width: 380px; height: 230px; }
+.home-carousel .carousel-window { border-color: var(--glass-border); box-shadow: var(--glass-shadow); }
+
+/* 하단 메뉴 한 줄 — 갈색 글래스 */
 .home-menu {
   position: absolute;
-  right: 36px;
-  top: 96px;
-  width: 230px;
+  left: 28px;
+  right: 28px;
+  bottom: 18px;
   display: grid;
+  grid-template-columns: repeat(6, 1fr);
   gap: 12px;
 }
 .menu-btn {
   position: relative;
-  height: 82px;
+  height: 84px;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 0 20px;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 16px;
   border-radius: 18px;
-  border: 1px solid var(--line);
-  background: var(--panel-strong);
-  font-size: 24px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-hi), var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: #fbeee0;
+  font-size: 22px;
   font-weight: 800;
   text-align: left;
-  transition: transform 0.1s, border-color 0.2s;
+  transition: transform 0.1s, border-color 0.2s, background 0.2s;
 }
-.menu-btn:hover { border-color: rgba(255, 255, 255, 0.4); }
+.menu-btn:hover:not(:disabled) { background: var(--glass-bg-hover); border-color: rgba(255, 222, 186, 0.35); }
 .menu-btn:active { transform: scale(0.97); }
 .menu-icon {
   width: 44px;
@@ -476,18 +506,19 @@ button.ccard:active { transform: scale(0.97); }
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 225, 190, 0.1);
+  color: #ffd9a8;
   font-size: 24px;
 }
-.menu-label { flex: 1; }
+.menu-label { flex: none; }
+.menu-btn .key-hint { position: absolute; right: 8px; bottom: 8px; font-size: 11px; padding: 2px 5px; border-color: rgba(255, 222, 186, 0.3); color: rgba(255, 236, 214, 0.6); }
 .menu-primary {
-  height: 104px;
-  font-size: 30px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  border-color: transparent;
-  box-shadow: 0 8px 26px rgba(255, 126, 182, 0.35);
+  background: var(--glass-primary);
+  border-color: var(--glass-primary-border);
+  box-shadow: var(--glass-hi), var(--glass-shadow), 0 0 22px rgba(255, 170, 80, 0.25);
 }
-.menu-primary .menu-icon { background: rgba(255, 255, 255, 0.25); }
+.menu-primary:hover:not(:disabled) { background: rgba(145, 90, 46, 0.7); border-color: rgba(255, 210, 140, 0.75); }
+.menu-primary .menu-icon { background: rgba(255, 200, 130, 0.22); color: #ffe2b0; }
 .menu-soon { opacity: 0.55; }
 .menu-dot {
   position: absolute;
@@ -511,9 +542,11 @@ button.ccard:active { transform: scale(0.97); }
   width: 44px;
   height: 64px;
   margin-top: -32px;
-  border: 0;
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   font-size: 36px;
   line-height: 1;
 }
@@ -1115,7 +1148,11 @@ button.ccard:active { transform: scale(0.97); }
 /* 배경 그림이 있으면 CSS로 그린 배경 장식은 숨김 */
 .screen.has-bg .home-bg,
 .screen.has-bg .reveal-bg { display: none; }
-.screen-home.has-bg .screen-bg-shade { background: linear-gradient(90deg, rgba(10, 8, 24, 0.05) 40%, rgba(10, 8, 24, 0.4)); }
+.screen-home.has-bg .screen-bg-shade {
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(20, 12, 6, 0.4), transparent 45%),
+    linear-gradient(180deg, transparent 62%, rgba(20, 12, 6, 0.55));
+}
 /* 로고 / 아이콘 그림 */
 .home-logo .logo-img { display: block; height: 76px; width: auto; max-width: 340px; object-fit: contain; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.4)); margin-top: -10px; }
 .menu-icon .theme-icon { width: 40px; height: 40px; object-fit: contain; }
@@ -1181,12 +1218,15 @@ button.ccard:active { transform: scale(0.97); }
   align-items: center;
   gap: 6px;
   border-radius: 24px;
-  border: 1px solid var(--line);
-  background: var(--panel-strong);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-hi), var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   font-size: 16px;
   font-weight: 800;
 }
-.hud-link-icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, 0.1); font-size: 17px; }
+.hud-link-icon { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 225, 190, 0.1); font-size: 17px; }
 .hud-link-icon .theme-icon { width: 26px; height: 26px; object-fit: contain; }
 .hud-link .menu-dot { top: 2px; right: 2px; width: 12px; height: 12px; }
 .gem-pill.ticket-pill { min-width: 140px; }
