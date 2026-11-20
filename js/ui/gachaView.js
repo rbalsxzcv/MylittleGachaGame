@@ -127,9 +127,10 @@ export function gachaScreen(ctx) {
       const empty = isPoolEmpty(pools);
       const key = pityKeyOf(banner);
       const pity = ctx.save.pity[key] ?? 0;
-      const index = banners.indexOf(banner);
+      // activeBanners()는 부를 때마다 새 객체를 만들므로 id로 비교
+      const index = banners.findIndex((b) => b.id === banner?.id);
 
-      const switchTo = (b) => b && b !== banner && go('gacha', { bannerId: b.id }, { replace: true });
+      const switchTo = (b) => b && b.id !== banner?.id && go('gacha', { bannerId: b.id }, { replace: true });
       const pull = (count) => {
         const results = executePull(ctx, banner, count);
         if (results) go('reveal', { results, bannerId: banner.id, count });
@@ -153,7 +154,7 @@ export function gachaScreen(ctx) {
           banners.map((b) =>
             h(
               'button',
-              { class: ['banner-tab', b === banner && 'active', b.type === 'pickup' && 'is-pickup'], type: 'button', role: 'tab', onclick: () => switchTo(b) },
+              { class: ['banner-tab', b.id === banner?.id && 'active', b.type === 'pickup' && 'is-pickup'], type: 'button', role: 'tab', onclick: () => switchTo(b) },
               b.title,
             ),
           ),

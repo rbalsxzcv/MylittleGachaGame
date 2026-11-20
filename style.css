@@ -5,16 +5,16 @@
 
 /* ── 디자인 토큰 ── */
 :root {
-  --bg-0: #07060f;
-  --bg-1: #14122b;
-  --bg-2: #2a2152;
-  --panel: rgba(255, 255, 255, 0.07);
-  --panel-strong: rgba(20, 16, 44, 0.86);
-  --line: rgba(255, 255, 255, 0.16);
-  --text: #f4f1ff;
-  --muted: #b2abd3;
-  --accent: #ff7eb6;
-  --accent-2: #8b7bff;
+  --bg-0: #0b0705;
+  --bg-1: #1c130d;
+  --bg-2: #3a2618;
+  --panel: rgba(255, 228, 196, 0.07);
+  --panel-strong: rgba(36, 24, 16, 0.86);
+  --line: rgba(255, 222, 186, 0.16);
+  --text: #fbf1e6;
+  --muted: #c6b29c;
+  --accent: #e8a25a;
+  --accent-2: #a0602e;
   --danger: #ff5c7a;
   --ok: #5fe0a5;
 
@@ -81,7 +81,7 @@ textarea { font-family: ui-monospace, Consolas, monospace; user-select: text; -w
   height: 720px;
   transform-origin: 0 0;
   overflow: hidden;
-  background: radial-gradient(ellipse at 30% 20%, #3a2a78 0%, var(--bg-1) 55%, var(--bg-0) 100%);
+  background: radial-gradient(ellipse at 30% 20%, #4a2f1c 0%, var(--bg-1) 55%, var(--bg-0) 100%);
   font-size: 20px;
   word-break: keep-all; /* 한글 단어 중간에서 줄바꿈하지 않기 */
   overflow-wrap: anywhere;
@@ -239,7 +239,7 @@ textarea { font-family: ui-monospace, Consolas, monospace; user-select: text; -w
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(5, 4, 15, 0.72);
+  background: rgba(10, 6, 3, 0.72);
   opacity: 0;
   transition: opacity 0.18s;
 }
@@ -251,7 +251,7 @@ textarea { font-family: ui-monospace, Consolas, monospace; user-select: text; -w
   flex-direction: column;
   padding: 28px 32px;
   border-radius: 22px;
-  background: linear-gradient(160deg, #2b2357, #191433);
+  background: linear-gradient(160deg, #3a2618, #1c130d);
   border: 1px solid var(--line);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
   transform: scale(0.96);
@@ -302,14 +302,14 @@ textarea { font-family: ui-monospace, Consolas, monospace; user-select: text; -w
   background: var(--rc);
   background:
     radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--rc) 70%, white 30%) 0%, transparent 60%),
-    linear-gradient(165deg, color-mix(in srgb, var(--rc) 85%, black 15%), color-mix(in srgb, var(--rc) 30%, #120f26 70%));
+    linear-gradient(165deg, color-mix(in srgb, var(--rc) 85%, black 15%), color-mix(in srgb, var(--rc) 30%, #1c130d 70%));
   text-align: center;
   padding: 10px;
 }
 .af-rarity { font-size: 0.9em; font-weight: 900; letter-spacing: 2px; opacity: 0.75; }
 .af-name { font-size: 1.4em; font-weight: 900; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); word-break: keep-all; }
 .ccard .af-rarity { display: none; } /* 카드에는 희귀도 배지가 따로 있음 */
-.art-fallback.is-locked { background: linear-gradient(165deg, #2c2846, #15122a); color: rgba(255, 255, 255, 0.35); }
+.art-fallback.is-locked { background: linear-gradient(165deg, #2e2219, #16100b); color: rgba(255, 255, 255, 0.35); }
 .art-fallback.is-locked .af-name { font-size: 3em; }
 
 .rarity-badge {
@@ -319,7 +319,7 @@ textarea { font-family: ui-monospace, Consolas, monospace; user-select: text; -w
   font-size: 15px;
   font-weight: 900;
   letter-spacing: 1px;
-  color: #120f26;
+  color: #1c130d;
   background: var(--rc);
 }
 .rar-SSR .rarity-badge, .rarity-badge.rar-SSR { background: linear-gradient(135deg, #fff1b8, var(--ssr) 50%, #ff9d2e); }
@@ -336,7 +336,7 @@ textarea { font-family: ui-monospace, Consolas, monospace; user-select: text; -w
   padding: 0;
   border-radius: 14px;
   border: 3px solid var(--rc);
-  background: linear-gradient(170deg, #2e2660, #161230);
+  background: linear-gradient(170deg, #3d2a1c, #1a120c);
   overflow: hidden;
   text-align: left;
   font-size: 16px;
@@ -345,7 +345,7 @@ button.ccard { transition: transform 0.12s; }
 button.ccard:active { transform: scale(0.97); }
 .ccard.rar-SSR { box-shadow: 0 0 18px rgba(255, 194, 61, 0.45); }
 .ccard.rar-SR { box-shadow: 0 0 12px rgba(169, 112, 255, 0.35); }
-.ccard.is-locked { border-color: color-mix(in srgb, var(--rc) 40%, #3b3660 60%); box-shadow: none; }
+.ccard.is-locked { border-color: color-mix(in srgb, var(--rc) 40%, #4a3a2c 60%); box-shadow: none; }
 .ccard-art { flex: 1; min-height: 0; }
 .ccard-plate {
   padding: 6px 10px 8px;
@@ -365,7 +365,7 @@ button.ccard:active { transform: scale(0.97); }
   font-size: 13px;
   font-weight: 900;
   background: #fff;
-  color: #120f26;
+  color: #1c130d;
 }
 .badge-new { background: #ff4d7d; color: #fff; animation: newBlink 1.6s ease-in-out infinite; }
 .badge-star { background: #ffd84d; }
@@ -456,13 +456,6 @@ button.ccard:active { transform: scale(0.97); }
   color: rgba(255, 255, 255, 0.15);
 }
 .fe-text { font-size: 22px; color: var(--muted); }
-.featured-empty .btn-primary {
-  background: var(--glass-primary);
-  border-color: var(--glass-primary-border);
-  box-shadow: var(--glass-hi), var(--glass-shadow), 0 0 22px rgba(255, 170, 80, 0.25);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-}
 
 .home-carousel { position: absolute; right: 28px; top: 88px; width: 380px; height: 230px; }
 .home-carousel .carousel-window { border-color: var(--glass-border); box-shadow: var(--glass-shadow); }
@@ -563,8 +556,8 @@ button.ccard:active { transform: scale(0.97); }
   inset: 0;
   background:
     radial-gradient(circle at 75% 30%, rgba(255, 216, 77, 0.55), transparent 35%),
-    radial-gradient(circle at 20% 80%, rgba(255, 126, 182, 0.55), transparent 45%),
-    linear-gradient(135deg, #4b2fa8, #1b1440);
+    radial-gradient(circle at 20% 80%, rgba(232, 162, 90, 0.5), transparent 45%),
+    linear-gradient(135deg, #6b4223, #1f150e);
 }
 .banner-visual img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .banner-tag {
@@ -586,7 +579,7 @@ button.ccard:active { transform: scale(0.97); }
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
 }
 .banner-title { font-size: 26px; font-weight: 900; }
-.banner-sub { font-size: 15px; color: #e6defc; }
+.banner-sub { font-size: 15px; color: #f1e2cf; }
 
 /* ── 뽑기 화면 ── */
 .gacha-main {
@@ -617,7 +610,7 @@ button.ccard:active { transform: scale(0.97); }
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
 }
 .gacha-banner-info h1 { margin: 0 0 8px; font-size: 44px; }
-.gacha-banner-info p { margin: 0; white-space: pre-line; line-height: 1.5; color: #e6defc; }
+.gacha-banner-info p { margin: 0; white-space: pre-line; line-height: 1.5; color: #f1e2cf; }
 .gacha-side {
   position: absolute;
   right: 36px;
@@ -669,8 +662,8 @@ button.ccard:active { transform: scale(0.97); }
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 45%, rgba(169, 112, 255, 0.35), transparent 55%),
-    linear-gradient(#0d0a1e, #1b1440);
+    radial-gradient(circle at 50% 45%, rgba(232, 162, 90, 0.3), transparent 55%),
+    linear-gradient(#100b07, #1f150e);
 }
 .reveal-title { position: absolute; top: 24px; left: 0; right: 0; text-align: center; font-size: 30px; font-weight: 900; letter-spacing: 4px; }
 .reveal-grid { position: absolute; left: 50%; transform: translateX(-50%); display: grid; gap: 20px; }
@@ -715,7 +708,7 @@ button.ccard:active { transform: scale(0.97); }
   border: 3px solid var(--rc);
   background:
     repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0 8px, transparent 8px 16px),
-    linear-gradient(160deg, #3a2d80, #15102e);
+    linear-gradient(160deg, #4a2f1c, #1a120c);
   box-shadow: 0 0 16px color-mix(in srgb, var(--rc) 50%, transparent);
 }
 .flip.rar-SSR .flip-back { animation: ssrPulse 1.2s ease-in-out infinite; }
@@ -763,7 +756,7 @@ button.ccard:active { transform: scale(0.97); }
   background: var(--panel);
   font-weight: 800;
 }
-.filter-tab.active { background: #fff; color: #120f26; }
+.filter-tab.active { background: #fff; color: #1c130d; }
 .collection-count { font-size: 20px; color: var(--muted); }
 .collection-count b { color: var(--text); font-size: 26px; }
 .collection-scroll {
@@ -887,8 +880,8 @@ button.ccard:active { transform: scale(0.97); }
 .banner-visual.is-pickup {
   background:
     radial-gradient(circle at 70% 35%, rgba(255, 216, 77, 0.7), transparent 40%),
-    radial-gradient(circle at 15% 85%, rgba(255, 126, 182, 0.6), transparent 45%),
-    linear-gradient(135deg, #7a3fb8, #241452);
+    radial-gradient(circle at 15% 85%, rgba(232, 162, 90, 0.55), transparent 45%),
+    linear-gradient(135deg, #7a4a24, #2a1a0e);
 }
 .countdown { font-size: 15px; font-weight: 700; color: #ffe08a; }
 .banner-countdown { display: block; margin-top: 2px; }
@@ -910,7 +903,7 @@ button.ccard:active { transform: scale(0.97); }
   text-overflow: ellipsis;
 }
 .banner-tab.is-pickup { border-color: rgba(255, 194, 61, 0.6); }
-.banner-tab.active { background: #fff; color: #120f26; }
+.banner-tab.active { background: #fff; color: #1c130d; }
 .gacha-pickup-names { font-weight: 800; color: #ffe08a !important; margin-bottom: 4px !important; }
 .gacha-period { font-size: 17px; }
 .pickup-state { margin-top: 10px; font-size: 16px; color: var(--muted); }
@@ -999,7 +992,7 @@ button.ccard:active { transform: scale(0.97); }
 /* ── 스토리 뷰어 ── */
 .screen-story { background: #000; }
 .vn-bg, .vn-bg-img { position: absolute; inset: 0; width: 100%; height: 100%; }
-.vn-bg { background: #1b1440; transition: background 0.4s; }
+.vn-bg { background: #1f150e; transition: background 0.4s; }
 .vn-bg-img { object-fit: cover; }
 .vn-slot {
   position: absolute;
@@ -1024,7 +1017,7 @@ button.ccard:active { transform: scale(0.97); }
   min-height: 180px;
   padding: 30px 40px 26px;
   border-radius: 22px;
-  background: linear-gradient(180deg, rgba(20, 16, 44, 0.92), rgba(12, 10, 28, 0.95));
+  background: linear-gradient(180deg, rgba(36, 24, 16, 0.92), rgba(20, 13, 8, 0.95));
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   pointer-events: none;
@@ -1040,10 +1033,10 @@ button.ccard:active { transform: scale(0.97); }
   font-weight: 900;
 }
 .vn-text { font-size: 26px; line-height: 1.6; white-space: pre-line; min-height: 84px; }
-.vn-box.is-narration .vn-text { color: #d9d3f5; font-style: italic; }
+.vn-box.is-narration .vn-text { color: #e6d6c2; font-style: italic; }
 .vn-next { position: absolute; right: 28px; bottom: 16px; color: var(--accent); animation: nextBlink 1s ease-in-out infinite; }
 @keyframes nextBlink { 50% { transform: translateY(4px); opacity: 0.5; } }
-.vn-title { position: absolute; top: 20px; left: 28px; padding: 8px 16px; border-radius: 12px; background: rgba(0, 0, 0, 0.45); font-size: 17px; color: #e6defc; }
+.vn-title { position: absolute; top: 20px; left: 28px; padding: 8px 16px; border-radius: 12px; background: rgba(0, 0, 0, 0.45); font-size: 17px; color: #f1e2cf; }
 .vn-toolbar { position: absolute; top: 16px; right: 20px; display: flex; gap: 8px; }
 .vn-tool {
   min-width: 70px;
@@ -1074,7 +1067,7 @@ button.ccard:active { transform: scale(0.97); }
   padding: 0 28px;
   border-radius: 18px;
   border: 2px solid rgba(255, 255, 255, 0.5);
-  background: rgba(20, 16, 44, 0.92);
+  background: rgba(36, 24, 16, 0.92);
   font-size: 24px;
   font-weight: 800;
   display: flex;
@@ -1144,7 +1137,7 @@ button.ccard:active { transform: scale(0.97); }
    화면 에셋 (data/ui.json) — 그림이 있으면 CSS 장식 대신 사용
    ========================================================== */
 .screen-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-.screen-bg-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(10, 8, 24, 0.25), rgba(10, 8, 24, 0.45)); }
+.screen-bg-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(20, 12, 6, 0.25), rgba(20, 12, 6, 0.45)); }
 /* 배경 그림이 있으면 CSS로 그린 배경 장식은 숨김 */
 .screen.has-bg .home-bg,
 .screen.has-bg .reveal-bg { display: none; }
@@ -1177,7 +1170,7 @@ button.ccard:active { transform: scale(0.97); }
   flex: none;
 }
 .btn-small { min-height: 42px; padding: 0 16px; font-size: 17px; border-radius: 12px; }
-.btn.btn-selected { background: #fff; color: #120f26; border-color: #fff; }
+.btn.btn-selected { background: #fff; color: #1c130d; border-color: #fff; }
 .btn.on { background: var(--ok); color: #06291a; border-color: transparent; }
 .bad { color: var(--danger) !important; }
 .text-input {
@@ -1255,7 +1248,7 @@ button.ccard:active { transform: scale(0.97); }
   background: var(--panel-strong);
   text-align: left;
 }
-.grow-row.active { background: color-mix(in srgb, var(--rc) 24%, #1a1538); border-color: var(--rc); }
+.grow-row.active { background: color-mix(in srgb, var(--rc) 24%, #241810); border-color: var(--rc); }
 .grow-thumb { width: 64px; height: 72px; border-radius: 10px; overflow: hidden; background: rgba(0, 0, 0, 0.3); }
 .grow-row-name { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; }
 .grow-row-name .rarity-badge { font-size: 12px; padding: 1px 7px; }
@@ -1296,7 +1289,7 @@ button.ccard:active { transform: scale(0.97); }
 .skill-head { display: flex; align-items: baseline; gap: 10px; }
 .skill-head b { font-size: 19px; }
 .skill-kind { font-size: 13px; font-weight: 800; color: var(--muted); }
-.skill-desc { margin: 4px 0 0; font-size: 16px; color: #e6defc; }
+.skill-desc { margin: 4px 0 0; font-size: 16px; color: #f1e2cf; }
 .skill-effects, .skill-applied, .break-lines { margin: 6px 0 0; padding-left: 20px; font-size: 15px; line-height: 1.5; }
 .skill-applied { color: #ffe08a; list-style: '✦ '; }
 .break-info { display: flex; align-items: baseline; gap: 16px; margin-bottom: 10px; font-size: 18px; }
@@ -1358,7 +1351,7 @@ button.ccard:active { transform: scale(0.97); }
 .pick-sub { padding: 0 8px 6px; font-size: 13px; color: var(--muted); }
 
 /* ── 전투 ── */
-.battle { position: absolute; inset: 0; background: radial-gradient(ellipse at 40% 10%, #3a2a78 0%, var(--bg-1) 55%, var(--bg-0) 100%); }
+.battle { position: absolute; inset: 0; background: radial-gradient(ellipse at 40% 10%, #4a2f1c 0%, var(--bg-1) 55%, var(--bg-0) 100%); }
 .battle-top { position: absolute; top: 0; left: 0; right: 0; height: 64px; display: flex; align-items: center; gap: 14px; padding: 0 16px; background: rgba(0, 0, 0, 0.35); border-bottom: 1px solid var(--line); }
 .battle-top .spacer { flex: 1; }
 .battle-stage { font-weight: 900; font-size: 20px; }
@@ -1411,11 +1404,11 @@ button.ccard:active { transform: scale(0.97); }
 .log-crit { color: #ffd84d; font-weight: 800; }
 .log-heal, .log-buff { color: #b6ffd9; }
 .log-debuff { color: #ffb0c0; }
-.log-passive { color: #d2c6ff; }
+.log-passive { color: #e8cfa8; }
 .log-death { color: var(--danger); font-weight: 800; }
 .log-end { font-weight: 900; font-size: 15px; color: #ffe08a; }
-.battle-result-layer { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; background: rgba(5, 4, 15, 0.72); }
-.battle-result { width: 640px; padding: 26px 30px; border-radius: 22px; background: linear-gradient(160deg, #2b2357, #191433); border: 1px solid var(--line); display: grid; gap: 10px; }
+.battle-result-layer { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; background: rgba(10, 6, 3, 0.72); }
+.battle-result { width: 640px; padding: 26px 30px; border-radius: 22px; background: linear-gradient(160deg, #3a2618, #1c130d); border: 1px solid var(--line); display: grid; gap: 10px; }
 .result-title { font-size: 48px; font-weight: 900; letter-spacing: 8px; text-align: center; }
 .battle-result.is-win .result-title { color: #ffe08a; }
 .battle-result.is-lose .result-title { color: #ffc2cd; }
@@ -1453,3 +1446,41 @@ button.ccard:active { transform: scale(0.97); }
 .story-arc { margin: 14px 0 4px; padding: 6px 4px; font-size: 18px; font-weight: 900; color: #ffe08a; border-bottom: 1px solid var(--line); }
 .story-arc span { color: var(--text); font-weight: 700; }
 .story-arc:first-child { margin-top: 0; }
+
+/* ==========================================================
+   공통 UI 테마: 어두운 갈색 글래스(반투명) 버튼
+   - 색은 :root의 --glass-* 토큰. 홈 메뉴/HUD도 같은 토큰을 씀
+   - 파일 맨 끝에 두어 위쪽 개별 규칙의 배경/테두리를 덮어씀 (상태별 색도 여기서 다시 지정)
+   ========================================================== */
+.btn, .pull-btn, .setting-btn, .filter-tab, .banner-tab, .act-btn, .vn-tool {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-hi), var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled), .pull-btn:hover:not(:disabled), .setting-btn:hover, .filter-tab:hover, .banner-tab:hover, .act-btn:hover:not(:disabled), .vn-tool:hover {
+    background: var(--glass-bg-hover);
+    border-color: rgba(255, 222, 186, 0.35);
+  }
+}
+/* 강조 버튼: 진한 갈색 + 호박색 테두리 */
+.btn-primary, .pull-ten, .vn-tool.on {
+  background: var(--glass-primary);
+  border-color: var(--glass-primary-border);
+  box-shadow: var(--glass-hi), var(--glass-shadow), 0 0 22px rgba(255, 170, 80, 0.25);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover:not(:disabled), .pull-ten:hover:not(:disabled) { background: rgba(145, 90, 46, 0.7); border-color: rgba(255, 210, 140, 0.75); }
+}
+.btn-ghost, .btn-ghost:hover:not(:disabled) { background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.btn-danger { background: rgba(150, 40, 40, 0.6); border-color: rgba(255, 120, 110, 0.55); }
+/* 선택된 탭/버튼: 호박색으로 채움 */
+.btn.btn-selected, .filter-tab.active, .banner-tab.active,
+.filter-tab.active:hover, .banner-tab.active:hover { background: var(--accent); border-color: var(--accent); color: #241509; }
+.btn.on { background: var(--ok); color: #06291a; border-color: transparent; }
+.banner-tab.is-pickup:not(.active) { border-color: rgba(255, 194, 61, 0.6); }
+.act-btn.act-ultimate:not(:disabled) { border-color: var(--ssr); background: linear-gradient(135deg, rgba(255, 194, 61, 0.28), var(--glass-bg)); }
+.setting-btn.danger { border-color: rgba(255, 92, 122, 0.5); }
+.vn-choice { border-color: rgba(255, 222, 186, 0.45); }
