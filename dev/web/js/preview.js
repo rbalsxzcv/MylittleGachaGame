@@ -2,7 +2,7 @@
 import { h, modal } from './ui.js';
 
 /**
- * @param {{story?:string, banner?:string, now?:string}} params
+ * @param {{story?:string, banner?:string, shop?:string, category?:string, now?:string}} params
  *   now: 그 시각으로 시간 이동 (미래 배너/이벤트 확인용)
  */
 export function openPreview(params = {}) {

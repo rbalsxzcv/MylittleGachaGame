@@ -460,59 +460,94 @@ button.ccard:active { transform: scale(0.97); }
 .home-carousel { position: absolute; right: 28px; top: 88px; width: 380px; height: 230px; }
 .home-carousel .carousel-window { border-color: var(--glass-border); box-shadow: var(--glass-shadow); }
 
-/* 하단 메뉴 한 줄 — 갈색 글래스 */
+/* 하단 메뉴 — 하나로 이어진 긴 갈색 글래스 바 + 오른쪽 끝의 큰 뽑기 버튼 (모바일 가챠 로비 스타일) */
 .home-menu {
   position: absolute;
   left: 28px;
   right: 28px;
   bottom: 18px;
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
+  grid-template-columns: 1fr 216px;
+  align-items: end;
 }
-.menu-btn {
+.menu-bar {
   position: relative;
-  height: 84px;
+  height: 88px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 0 16px;
-  border-radius: 18px;
+  align-items: stretch;
+  padding: 0 6px;
+  border-radius: 20px 0 0 20px;
   border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
+  border-right: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 236, 214, 0.07), transparent 45%),
+    var(--glass-bg);
   box-shadow: var(--glass-hi), var(--glass-shadow);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  color: #fbeee0;
-  font-size: 22px;
-  font-weight: 800;
-  text-align: left;
-  transition: transform 0.1s, border-color 0.2s, background 0.2s;
 }
-.menu-btn:hover:not(:disabled) { background: var(--glass-bg-hover); border-color: rgba(255, 222, 186, 0.35); }
+/* 바 위쪽 가장자리의 얇은 금빛 선 */
+.menu-bar::before {
+  content: '';
+  position: absolute;
+  left: 18px;
+  right: 0;
+  top: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 205, 140, 0.55) 30%, rgba(255, 205, 140, 0.55));
+  pointer-events: none;
+}
+.menu-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fbeee0;
+  font-weight: 800;
+  transition: transform 0.1s, background 0.2s, filter 0.2s;
+}
 .menu-btn:active { transform: scale(0.97); }
+
+/* 바 안의 칸: 테두리 없이 아이콘 위 · 글자 아래, 칸 사이는 옅은 세로 구분선 */
+.menu-bar .menu-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 4px 8px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  font-size: 18px;
+  line-height: 1.1;
+}
+.menu-bar .menu-btn + .menu-btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(255, 222, 186, 0.32), transparent);
+  pointer-events: none;
+}
+.menu-bar .menu-btn:hover:not(:disabled) { background: rgba(255, 228, 196, 0.1); }
 .menu-icon {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   flex: none;
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: rgba(255, 225, 190, 0.1);
   color: #ffd9a8;
-  font-size: 24px;
+  font-size: 28px;
+  line-height: 1;
 }
-.menu-label { flex: none; }
-.menu-btn .key-hint { position: absolute; right: 8px; bottom: 8px; font-size: 11px; padding: 2px 5px; border-color: rgba(255, 222, 186, 0.3); color: rgba(255, 236, 214, 0.6); }
-.menu-primary {
-  background: var(--glass-primary);
-  border-color: var(--glass-primary-border);
-  box-shadow: var(--glass-hi), var(--glass-shadow), 0 0 22px rgba(255, 170, 80, 0.25);
-}
-.menu-primary:hover:not(:disabled) { background: rgba(145, 90, 46, 0.7); border-color: rgba(255, 210, 140, 0.75); }
-.menu-primary .menu-icon { background: rgba(255, 200, 130, 0.22); color: #ffe2b0; }
-.menu-soon { opacity: 0.55; }
+.menu-label { flex: none; text-align: center; white-space: nowrap; }
+.menu-btn .key-hint { position: absolute; right: 6px; top: 6px; font-size: 10px; padding: 1px 4px; border-color: rgba(255, 222, 186, 0.3); color: rgba(255, 236, 214, 0.6); }
+.menu-bar .menu-sub { position: absolute; left: 6px; top: 6px; padding: 1px 6px; border-radius: 999px; background: rgba(0, 0, 0, 0.35); font-size: 10px; color: var(--muted); }
+.menu-soon { opacity: 0.5; }
+.menu-shop .menu-icon { color: #ffe08a; text-shadow: 0 0 12px rgba(255, 190, 70, 0.55); }
 .menu-dot {
   position: absolute;
   top: 10px;
@@ -522,6 +557,51 @@ button.ccard:active { transform: scale(0.97); }
   border-radius: 50%;
   background: #ff4d7d;
   box-shadow: 0 0 8px #ff4d7d;
+}
+.menu-bar .menu-dot { top: 8px; right: calc(50% - 32px); width: 12px; height: 12px; }
+
+/* 오른쪽 끝 큰 뽑기 버튼: 바에 붙어서 위로 튀어나옴 */
+.menu-gacha {
+  height: 116px;
+  padding: 0;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  border-radius: 6px 22px 22px 6px;
+  border: 1px solid rgba(255, 214, 150, 0.85);
+  background:
+    linear-gradient(180deg, rgba(255, 246, 225, 0.35), transparent 42%),
+    linear-gradient(135deg, #f2b25e 0%, #c9772f 48%, #8a4a1c 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 250, 235, 0.6),
+    inset 0 -6px 14px rgba(90, 40, 10, 0.45),
+    0 10px 26px rgba(0, 0, 0, 0.45),
+    0 0 26px rgba(255, 170, 80, 0.35);
+  color: #fffaf0;
+  font-size: 30px;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 6px rgba(80, 35, 5, 0.65);
+}
+.menu-gacha:hover { filter: brightness(1.08); }
+.menu-gacha .menu-icon { width: 54px; height: 54px; font-size: 40px; color: #fff6dc; text-shadow: 0 0 16px rgba(255, 240, 200, 0.9); }
+.menu-gacha .menu-icon .theme-icon { width: 52px; height: 52px; }
+.menu-gacha .key-hint { top: 8px; right: 12px; border-color: rgba(255, 245, 225, 0.5); color: rgba(255, 250, 240, 0.85); }
+.menu-gacha .menu-dot { top: 10px; left: 12px; right: auto; }
+/* 은은하게 지나가는 빛 */
+.menu-gacha-shine {
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-18deg);
+  animation: gachaShine 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes gachaShine {
+  0%, 55% { left: -60%; }
+  85%, 100% { left: 130%; }
 }
 
 /* ── 캐러셀 / 배너 ── */
@@ -1148,8 +1228,7 @@ button.ccard:active { transform: scale(0.97); }
 }
 /* 로고 / 아이콘 그림 */
 .home-logo .logo-img { display: block; height: 76px; width: auto; max-width: 340px; object-fit: contain; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.4)); margin-top: -10px; }
-.menu-icon .theme-icon { width: 40px; height: 40px; object-fit: contain; }
-.menu-icon:has(.theme-icon) { background: none; }
+.menu-icon .theme-icon { width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35)); }
 .gem-img { display: inline-block; width: 22px; height: 22px; object-fit: contain; margin: 0 2px; vertical-align: middle; flex: none; }
 
 /* ==========================================================
@@ -1517,13 +1596,6 @@ button.ccard:active { transform: scale(0.97); }
 /* HUD 골드 */
 #hud .gem-pill.gold-pill { min-width: 150px; }
 
-/* 홈 메뉴: 7칸에 맞게 살짝 좁게 + 상점 금빛 */
-.home-menu .menu-btn { padding: 0 10px; gap: 10px; font-size: 21px; }
-.menu-shop {
-  border-color: rgba(255, 205, 110, 0.55);
-  box-shadow: var(--glass-hi), var(--glass-shadow), 0 0 18px rgba(255, 190, 70, 0.22);
-}
-.menu-shop .menu-icon { background: linear-gradient(135deg, rgba(255, 215, 120, 0.35), rgba(200, 120, 40, 0.3)); color: #ffe6a6; }
 
 /* 뽑기: 모집 증서 */
 .scroll-count { display: flex; align-items: center; justify-content: flex-end; gap: 2px; margin-top: auto; }
@@ -1709,7 +1781,10 @@ button.ccard:active { transform: scale(0.97); }
 .sc-rays { position: absolute; inset: -30px; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(255, 230, 160, 0.28) 0 8deg, transparent 8deg 24deg); mask: radial-gradient(circle, #000 30%, transparent 70%); -webkit-mask: radial-gradient(circle, #000 30%, transparent 70%); opacity: 0; }
 .sc-art-glyph { position: relative; font-size: 60px; line-height: 1; color: #fff7e6; text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5); }
 .sc-art-cur { position: relative; display: grid; place-items: center; }
-.sc-art-img { position: relative; width: 84%; height: 84%; object-fit: contain; }
+/* 그림은 메달(고정 크기) 기준으로 절대 위치 — 그리드 칸의 % 높이는 계산되지 않아서 원본 크기로 커짐 */
+.sc-art-img { position: absolute; left: 8%; top: 8%; width: 84%; height: 84%; object-fit: contain; }
+/* 상품 전용 그림: 메달보다 살짝 크게, 그림자로 띄우기 */
+.sc-art-img.is-item { left: -9%; top: -9%; width: 118%; height: 118%; max-width: none; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45)); }
 .sc-art .gem-icon { width: 46px; height: 46px; border-radius: 8px; }
 .sc-art .gem-img { width: 70px; height: 70px; }
 .sc-art .ticket-icon { width: 66px; height: 44px; border-radius: 6px; background: radial-gradient(circle at 0 50%, #5a3417 9px, transparent 10px), radial-gradient(circle at 100% 50%, #5a3417 9px, transparent 10px), linear-gradient(135deg, #ffe7a3, #ffb648); }

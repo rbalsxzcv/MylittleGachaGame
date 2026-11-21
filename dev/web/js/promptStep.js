@@ -12,13 +12,13 @@ export const negativeNote = () => ((state.settings?.comfy?.cfg ?? 2) <= 1 ? ' �
 
 /**
  * @param {object} opts
- * @param {'char'|'banner'|'bg'|'ui'} opts.kind
+ * @param {'char'|'banner'|'bg'|'ui'|'enemy'|'prop'} opts.kind
  * @param {()=>object|null} opts.getInput 생성에 쓸 입력값 (검사 실패 시 null)
  * @param {(gen:{prompt?:string, negative?:string, promptSource?:string})=>Promise<any>} opts.generate
  * @param {string} [opts.generateLabel]
  */
 export function promptStep({ kind, getInput, generate, generateLabel = '생성' }) {
-  const promptBox = h('textarea', { rows: 6, placeholder: 'AI가 쓴 프롬프트가 여기 나와요. 고쳐도 돼요.' });
+  const promptBox = h('textarea', { rows: 6, placeholder: 'AI가 쓴 프롬프트가 여기 나와요. 고쳐도 되고, 직접 써도 돼요.\n예: 1girl, solo, ... / no humans, object focus, leather pouch, ...' });
   const negBox = h('textarea', { rows: 2, placeholder: '네거티브 (에셋 종류별 기본 + 설정의 기본 네거티브가 자동으로 더해져요)' });
   const negWrap = h('label', { class: 'field' }, `네거티브 프롬프트${negativeNote()}`, negBox);
   const source = h('span', { class: 'chip' });
@@ -35,6 +35,18 @@ export function promptStep({ kind, getInput, generate, generateLabel = '생성' 
     negBox.value = r.negative || '';
     source.textContent = SOURCE_LABEL[r.source] || r.source;
     editor.hidden = false;
+  }
+
+  /** 직접 쓰기: AI 없이 빈 편집기를 열어 프롬프트를 처음부터 입력 */
+  function manual() {
+    if (editor.hidden) {
+      written = null;
+      promptBox.value = '';
+      negBox.value = '';
+    }
+    source.textContent = SOURCE_LABEL.manual;
+    editor.hidden = false;
+    promptBox.focus();
   }
 
   async function run(useEditor) {
@@ -55,8 +67,8 @@ export function promptStep({ kind, getInput, generate, generateLabel = '생성' 
   const el = h(
     'div',
     { class: 'prompt-step' },
-    h('div', { class: 'row wrap' }, h('span', { class: 'chip' }, 'ComfyUI · Anima'), h('button', { class: 'btn', onclick: write }, 'AI로 프롬프트 쓰기'), h('button', { class: 'btn primary', onclick: () => (editor.hidden ? run(false) : run(true)) }, generateLabel)),
-    h('p', { class: 'muted small' }, '"AI로 프롬프트 쓰기"를 누르면 생성 전에 프롬프트를 보고 고칠 수 있어요. 바로 생성하면 AI가 쓰고 곧바로 그려요.'),
+    h('div', { class: 'row wrap' }, h('span', { class: 'chip' }, 'ComfyUI · Anima'), h('button', { class: 'btn', onclick: write }, 'AI로 프롬프트 쓰기'), h('button', { class: 'btn', onclick: manual }, '직접 쓰기'), h('button', { class: 'btn primary', onclick: () => (editor.hidden ? run(false) : run(true)) }, generateLabel)),
+    h('p', { class: 'muted small' }, '"AI로 프롬프트 쓰기"는 AI가 쓴 프롬프트를 보고 고칠 수 있고, "직접 쓰기"는 처음부터 프롬프트를 입력해요(영어 태그 권장). 바로 생성하면 AI가 쓰고 곧바로 그려요.'),
     editor,
   );
   return { el, reset: () => ((editor.hidden = true), (written = null), (promptBox.value = '')) };

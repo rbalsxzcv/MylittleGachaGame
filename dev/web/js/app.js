@@ -6,6 +6,8 @@ import { charactersTab } from './tabs/characters.js';
 import { bannersTab } from './tabs/banners.js';
 import { storiesTab } from './tabs/stories.js';
 import { uiAssetsTab } from './tabs/uiAssets.js';
+import { assetsTab } from './tabs/assets.js';
+import { shopTab } from './tabs/shop.js';
 import { batchTab } from './tabs/batch.js';
 import { inboxTab } from './tabs/inbox.js';
 import { scheduleTab } from './tabs/schedule.js';
@@ -26,8 +28,10 @@ const TABS = [
   ['enemies', '적', enemiesTab],
   ['stages', '스테이지', stagesTab],
   ['balance', '밸런스', balanceTab],
+  ['assets', '에셋', assetsTab],
   ['ui', 'UI 에셋', uiAssetsTab],
   ['batch', '일괄 생성', batchTab],
+  ['shop', '상점', shopTab],
   ['inbox', '공지 · 우편', inboxTab],
   ['schedule', '일정', scheduleTab],
   ['publish', '배포', publishTab],

@@ -45,11 +45,17 @@ function gotToast(rewards, prefix = '') {
   toast(`${prefix}${text ? `${text} 획득!` : '구매 완료!'}`, { type: 'success', duration: 3000 });
 }
 
-/** 상품 그림: ui.json icons의 shop_<icon>이 있으면 그림, 없으면 CSS 메달 */
+/** 상품 그림: 상품의 image → ui.json icons의 shop_<icon> → CSS 메달 순서 (불러오기 실패 시 다음 것으로) */
 function shopArt(item) {
   const cur = CURRENCY_OF_ICON[item.icon];
-  const fallback = cur ? h('span', { class: 'sc-art-cur' }, currencyIcon(cur)) : h('span', { class: 'sc-art-glyph' }, GLYPH[item.icon] || '✦');
-  return h('div', { class: ['sc-art', `icon-${item.icon}`] }, h('i', { class: 'sc-rays', 'aria-hidden': 'true' }), iconOr(`shop_${item.icon}`, fallback, 'sc-art-img'));
+  const medal = () => (cur ? h('span', { class: 'sc-art-cur' }, currencyIcon(cur)) : h('span', { class: 'sc-art-glyph' }, GLYPH[item.icon] || '✦'));
+  const iconArt = () => iconOr(`shop_${item.icon}`, medal(), 'sc-art-img');
+  let art;
+  if (item.image) {
+    art = h('img', { class: 'sc-art-img is-item', src: item.image, alt: '', draggable: 'false' });
+    art.addEventListener('error', () => art.replaceWith(iconArt()), { once: true });
+  } else art = iconArt();
+  return h('div', { class: ['sc-art', `icon-${item.icon}`, item.image && 'has-image'] }, h('i', { class: 'sc-rays', 'aria-hidden': 'true' }), art);
 }
 
 /** 구성품 목록 (첫 구매 보너스는 따로 강조) */

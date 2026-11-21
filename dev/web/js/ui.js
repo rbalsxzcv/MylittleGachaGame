@@ -33,7 +33,8 @@ export function toast(message, type = 'info', ms = 3000) {
 }
 
 // ── 모달 ──
-/** body와 버튼으로 모달을 열고, 누른 버튼의 value를 돌려줌 */
+/** body와 버튼으로 모달을 열고, 누른 버튼의 value를 돌려줌
+ * body가 함수면 body(close)로 만들어요 → 안의 요소가 close(value)로 직접 닫을 수 있음 (그림 고르기 등) */
 export function modal({ title, body, buttons = [{ label: '닫기', value: null }], wide = false }) {
   return new Promise((resolve) => {
     const close = (v) => {
@@ -46,7 +47,7 @@ export function modal({ title, body, buttons = [{ label: '닫기', value: null }
       'div',
       { class: ['modal', wide && 'wide'] },
       title && h('h2', {}, title),
-      h('div', { class: 'modal-body' }, body),
+      h('div', { class: 'modal-body' }, typeof body === 'function' ? body((v) => close(v)) : body),
       h(
         'div',
         { class: 'modal-actions' },

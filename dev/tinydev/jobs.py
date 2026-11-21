@@ -14,7 +14,8 @@ import secrets
 from . import config, cutout, images, store, uislots
 from .timeutil import now_iso, stamp
 
-KINDS = ("char", "banner", "bg", "ui")
+KINDS = ("char", "banner", "bg", "ui", "enemy", "prop")
+PROP_LONG_SIDE = 384  # 소품(상점 상품 그림 등)
 
 
 def job_dir(job_id):
@@ -57,8 +58,8 @@ def reject_reasons(job):
 
 
 def is_cutout_job(job):
-    """배경 제거가 필요한 작업: 캐릭터, UI 아이콘/로고"""
-    if job["kind"] == "char":
+    """배경 제거가 필요한 작업: 캐릭터, 적, 소품, UI 아이콘/로고"""
+    if job["kind"] in ("char", "enemy", "prop"):
         return True
     slot = uislots.SLOT_BY_KEY.get(job["input"].get("slot")) if job["kind"] == "ui" else None
     return bool(slot and slot["kind"] in ("icon", "logo"))
@@ -72,6 +73,8 @@ def _process(job, original_img, flatten=None):
         if job["kind"] == "ui":
             slot = uislots.SLOT_BY_KEY[job["input"]["slot"]]
             long_side = uislots.LOGO_LONG_SIDE if slot["kind"] == "logo" else uislots.ICON_LONG_SIDE
+        elif job["kind"] == "prop":
+            long_side = PROP_LONG_SIDE
         img, method, warning = cutout.make_cutout(original_img, flatten, long_side)
         return img, "png", method, warning
     size = config.BANNER_SIZE if job["kind"] == "banner" else config.BG_SIZE

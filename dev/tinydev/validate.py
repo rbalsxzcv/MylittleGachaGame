@@ -78,6 +78,114 @@ def _check_asset(r, where, field, path, asset_exists, required=False):
         r.error(where, f"{field} 파일이 없어요: {path}")
 
 
+# ── 상점 (data/shop.json) — 게임의 js/core/data.js validateShop과 같은 규칙 ──
+SHOP_LIMIT_PERS = ("day", "week", "month", "once")
+SHOP_CATEGORIES = ("featured", "package", "growth", "gems", "pass")
+SHOP_TIERS = ("normal", "rare", "legend", "truck")
+SHOP_ICONS = ("gem", "ticket", "gold", "scroll", "gift", "chest", "cart", "crown", "moon", "sprout")
+REWARD_MAX = {"gems": 10_000_000, "tickets": 10_000_000, "gold": 1_000_000_000, "scrolls": 10_000}
+
+
+def _is_int(v):
+    return isinstance(v, int) and not isinstance(v, bool)
+
+
+def _check_int(r, where, field, v, lo, hi, required=False):
+    if v is None:
+        if required:
+            r.error(where, f"{field}가 비어 있어요")
+        return
+    if not _is_int(v) or not lo <= v <= hi:
+        r.error(where, f"{field}는 {lo:,}~{hi:,} 사이의 정수여야 해요: {v!r}")
+
+
+def _check_rewards(r, where, field, rw, need_any=True):
+    if not isinstance(rw, dict):
+        r.error(where, f"{field}는 객체여야 해요")
+        return
+    for k, v in rw.items():
+        if k not in REWARD_MAX:
+            r.warn(where, f"{field}.{k}는 게임이 모르는 보상이에요 (무시됨)")
+            continue
+        _check_int(r, where, f"{field}.{k}", v, 0, REWARD_MAX[k])
+    if need_any and not any(_is_int(rw.get(k)) and rw.get(k) > 0 for k in REWARD_MAX):
+        r.warn(where, f"{field}에 받을 것이 하나도 없어요")
+
+
+def check_shop(r, shop, asset_exists):
+    if not isinstance(shop, dict):
+        r.error("shop", "객체 형식이어야 해요")
+        return
+    seen = set()
+    for tab in ("gold", "cash"):
+        items = shop.get(tab)
+        if items is None:
+            continue
+        for it in _check_ids(r, f"shop.{tab}", items):
+            where = f"shop.{tab}/{it['id']}"
+            if it["id"] in seen:
+                r.error(where, "골드 상점과 캐시 상점 사이에 id가 중복돼요 (구매 기록이 섞여요)")
+            seen.add(it["id"])
+            name = str(it.get("name") or "").strip()
+            if not name:
+                r.error(where, "이름(name)이 비어 있어요")
+            elif len(name) > 40:
+                r.warn(where, "이름이 40자를 넘어서 잘려요")
+            if len(str(it.get("desc") or "")) > 200:
+                r.warn(where, "설명이 200자를 넘어서 잘려요")
+            if it.get("icon") not in SHOP_ICONS:
+                r.warn(where, f"icon은 {', '.join(SHOP_ICONS)} 중 하나여야 해요 (지금: {it.get('icon')!r} → chest로 보임)")
+            _check_rewards(r, where, "rewards", it.get("rewards") or {})
+            lim = it.get("limit")
+            if lim is not None:
+                if not isinstance(lim, dict) or lim.get("per") not in SHOP_LIMIT_PERS:
+                    r.error(where, f"limit.per는 {', '.join(SHOP_LIMIT_PERS)} 중 하나여야 해요")
+                else:
+                    _check_int(r, where, "limit.count", lim.get("count"), 1, 9999, required=True)
+            badges = it.get("badges") or []
+            if not isinstance(badges, list) or len(badges) > 3 or any(not isinstance(b, str) or len(b.strip()) > 12 for b in badges):
+                r.warn(where, "배지는 최대 3개, 각 12자 이내예요 (넘치면 잘림)")
+            req = it.get("requires")
+            if req is not None:
+                if not isinstance(req, dict):
+                    r.error(where, "requires는 객체여야 해요")
+                else:
+                    _check_int(r, where, "requires.stagesCleared", req.get("stagesCleared"), 0, 9999)
+            _check_asset(r, where, "그림(image)", it.get("image"), asset_exists)
+            if tab == "gold":
+                cost = it.get("cost") or {}
+                if not isinstance(cost, dict):
+                    r.error(where, "cost는 객체여야 해요")
+                else:
+                    _check_int(r, where, "cost.gold", cost.get("gold", 0), 0, 1_000_000_000)
+                    _check_int(r, where, "cost.gems", cost.get("gems", 0), 0, 10_000_000)
+            else:
+                _check_int(r, where, "priceKRW", it.get("priceKRW"), 100, 10_000_000, required=True)
+                if it.get("originalKRW") is not None:
+                    _check_int(r, where, "originalKRW", it.get("originalKRW"), 0, 100_000_000)
+                if it.get("category") not in SHOP_CATEGORIES:
+                    r.error(where, f"category는 {', '.join(SHOP_CATEGORIES)} 중 하나여야 해요")
+                if it.get("tier") not in SHOP_TIERS:
+                    r.warn(where, f"tier는 {', '.join(SHOP_TIERS)} 중 하나여야 해요 (지금은 normal로 보임)")
+                if len(str(it.get("value") or "")) > 10:
+                    r.warn(where, "가치 문구(value)가 10자를 넘어서 잘려요")
+                if it.get("firstBonus"):
+                    _check_rewards(r, where, "firstBonus", it["firstBonus"], need_any=False)
+                p = it.get("pass")
+                if p is not None:
+                    if not isinstance(p, dict):
+                        r.error(where, "pass는 객체여야 해요")
+                    else:
+                        _check_int(r, where, "pass.days", p.get("days"), 1, 365, required=True)
+                        _check_int(r, where, "pass.dailyGems", p.get("dailyGems"), 1, 100000, required=True)
+                        _check_int(r, where, "pass.maxDays", p.get("maxDays"), 1, 3650, required=True)
+    vip = shop.get("vip") or []
+    if not isinstance(vip, list) or any(not _is_int(v) or v <= 0 for v in vip):
+        r.error("shop.vip", "VIP 단계는 1 이상의 정수 목록이어야 해요")
+    elif vip != sorted(vip):
+        r.warn("shop.vip", "VIP 단계는 작은 금액부터 순서대로 적어 주세요 (게임에서 정렬됨)")
+
+
 def validate(content, asset_exists, held=None):
     """content: {characters, banners, storyIndex, notices, mail, enemies, stages, balance, ui, stories: {id: body}}
     held: 이번 배포에서 보류된 항목 id 집합 (참조 오류 메시지를 친절하게 하기 위해)
@@ -392,5 +500,9 @@ def validate(content, asset_exists, held=None):
             if f"{group}.{name}" not in SLOT_BY_KEY:
                 r.warn(where, "게임이 사용하지 않는 칸이에요")
             _check_asset(r, where, "그림", path, asset_exists)
+
+    # ── 상점 ──
+    if content.get("shop") is not None:
+        check_shop(r, content["shop"], asset_exists)
 
     return r

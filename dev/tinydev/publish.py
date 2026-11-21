@@ -76,6 +76,11 @@ def _load_workspace():
     except store.JsonError as e:
         content["balance"] = {}
         syntax.append({"level": "error", "where": store.BALANCE_FILE, "message": str(e)})
+    try:
+        content["shop"] = store.read_shop()
+    except store.JsonError as e:
+        content["shop"] = store.empty_shop()
+        syntax.append({"level": "error", "where": store.SHOP_FILE, "message": str(e)})
     return content, syntax
 
 
@@ -104,6 +109,11 @@ def _referenced_assets(content):
                 paths.add(bg["value"])
     for group in ("backgrounds", "icons"):
         paths.update(v for v in (content.get("ui", {}).get(group) or {}).values() if v)
+    shop = content.get("shop") or {}
+    for tab in ("gold", "cash"):
+        for it in shop.get(tab) or []:
+            if isinstance(it, dict) and it.get("image"):
+                paths.add(it["image"])
     return {p for p in paths if isinstance(p, str) and p.startswith("assets/") and ".." not in p}
 
 
@@ -131,6 +141,7 @@ def plan(cutoff=None):
     out["stories"] = {sid: body for sid, body in ws["stories"].items() if sid in index_ids}
     out["ui"] = ws["ui"]  # UI 에셋은 기간이 없어서 보류하지 않음
     out["balance"] = ws["balance"]
+    out["shop"] = ws["shop"]  # 상점도 기간이 없어서 보류하지 않음
 
     # ── 2) 검사 ──
     report = validate.validate(out, store.asset_exists_ws, held)
@@ -144,6 +155,7 @@ def plan(cutoff=None):
         targets[f"data/stories/{sid}.json"] = ("json", body)
     targets[f"data/{store.UI_FILE}"] = ("json", out["ui"])
     targets[f"data/{store.BALANCE_FILE}"] = ("json", out["balance"])
+    targets[f"data/{store.SHOP_FILE}"] = ("json", out["shop"])
     for rel in sorted(_referenced_assets(out)):
         if store.asset_exists_ws(rel):
             targets[rel] = ("asset", config.WORKSPACE / rel)
@@ -230,6 +242,28 @@ def draft_notes(out):
     for m in out["mail"]:
         if m["id"] not in pub["mail"]:
             notes.append(f"우편 선물: {m.get('title')}")
+    # 상점: 상품 추가/수정/삭제 (그림 파일만 바뀐 경우 포함)
+    pub_shop = _public_json(f"data/{store.SHOP_FILE}")
+    pub_shop = pub_shop if isinstance(pub_shop, dict) else {}
+    pub_items = {it.get("id"): it for tab in ("gold", "cash") for it in (pub_shop.get(tab) or []) if isinstance(it, dict)}
+    new_items = {it.get("id"): it for tab in ("gold", "cash") for it in (out.get("shop", {}).get(tab) or []) if isinstance(it, dict)}
+
+    def _img_changed(it):
+        p = it.get("image")
+        return bool(p) and store.asset_exists_ws(p) and (not (config.ROOT / p).exists() or (config.ROOT / p).read_bytes() != (config.WORKSPACE / p).read_bytes())
+
+    added = [it.get("name") for i, it in new_items.items() if i not in pub_items]
+    edited = [it.get("name") for i, it in new_items.items() if i in pub_items and (pub_items[i] != it or _img_changed(it))]
+    removed = [it.get("name") for i, it in pub_items.items() if i not in new_items]
+    if added:
+        notes.append(f"상점 새 상품: {', '.join(added)}")
+    if edited:
+        notes.append(f"상점 상품 변경: {', '.join(edited)}")
+    if removed:
+        notes.append(f"상점 판매 종료: {', '.join(removed)}")
+    if (pub_shop.get("vip") or []) != (out.get("shop", {}).get("vip") or []) and pub_shop:
+        notes.append("후원 등급(VIP) 기준 조정")
+
     # UI 에셋: 칸별로 바뀐 것 (그림 파일 내용이 바뀐 경우 포함)
     from . import uislots
 

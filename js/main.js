@@ -39,11 +39,12 @@ const IS_LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
  *   ?preview=1         실제 세이브와 분리된 미리보기 세이브 사용 (보석 넉넉히)
  *   ?now=2026-12-01T00:00:00+09:00   그 시각으로 시간 이동
  *   ?story=<id>        스토리 바로 열기     ?banner=<id>  해당 배너 상세 열기
+ *   ?shop=gold|cash[&category=<분류>]  상점 바로 열기
  */
 function readPreviewOptions() {
   if (!IS_LOCAL) return {};
   const q = new URLSearchParams(location.search);
-  const opts = { preview: q.get('preview') === '1', story: q.get('story'), banner: q.get('banner') };
+  const opts = { preview: q.get('preview') === '1', story: q.get('story'), banner: q.get('banner'), shop: q.get('shop'), category: q.get('category') };
   const t = parseDate(q.get('now'));
   if (t) setNowOverride(t);
   if (opts.preview) usePreviewSaveKey();
@@ -172,6 +173,7 @@ async function boot() {
 
   // 미리보기 바로가기
   if (opts.story) return go('story', { id: opts.story });
+  if (opts.shop) return go('shop', { tab: opts.shop, category: opts.category });
   if (opts.banner) {
     go('gacha', { bannerId: opts.banner });
     const b = ctx.activeBanners().find((x) => x.id === opts.banner) || data.banners.find((x) => x.id === opts.banner);

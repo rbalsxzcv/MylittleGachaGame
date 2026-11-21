@@ -316,6 +316,9 @@ export const SHOP_CATEGORIES = ['featured', 'package', 'growth', 'gems', 'pass']
 export const SHOP_TIERS = ['normal', 'rare', 'legend', 'truck'];
 export const SHOP_ICONS = ['gem', 'ticket', 'gold', 'scroll', 'gift', 'chest', 'cart', 'crown', 'moon', 'sprout'];
 
+/** 'assets/...' 그림 경로만 통과 (validateUi와 같은 규칙) */
+const assetPathOrNull = (p) => (typeof p === 'string' && p.startsWith('assets/') && !p.includes('..') ? p : null);
+
 function cleanLimit(l) {
   if (!l || typeof l !== 'object' || !SHOP_LIMIT_PERS.includes(l.per)) return null;
   return { per: l.per, count: int(l.count, 1, 9999, 1) };
@@ -328,6 +331,7 @@ function shopCommon(raw) {
     name,
     desc: str(raw.desc, '', 200).trim(),
     icon: SHOP_ICONS.includes(raw.icon) ? raw.icon : 'chest',
+    image: assetPathOrNull(raw.image), // 상품 그림 (없으면 아이콘 종류별 기본 모양)
     rewards: cleanRewards(raw.rewards, 1e7),
     limit: cleanLimit(raw.limit),
     badges: (Array.isArray(raw.badges) ? raw.badges : []).filter((b) => typeof b === 'string' && b.trim()).slice(0, 3).map((b) => b.trim().slice(0, 12)),

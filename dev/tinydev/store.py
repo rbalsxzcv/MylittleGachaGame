@@ -23,10 +23,12 @@ LIST_FILES = {
     "mail": "mail.json",
     "enemies": "enemies.json",
     "stages": "stages.json",
+    "props": "props.json",  # 소품 그림 목록 (개발 도구 전용 — 배포하지 않음, 그림만 상점 등에서 참조)
 }
-ASSET_DIRS = ("chars", "banners", "bg", "ui", "enemies")
+ASSET_DIRS = ("chars", "banners", "bg", "ui", "enemies", "props")
 UI_FILE = "ui.json"  # 게임 화면 에셋(배경/아이콘) 연결 정보 — 목록이 아니라 객체
 BALANCE_FILE = "balance.json"  # 전투/육성 숫자 (객체)
+SHOP_FILE = "shop.json"  # 골드 상점 / 가상 캐시 상점 상품 (객체)
 
 
 def valid_id(value):
@@ -59,7 +61,9 @@ def _ensure_extras():
         write_json(ws_data(UI_FILE), read_json(public, None) or {"backgrounds": {}, "icons": {}})
     if not ws_data(BALANCE_FILE).exists():
         write_json(ws_data(BALANCE_FILE), read_json(config.PUBLIC_DATA / BALANCE_FILE, None) or {})
-    for key in ("enemies", "stages"):
+    if not ws_data(SHOP_FILE).exists():
+        write_json(ws_data(SHOP_FILE), read_json(config.PUBLIC_DATA / SHOP_FILE, None) or empty_shop())
+    for key in ("enemies", "stages", "props"):
         if not ws_data(LIST_FILES[key]).exists():
             write_json(ws_data(LIST_FILES[key]), read_json(config.PUBLIC_DATA / LIST_FILES[key], None) or [])
 
@@ -86,6 +90,25 @@ def read_balance():
 
 def write_balance(balance):
     write_json(ws_data(BALANCE_FILE), balance)
+
+
+def empty_shop():
+    return {"gold": [], "cash": [], "vip": []}
+
+
+def read_shop():
+    ensure_workspace()
+    shop = read_json(ws_data(SHOP_FILE), None)
+    if not isinstance(shop, dict):
+        shop = {}
+    for key in ("gold", "cash", "vip"):
+        if not isinstance(shop.get(key), list):
+            shop[key] = []
+    return shop
+
+
+def write_shop(shop):
+    write_json(ws_data(SHOP_FILE), shop)
 
 
 def reset_workspace():
@@ -179,6 +202,11 @@ def load_all():
     except JsonError as e:
         out["balance"] = {}
         out["errors"]["balance"] = str(e)
+    try:
+        out["shop"] = read_shop()
+    except JsonError as e:
+        out["shop"] = empty_shop()
+        out["errors"]["shop"] = str(e)
     return out
 
 

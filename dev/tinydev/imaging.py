@@ -9,7 +9,7 @@ from .genai import GenError
 
 ENGINE = "comfy"  # 그림은 ComfyUI로만
 # 캐릭터는 세로로 긴 2:3 (가로 여유가 적을수록 정면+후면 같은 설정화가 덜 나옴, 배경 제거 후 여백은 잘라냄)
-ASPECT = {"char": "2:3", "banner": "16:9", "bg": "16:9", "ui_bg": "16:9", "ui_icon": "1:1", "logo": "3:2"}
+ASPECT = {"char": "2:3", "banner": "16:9", "bg": "16:9", "ui_bg": "16:9", "ui_icon": "1:1", "logo": "3:2", "enemy": "1:1", "prop": "1:1"}
 SLOT_PKIND = {"bg": "ui_bg", "icon": "ui_icon", "logo": "logo"}
 
 
@@ -68,8 +68,8 @@ def render(kind, inp, core_prompt, negative, cancel=None):
         notes.append("CFG 1이라 네거티브는 적용되지 않아요 (용도별 필수 태그로 대신 막아요)")
     warning = " · ".join(notes) or None
     if config.FORCE_MOCK:
-        label = inp.get("name") or inp.get("title") or inp.get("bgName") or (slot or {}).get("label") or ""
-        mock_kind = "char" if pkind in ("char", "ui_icon", "logo") else ("banner" if pkind == "banner" else "bg")
+        label = inp.get("name") or inp.get("label") or inp.get("title") or inp.get("bgName") or (slot or {}).get("label") or ""
+        mock_kind = "char" if pkind in ("char", "ui_icon", "logo", "enemy", "prop") else ("banner" if pkind == "banner" else "bg")
         image, seed = genai._mock_image(full, ratio, mock_kind, label), None
         warning = " · ".join(notes + ["모의 모드 그림이에요 (TG_MOCK=1)"])
     else:

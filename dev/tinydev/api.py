@@ -192,8 +192,8 @@ def _check_list(items, label):
 
 @app.put("/api/list/<key>")
 def save_list(key):
-    """배너/공지/우편/스토리/적/스테이지 목록 전체 저장 (적은 전투 데이터 오류가 있으면 거부)"""
-    if key not in ("banners", "notices", "mail", "storyIndex", "enemies", "stages"):
+    """배너/공지/우편/스토리/적/스테이지/소품 목록 전체 저장 (적은 전투 데이터 오류가 있으면 거부)"""
+    if key not in ("banners", "notices", "mail", "storyIndex", "enemies", "stages", "props"):
         abort(404)
     items = _check_list(request.get_json(silent=True), key)
     if key == "enemies":
@@ -223,12 +223,31 @@ def balance_put():
     return jsonify(ok=True)
 
 
+@app.get("/api/shop")
+def shop_get():
+    return jsonify(store.read_shop())
+
+
+@app.put("/api/shop")
+def shop_put():
+    """상점 전체 저장 (검사 오류가 있으면 거부)"""
+    from . import validate as _v
+
+    data = body()
+    r = _v.Report()
+    _v.check_shop(r, data, store.asset_exists_ws)
+    if r.errors:
+        return jsonify(error="상점 데이터에 오류가 있어요", issues=r.errors), 400
+    store.write_shop(data)
+    return jsonify(ok=True, issues=r.items)
+
+
 @app.post("/api/assets/upload")
 def asset_upload():
-    """그림 올리기 (적 그림 등): dataURL → PNG, 긴 변 512px로 줄여 assets/<dir>/<name>.png"""
+    """그림 올리기 (적 / 소품 그림): dataURL → PNG, 긴 변 512px(소품 384px)로 줄여 assets/<dir>/<name>.png"""
     data = body()
     sub = data.get("dir")
-    if sub not in ("enemies",):
+    if sub not in ("enemies", "props"):
         raise ValueError("이 폴더에는 올릴 수 없어요")
     name = data.get("name")
     if not store.valid_id(name):
@@ -250,11 +269,14 @@ def asset_upload():
     except Exception as e:  # noqa: BLE001 — 어떤 형식 오류든 사용자에게 같은 안내
         raise ValueError("PNG/JPEG/WebP 그림만 올릴 수 있어요") from e
     img = img.convert("RGBA")
-    img.thumbnail((config.CHAR_LONG_SIDE, config.CHAR_LONG_SIDE))
+    side = jobs.PROP_LONG_SIDE if sub == "props" else config.CHAR_LONG_SIDE
+    img.thumbnail((side, side))
     rel = f"assets/{sub}/{name}.png"
     dest = config.WORKSPACE / rel
     dest.parent.mkdir(parents=True, exist_ok=True)
     img.save(dest, "PNG")
+    if sub == "props":
+        batch.upsert_prop(name, label=text(data, "label", 60) or None, image=rel)
     return jsonify(path=rel)
 
 
@@ -280,7 +302,7 @@ def prompt_write():
     """생성 전에 Gemini가 쓴 프롬프트를 먼저 보고 고칠 수 있게"""
     data = body()
     kind = data.get("kind")
-    inputs = {"char": _char_input, "banner": _banner_input, "bg": _bg_input, "ui": _ui_input}
+    inputs = {"char": _char_input, "banner": _banner_input, "bg": _bg_input, "ui": _ui_input, "enemy": _enemy_input, "prop": _prop_input}
     if kind not in inputs:
         raise ValueError("잘못된 종류")
     inp = inputs[kind](data.get("input") or {})
@@ -588,7 +610,9 @@ def _bg_input(data):
     name = data.get("bgName")
     if not store.valid_id(name):
         raise ValueError("배경 이름은 영문/숫자/_/- 로 지어 주세요 (예: night_library)")
-    return {"bgName": name, "prompt": text(data, "prompt", 1000, required=True, label="장면 설명")}
+    # 장면 설명은 'scene'으로 받음 ('prompt'는 개발자가 확인/수정한 그림 프롬프트와 겹치므로). 예전 요청은 'prompt'
+    key = "scene" if "scene" in data else "prompt"
+    return {"bgName": name, "prompt": text(data, key, 1000, required=True, label="장면 설명")}
 
 
 def _ui_input(data):
@@ -596,6 +620,35 @@ def _ui_input(data):
     if slot not in uislots.SLOT_BY_KEY:
         raise ValueError("알 수 없는 UI 칸이에요")
     return {"slot": slot, "extra": text(data, "extra", 1000)}
+
+
+def _enemy_input(data):
+    eid = data.get("enemyId")
+    e = next((x for x in store.read_list("enemies") if x.get("id") == eid), None) if store.valid_id(eid) else None
+    if not e:
+        raise ValueError("적을 먼저 저장해 주세요 (그림은 저장된 적에 연결돼요)")
+    keywords = text(data, "keywords", 1000) if "keywords" in data else None
+    return batch.enemy_input(e, text(data, "extra", 1000), keywords)
+
+
+def _prop_input(data):
+    pid = data.get("propId")
+    if not store.valid_id(pid):
+        raise ValueError("소품 id는 영문/숫자/_/- 로 지어 주세요 (예: shop_gold_pouch)")
+    # 물건 설명은 'description'으로 받음 ('prompt'는 개발자가 확인/수정한 그림 프롬프트)
+    return {"propId": pid, "label": text(data, "label", 60) or pid, "prompt": text(data, "description", 1000), "extra": text(data, "extra", 1000)}
+
+
+@app.post("/api/enemy/generate")
+def enemy_generate():
+    data = body()
+    return jsonify(_create_and_generate("enemy", _enemy_input(data), data))
+
+
+@app.post("/api/prop/generate")
+def prop_generate():
+    data = body()
+    return jsonify(_create_and_generate("prop", _prop_input(data), data))
 
 
 @app.post("/api/banner/generate")
@@ -641,7 +694,8 @@ def ui_set():
 
 @app.post("/api/jobs/<job_id>/approve-image")
 def approve_image(job_id):
-    """배너/배경/UI 그림 승인 → assets/banners/<id>.jpg, assets/bg/<이름>.jpg, assets/ui/<칸>.png|jpg"""
+    """배너/배경/UI/적/소품 그림 승인 → assets/banners/<id>.jpg, assets/bg/<이름>.jpg, assets/ui/<칸>.png|jpg,
+    assets/enemies/<id>.png, assets/props/<id>.png"""
     data = body()
     job = jobs.load(job_id)
     if job["kind"] == "char":
@@ -823,6 +877,14 @@ def story_bible_chapter_put(sid):
         recap=text(data, "recap", bible.RECAP_LIMIT) if "recap" in data else None,
     )
     return jsonify(ch)
+
+
+@app.put("/api/story-bible/backgrounds/<name>")
+def story_bible_background_put(name):
+    """스토리 배경 등록/수정 (이름 · 그림 설명) → 스토리 AI와 일괄 생성이 사용"""
+    data = body()
+    bible.set_background(name, text(data, "label", 60) or name, text(data, "prompt", 1000))
+    return jsonify(bible.load()["backgrounds"].get(name))
 
 
 def _story_group(meta):

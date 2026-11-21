@@ -19,7 +19,7 @@ RARITY_HINT = {
 }
 
 # 에셋 종류(pkind)별 공통 스타일 파일
-STYLE_FILE = {"char": "style.txt", "banner": "style_banner.txt", "bg": "style_bg.txt", "ui_bg": "style_bg.txt", "ui_icon": "style_icon.txt", "logo": "style_icon.txt"}
+STYLE_FILE = {"char": "style.txt", "banner": "style_banner.txt", "bg": "style_bg.txt", "ui_bg": "style_bg.txt", "ui_icon": "style_icon.txt", "logo": "style_icon.txt", "enemy": "style.txt", "prop": "style_icon.txt"}
 
 # 에셋 종류별로 항상 붙는 네거티브 (Anima 태그)
 KIND_NEGATIVE = {
@@ -29,6 +29,8 @@ KIND_NEGATIVE = {
     "ui_bg": "people, 1girl, 1boy, character, ui, menu, button, frame, border, cluttered",
     "ui_icon": "multiple objects, scenery, detailed background, hand, person, cropped, frame, border, drop shadow",
     "logo": "scenery, detailed background, person, cropped, frame, border, photo",
+    "enemy": "cropped, multiple views, reference sheet, scenery, detailed background, floor, cast shadow, frame, border, cute, chibi",
+    "prop": "multiple objects, scenery, detailed background, hand, person, cropped, frame, border, drop shadow, text",
 }
 
 
@@ -72,6 +74,8 @@ REQUIRED = {
     "ui_bg": ("no humans, scenery", "An empty place with nobody in it."),
     "ui_icon": ("no humans, object focus, still life", "One single object only."),
     "logo": ("no humans, emblem", "One single emblem only."),
+    "enemy": ("solo, full body", "One single enemy drawn only once, alone."),
+    "prop": ("no humans, object focus, still life", "One single item only."),
 }
 
 
@@ -90,12 +94,14 @@ def enforce(kind, prompt):
             continue
         low = t.lower()
         bad = False
-        if kind in ("bg", "ui_bg", "ui_icon", "logo"):
+        if kind in ("bg", "ui_bg", "ui_icon", "logo", "prop"):
             bad = low != "no humans" and bool(_HUMAN.search(t) or (kind != "logo" and _UI_WORDS.search(t)))
         elif kind == "char":
             if _COUNT.match(low):
                 count = count or low
                 continue
+            bad = bool(_SHEET.search(t))
+        elif kind == "enemy":
             bad = bool(_SHEET.search(t))
         elif kind == "banner":
             bad = bool(_SHEET.search(t) and not re.search(r"\b\d+(girls|boys)\b", t, re.I)) or bool(re.search(r"\b(text|letters?|title|logo)\b", t, re.I))
@@ -147,6 +153,22 @@ def brief(kind, inp, chars=(), theme="", slot=None):
             "Game title logo emblem asset, a single isolated emblem, centered.",
             f"Logo: {slot['label']} — {slot['subject']}",
             "Plain white background so it can be cut out.",
+        ]
+    elif kind == "enemy":
+        lines = [
+            "Original enemy standee for a turn-based battle in a mobile game (shown on an enemy card).",
+            f"Name: {inp.get('name', '')}",
+            f"Role: {'boss — imposing, larger presence, more ornate' if inp.get('boss') else 'regular enemy'}",
+            f"Appearance (Korean ok): {inp.get('keywords') or '(none given — invent a fitting look from the name)'}",
+        ]
+        if inp.get("memo"):
+            lines.append(f"Notes about this enemy (use them to choose the pose and details): {inp['memo']}")
+    elif kind == "prop":
+        lines = [
+            "Game item illustration asset (shop goods, rewards, story items), a single isolated object, centered.",
+            f"Item: {inp.get('label') or inp.get('propId', '')}",
+            f"Description (Korean ok): {inp.get('prompt') or '(none — draw what the item name suggests)'}",
+            "Plain white background so it can be cut out. Shown at about 120-200px.",
         ]
     else:  # ui_icon
         lines = [
@@ -210,6 +232,18 @@ KIND_RULES = {
     "logo": """ASSET: the game title logo emblem. The background will be removed automatically; shown about 600px wide.
 - 'no humans', emblem / badge design, 'centered', symmetrical, 'simple background', 'white background'.
 - Anima is weak at drawing words: make a decorative emblem with an empty ribbon banner. Only if the request clearly asks for words, add them in the sentence part as: the ribbon reads "Tiny Gacha".""",
+    "enemy": """ASSET: enemy standee for battle cards. The background will be removed automatically.
+- Exactly one enemy: 'solo'. It may be a human (bandit, soldier, cultist ...), a beast or a monster — choose the right count/subject tag ('1boy', '1girl', 'no humans, monster', 'wolf' ...).
+- Full body, nothing cropped: 'full body'. A hostile, threatening battle stance ('fighting stance', 'holding weapon', 'snarling', 'glaring') that fits the role. Bosses look bigger, more armoured or ornate.
+- Grounded low-fantasy look: worn leather, rusted iron, dirt, scars are fine; avoid cute or chibi styling.
+- The background must be empty: 'simple background', 'white background'. No scenery, floor, frame or text. Keep effects few and close to the body.
+- FORBIDDEN: the enemy appearing more than once, turnaround / reference sheet layout, several poses, inset close-ups, a second creature standing apart. Never write 'multiple views', 'reference sheet', 'concept art', 'turnaround', 'back view'.
+- The sentence part must describe one enemy only.""",
+    "prop": """ASSET: game item illustration (shop goods, rewards, story items). The background will be removed automatically; shown at about 120-200px.
+- 'no humans', 'object focus', exactly one item (a bundle, chest or pouch counts as one item), 'centered', fills most of the frame, slight three-quarter view.
+- Clean outline, rich but readable detail, soft cel shading with a glossy highlight; materials described concretely (leather, brass, parchment, wax seal ...).
+- 'simple background', 'white background'; no scenery, no table, no hands, no ground shadow.
+- FORBIDDEN: a person, a hand holding the item, a character face, a scene around the item, text or numbers.""",
 }
 
 # Gemini 없이 쓸 때의 종류별 기본 태그
@@ -220,6 +254,8 @@ KIND_TEMPLATE = {
     "ui_bg": "no humans, scenery, depth of field, soft lighting, low contrast",
     "ui_icon": "no humans, object focus, centered, thick outline, simple background, white background",
     "logo": "no humans, emblem, centered, symmetrical, ribbon, simple background, white background",
+    "enemy": "solo, full body, fighting stance, glaring, simple background, white background",
+    "prop": "no humans, object focus, still life, centered, simple background, white background",
 }
 
 
@@ -246,6 +282,10 @@ def template_prompt(kind, inp, slot, chars, reasons):
         subject = ", ".join([count] + [look_tags(c.get("look", "")) or c["name"] for c in chars] + [inp.get("description", "")])
     elif kind == "bg":
         subject = inp.get("prompt", "")
+    elif kind == "enemy":
+        subject = ", ".join(x for x in (inp.get("keywords") or inp.get("name", ""), "boss, armor" if inp.get("boss") else "") if x)
+    elif kind == "prop":
+        subject = ", ".join(x for x in (inp.get("prompt"), inp.get("label")) if x)
     else:
         subject = slot["subject"] if slot else ""
     prompt = merge_tags(KIND_TEMPLATE[kind], subject, inp.get("extra", ""))

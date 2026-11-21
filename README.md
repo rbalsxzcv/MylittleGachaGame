@@ -223,10 +223,11 @@ python -m http.server 8000
              "rewards": { "gems": 1980 }, "firstBonus": { "gems": 1980 }, "tier": "rare", "badges": ["BEST"] }],
   "vip": [10000, 30000, 50000] }
 ```
-- 지금은 개발 도구에 상점 편집 탭이 없어서 이 파일을 직접 고쳐요.
+- 개발 도구의 **상점 탭**에서 편집해요 (작업 공간 → 배포). 직접 고쳐도 돼요.
 - `cost`: `gold` 또는 `gems` (둘 다 0이면 무료 상품). `limit.per`: `day` / `week` / `month` / `once`, 없으면 무제한.
 - 캐시 상품: `category`(`featured` 추천 · `package` 패키지 · `growth` 성장 · `gems` 보석 · `pass` 월정액), `tier`(`normal` · `rare` · `legend` · `truck` 큰 카드), `badges`(리본, 최대 3개), `value`("1500%" 도장), `originalKRW`(취소선 정가), `firstBonus`(상품별 첫 구매 보너스), `requires.stagesCleared`(해금 조건), `pass`(`days`, `dailyGems`, `maxDays`).
 - `icon`: `gem` · `ticket` · `gold` · `scroll` · `gift` · `chest` · `cart` · `crown` · `moon` · `sprout`. `ui.json` icons에 `shop_<icon>` 그림을 넣으면 CSS 메달 대신 그림으로 보여요.
+- `image`(선택): 상품 전용 그림 (`assets/props/<id>.png` 같은 투명 PNG). 있으면 가장 먼저 쓰고, 없거나 못 불러오면 `shop_<icon>` → CSS 메달 순서로 보여요.
 - 세이브는 상품 id로 구매 횟수를 기록해요. 공개한 뒤에는 id를 바꾸지 마세요.
 
 ### `data/ui.json` (화면 디자인 에셋)

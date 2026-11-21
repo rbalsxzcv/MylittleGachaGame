@@ -1,4 +1,5 @@
-// 홈 화면: 대표 캐릭터 상반신(왼쪽~가운데), 배너 캐러셀(오른쪽 위, 진행 중인 배너만), 메뉴(하단 한 줄)
+// 홈 화면: 대표 캐릭터 상반신(왼쪽~가운데), 배너 캐러셀(오른쪽 위, 진행 중인 배너만),
+// 메뉴(하단: 하나로 이어진 긴 바 + 오른쪽 끝의 큰 뽑기 버튼)
 import { h } from './dom.js';
 import { on } from '../core/events.js';
 import { go } from './router.js';
@@ -15,6 +16,7 @@ import { hasFreeItem } from '../systems/shop.js';
 
 // 메뉴 정의 — 새 기능(미션, 출석, 상점 등)은 여기에 한 줄 추가하면 됩니다.
 // key: 키보드 단축키 표시용 (실제 처리는 main.js), dot: 빨간 점 표시 조건, soon: 준비 중(누를 수 없음)
+// primary: 바 밖 오른쪽 끝의 큰 버튼으로 (뽑기), 나머지는 순서대로 하단 바 안에
 // 우편 / 공지 / 설정은 위쪽 HUD 아이콘 (main.js의 HUD_LINKS)
 const MENU = [
   { id: 'gacha', label: '뽑기', icon: '✦', key: 'G', screen: 'gacha', primary: true },
@@ -80,27 +82,29 @@ export function homeScreen(ctx) {
           ),
       });
 
-      // ── 메뉴 ──
+      // ── 메뉴: 긴 바 하나 + 오른쪽 끝 큰 뽑기 버튼 ──
+      const menuBtn = (m) =>
+        h(
+          'button',
+          {
+            class: ['menu-btn', m.primary && 'menu-primary menu-gacha', m.shop && 'menu-shop', m.soon && 'menu-soon'],
+            type: 'button',
+            dataset: { menu: m.id },
+            disabled: m.soon,
+            'aria-disabled': m.soon ? 'true' : null,
+            onclick: m.soon ? null : () => go(m.screen),
+          },
+          m.primary && h('i', { class: 'menu-gacha-shine', 'aria-hidden': 'true' }),
+          h('span', { class: 'menu-icon', 'aria-hidden': 'true' }, iconOr(`menu_${m.id}`, m.icon)),
+          h('span', { class: 'menu-label' }, m.label, m.soon && h('small', { class: 'menu-sub' }, '준비 중')),
+          m.key && h('kbd', { class: 'key-hint' }, m.key),
+          h('span', { class: 'menu-dot', hidden: true }),
+        );
       const menu = h(
         'nav',
         { class: 'home-menu' },
-        MENU.map((m) =>
-          h(
-            'button',
-            {
-              class: ['menu-btn', m.primary && 'menu-primary', m.shop && 'menu-shop', m.soon && 'menu-soon'],
-              type: 'button',
-              dataset: { menu: m.id },
-              disabled: m.soon,
-              'aria-disabled': m.soon ? 'true' : null,
-              onclick: m.soon ? null : () => go(m.screen),
-            },
-            h('span', { class: 'menu-icon', 'aria-hidden': 'true' }, iconOr(`menu_${m.id}`, m.icon)),
-            h('span', { class: 'menu-label' }, m.label, m.soon && h('small', { class: 'menu-sub' }, '준비 중')),
-            m.key && h('kbd', { class: 'key-hint' }, m.key),
-            h('span', { class: 'menu-dot', hidden: true }),
-          ),
-        ),
+        h('div', { class: 'menu-bar' }, MENU.filter((m) => !m.primary).map(menuBtn)),
+        MENU.filter((m) => m.primary).map(menuBtn),
       );
 
       // 메뉴 빨간 점

@@ -467,7 +467,7 @@ export function storiesTab(root, { select } = {}) {
     const bgInput = () => {
       if (!slugOk(name.value.trim())) return toast('파일 이름은 영문/숫자/_/-로 지어 주세요', 'error'), null;
       if (!prompt.value.trim()) return toast('장면 설명을 입력해 주세요', 'error'), null;
-      return { bgName: name.value.trim(), prompt: prompt.value };
+      return { bgName: name.value.trim(), scene: prompt.value };
     };
     const go = async (gen) => {
       const input = bgInput();

@@ -68,6 +68,7 @@ def set_background(name, label, prompt, arc=None):
     if not store.valid_id(name):
         raise ValueError("배경 이름이 올바르지 않아요")
     data = load()
+    arc = arc or (data["backgrounds"].get(name) or {}).get("arc")  # 고칠 때 챕터 표시는 유지
     data["backgrounds"][name] = {"label": str(label or name)[:60], "prompt": str(prompt or "")[:1000], **({"arc": arc} if arc else {})}
     save(data)
 

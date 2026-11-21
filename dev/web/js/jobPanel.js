@@ -6,7 +6,7 @@ import { h, toast, modal, promptBox, busy } from './ui.js';
 import { api, tryApi } from './api.js';
 import { ENGINE_LABEL, negativeNote } from './promptStep.js';
 
-const KIND_LABEL = { char: '캐릭터', banner: '배너 그림', bg: '배경 그림', ui: 'UI 에셋' };
+const KIND_LABEL = { char: '캐릭터', banner: '배너 그림', bg: '배경 그림', ui: 'UI 에셋', enemy: '적 그림', prop: '소품 그림' };
 const SOURCE_LABEL = { ai: 'Gemini가 쓴 프롬프트', mock: '모의 모드 프롬프트', template: '기본 틀 프롬프트', manual: '직접 수정한 프롬프트' };
 const img = (job, name) => (name ? `/history/${job.id}/${name}` : '');
 
@@ -191,7 +191,7 @@ export function jobPanel(job, { onApprove, approveLabel = '승인', approveExtra
     selA.value = String(current.attempts.at(-2)?.n ?? 1);
     selB.value = String(current.attempts.at(-1).n);
     const view = h('div', { class: 'compare-row two' });
-    const cls = current.kind === 'char' ? 'checker' : '';
+    const cls = ['char', 'enemy', 'prop'].includes(current.kind) ? 'checker' : '';
     const draw = () => {
       const pick = (v) => current.attempts.find((a) => String(a.n) === v);
       view.replaceChildren(

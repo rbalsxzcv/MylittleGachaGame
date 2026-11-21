@@ -1,4 +1,4 @@
-"""일괄 생성: 그림이 필요한 항목(캐릭터 / 배너 / UI 화면 배경 / 아이콘·로고)을 ComfyUI로 한 번에 뽑기.
+"""일괄 생성: 그림이 필요한 항목(캐릭터 / 배너 / 스토리 배경 / 적 / 소품 / UI 화면 배경 / 아이콘·로고)을 ComfyUI로 한 번에 뽑기.
 
 - 한 번에 하나의 일괄 작업만, 서버의 백그라운드 스레드에서 차례대로 실행
 - 항목마다 생성 작업(job)을 하나 만들고 시도 1회를 뽑음 → 결과는 각 작업 기록(dev/history)에 남음
@@ -15,7 +15,7 @@ from .genai import GenError
 from .timeutil import now_iso, stamp
 
 MAX_RETRY = 2
-GROUPS = [("char", "캐릭터"), ("banner", "배너"), ("bg", "스토리 배경"), ("ui_bg", "화면 배경"), ("ui_icon", "로고 · 아이콘")]
+GROUPS = [("char", "캐릭터"), ("banner", "배너"), ("bg", "스토리 배경"), ("enemy", "적"), ("prop", "소품"), ("ui_bg", "화면 배경"), ("ui_icon", "로고 · 아이콘")]
 
 _lock = threading.Lock()
 _cancel = threading.Event()
@@ -40,6 +40,10 @@ def targets():
     for name, bg in sorted(bible.load().get("backgrounds", {}).items()):
         path = f"assets/bg/{name}.jpg"
         out.append({"key": f"bg:{name}", "group": "bg", "label": bg.get("label") or name, "path": path, "has": _exists(path)})
+    for e in store.read_list("enemies"):
+        out.append({"key": f"enemy:{e['id']}", "group": "enemy", "label": f"{e.get('name', e['id'])}{' (보스)' if e.get('boss') else ''}", "path": e.get("image") or "", "has": _exists(e.get("image"))})
+    for p in store.read_list("props"):
+        out.append({"key": f"prop:{p['id']}", "group": "prop", "label": p.get("label") or p["id"], "path": p.get("image") or "", "has": _exists(p.get("image"))})
     ui = store.read_ui()
     for s in uislots.SLOTS:
         path = uislots.get_path(ui, s["key"])
@@ -69,6 +73,16 @@ def _job_input(key, extra):
         if not b:
             raise ValueError("배너가 없어요")
         return "banner", {"bannerId": ident, "title": b.get("title", ""), "description": b.get("description", ""), "pickupIds": b.get("pickupIds") or [], "extra": extra}
+    if kind == "enemy":
+        e = next((x for x in store.read_list("enemies") if x.get("id") == ident), None)
+        if not e:
+            raise ValueError("적이 없어요")
+        return "enemy", enemy_input(e, extra)
+    if kind == "prop":
+        p = next((x for x in store.read_list("props") if x.get("id") == ident), None)
+        if not p:
+            raise ValueError("소품이 없어요")
+        return "prop", {"propId": ident, "label": p.get("label") or ident, "prompt": p.get("prompt", ""), "extra": extra}
     if kind == "ui" and ident in uislots.SLOT_BY_KEY:
         return "ui", {"slot": ident, "extra": extra}
     if kind == "bg":
@@ -82,10 +96,42 @@ def _job_input(key, extra):
     raise ValueError(f"알 수 없는 항목: {key}")
 
 
+def enemy_input(e, extra="", keywords=None):
+    """적 데이터 → 그림 생성 입력값 (keywords를 주면 메모해 둔 외형 대신 사용)"""
+    return {
+        "enemyId": e["id"],
+        "name": e.get("name", e["id"]),
+        "boss": bool(e.get("boss")),
+        "keywords": keywords if keywords is not None else e.get("keywords", ""),
+        "memo": e.get("memo", ""),
+        "extra": extra,
+    }
+
+
+def upsert_prop(pid, label=None, prompt=None, image=None):
+    """소품 목록(props.json)에 등록/갱신 → 항목"""
+    if not store.valid_id(pid):
+        raise ValueError("소품 id는 영문/숫자/_/- 로 지어 주세요")
+    props = store.read_list("props")
+    item = next((x for x in props if x.get("id") == pid), None)
+    if item is None:
+        item = {"id": pid, "label": label or pid, "prompt": prompt or ""}
+        props.append(item)
+    if label is not None:
+        item["label"] = str(label)[:60] or pid
+    if prompt is not None:
+        item["prompt"] = str(prompt)[:1000]
+    if image is not None:
+        item["image"] = image
+    store.write_list("props", props)
+    return item
+
+
 # ── 결과 적용 (승인) ────────────────────────────────────────
 def apply_job(job, n):
     """시도 n의 결과를 작업 공간에 저장하고 데이터에 연결 → 저장 경로
     배너 assets/banners/<id>.jpg · 배경 assets/bg/<이름>.jpg · UI assets/ui/<칸> · 기존 캐릭터 assets/chars/<id>.png
+    적 assets/enemies/<id>.png · 소품 assets/props/<id>.png
     """
     kind, inp = job["kind"], job["input"]
     if kind == "banner":
@@ -96,6 +142,12 @@ def apply_job(job, n):
         rel = f"assets/ui/{uislots.file_name(inp['slot'])}"
     elif kind == "char" and inp.get("charId"):
         rel = f"assets/chars/{inp['charId']}.png"
+    elif kind == "enemy":
+        rel = f"assets/enemies/{inp['enemyId']}.png"
+        if not any(e.get("id") == inp["enemyId"] for e in store.read_list("enemies")):
+            raise ValueError("적이 지워졌어요")
+    elif kind == "prop":
+        rel = f"assets/props/{inp['propId']}.png"
     else:
         raise ValueError("새 캐릭터는 캐릭터 탭에서 승인해 주세요")
     if kind == "char" and not any(c.get("id") == inp["charId"] for c in store.read_list("characters")):
@@ -112,6 +164,14 @@ def apply_job(job, n):
         store.write_list("banners", banners)
     elif kind == "ui":
         store.write_ui(uislots.set_path(store.read_ui(), inp["slot"], rel))
+    elif kind == "enemy":
+        enemies = store.read_list("enemies")
+        for e in enemies:
+            if e.get("id") == inp["enemyId"]:
+                e["image"] = rel
+        store.write_list("enemies", enemies)
+    elif kind == "prop":
+        upsert_prop(inp["propId"], label=inp.get("label"), prompt=inp.get("prompt"), image=rel)
     elif kind == "char":
         chars = store.read_list("characters")
         for c in chars:

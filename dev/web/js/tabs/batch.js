@@ -1,4 +1,4 @@
-// 일괄 생성 탭: 그림이 필요한 항목(캐릭터 / 배너 / 화면 배경 / 로고·아이콘)을 골라 ComfyUI로 한 번에 뽑기
+// 일괄 생성 탭: 그림이 필요한 항목(캐릭터 / 배너 / 스토리 배경 / 적 / 소품 / 화면 배경 / 로고·아이콘)을 골라 ComfyUI로 한 번에 뽑기
 // - 진행 상황, 항목별 오류 표시, 중단 버튼
 // - 결과는 바로 적용하거나, 하나씩 검토(거절·다시 뽑기 가능)한 뒤 적용
 import { h, toast, modal, confirmBox, busy, wsImage } from '../ui.js';
@@ -83,7 +83,7 @@ export function batchTab(root) {
             { class: 'pick-grid batch-picks' },
             list.map((i) => {
               const cb = h('input', { type: 'checkbox', checked: picked.has(i.key), disabled: running, onchange: (e) => (e.target.checked ? picked.add(i.key) : picked.delete(i.key), syncStart()) });
-              const png = i.group === 'char' || i.group === 'ui_icon';
+              const png = ['char', 'ui_icon', 'enemy', 'prop'].includes(i.group);
               return h(
                 'label',
                 { class: 'pick', title: i.path || '그림 없음' },
@@ -227,7 +227,7 @@ export function batchTab(root) {
           { class: 'batch-list' },
           batch.items.map((i) => {
             const [label, cls] = STATUS[i.status] || [i.status, ''];
-            const png = i.group === 'char' || i.group === 'ui_icon';
+            const png = ['char', 'ui_icon', 'enemy', 'prop'].includes(i.group);
             return h(
               'div',
               { class: ['batch-item', i.status] },

@@ -3,6 +3,7 @@ import { h, toast, confirmBox, slugOk, wsImage } from '../ui.js';
 import { api, tryApi } from '../api.js';
 import { state, reloadData } from '../state.js';
 import { loadBattleKit, skillForm, passiveForm, statsForm, issueList, blankPassive, cleanEntity } from '../battleForm.js';
+import { openEnemyGenerator } from './assets.js';
 
 const ACTIONS = ['basic', 'skill', 'ultimate'];
 
@@ -108,6 +109,28 @@ export function enemiesTab(root, { select } = {}) {
       },
     });
 
+    // AI로 그리기: 저장된 적에만 연결할 수 있어요 (그림 파일 이름 = id)
+    const drawAi = h(
+      'button',
+      {
+        class: 'btn small',
+        onclick: () => {
+          if (editing.isNew || !state.data.enemies.some((x) => x.id === v.id)) return toast('먼저 적을 저장해 주세요 (그림은 저장된 적에 연결돼요)', 'error');
+          openEnemyGenerator({ ...(state.data.enemies.find((x) => x.id === v.id) || {}), name: v.name, boss: v.boss }, (path) => {
+            if (!images.includes(path)) {
+              images.push(path);
+              imgSel.append(h('option', { value: path }, path.replace('assets/enemies/', '')));
+            }
+            v.image = path; // 서버에서 이미 이 적에 연결됨 → 저장 안 해도 유지
+            imgSel.value = path;
+            renderImg();
+            renderList();
+          });
+        },
+      },
+      'AI로 그리기',
+    );
+
     const kitBox = h('div', { class: 'be-skills' });
     const renderKit = () => {
       kitBox.replaceChildren(
@@ -179,7 +202,7 @@ export function enemiesTab(root, { select } = {}) {
         'section',
         { class: 'card' },
         h('h2', {}, isNew ? '새 적' : `적 편집 — ${v.id}`),
-        h('div', { class: 'row', style: { gap: '16px', alignItems: 'flex-start' } }, imgBox, h('div', { class: 'grow' }, h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (바꾸지 않기)', id), h('label', { class: 'field' }, '이름', name)), h('label', { class: 'inline' }, boss, '보스 (카드가 크게 표시)'), h('label', { class: 'field' }, '그림 (assets/enemies)', h('div', { class: 'row' }, imgSel, upload)))),
+        h('div', { class: 'row', style: { gap: '16px', alignItems: 'flex-start' } }, imgBox, h('div', { class: 'grow' }, h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (바꾸지 않기)', id), h('label', { class: 'field' }, '이름', name)), h('label', { class: 'inline' }, boss, '보스 (카드가 크게 표시)'), h('label', { class: 'field' }, '그림 (assets/enemies) — 올리기 또는 AI로 그리기', h('div', { class: 'row wrap' }, imgSel, upload, drawAi)))),
         power,
         h('h3', {}, '기본 능력치 (Lv.1, 레벨에 따라 성장)'),
         statsForm(v.stats, { ...balance.rarityStats.R, critRate: balance.crit.rate, critDmg: balance.crit.dmg }, { onChange: mark }),
