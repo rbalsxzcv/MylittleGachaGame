@@ -1,8 +1,15 @@
-// 상단 HUD: 뒤로 버튼 + 화면 제목 + 우편/공지/설정 아이콘 + 티켓 + 보석
-import { h, gemIcon, ticketIcon } from './dom.js';
+// 상단 HUD: 뒤로 버튼 + 화면 제목 + 우편/공지/설정 아이콘 + 티켓 + 골드 + 보석
+import { h, gemIcon, ticketIcon, goldIcon } from './dom.js';
 import { on } from '../core/events.js';
 import { formatGems } from '../systems/economy.js';
 import { iconOr } from './theme.js';
+
+// 오른쪽 재화 표시 (왼쪽부터)
+const PILLS = [
+  { key: 'tickets', title: '티켓 (레벨업 재료)', icon: ticketIcon, className: 'ticket-pill' },
+  { key: 'gold', title: '골드 (레벨업 · 상점)', icon: goldIcon, className: 'gold-pill' },
+  { key: 'gems', title: '보석', icon: gemIcon, className: '' },
+];
 
 /**
  * @param {HTMLElement} root #hud 요소
@@ -14,10 +21,11 @@ import { iconOr } from './theme.js';
 export function initHud(root, { getSave, onBack, links = [] }) {
   const backBtn = h('button', { class: 'hud-back', type: 'button', 'aria-label': '뒤로 (Esc)', onclick: onBack }, '‹');
   const title = h('div', { class: 'hud-title' });
-  const gemValue = h('span', { class: 'gem-value' }, formatGems(getSave().gems));
-  const gemPill = h('div', { class: 'gem-pill', title: '보석' }, gemIcon(), gemValue);
-  const ticketValue = h('span', { class: 'gem-value' }, formatGems(getSave().tickets));
-  const ticketPill = h('div', { class: 'gem-pill ticket-pill', title: '티켓 (레벨업 재료)' }, ticketIcon(), ticketValue);
+  const pills = PILLS.map((p) => {
+    const value = h('span', { class: 'gem-value' }, formatGems(getSave()[p.key] || 0));
+    const el = h('div', { class: ['gem-pill', p.className], title: p.title }, p.icon(), value);
+    return { ...p, el, value, last: getSave()[p.key] || 0 };
+  });
 
   const linkEls = links.map((l) =>
     h(
@@ -28,7 +36,7 @@ export function initHud(root, { getSave, onBack, links = [] }) {
       h('span', { class: 'menu-dot', hidden: true }),
     ),
   );
-  root.append(backBtn, title, h('div', { class: 'hud-spacer' }), h('div', { class: 'hud-links' }, linkEls), ticketPill, gemPill);
+  root.append(backBtn, title, h('div', { class: 'hud-spacer' }), h('div', { class: 'hud-links' }, linkEls), ...pills.map((p) => p.el));
 
   const updateDots = () => {
     links.forEach((l, i) => {
@@ -36,18 +44,18 @@ export function initHud(root, { getSave, onBack, links = [] }) {
     });
   };
 
-  let last = { gems: getSave().gems, tickets: getSave().tickets };
   on('save:changed', (save) => {
     updateDots();
-    if (save.gems !== last.gems) {
-      gemValue.textContent = formatGems(save.gems);
+    for (const p of pills) {
+      const v = save[p.key] || 0;
+      if (v === p.last) continue;
+      p.value.textContent = formatGems(v);
       // 숫자가 바뀌면 살짝 튀는 효과
-      gemPill.classList.remove('bump');
-      void gemPill.offsetWidth;
-      gemPill.classList.add('bump');
+      p.el.classList.remove('bump');
+      void p.el.offsetWidth;
+      p.el.classList.add('bump');
+      p.last = v;
     }
-    if (save.tickets !== last.tickets) ticketValue.textContent = formatGems(save.tickets);
-    last = { gems: save.gems, tickets: save.tickets };
   });
 
   return {

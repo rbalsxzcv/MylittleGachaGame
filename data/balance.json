@@ -4,6 +4,7 @@
     "base": 10,
     "exp": 1.25
   },
+  "levelGoldPerTicket": 10,
   "crit": {
     "rate": 0.05,
     "dmg": 0.5
@@ -39,6 +40,7 @@
   },
   "maxBreakthrough": 5,
   "dailyTickets": 30,
+  "dailyGold": 3000,
   "power": {
     "atk": 2,
     "def": 1.5,

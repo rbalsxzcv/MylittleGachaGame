@@ -41,7 +41,7 @@ export function stagesTab(root, { select } = {}) {
     const isNew = !st;
     const firstEnemy = state.data.enemies[0]?.id || '';
     const v = structuredClone(
-      st || { id: '', name: '', recommendedPower: 0, waves: [[{ enemyId: firstEnemy, level: 1 }]], turnLimit: 20, rewards: { tickets: 40, gems: 0 }, firstClearRewards: { tickets: 150, gems: 50 } },
+      st || { id: '', name: '', recommendedPower: 0, waves: [[{ enemyId: firstEnemy, level: 1 }]], turnLimit: 20, rewards: { tickets: 40, gems: 0, gold: 400 }, firstClearRewards: { tickets: 150, gems: 50, gold: 1500 } },
     );
     v.rewards = v.rewards || { tickets: 0, gems: 0 };
     v.firstClearRewards = v.firstClearRewards || { tickets: 0, gems: 0 };
@@ -189,8 +189,8 @@ export function stagesTab(root, { select } = {}) {
         h(
           'div',
           { class: 'grid2' },
-          h('div', { class: 'card inner' }, h('b', {}, '클리어할 때마다'), h('label', { class: 'field' }, '티켓', num(v.rewards, 'tickets')), h('label', { class: 'field' }, '보석', num(v.rewards, 'gems'))),
-          h('div', { class: 'card inner' }, h('b', {}, '첫 클리어 (한 번만)'), h('label', { class: 'field' }, '티켓', num(v.firstClearRewards, 'tickets')), h('label', { class: 'field' }, '보석', num(v.firstClearRewards, 'gems'))),
+          h('div', { class: 'card inner' }, h('b', {}, '클리어할 때마다'), h('label', { class: 'field' }, '티켓', num(v.rewards, 'tickets')), h('label', { class: 'field' }, '보석', num(v.rewards, 'gems')), h('label', { class: 'field' }, '골드', num(v.rewards, 'gold'))),
+          h('div', { class: 'card inner' }, h('b', {}, '첫 클리어 (한 번만)'), h('label', { class: 'field' }, '티켓', num(v.firstClearRewards, 'tickets')), h('label', { class: 'field' }, '보석', num(v.firstClearRewards, 'gems')), h('label', { class: 'field' }, '골드', num(v.firstClearRewards, 'gold'))),
         ),
         h('h3', {}, '이 스테이지를 쓰는 스토리'),
         refsBox,

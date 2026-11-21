@@ -11,9 +11,9 @@ import { mountBattle } from './battleView.js';
 import { openTeamEditor } from './teamView.js';
 import { teamMembers, teamPower, presetOf } from '../systems/teams.js';
 import { isCleared, stageRecord, recordClear } from '../systems/stageProgress.js';
+import { rewardText as rewardLine } from '../systems/economy.js';
 
 const num = (n) => Number(n).toLocaleString('ko-KR');
-const rewardLine = (r) => [r?.gems && `보석 ${num(r.gems)}`, r?.tickets && `티켓 ${num(r.tickets)}`].filter(Boolean).join(' · ');
 
 const TYPE_SPEED_MS = 28; // 글자 하나 나오는 간격
 const AUTO_BASE_MS = 1100; // 자동 진행: 기본 대기

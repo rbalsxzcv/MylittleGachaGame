@@ -1,0 +1,470 @@
+{
+  "gold": [
+    {
+      "id": "gold_free_gift",
+      "name": "오늘의 무료 선물",
+      "desc": "상인 조합이 매일 챙겨 주는 작은 꾸러미",
+      "icon": "gift",
+      "cost": {
+        "gold": 0
+      },
+      "rewards": {
+        "gold": 2000,
+        "tickets": 30
+      },
+      "limit": {
+        "per": "day",
+        "count": 1
+      },
+      "badges": [
+        "FREE"
+      ]
+    },
+    {
+      "id": "gold_ticket_bundle",
+      "name": "티켓 꾸러미",
+      "desc": "레벨업 티켓 100장",
+      "icon": "ticket",
+      "cost": {
+        "gold": 3000
+      },
+      "rewards": {
+        "tickets": 100
+      },
+      "limit": {
+        "per": "day",
+        "count": 5
+      }
+    },
+    {
+      "id": "gold_ticket_chest",
+      "name": "티켓 상자",
+      "desc": "레벨업 티켓 1,000장을 한 번에",
+      "icon": "chest",
+      "cost": {
+        "gold": 25000
+      },
+      "rewards": {
+        "tickets": 1000
+      },
+      "limit": {
+        "per": "week",
+        "count": 2
+      },
+      "badges": [
+        "이득"
+      ]
+    },
+    {
+      "id": "gold_scroll",
+      "name": "모집 증서",
+      "desc": "1장으로 뽑기 1회",
+      "icon": "scroll",
+      "cost": {
+        "gold": 15000
+      },
+      "rewards": {
+        "scrolls": 1
+      },
+      "limit": {
+        "per": "week",
+        "count": 3
+      }
+    },
+    {
+      "id": "gold_gem_pouch",
+      "name": "보석 주머니",
+      "desc": "보석 50개",
+      "icon": "gem",
+      "cost": {
+        "gold": 10000
+      },
+      "rewards": {
+        "gems": 50
+      },
+      "limit": {
+        "per": "day",
+        "count": 1
+      }
+    },
+    {
+      "id": "gold_exchange",
+      "name": "골드 환전",
+      "desc": "보석 100개를 골드 20,000으로 바꿔요",
+      "icon": "gold",
+      "cost": {
+        "gems": 100
+      },
+      "rewards": {
+        "gold": 20000
+      },
+      "limit": {
+        "per": "day",
+        "count": 3
+      }
+    }
+  ],
+  "cash": [
+    {
+      "id": "cash_first_purchase",
+      "category": "featured",
+      "name": "첫 결제 기념 패키지",
+      "desc": "단 한 번! 모험의 시작을 화려하게",
+      "priceKRW": 1100,
+      "rewards": {
+        "gems": 1000,
+        "scrolls": 10,
+        "gold": 100000,
+        "tickets": 1000
+      },
+      "icon": "crown",
+      "tier": "legend",
+      "limit": {
+        "per": "once",
+        "count": 1
+      },
+      "badges": [
+        "첫 결제"
+      ],
+      "value": "3000%",
+      "originalKRW": 33000
+    },
+    {
+      "id": "cash_daily_deal",
+      "category": "featured",
+      "name": "오늘의 특가 꾸러미",
+      "desc": "매일 자정에 다시 열려요",
+      "priceKRW": 1200,
+      "rewards": {
+        "gems": 120,
+        "gold": 20000,
+        "tickets": 200
+      },
+      "icon": "gift",
+      "tier": "rare",
+      "limit": {
+        "per": "day",
+        "count": 1
+      },
+      "badges": [
+        "매일"
+      ],
+      "value": "500%"
+    },
+    {
+      "id": "cash_weekly_deal",
+      "category": "featured",
+      "name": "떠돌이 행상인 주간 특가",
+      "desc": "이번 주에만 들르는 행상인의 보따리",
+      "priceKRW": 3300,
+      "rewards": {
+        "gems": 300,
+        "scrolls": 2,
+        "gold": 50000
+      },
+      "icon": "cart",
+      "tier": "rare",
+      "limit": {
+        "per": "week",
+        "count": 1
+      },
+      "badges": [
+        "주간"
+      ],
+      "value": "700%"
+    },
+    {
+      "id": "cash_starter",
+      "category": "package",
+      "name": "모험가 입문 패키지",
+      "desc": "동료 모집과 성장을 한 번에 시작",
+      "priceKRW": 5500,
+      "rewards": {
+        "gems": 600,
+        "scrolls": 5,
+        "gold": 80000,
+        "tickets": 1500
+      },
+      "icon": "chest",
+      "tier": "rare",
+      "limit": {
+        "per": "once",
+        "count": 1
+      },
+      "badges": [
+        "추천"
+      ],
+      "value": "1000%"
+    },
+    {
+      "id": "cash_merc_supply",
+      "category": "package",
+      "name": "용병단 보급 상자",
+      "desc": "용병단 한 달 치 보급품",
+      "priceKRW": 33000,
+      "rewards": {
+        "gems": 3000,
+        "scrolls": 20,
+        "gold": 300000,
+        "tickets": 5000
+      },
+      "icon": "chest",
+      "tier": "legend",
+      "limit": {
+        "per": "month",
+        "count": 3
+      },
+      "badges": [
+        "BEST"
+      ],
+      "value": "800%"
+    },
+    {
+      "id": "cash_truck_wagon",
+      "category": "package",
+      "name": "황금 마차 트럭",
+      "desc": "보석과 증서를 마차 한가득 실어 왔어요",
+      "priceKRW": 330000,
+      "rewards": {
+        "gems": 33000,
+        "scrolls": 150,
+        "gold": 5000000,
+        "tickets": 50000
+      },
+      "icon": "cart",
+      "tier": "truck",
+      "limit": {
+        "per": "month",
+        "count": 1
+      },
+      "badges": [
+        "TRUCK",
+        "월 1회"
+      ],
+      "value": "1200%",
+      "originalKRW": 3960000
+    },
+    {
+      "id": "cash_truck_royal",
+      "category": "package",
+      "name": "왕실 보물 행렬 트럭",
+      "desc": "왕실 금고를 통째로 옮기는 행렬",
+      "priceKRW": 1100000,
+      "rewards": {
+        "gems": 120000,
+        "scrolls": 500,
+        "gold": 20000000,
+        "tickets": 200000
+      },
+      "icon": "crown",
+      "tier": "truck",
+      "limit": {
+        "per": "month",
+        "count": 1
+      },
+      "badges": [
+        "초대형",
+        "월 1회"
+      ],
+      "value": "1500%",
+      "originalKRW": 16500000
+    },
+    {
+      "id": "cash_growth_1",
+      "category": "growth",
+      "name": "성장 지원 I",
+      "desc": "첫 전투를 이겨 낸 모험가에게",
+      "priceKRW": 3300,
+      "rewards": {
+        "gems": 500,
+        "gold": 100000,
+        "tickets": 3000
+      },
+      "icon": "sprout",
+      "tier": "normal",
+      "limit": {
+        "per": "once",
+        "count": 1
+      },
+      "requires": {
+        "stagesCleared": 1
+      },
+      "value": "900%"
+    },
+    {
+      "id": "cash_growth_2",
+      "category": "growth",
+      "name": "성장 지원 II",
+      "desc": "뒷골목에서 이름이 알려지기 시작했다면",
+      "priceKRW": 11000,
+      "rewards": {
+        "gems": 1500,
+        "scrolls": 5,
+        "gold": 300000,
+        "tickets": 8000
+      },
+      "icon": "sprout",
+      "tier": "rare",
+      "limit": {
+        "per": "once",
+        "count": 1
+      },
+      "requires": {
+        "stagesCleared": 4
+      },
+      "value": "1000%"
+    },
+    {
+      "id": "cash_growth_3",
+      "category": "growth",
+      "name": "성장 지원 III",
+      "desc": "전장을 휩쓰는 용병단장을 위한 지원",
+      "priceKRW": 33000,
+      "rewards": {
+        "gems": 4000,
+        "scrolls": 15,
+        "gold": 1000000,
+        "tickets": 20000
+      },
+      "icon": "sprout",
+      "tier": "legend",
+      "limit": {
+        "per": "once",
+        "count": 1
+      },
+      "requires": {
+        "stagesCleared": 7
+      },
+      "value": "1200%"
+    },
+    {
+      "id": "cash_gems_60",
+      "category": "gems",
+      "name": "보석 60개",
+      "desc": "",
+      "priceKRW": 1200,
+      "rewards": {
+        "gems": 60
+      },
+      "icon": "gem",
+      "tier": "normal",
+      "firstBonus": {
+        "gems": 60
+      }
+    },
+    {
+      "id": "cash_gems_330",
+      "category": "gems",
+      "name": "보석 330개",
+      "desc": "",
+      "priceKRW": 6000,
+      "rewards": {
+        "gems": 330
+      },
+      "icon": "gem",
+      "tier": "normal",
+      "firstBonus": {
+        "gems": 330
+      }
+    },
+    {
+      "id": "cash_gems_680",
+      "category": "gems",
+      "name": "보석 680개",
+      "desc": "",
+      "priceKRW": 12000,
+      "rewards": {
+        "gems": 680
+      },
+      "icon": "gem",
+      "tier": "rare",
+      "firstBonus": {
+        "gems": 680
+      }
+    },
+    {
+      "id": "cash_gems_1980",
+      "category": "gems",
+      "name": "보석 1,980개",
+      "desc": "",
+      "priceKRW": 33000,
+      "rewards": {
+        "gems": 1980
+      },
+      "icon": "gem",
+      "tier": "rare",
+      "firstBonus": {
+        "gems": 1980
+      },
+      "badges": [
+        "BEST"
+      ]
+    },
+    {
+      "id": "cash_gems_3280",
+      "category": "gems",
+      "name": "보석 3,280개",
+      "desc": "",
+      "priceKRW": 65000,
+      "rewards": {
+        "gems": 3280
+      },
+      "icon": "gem",
+      "tier": "legend",
+      "firstBonus": {
+        "gems": 3280
+      }
+    },
+    {
+      "id": "cash_gems_6480",
+      "category": "gems",
+      "name": "보석 6,480개",
+      "desc": "",
+      "priceKRW": 119000,
+      "rewards": {
+        "gems": 6480
+      },
+      "icon": "gem",
+      "tier": "legend",
+      "firstBonus": {
+        "gems": 6480
+      },
+      "badges": [
+        "최고 효율"
+      ]
+    },
+    {
+      "id": "cash_monthly_blessing",
+      "category": "pass",
+      "name": "월간 축복",
+      "desc": "즉시 보석 300 + 30일 동안 매일 보석 100 (접속하면 자동으로 받아요)",
+      "priceKRW": 5900,
+      "rewards": {
+        "gems": 300
+      },
+      "icon": "moon",
+      "tier": "legend",
+      "badges": [
+        "가성비"
+      ],
+      "value": "1000%",
+      "pass": {
+        "days": 30,
+        "dailyGems": 100,
+        "maxDays": 180
+      }
+    }
+  ],
+  "vip": [
+    10000,
+    30000,
+    50000,
+    100000,
+    300000,
+    500000,
+    1000000,
+    2000000,
+    5000000,
+    10000000
+  ]
+}

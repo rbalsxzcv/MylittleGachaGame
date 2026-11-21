@@ -15,6 +15,8 @@ export function usePreviewSaveKey() {
 }
 export const SAVE_VERSION = 2;
 export const START_GEMS = 1000;
+// 첫 시작 골드. 골드가 생기기 전 세이브에도 한 번 지급 (레벨업에 골드가 필요해졌으므로)
+export const START_GOLD = 20000;
 const CODE_PREFIX = 'TG2:';
 const V1_CODE_PREFIX = 'TG1:';
 const MAX_GEMS = 999_999_999;
@@ -69,6 +71,8 @@ export function createNewSave(t = now()) {
     seenContentVersion: 0, // 마지막으로 확인한 업데이트 버전
     stats: { pulls: 0 },
     tickets: 0,
+    gold: START_GOLD,
+    scrolls: 0, // 모집 증서 (1장 = 뽑기 1회)
     teams: defaultTeams(),
     stages: {}, // 스테이지 id → { clears, firstClaimed, bestRounds }
   };
@@ -205,6 +209,8 @@ export function sanitize(raw) {
     seenContentVersion: int(raw.seenContentVersion, 0, 1_000_000, 0),
     stats: { pulls: int(raw.stats?.pulls, 0, Number.MAX_SAFE_INTEGER, 0) },
     tickets: int(raw.tickets, 0, MAX_GEMS, 0),
+    gold: raw.gold === undefined ? START_GOLD : int(raw.gold, 0, MAX_GEMS, 0),
+    scrolls: int(raw.scrolls, 0, 99_999, 0),
     teams: cleanTeams(raw.teams),
     stages: cleanStages(raw.stages),
   };

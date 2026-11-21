@@ -28,6 +28,45 @@ export function kstDateKey(date = now()) {
   return toKstShifted(date).toISOString().slice(0, 10);
 }
 
+/** KST 기준 주 키: 그 주 월요일의 "YYYY-MM-DD" (주간 초기화 판정용) */
+export function kstWeekKey(date = now()) {
+  const k = toKstShifted(date);
+  const back = (k.getUTCDay() + 6) % 7; // 월요일 = 0
+  return new Date(k.getTime() - back * 86400000).toISOString().slice(0, 10);
+}
+
+/** KST 기준 월 키 "YYYY-MM" (월간 초기화 판정용) */
+export function kstMonthKey(date = now()) {
+  return toKstShifted(date).toISOString().slice(0, 7);
+}
+
+/** "YYYY-MM-DD"에 n일 더한 날짜 키 */
+export function addDaysKey(key, n) {
+  const d = new Date(`${key}T00:00:00Z`);
+  return new Date(d.getTime() + n * 86400000).toISOString().slice(0, 10);
+}
+
+/** 두 날짜 키 사이의 일수 (b − a) */
+export function daysBetweenKeys(a, b) {
+  return Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86400000);
+}
+
+/**
+ * 다음 초기화 시각 (KST 자정 기준)
+ * @param {'day'|'week'|'month'} per
+ * @returns {Date|null}
+ */
+export function nextResetAt(per, date = now()) {
+  const k = toKstShifted(date);
+  const midnight = Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate());
+  let next;
+  if (per === 'day') next = midnight + 86400000;
+  else if (per === 'week') next = midnight + (7 - ((k.getUTCDay() + 6) % 7)) * 86400000;
+  else if (per === 'month') next = Date.UTC(k.getUTCFullYear(), k.getUTCMonth() + 1, 1);
+  else return null;
+  return new Date(next - KST_OFFSET_MS);
+}
+
 /** ISO 문자열 → Date. 잘못된 값이면 null */
 export function parseDate(value) {
   if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;

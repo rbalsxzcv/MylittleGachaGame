@@ -1,18 +1,17 @@
 // 우편함 / 공지 / 업데이트 내역 화면과 시작 팝업
-import { h, gemIcon, ticketIcon } from './dom.js';
+import { h, currencyIcon } from './dom.js';
 import { openModal } from './modal.js';
 import { toast } from './toast.js';
 import { countdownEl, startCountdowns } from './countdown.js';
 import { activeMail, isClaimed, claimMail, visibleNotices, popupNotices, unseenPatchNotes } from '../systems/inbox.js';
-import { formatGems } from '../systems/economy.js';
+import { formatGems, rewardEntries, sumRewards } from '../systems/economy.js';
 import { formatKST } from '../core/time.js';
 
-/** '보석 500개 · 티켓 100장' */
+/** '보석 500개 · 골드 5,000 · 티켓 100장' */
 function rewardText(r) {
-  const parts = [];
-  if (r.gems) parts.push(`보석 ${formatGems(r.gems)}개`);
-  if (r.tickets) parts.push(`티켓 ${formatGems(r.tickets)}장`);
-  return parts.join(' · ');
+  return rewardEntries(r)
+    .map((e) => `${e.label} ${formatGems(e.amount)}${e.unit}`)
+    .join(' · ');
 }
 
 // ─────────────────────────────────────────────────────────
@@ -43,8 +42,7 @@ export function mailScreen(ctx) {
                 m.body && h('div', { class: 'mail-body' }, m.body),
                 h('div', { class: 'mail-meta' }, countdownEl(m.endAt)),
               ),
-              m.rewards.gems > 0 && h('div', { class: 'mail-reward' }, gemIcon(), formatGems(m.rewards.gems)),
-              m.rewards.tickets > 0 && h('div', { class: 'mail-reward' }, ticketIcon(), formatGems(m.rewards.tickets)),
+              rewardEntries(m.rewards).map((e) => h('div', { class: 'mail-reward' }, currencyIcon(e.key), formatGems(e.amount))),
               h(
                 'button',
                 { class: ['btn', !claimed && 'btn-primary'], type: 'button', disabled: claimed, onclick: () => claimOne(m) },
@@ -66,13 +64,12 @@ export function mailScreen(ctx) {
       }
 
       function claimAll() {
-        const total = { gems: 0, tickets: 0 };
+        let total = {};
         let n = 0;
         for (const m of activeMail(ctx.data.mail)) {
           const got = claimMail(ctx.save, m);
           if (!got) continue;
-          total.gems += got.gems;
-          total.tickets += got.tickets;
+          total = sumRewards(total, got);
           n++;
         }
         if (n) {

@@ -1,4 +1,4 @@
-// 육성: 레벨(티켓), 정수, 돌파, 능력치, 전투력
+// 육성: 레벨(티켓 + 골드), 정수, 돌파, 능력치, 전투력
 // 공식의 숫자는 모두 data/balance.json에서 옵니다 (없으면 DEFAULT_BALANCE).
 // 화면과 분리된 순수 함수 — 전투 엔진과 개발 도구 시뮬레이터도 같이 씁니다.
 
@@ -9,6 +9,7 @@ export const RARITY_STARS = { SSR: 5, SR: 4, R: 3 };
 export const DEFAULT_BALANCE = {
   growth: 0.08,
   levelCost: { base: 10, exp: 1.25 },
+  levelGoldPerTicket: 10, // 레벨업 골드 = 티켓 비용 × 이 값
   crit: { rate: 0.05, dmg: 0.5 },
   rarityStats: {
     R: { atk: 100, def: 40, hp: 900 },
@@ -19,6 +20,7 @@ export const DEFAULT_BALANCE = {
   essenceTickets: { SSR: 200, SR: 80, R: 30 },
   maxBreakthrough: 5,
   dailyTickets: 30,
+  dailyGold: 3000,
   power: { atk: 2, def: 1.5, hp: 0.2, critRate: 300, critDmg: 100 },
   powerWarnPct: 25,
   maxRounds: 200,
@@ -51,12 +53,14 @@ export function validateBalance(json, vocab, warn = console.warn) {
   const out = {
     growth: num(j.growth, d.growth, 0, 10),
     levelCost: { base: num(j.levelCost?.base, d.levelCost.base, 0, 1e6), exp: num(j.levelCost?.exp, d.levelCost.exp, 0, 5) },
+    levelGoldPerTicket: num(j.levelGoldPerTicket, d.levelGoldPerTicket, 0, 1e4),
     crit: { rate: num(j.crit?.rate, d.crit.rate, 0, 1), dmg: num(j.crit?.dmg, d.crit.dmg, 0, 10) },
     rarityStats,
     energy: intRec(j.energy, d.energy, 0, 1000),
     essenceTickets: intRec(j.essenceTickets, d.essenceTickets, 0, 1e6),
     maxBreakthrough: Math.round(num(j.maxBreakthrough, d.maxBreakthrough, 0, 5)),
     dailyTickets: Math.round(num(j.dailyTickets, d.dailyTickets, 0, 1e6)),
+    dailyGold: Math.round(num(j.dailyGold, d.dailyGold, 0, 1e8)),
     power,
     powerWarnPct: num(j.powerWarnPct, d.powerWarnPct, 0, 1000),
     maxRounds: Math.round(num(j.maxRounds, d.maxRounds, 10, 1000)),
@@ -147,27 +151,35 @@ export function costFor(lv, n, balance) {
   return sum;
 }
 
-/** 가진 티켓으로 최대 몇 레벨까지 올릴 수 있는지 → {n, cost} */
-export function maxAffordable(lv, tickets, balance, cap = 100000) {
+/** lv에서 n번 레벨업하는 총 골드 = 티켓 비용 × levelGoldPerTicket */
+export function goldCostFor(lv, n, balance) {
+  return Math.ceil(costFor(lv, n, balance) * balance.levelGoldPerTicket);
+}
+
+/** 가진 티켓(과 골드)으로 최대 몇 레벨까지 올릴 수 있는지 → {n, cost, gold} */
+export function maxAffordable(lv, tickets, balance, cap = 100000, gold = Infinity) {
+  const k = balance.levelGoldPerTicket;
   let n = 0;
   let cost = 0;
   while (n < cap) {
     const c = levelCost(lv + n, balance);
-    if (cost + c > tickets) break;
+    if (cost + c > tickets || Math.ceil((cost + c) * k) > gold) break;
     cost += c;
     n += 1;
   }
-  return { n, cost };
+  return { n, cost, gold: Math.ceil(cost * k) };
 }
 
 // ── 세이브 조작 ──────────────────────────────────────────
-/** 레벨업. 티켓이 모자라면 false (아무것도 안 바뀜) */
+/** 레벨업. 티켓이나 골드가 모자라면 false (아무것도 안 바뀜) */
 export function levelUp(save, id, n, balance) {
   const entry = save.owned[id];
   if (!entry || n < 1) return false;
   const cost = costFor(entry.level, n, balance);
-  if (save.tickets < cost) return false;
+  const gold = goldCostFor(entry.level, n, balance);
+  if (save.tickets < cost || (save.gold || 0) < gold) return false;
   save.tickets -= cost;
+  save.gold -= gold;
   entry.level += n;
   return true;
 }

@@ -7,6 +7,7 @@ import { charArt } from './charCard.js';
 import { createBattle } from '../battle/engine.js';
 import { eventText } from '../battle/log.js';
 import { randomSeed } from '../core/rng.js';
+import { rewardText as rewardLine } from '../systems/economy.js';
 
 const AUTO_MS = 400;
 const MAX_LOG = 400;
@@ -14,12 +15,6 @@ const ACTION_LABEL = { basic: '기본 공격', skill: '스킬', ultimate: '궁�
 const ACTION_KEYS = { Digit1: 'basic', Digit2: 'skill', Digit3: 'ultimate', Numpad1: 'basic', Numpad2: 'skill', Numpad3: 'ultimate' };
 const STAT_SHORT = { atk: '공격', def: '방어', critRate: '치확', critDmg: '치피', dmgDealt: '주피', dmgTaken: '받피' };
 const num = (n) => Number(n).toLocaleString('ko-KR');
-
-/** '보석 50 · 티켓 100' */
-function rewardLine(r) {
-  if (!r) return '';
-  return [r.gems && `보석 ${num(r.gems)}`, r.tickets && `티켓 ${num(r.tickets)}`].filter(Boolean).join(' · ');
-}
 
 function enemyArt(u) {
   const fb = () => h('div', { class: 'enemy-fallback' }, h('span', {}, u.name.slice(0, 2)));

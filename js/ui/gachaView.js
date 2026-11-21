@@ -1,5 +1,5 @@
 // 뽑기 화면(배너) + 배너 상세 + 결과 연출(카드 뒤집기)
-import { h, gemIcon } from './dom.js';
+import { h, gemIcon, scrollIcon } from './dom.js';
 import { go, back } from './router.js';
 import { toast } from './toast.js';
 import { openModal } from './modal.js';
@@ -8,7 +8,7 @@ import { bannerVisual } from './home.js';
 import { countdownEl, startCountdowns } from './countdown.js';
 import { buildPools, isPoolEmpty, pullMany, rateTable, pityKeyOf, COST, PITY_LIMIT, RATES } from '../systems/gacha.js';
 import { isBannerActive } from '../systems/banners.js';
-import { canAfford, spendGems, formatGems } from '../systems/economy.js';
+import { canAfford, spendGems, spendScrolls, formatGems } from '../systems/economy.js';
 import { addCharacter } from '../systems/collection.js';
 import { formatPeriod, now } from '../core/time.js';
 
@@ -18,8 +18,18 @@ function findBanner(ctx, bannerId) {
   return list.find((b) => b.id === bannerId) || list[0];
 }
 
+/** 모집 증서가 count장 이상이면 증서로, 아니면 보석으로 */
+const usesScrolls = (save, count) => (save.scrolls || 0) >= count;
+
+/** 뽑기 버튼의 비용 표시 (증서 or 보석) */
+function pullCostEl(ctx, count) {
+  return usesScrolls(ctx.save, count)
+    ? h('span', { class: 'pull-cost is-scroll' }, scrollIcon(), `증서 ${count}`)
+    : h('span', { class: 'pull-cost' }, gemIcon(), formatGems(COST[count]));
+}
+
 /**
- * 실제 뽑기 처리: 보석 확인 → 결과 계산 → 도감 반영 → 즉시 저장
+ * 실제 뽑기 처리: 증서/보석 확인 → 결과 계산 → 도감 반영 → 즉시 저장
  * 보석이 부족하거나 배너가 끝났거나 캐릭터가 없으면 아무것도 바꾸지 않고 null 반환
  */
 export function executePull(ctx, banner, count) {
@@ -33,14 +43,16 @@ export function executePull(ctx, banner, count) {
     return null;
   }
   const cost = COST[count];
-  if (!canAfford(ctx.save, cost)) {
+  const scroll = usesScrolls(ctx.save, count);
+  if (!scroll && !canAfford(ctx.save, cost)) {
     toast(`보석이 부족해요 (필요 ${formatGems(cost)} / 보유 ${formatGems(ctx.save.gems)})`, { type: 'error' });
     return null;
   }
 
   const key = pityKeyOf(banner);
   const out = pullMany({ pools, count, pity: ctx.save.pity[key] ?? 0, guaranteed: !!ctx.save.guaranteed[key] });
-  spendGems(ctx.save, cost);
+  if (scroll) spendScrolls(ctx.save, count);
+  else spendGems(ctx.save, cost);
   ctx.save.pity[key] = out.pity;
   ctx.save.guaranteed[key] = out.guaranteed;
   ctx.save.stats.pulls += count;
@@ -141,7 +153,7 @@ export function gachaScreen(ctx) {
           'button',
           { class: ['pull-btn', count === 10 && 'pull-ten'], type: 'button', disabled: empty, onclick: () => pull(count) },
           h('span', { class: 'pull-label' }, `${count}회 뽑기`),
-          h('span', { class: 'pull-cost' }, gemIcon(), formatGems(COST[count])),
+          pullCostEl(ctx, count),
           h('kbd', { class: 'key-hint' }, count === 10 ? '0' : '1'),
         );
 
@@ -207,6 +219,12 @@ export function gachaScreen(ctx) {
               h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => go('stories', { kind: relatedStory.kind, focus: relatedStory.id }) }, '관련 스토리'),
           ),
           empty && h('p', { class: 'gacha-empty' }, '캐릭터 데이터가 없어요'),
+          h(
+            'div',
+            { class: 'scroll-count muted small', title: '모집 증서 1장 = 뽑기 1회. 있으면 보석보다 먼저 써요' },
+            scrollIcon(),
+            `모집 증서 ${formatGems(ctx.save.scrolls || 0)}장`,
+          ),
           h('div', { class: 'pull-buttons' }, pullButton(1), pullButton(10)),
         ),
       );
@@ -295,7 +313,7 @@ export function revealScreen(ctx) {
           },
         },
         `한 번 더 ${count}회 `,
-        h('span', { class: 'pull-cost' }, gemIcon(), formatGems(COST[count])),
+        pullCostEl(ctx, count),
       );
       const okBtn = h('button', { class: 'btn btn-primary', type: 'button', onclick: () => back() }, '확인');
       const doneActions = h('div', { class: 'reveal-actions', hidden: true }, againBtn, okBtn);

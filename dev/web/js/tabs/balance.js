@@ -173,7 +173,7 @@ export function balanceTab(root, { select } = {}) {
         h('label', { class: 'bf-param' }, h('span', {}, label), h('input', { type: 'number', class: 'num-input', step, value: obj[key], oninput: (e) => (obj[key] = Number(e.target.value)) }));
       const issues = h('div');
       box.append(
-        h('div', { class: 'row wrap' }, field(work, 'growth', '레벨당 성장률', 0.01), field(work.levelCost, 'base', '레벨업 비용 base'), field(work.levelCost, 'exp', '비용 지수 exp', 0.05), field(work, 'dailyTickets', '출석 티켓'), field(work, 'maxRounds', '최대 라운드'), field(work, 'powerWarnPct', '전투력 경고 %')),
+        h('div', { class: 'row wrap' }, field(work, 'growth', '레벨당 성장률', 0.01), field(work.levelCost, 'base', '레벨업 비용 base'), field(work.levelCost, 'exp', '비용 지수 exp', 0.05), field(work, 'dailyTickets', '출석 티켓'), field(work, 'dailyGold', '출석 골드'), field(work, 'levelGoldPerTicket', '레벨업 골드 (티켓당)'), field(work, 'maxRounds', '최대 라운드'), field(work, 'powerWarnPct', '전투력 경고 %')),
         h('p', { class: 'muted small' }, `능력치 = 기본 × (1 + 성장률 × (레벨 − 1)) · 레벨업 비용 = ceil(base × lv^exp) → lv1: ${Math.ceil(work.levelCost.base)}, lv10: ${Math.ceil(work.levelCost.base * 10 ** work.levelCost.exp)}`),
         h('h3', {}, '희귀도 기본 능력치 (Lv.1)'),
         ...['SSR', 'SR', 'R'].map((r) => h('div', { class: 'row wrap' }, h('b', { class: 'rar-label' }, r), field(work.rarityStats[r], 'atk', '공격'), field(work.rarityStats[r], 'def', '방어'), field(work.rarityStats[r], 'hp', 'HP'))),

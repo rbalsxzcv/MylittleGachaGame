@@ -1,5 +1,5 @@
 // 육성 화면: 보유 캐릭터 목록(전투력/레벨/희귀도 정렬) → 상세 (레벨업 / 스킬 / 돌파)
-import { h, ticketIcon } from './dom.js';
+import { h, ticketIcon, goldIcon } from './dom.js';
 import { toast } from './toast.js';
 import { go } from './router.js';
 import { charArt, rarityBadge, starRow } from './charCard.js';
@@ -8,6 +8,7 @@ import {
   statsOf,
   powerOf,
   costFor,
+  goldCostFor,
   maxAffordable,
   levelUp,
   doBreakthrough,
@@ -153,11 +154,15 @@ export function growthScreen(ctx) {
       }
 
       function levelTab(c, e, stats) {
-        const max = maxAffordable(e.level, ctx.save.tickets, balance);
+        const gold = ctx.save.gold || 0;
+        const max = maxAffordable(e.level, ctx.save.tickets, balance, 100000, gold);
         const n = mode === '10' ? 10 : mode === 'max' ? Math.max(1, max.n) : 1;
         const cost = costFor(e.level, n, balance);
+        const goldCost = goldCostFor(e.level, n, balance);
         const after = statsOf(c, e.level + n, e.breakthrough, balance);
-        const can = ctx.save.tickets >= cost;
+        const okTickets = ctx.save.tickets >= cost;
+        const okGold = gold >= goldCost;
+        const can = okTickets && okGold;
         const pick = (v) => {
           mode = v;
           renderDetail();
@@ -182,7 +187,8 @@ export function growthScreen(ctx) {
               h('button', { class: ['btn', mode === '10' && 'btn-selected'], type: 'button', onclick: () => pick('10') }, '+10'),
               h('button', { class: ['btn', mode === 'max' && 'btn-selected'], type: 'button', disabled: max.n < 1, onclick: () => pick('max') }, `MAX (+${max.n})`),
             ),
-            h('div', { class: 'grow-cost' }, h('span', { class: 'muted' }, '필요 티켓'), h('b', { class: can ? '' : 'bad' }, ticketIcon(), formatGems(cost)), h('span', { class: 'muted small' }, `보유 ${formatGems(ctx.save.tickets)}`)),
+            h('div', { class: 'grow-cost' }, h('span', { class: 'muted' }, '필요 티켓'), h('b', { class: okTickets ? '' : 'bad' }, ticketIcon(), formatGems(cost)), h('span', { class: 'muted small' }, `보유 ${formatGems(ctx.save.tickets)}`)),
+            goldCost > 0 && h('div', { class: 'grow-cost' }, h('span', { class: 'muted' }, '필요 골드'), h('b', { class: okGold ? '' : 'bad' }, goldIcon(), formatGems(goldCost)), h('span', { class: 'muted small' }, `보유 ${formatGems(gold)}`)),
             h(
               'button',
               {
@@ -190,7 +196,7 @@ export function growthScreen(ctx) {
                 type: 'button',
                 disabled: !can,
                 onclick: () => {
-                  if (!levelUp(ctx.save, c.id, n, balance)) return toast('티켓이 부족해요', { type: 'error' });
+                  if (!levelUp(ctx.save, c.id, n, balance)) return toast(okTickets ? '골드가 부족해요' : '티켓이 부족해요', { type: 'error' });
                   ctx.commit();
                   toast(`${c.name} Lv.${e.level}!`, { type: 'success' });
                   mode = '1';
@@ -200,7 +206,14 @@ export function growthScreen(ctx) {
               },
               `레벨업 (Lv.${e.level} → ${e.level + n})`,
             ),
-            !can && h('p', { class: 'muted small' }, '티켓은 스토리 전투, 매일 출석, 우편에서 받아요'),
+            !can &&
+              h(
+                'p',
+                { class: 'muted small' },
+                '티켓 · 골드는 스토리 전투, 매일 출석, 우편, ',
+                h('button', { class: 'link-btn', type: 'button', onclick: () => go('shop') }, '상점'),
+                '에서 얻어요',
+              ),
           ),
           statTable,
         );

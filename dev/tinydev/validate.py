@@ -147,7 +147,7 @@ def validate(content, asset_exists, held=None):
             r.error(where, f"turnLimit은 비우거나 1~999 정수여야 해요: {tl!r}")
         for key in ("rewards", "firstClearRewards"):
             for cur, v in (st.get(key) or {}).items():
-                if cur not in ("tickets", "gems"):
+                if cur not in ("tickets", "gems", "gold", "scrolls"):
                     r.warn(where, f"{key}에 모르는 보상 '{cur}' (무시됨)")
                 elif not isinstance(v, int) or v < 0:
                     r.error(where, f"{key}.{cur}는 0 이상의 정수여야 해요")
@@ -345,7 +345,7 @@ def validate(content, asset_exists, held=None):
         where = f"mail/{m['id']}"
         if not str(m.get("title") or "").strip():
             r.error(where, "제목이 비어 있어요")
-        for cur in ("gems", "tickets"):
+        for cur in ("gems", "tickets", "gold", "scrolls"):
             v = (m.get("rewards") or {}).get(cur, 0)
             if not isinstance(v, int) or v < 0:
                 r.error(where, f"rewards.{cur}는 0 이상의 정수여야 해요")
@@ -366,7 +366,7 @@ def validate(content, asset_exists, held=None):
         if not isinstance(bal, dict):
             r.error("balance", "객체 형식이어야 해요")
         else:
-            for key in ("growth", "maxBreakthrough", "dailyTickets", "powerWarnPct"):
+            for key in ("growth", "maxBreakthrough", "dailyTickets", "dailyGold", "levelGoldPerTicket", "powerWarnPct"):
                 if key in bal and not kit._is_num(bal[key]):
                     r.error("balance", f"{key}는 숫자여야 해요")
             for group in ("levelCost", "crit", "energy", "essenceTickets", "power"):

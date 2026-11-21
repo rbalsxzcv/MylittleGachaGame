@@ -11,6 +11,7 @@ import { hasUnreadUnlocked } from '../systems/stories.js';
 import { canBreakthrough } from '../systems/progression.js';
 import { RATES, PITY_LIMIT } from '../systems/gacha.js';
 import { iconOr } from './theme.js';
+import { hasFreeItem } from '../systems/shop.js';
 
 // 메뉴 정의 — 새 기능(미션, 출석, 상점 등)은 여기에 한 줄 추가하면 됩니다.
 // key: 키보드 단축키 표시용 (실제 처리는 main.js), dot: 빨간 점 표시 조건, soon: 준비 중(누를 수 없음)
@@ -21,6 +22,7 @@ const MENU = [
   { id: 'growth', label: '육성', icon: '▲', key: 'U', screen: 'growth', dot: (ctx) => canGrowAny(ctx) },
   { id: 'team', label: '편성', icon: '⚑', key: 'P', screen: 'team' },
   { id: 'collection', label: '도감', icon: '❖', key: 'C', screen: 'collection', dot: (ctx) => hasUnseenNew(ctx.save, ctx.data.charMap) },
+  { id: 'shop', label: '상점', icon: '⚖', key: 'S', screen: 'shop', shop: true, dot: (ctx) => hasFreeItem(ctx.save, ctx.data.shop) },
   { id: 'event', label: '이벤트', icon: '★', soon: true },
 ];
 
@@ -86,7 +88,7 @@ export function homeScreen(ctx) {
           h(
             'button',
             {
-              class: ['menu-btn', m.primary && 'menu-primary', m.soon && 'menu-soon'],
+              class: ['menu-btn', m.primary && 'menu-primary', m.shop && 'menu-shop', m.soon && 'menu-soon'],
               type: 'button',
               dataset: { menu: m.id },
               disabled: m.soon,

@@ -32,11 +32,13 @@
     "turnLimit": 20,
     "rewards": {
       "tickets": 55,
-      "gems": 0
+      "gems": 0,
+      "gold": 550
     },
     "firstClearRewards": {
       "tickets": 190,
-      "gems": 50
+      "gems": 50,
+      "gold": 1900
     }
   },
   {
@@ -72,11 +74,13 @@
     "turnLimit": 20,
     "rewards": {
       "tickets": 65,
-      "gems": 0
+      "gems": 0,
+      "gold": 650
     },
     "firstClearRewards": {
       "tickets": 210,
-      "gems": 50
+      "gems": 50,
+      "gold": 2100
     }
   },
   {
@@ -112,11 +116,13 @@
     "turnLimit": 20,
     "rewards": {
       "tickets": 75,
-      "gems": 0
+      "gems": 0,
+      "gold": 750
     },
     "firstClearRewards": {
       "tickets": 230,
-      "gems": 50
+      "gems": 50,
+      "gold": 2300
     }
   },
   {
@@ -156,11 +162,13 @@
     "turnLimit": 20,
     "rewards": {
       "tickets": 80,
-      "gems": 0
+      "gems": 0,
+      "gold": 800
     },
     "firstClearRewards": {
       "tickets": 240,
-      "gems": 50
+      "gems": 50,
+      "gold": 2400
     }
   },
   {
@@ -196,11 +204,13 @@
     "turnLimit": 20,
     "rewards": {
       "tickets": 85,
-      "gems": 0
+      "gems": 0,
+      "gold": 850
     },
     "firstClearRewards": {
       "tickets": 250,
-      "gems": 50
+      "gems": 50,
+      "gold": 2500
     }
   },
   {
@@ -236,11 +246,13 @@
     "turnLimit": 20,
     "rewards": {
       "tickets": 90,
-      "gems": 0
+      "gems": 0,
+      "gold": 900
     },
     "firstClearRewards": {
       "tickets": 260,
-      "gems": 50
+      "gems": 50,
+      "gold": 2600
     }
   },
   {
@@ -262,11 +274,13 @@
     "turnLimit": 25,
     "rewards": {
       "tickets": 95,
-      "gems": 0
+      "gems": 0,
+      "gold": 950
     },
     "firstClearRewards": {
       "tickets": 270,
-      "gems": 100
+      "gems": 100,
+      "gold": 2700
     }
   }
 ]

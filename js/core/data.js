@@ -127,8 +127,14 @@ export function validateEnemies(json, vocab) {
 }
 
 // ── stages.json ───────────────────────────────────────────
-function cleanRewards(r) {
-  return { tickets: int(r?.tickets, 0, 1_000_000, 0), gems: int(r?.gems, 0, 1_000_000, 0) };
+/** 보상 묶음 {tickets, gems, gold, scrolls} (스테이지 / 우편 / 상점이 같이 씀) */
+export function cleanRewards(r, max = 1_000_000) {
+  return {
+    tickets: int(r?.tickets, 0, max, 0),
+    gems: int(r?.gems, 0, max, 0),
+    gold: int(r?.gold, 0, max * 100, 0),
+    scrolls: int(r?.scrolls, 0, 10_000, 0),
+  };
 }
 
 export function validateStages(json) {
@@ -304,6 +310,65 @@ export function validateVersion(json) {
   };
 }
 
+// ── shop.json (골드 상점 / 가상 캐시 상점) ───────────────
+export const SHOP_LIMIT_PERS = ['day', 'week', 'month', 'once'];
+export const SHOP_CATEGORIES = ['featured', 'package', 'growth', 'gems', 'pass'];
+export const SHOP_TIERS = ['normal', 'rare', 'legend', 'truck'];
+export const SHOP_ICONS = ['gem', 'ticket', 'gold', 'scroll', 'gift', 'chest', 'cart', 'crown', 'moon', 'sprout'];
+
+function cleanLimit(l) {
+  if (!l || typeof l !== 'object' || !SHOP_LIMIT_PERS.includes(l.per)) return null;
+  return { per: l.per, count: int(l.count, 1, 9999, 1) };
+}
+function shopCommon(raw) {
+  const name = str(raw.name, '', 40).trim();
+  if (!name) throw new Error('name 없음');
+  return {
+    id: raw.id,
+    name,
+    desc: str(raw.desc, '', 200).trim(),
+    icon: SHOP_ICONS.includes(raw.icon) ? raw.icon : 'chest',
+    rewards: cleanRewards(raw.rewards, 1e7),
+    limit: cleanLimit(raw.limit),
+    badges: (Array.isArray(raw.badges) ? raw.badges : []).filter((b) => typeof b === 'string' && b.trim()).slice(0, 3).map((b) => b.trim().slice(0, 12)),
+    requires: raw.requires && typeof raw.requires === 'object' ? { stagesCleared: int(raw.requires.stagesCleared, 0, 9999, 0) } : null,
+  };
+}
+
+export function validateShop(json) {
+  if (!json || typeof json !== 'object' || Array.isArray(json)) throw new Error('객체가 아님');
+  const gold = cleanList(Array.isArray(json.gold) ? json.gold : [], 'shop.gold', (raw) => {
+    const cost = raw.cost && typeof raw.cost === 'object' ? raw.cost : {};
+    return {
+      ...shopCommon(raw),
+      cost: { gold: int(cost.gold, 0, 1e9, 0), gems: int(cost.gems, 0, 1e7, 0) },
+    };
+  });
+  const cash = cleanList(Array.isArray(json.cash) ? json.cash : [], 'shop.cash', (raw) => {
+    const priceKRW = int(raw.priceKRW, 100, 10_000_000, 0);
+    if (!priceKRW) throw new Error('priceKRW 없음');
+    const pass = raw.pass && typeof raw.pass === 'object'
+      ? { days: int(raw.pass.days, 1, 365, 30), dailyGems: int(raw.pass.dailyGems, 1, 100000, 100), maxDays: int(raw.pass.maxDays, 1, 3650, 180) }
+      : null;
+    return {
+      ...shopCommon(raw),
+      category: SHOP_CATEGORIES.includes(raw.category) ? raw.category : 'package',
+      tier: SHOP_TIERS.includes(raw.tier) ? raw.tier : 'normal',
+      priceKRW,
+      originalKRW: raw.originalKRW == null ? null : int(raw.originalKRW, 0, 100_000_000, null),
+      value: str(raw.value, '', 10).trim(),
+      firstBonus: raw.firstBonus ? cleanRewards(raw.firstBonus, 1e7) : null,
+      pass,
+    };
+  });
+  const vip = (Array.isArray(json.vip) ? json.vip : [])
+    .map((v) => int(v, 1, 1e10, 0))
+    .filter((v) => v > 0)
+    .sort((a, b) => a - b)
+    .slice(0, 20);
+  return { gold, cash, vip };
+}
+
 // ── ui.json (화면 배경 / 아이콘 에셋) ─────────────────────
 /** 키마다 'assets/...' 경로만 남김. 없는 칸은 CSS 기본 디자인 */
 export function validateUi(json) {
@@ -338,6 +403,7 @@ export async function loadGameData() {
     ['mail', 'data/mail.json', [], validateMail],
     ['version', 'data/version.json', { contentVersion: 0, patchNotes: [] }, validateVersion],
     ['ui', 'data/ui.json', { backgrounds: {}, icons: {} }, validateUi],
+    ['shop', 'data/shop.json', { gold: [], cash: [], vip: [] }, validateShop],
   ];
   const results = await Promise.all(files.map(([, path, fallback, validator]) => loadJson(path, fallback, validator)));
 
@@ -345,7 +411,8 @@ export async function loadGameData() {
   files.forEach(([key, path], i) => {
     const r = results[i];
     data[key] = r.data;
-    data.status.push({ file: path, ok: r.ok, error: r.error, count: Array.isArray(r.data) ? r.data.length : null });
+    const count = Array.isArray(r.data) ? r.data.length : key === 'shop' ? r.data.gold.length + r.data.cash.length : null;
+    data.status.push({ file: path, ok: r.ok, error: r.error, count });
   });
   return data;
 }

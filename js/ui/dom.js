@@ -61,3 +61,22 @@ export function gemIcon() {
   img.addEventListener('error', () => img.replaceWith(css), { once: true });
   return img;
 }
+
+/** 골드 아이콘 (CSS로 그린 동전) */
+export function goldIcon() {
+  return h('i', { class: 'gold-icon', 'aria-hidden': 'true' });
+}
+
+/** 모집 증서 아이콘 (CSS로 그린 두루마리) */
+export function scrollIcon() {
+  return h('i', { class: 'scroll-icon', 'aria-hidden': 'true' });
+}
+
+/** 재화 키 → 아이콘 (gems / tickets / gold / scrolls) */
+export function currencyIcon(key) {
+  if (key === 'gems') return gemIcon();
+  if (key === 'tickets') return ticketIcon();
+  if (key === 'gold') return goldIcon();
+  if (key === 'scrolls') return scrollIcon();
+  return null;
+}

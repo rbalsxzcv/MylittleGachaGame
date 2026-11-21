@@ -1,8 +1,8 @@
 # Tiny Gacha
 
 가로 화면용 작은 캐릭터 수집 가챠 게임이에요. 빌드 과정 없이 HTML/CSS/JS(ES 모듈)만으로 동작하고, GitHub Pages에 그대로 올릴 수 있어요.
-콘텐츠(캐릭터, 배너, 스토리, 공지, 우편)는 모두 `data/`의 JSON으로 관리해요. 콘텐츠만 바꿀 때는 게임 코드를 고칠 필요가 없어요.
-비상업 개인 프로젝트이며 결제나 수익화 요소는 없어요.
+콘텐츠(캐릭터, 배너, 스토리, 공지, 우편, 상점 상품)는 모두 `data/`의 JSON으로 관리해요. 콘텐츠만 바꿀 때는 게임 코드를 고칠 필요가 없어요.
+비상업 개인 프로젝트이며 실제 결제나 수익화 요소는 없어요. 캐시 상점의 원화 가격은 **가상 결제 연출**일 뿐이고, 돈은 나가지 않고 아이템만 들어와요.
 
 - **플레이어 게임**: 이 폴더 (`index.html`, `js/`, `data/`, `assets/`)
 - **개발 도구** (PC 전용. 그림 AI는 Vertex 또는 ComfyUI: 캐릭터·UI 에셋 생성과 검사, 배너/스토리 편집, 배포): [`dev/README.md`](dev/README.md)
@@ -33,6 +33,7 @@ python -m http.server 8000
 | `__tg.simulate(100000, 'pickup_starfest')` | 특정 배너 기준. 픽업 비율은 약 66%(50% + 확정)면 정상이에요 |
 | `__tg.addGems(10000)` | 테스트용 보석 추가 |
 | `__tg.addTickets(10000)` | 테스트용 티켓 추가 |
+| `__tg.addGold(1000000)` / `__tg.addScrolls(10)` | 테스트용 골드 / 모집 증서 추가 |
 | `__tg.sim('st_main_02_1', 200)` | 지금 편성으로 스테이지 자동 전투 200판 (세이브 영향 없음) |
 | `__tg.battleTest()` | 전투 엔진 자체 검사 (공식, 결정론, HP 범위) |
 | `__tg.replay()` | 마지막 전투의 시드와 행동 기록 (같은 시드 + 행동 = 같은 결과) |
@@ -45,7 +46,7 @@ python -m http.server 8000
 ## 조작
 | 키 | 동작 |
 |---|---|
-| G / T / U / P / C | 뽑기 / 스토리 / 육성 / 편성 / 도감 |
+| G / T / U / P / C / S | 뽑기 / 스토리 / 육성 / 편성 / 도감 / 상점 |
 | M / N / O | 우편 / 공지 / 설정 (위쪽 아이콘) |
 | F | 전체화면 |
 | Esc, Backspace | 뒤로 / 팝업 닫기 |
@@ -54,6 +55,7 @@ python -m http.server 8000
 | Space / A / L / S / 1~4 | (스토리) 다음 / 자동 / 대사 기록 / 건너뛰기 / 선택지 |
 | 1 / 2 / 3 / ← → | (육성) 레벨업 / 스킬 / 돌파 탭, ↑ ↓ 캐릭터 |
 | 1~5 | (편성) 칸 고르기 |
+| 1 / 2 / ↑ ↓ / ← → | (상점) 골드 / 캐시 탭, 캐시 분류, 상품 넘기기 |
 | 1 / 2 / 3 · A · R · Esc | (전투) 기본/스킬/궁극기 → 숫자로 대상 · AUTO · 즉시 결과 · 취소/나가기 |
 
 터치 기기에서는 모든 기능을 탭으로 쓸 수 있어요.
@@ -65,12 +67,27 @@ python -m http.server 8000
 - **픽업**: SSR이 나오면 50% 확률로 픽업 캐릭터예요. 놓치면 다음 SSR은 픽업 확정이에요.
 - 중복 캐릭터를 얻으면 **정수 +1**이에요. 정수 1개로 돌파 1단계(최대 5)를 열어요. 돌파 + 정수가 5가 된 뒤의 중복은 티켓으로 바뀌어요 (SSR 200 · SR 80 · R 30).
 - 카드의 별(★)은 돌파 단계예요. 희귀도는 SSR = 5★, SR = 4★, R = 3★로 봐요.
-- 첫 시작에 보석 1,000개를 받아요. 매일 첫 접속(한국 시간 자정 기준)마다 보석 300개 + 티켓 30장을 받아요.
+- 첫 시작에 보석 1,000개 + 골드 20,000을 받아요. 매일 첫 접속(한국 시간 자정 기준)마다 보석 300개 + 티켓 30장 + 골드 3,000을 받아요.
+- 골드가 생기기 전의 세이브도 처음 열 때 골드 20,000을 한 번 받아요.
+
+### 재화 / 상점
+| 재화 | 쓰는 곳 | 얻는 곳 |
+|---|---|---|
+| 보석 | 뽑기 (1회 100) | 출석, 스토리, 첫 클리어, 우편, 상점 |
+| 모집 증서 | 뽑기 1회 = 1장 (있으면 보석보다 먼저 써요) | 골드 상점, 캐시 상점, 우편 |
+| 골드 | 레벨업, 골드 상점 | 스테이지 클리어, 출석, 우편, 골드 환전 |
+| 티켓 | 레벨업 | 스테이지 클리어, 출석, 우편, 중복 캐릭터, 상점 |
+
+- **골드 상점**: 골드(또는 보석)로 티켓, 모집 증서, 보석을 사요. 상품마다 하루 / 주 / 달 구매 횟수가 있고 한국 시간 자정(주는 월요일, 달은 1일)에 초기화돼요. 매일 무료 선물이 있으면 홈의 상점 메뉴에 빨간 점이 떠요.
+- **캐시 상점(가상 결제)**: 추천 · 패키지(트럭 포함) · 성장 · 보석 · 월정액. 결제창에서 결제하기를 누르면 아이템이 바로 들어와요.
+  - 보석 상품은 상품별로 **첫 구매 2배**예요. 성장 지원 패키지는 스토리 전투를 일정 개수 깨야 열려요.
+  - **월간 축복**: 즉시 보석 300 + 30일 동안 매일 첫 접속 때 보석 100. 다시 사면 30일 연장(남은 기간 최대 180일).
+  - **후원 등급(VIP)**: 누적 가상 결제 금액에 따라 VIP 1~10이 표시돼요 (꾸미기용, 효과 없음).
 
 ### 육성 / 편성 / 전투
 - 숫자는 모두 `data/balance.json`에서 바꿀 수 있어요.
 - 능력치 = 기본 × (1 + 0.08 × (레벨 − 1)), 레벨 제한 없음. 치명타 확률/피해(기본 5% / 50%)는 레벨로 오르지 않고 능력으로만 바뀌어요.
-- 레벨 lv → lv+1 비용: `ceil(10 × lv^1.25)` 티켓. 티켓은 스테이지 클리어, 출석, 우편으로 받아요.
+- 레벨 lv → lv+1 비용: `ceil(10 × lv^1.25)` 티켓 + 그 티켓 × 10 골드 (`levelGoldPerTicket`). 티켓과 골드는 스테이지 클리어, 출석, 우편, 상점에서 얻어요.
 - 전투력 = 2·공격 + 1.5·방어 + 0.2·HP + 300·치명타 확률 + 100·치명타 피해.
 - 전투는 턴제예요. 라운드마다 아군 1→5번, 그다음 적이 행동해요. 기본 공격(기력 +20), 스킬(대기 시간, 기력 +30), 궁극기(기력 100). 맞으면 기력 +10.
 - 피해 = 능력치 × 배율 × 100/(100 + 방어) × 치명타(1 + 치명타 피해) × 강화, 내림, 최소 1.
@@ -128,11 +145,12 @@ python -m http.server 8000
 ```json
 [{ "id": "st_main_02_1", "name": "골목길의 별가루 소동", "recommendedPower": 1200,
    "waves": [[{ "enemyId": "slime_star", "level": 1 }], [{ "enemyId": "shadow_cat", "level": 2 }]],
-   "turnLimit": 20, "rewards": { "tickets": 40, "gems": 0 }, "firstClearRewards": { "tickets": 150, "gems": 50 } }]
+   "turnLimit": 20, "rewards": { "tickets": 40, "gems": 0, "gold": 400 }, "firstClearRewards": { "tickets": 150, "gems": 50, "gold": 1500 } }]
 ```
 - 적은 캐릭터와 같은 스킬/효과 엔진을 써요. 패시브는 항상 켜져 있어요. 그림이 없으면 기본 카드로 보여요.
 - 웨이브는 최대 6명. `turnLimit`(라운드)을 넘기면 패배, `null`이면 제한 없음.
-- `balance.json`: 성장률, 레벨업 비용, 희귀도 기본 능력치, 기력, 정수→티켓, 출석 티켓, 전투력 가중치, 기본 스킬.
+- 보상 묶음(스테이지, 우편, 상점)에는 `gems`, `tickets`, `gold`, `scrolls`(모집 증서)를 쓸 수 있어요.
+- `balance.json`: 성장률, 레벨업 비용(`levelCost`, `levelGoldPerTicket`), 희귀도 기본 능력치, 기력, 정수→티켓, 출석 티켓/골드(`dailyTickets`, `dailyGold`), 전투력 가중치, 기본 스킬.
 
 ### `data/banners.json`
 ```json
@@ -197,13 +215,27 @@ python -m http.server 8000
 - 우편은 id 기준으로 한 번만 받을 수 있어요. 공개한 뒤에는 id를 바꾸지 마세요.
 - `contentVersion`이 올라가면 플레이어에게 "업데이트 내역" 팝업이 떠요. 개발 도구의 배포 탭이 자동으로 올려줘요.
 
+### `data/shop.json` (상점 상품)
+```json
+{ "gold": [{ "id": "gold_ticket_bundle", "name": "티켓 꾸러미", "desc": "레벨업 티켓 100장", "icon": "ticket",
+             "cost": { "gold": 3000 }, "rewards": { "tickets": 100 }, "limit": { "per": "day", "count": 5 } }],
+  "cash": [{ "id": "cash_gems_1980", "category": "gems", "name": "보석 1,980개", "priceKRW": 33000,
+             "rewards": { "gems": 1980 }, "firstBonus": { "gems": 1980 }, "tier": "rare", "badges": ["BEST"] }],
+  "vip": [10000, 30000, 50000] }
+```
+- 지금은 개발 도구에 상점 편집 탭이 없어서 이 파일을 직접 고쳐요.
+- `cost`: `gold` 또는 `gems` (둘 다 0이면 무료 상품). `limit.per`: `day` / `week` / `month` / `once`, 없으면 무제한.
+- 캐시 상품: `category`(`featured` 추천 · `package` 패키지 · `growth` 성장 · `gems` 보석 · `pass` 월정액), `tier`(`normal` · `rare` · `legend` · `truck` 큰 카드), `badges`(리본, 최대 3개), `value`("1500%" 도장), `originalKRW`(취소선 정가), `firstBonus`(상품별 첫 구매 보너스), `requires.stagesCleared`(해금 조건), `pass`(`days`, `dailyGems`, `maxDays`).
+- `icon`: `gem` · `ticket` · `gold` · `scroll` · `gift` · `chest` · `cart` · `crown` · `moon` · `sprout`. `ui.json` icons에 `shop_<icon>` 그림을 넣으면 CSS 메달 대신 그림으로 보여요.
+- 세이브는 상품 id로 구매 횟수를 기록해요. 공개한 뒤에는 id를 바꾸지 마세요.
+
 ### `data/ui.json` (화면 디자인 에셋)
 ```json
 { "backgrounds": { "home": "assets/ui/bg_home.jpg", "gacha": "assets/ui/bg_gacha.jpg" },
   "icons": { "logo": "assets/ui/icon_logo.png", "gem": "assets/ui/icon_gem.png", "menu_gacha": "assets/ui/icon_menu_gacha.png" } }
 ```
 - 게임 화면의 배경, 로고, 아이콘을 그림 에셋으로 바꿔요. 개발 도구의 **UI 에셋 탭**에서 AI로 뽑아서 채워요.
-- 배경 칸: `home`, `gacha`, `reveal`, `collection`, `stories`, `mail`, `notices`, `settings`
+- 배경 칸: `home`, `gacha`, `reveal`, `collection`, `stories`, `mail`, `notices`, `settings`, `shop`
 - 아이콘 칸: `logo`, `gem`, `menu_gacha`, `menu_collection`, `menu_stories`, `menu_mail`, `menu_notices`, `menu_settings`
 - 빠진 칸이나 불러오기에 실패한 그림은 CSS 기본 디자인으로 보여요.
 
@@ -213,14 +245,14 @@ index.html, style.css, manifest.webmanifest
 js/
   main.js        시작점 (데이터 → 세이브 → 화면 → 시작 팝업)
   core/          스테이지 크기 조정, 데이터 로더/검증, 세이브, KST 시간, 난수(시드 포함), 이벤트
-  systems/       게임 규칙 (재화, 가챠·픽업, 도감, 육성, 편성, 스테이지 기록, 배너 일정, 스토리 해금, 우편·공지)
+  systems/       게임 규칙 (재화, 가챠·픽업, 도감, 육성, 편성, 스테이지 기록, 배너 일정, 스토리 해금, 우편·공지, 상점)
   battle/        전투 엔진 (DOM 없음, 시드로 재현): vocab.json, effects/, 대상·조건·수정자, AI, 설명 문장, 시뮬레이터
-  ui/            화면 (홈, 뽑기, 결과, 도감, 육성, 편성, 전투, 스토리 목록/뷰어, 우편, 공지, 설정)
+  ui/            화면 (홈, 뽑기, 결과, 도감, 육성, 편성, 전투, 스토리 목록/뷰어, 우편, 공지, 설정, 상점)
 data/            콘텐츠 JSON
 assets/          chars/(캐릭터), banners/(배너), bg/(스토리 배경), enemies/(적), icon.svg
 dev/             로컬 전용 개발 도구 (dev/README.md)
 ```
-새 기능(미션, 출석, 상점 등)은 다음 순서로 붙일 수 있어요.
+새 기능(미션, 출석 등)은 다음 순서로 붙일 수 있어요 (상점 `systems/shop.js` + `ui/shopView.js`가 예시예요).
 1. `systems/`에 규칙 파일을 추가해요.
 2. `ui/`에 화면 파일을 추가해요.
 3. `main.js`에서 `registerScreen`으로 등록해요.

@@ -384,8 +384,8 @@ def stage_entry(arc, n, battle, enemies_by_id, roles, balance):
         "recommendedPower": int(round(strongest * 1.2 / 100.0) * 100),
         "waves": waves,
         "turnLimit": 25 if has_boss else 20,
-        "rewards": {"tickets": 40 + 5 * (n - 1) + 30 * (arc - 1), "gems": 0},
-        "firstClearRewards": {"tickets": 150 + 10 * n, "gems": 100 if has_boss else 50},
+        "rewards": {"tickets": 40 + 5 * (n - 1) + 30 * (arc - 1), "gems": 0, "gold": (40 + 5 * (n - 1) + 30 * (arc - 1)) * 10},
+        "firstClearRewards": {"tickets": 150 + 10 * n, "gems": 100 if has_boss else 50, "gold": (150 + 10 * n) * 10},
     }
 
 
