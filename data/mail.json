@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "title": "오픈 기념",
+    "body": "좆까",
+    "rewards": {
+      "gems": 99999
+    },
+    "startAt": null,
+    "endAt": null,
+    "id": "mail_mwp45sw1"
+  }
+]

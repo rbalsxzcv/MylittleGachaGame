@@ -6,6 +6,7 @@
   - 'checkpoint' 방식: models/checkpoints 에 체크포인트 하나 (SDXL/SD1.5 등, 모델+CLIP+VAE가 한 파일)
   - 'split' 방식: models/diffusion_models(또는 unet) + models/text_encoders(또는 clip) + models/vae 에 따로 나뉜 파일
     (예: Anima / Anima Turbo, Flux, Qwen-Image 같은 확산 모델)
+LoRA: models/loras 의 파일을 모델 불러오기 뒤에 LoraLoader 노드로 줄줄이 연결 (여러 개 가능)
 """
 import json
 import random
@@ -98,7 +99,7 @@ def check(cfg):
     """연결 확인 + 모델 파일/샘플러 목록"""
     base = cfg["url"]
     stats = _json(f"{base}/system_stats", timeout=5)
-    info = {n: _node_info(base, n) for n in ("CheckpointLoaderSimple", "UNETLoader", "CLIPLoader", "VAELoader", "KSampler")}
+    info = {n: _node_info(base, n) for n in ("CheckpointLoaderSimple", "UNETLoader", "CLIPLoader", "VAELoader", "KSampler", "LoraLoader")}
     devices = [d.get("name", "") for d in stats.get("devices", [])]
     return {
         "ok": True,
@@ -110,6 +111,7 @@ def check(cfg):
         "clips": _choices(info["CLIPLoader"], "CLIPLoader", "clip_name"),
         "clipTypes": _choices(info["CLIPLoader"], "CLIPLoader", "type"),
         "vaes": _choices(info["VAELoader"], "VAELoader", "vae_name"),
+        "loras": _choices(info["LoraLoader"], "LoraLoader", "lora_name"),
         "samplers": _choices(info["KSampler"], "KSampler", "sampler_name"),
         "schedulers": _choices(info["KSampler"], "KSampler", "scheduler"),
     }
@@ -126,6 +128,23 @@ def _loaders(cfg):
         return nodes, ["10", 0], ["11", 0], ["12", 0]
     nodes = {"4": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": cfg["checkpoint"]}}}
     return nodes, ["4", 0], ["4", 1], ["4", 2]
+
+
+def active_loras(loras):
+    """실제로 적용할 LoRA만 (켜져 있고, 파일이 있고, 세기가 0이 아닌 것)"""
+    return [l for l in (loras or []) if l.get("on", True) and l.get("name") and (l.get("model") or l.get("clip"))]
+
+
+def _apply_loras(nodes, model, clip, loras):
+    """LoraLoader 노드를 줄줄이 연결 → (model 연결, clip 연결). 노드 번호는 20번부터"""
+    for i, l in enumerate(active_loras(loras)):
+        nid = str(20 + i)
+        nodes[nid] = {
+            "class_type": "LoraLoader",
+            "inputs": {"model": model, "clip": clip, "lora_name": l["name"], "strength_model": l["model"], "strength_clip": l["clip"]},
+        }
+        model, clip = [nid, 0], [nid, 1]
+    return model, clip
 
 
 def missing_model(cfg):
@@ -145,9 +164,10 @@ def model_label(cfg):
     return name.replace("\\", "/").rsplit("/", 1)[-1]
 
 
-def build_workflow(prompt, negative, width, height, seed, cfg):
-    """기본 텍스트→이미지 워크플로 (ComfyUI 'API 형식')"""
+def build_workflow(prompt, negative, width, height, seed, cfg, loras=()):
+    """기본 텍스트→이미지 워크플로 (ComfyUI 'API 형식'). loras: [{name, model, clip, on}]"""
     nodes, model, clip, vae = _loaders(cfg)
+    model, clip = _apply_loras(nodes, model, clip, loras)
     return {
         **nodes,
         "6": {"class_type": "CLIPTextEncode", "inputs": {"text": prompt, "clip": clip}},
@@ -183,8 +203,9 @@ def interrupt(cfg, prompt_id):
             pass
 
 
-def generate(prompt, negative, aspect_ratio, cfg, cancel=None):
+def generate(prompt, negative, aspect_ratio, cfg, cancel=None, loras=()):
     """그림 한 장 생성 → (PNG 바이트, seed)
+    loras: 이번 그림에 적용할 LoRA 목록 (캐릭터용 / 배경·소품용 프로필에서 고른 것)
     cancel: threading.Event — 켜지면 ComfyUI 작업을 멈추고 Cancelled 발생
     """
     if cancel is not None and cancel.is_set():
@@ -194,7 +215,7 @@ def generate(prompt, negative, aspect_ratio, cfg, cancel=None):
         raise GenError(problem)
     width, height = SIZES[cfg["resolution"]].get(aspect_ratio, SIZES[cfg["resolution"]]["1:1"])
     seed = random.randint(1, 2**48)
-    workflow = build_workflow(prompt, negative, width, height, seed, cfg)
+    workflow = build_workflow(prompt, negative, width, height, seed, cfg, loras)
     base = cfg["url"]
     sent = _json(f"{base}/prompt", {"prompt": workflow, "client_id": uuid.uuid4().hex})
     if sent.get("node_errors"):

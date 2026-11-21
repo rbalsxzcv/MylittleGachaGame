@@ -32,8 +32,39 @@ DEFAULTS = {
         "scheduler": "normal",
         "quality": "masterpiece, best quality, safe",  # Anima 품질/등급 태그 (프롬프트 맨 앞)
         "negative": "worst quality, low quality, lowres, blurry, jpeg artifacts, bad anatomy, bad hands, extra fingers, missing fingers, text, watermark, signature, artist name, nsfw",
+        # LoRA 프로필: 그림 종류에 따라 다른 LoRA/트리거 태그 사용
+        #   char  = 캐릭터 관련 (캐릭터, 픽업 배너, 적)
+        #   scene = 배경·소품 (스토리 배경, UI 화면 배경, 아이콘, 로고, 소품)
+        # loras: [{name: models/loras 파일, model: 모델 세기, clip: CLIP 세기, on: 사용 여부}]
+        # trigger: LoRA 트리거 태그 (품질 태그 바로 뒤에 붙어요)
+        "loraProfiles": {
+            "char": {"loras": [], "trigger": ""},
+            "scene": {"loras": [], "trigger": ""},
+        },
     },
 }
+
+LORA_MAX = 8  # 프로필 하나에 넣을 수 있는 LoRA 수
+
+
+def _strength(v, default=1.0):
+    try:
+        return round(max(-5.0, min(5.0, float(v))), 3)
+    except (TypeError, ValueError):
+        return default
+
+
+def _clean_lora_profile(p):
+    p = p if isinstance(p, dict) else {}
+    loras = []
+    for l in p.get("loras") if isinstance(p.get("loras"), list) else []:
+        if not isinstance(l, dict):
+            continue
+        name = str(l.get("name") or "").strip()[:300]
+        if not name:
+            continue
+        loras.append({"name": name, "model": _strength(l.get("model")), "clip": _strength(l.get("clip")), "on": l.get("on", True) is not False})
+    return {"loras": loras[:LORA_MAX], "trigger": str(p.get("trigger") or "")[:500]}
 
 
 def _merge(base, extra):
@@ -82,6 +113,8 @@ def clean(s):
     c["scheduler"] = str(c.get("scheduler") or d["comfy"]["scheduler"])[:60]
     c["quality"] = str(c.get("quality") or "")[:300]
     c["negative"] = str(c.get("negative") or "")[:2000]
+    lp = c.get("loraProfiles") if isinstance(c.get("loraProfiles"), dict) else {}
+    c["loraProfiles"] = {k: _clean_lora_profile(lp.get(k)) for k in d["comfy"]["loraProfiles"]}
     return s
 
 

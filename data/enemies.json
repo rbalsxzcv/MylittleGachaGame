@@ -2,7 +2,7 @@
   {
     "id": "en_scavenger",
     "name": "시체 약탈꾼",
-    "image": "",
+    "image": "assets/enemies/en_scavenger.png",
     "boss": false,
     "stats": {
       "atk": 60,
@@ -33,7 +33,7 @@
   {
     "id": "en_plague_hound",
     "name": "역병 사냥개",
-    "image": "",
+    "image": "assets/enemies/en_plague_hound.png",
     "boss": false,
     "stats": {
       "atk": 60,
@@ -88,7 +88,7 @@
   {
     "id": "en_deserter_spear",
     "name": "탈영병 창병",
-    "image": "",
+    "image": "assets/enemies/en_deserter_spear.png",
     "boss": false,
     "stats": {
       "atk": 60,
@@ -119,7 +119,7 @@
   {
     "id": "en_manor_guard",
     "name": "남작 근위대 중장병",
-    "image": "",
+    "image": "assets/enemies/en_manor_guard.png",
     "boss": false,
     "stats": {
       "atk": 64,
@@ -167,7 +167,7 @@
   {
     "id": "en_boss_baron_hendrik",
     "name": "탐욕의 헨드릭 남작",
-    "image": "",
+    "image": "assets/enemies/en_boss_baron_hendrik.png",
     "boss": true,
     "stats": {
       "atk": 86,

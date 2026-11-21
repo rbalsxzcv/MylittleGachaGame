@@ -11,6 +11,14 @@ ENGINE = "comfy"  # 그림은 ComfyUI로만
 # 캐릭터는 세로로 긴 2:3 (가로 여유가 적을수록 정면+후면 같은 설정화가 덜 나옴, 배경 제거 후 여백은 잘라냄)
 ASPECT = {"char": "2:3", "banner": "16:9", "bg": "16:9", "ui_bg": "16:9", "ui_icon": "1:1", "logo": "3:2", "enemy": "1:1", "prop": "1:1"}
 SLOT_PKIND = {"bg": "ui_bg", "icon": "ui_icon", "logo": "logo"}
+# 에셋 종류 → LoRA 프로필 (설정 탭에서 캐릭터용 / 배경·소품용을 따로 설정)
+LORA_PROFILE = {"char": "char", "banner": "char", "enemy": "char", "bg": "scene", "ui_bg": "scene", "ui_icon": "scene", "logo": "scene", "prop": "scene"}
+
+
+def lora_profile(pkind, c):
+    """이 에셋 종류에 쓸 LoRA 프로필 → (프로필 이름, {loras, trigger})"""
+    name = LORA_PROFILE.get(pkind, "scene")
+    return name, c["loraProfiles"][name]
 
 
 def resolve_engine(engine=None, s=None):
@@ -54,12 +62,14 @@ def write_prompt(kind, inp, engine=None, reasons=(), previous=None):
 
 
 def render(kind, inp, core_prompt, negative, cancel=None):
-    """프롬프트 → 그림. returns {image, fullPrompt, negative, seed, engine, warning}"""
+    """프롬프트 → 그림. returns {image, fullPrompt, negative, seed, engine, warning, loras}"""
     s = settings.load()
     pkind, _, ratio, slot, _ = _context(kind, inp, s)
     c = s["comfy"]
     core, removed = prompts.enforce(pkind, core_prompt)
-    full = prompts.merge_tags(c["quality"], core, prompts.style_for(pkind))
+    _, lp = lora_profile(pkind, c)
+    loras = comfy.active_loras(lp["loras"])
+    full = prompts.merge_tags(c["quality"], lp["trigger"] if loras else "", core, prompts.style_for(pkind))
     neg = prompts.merge_tags(negative, prompts.KIND_NEGATIVE[pkind], c["negative"])
     notes = []
     if removed:
@@ -73,8 +83,9 @@ def render(kind, inp, core_prompt, negative, cancel=None):
         image, seed = genai._mock_image(full, ratio, mock_kind, label), None
         warning = " · ".join(notes + ["모의 모드 그림이에요 (TG_MOCK=1)"])
     else:
-        image, seed = comfy.generate(full, neg, ratio, c, cancel=cancel)
-    return {"image": image, "fullPrompt": full, "negative": neg, "seed": seed, "engine": ENGINE, "warning": warning}
+        image, seed = comfy.generate(full, neg, ratio, c, cancel=cancel, loras=loras)
+    lora_text = ", ".join(f"{l['name']} (model {l['model']:g} / clip {l['clip']:g})" for l in loras)
+    return {"image": image, "fullPrompt": full, "negative": neg, "seed": seed, "engine": ENGINE, "warning": warning, "loras": lora_text}
 
 
 def generate_attempt(job, prompt=None, negative="", source="manual", rewrite=False, cancel=None):
@@ -95,7 +106,7 @@ def generate_attempt(job, prompt=None, negative="", source="manual", rewrite=Fal
     if cancel is not None and cancel.is_set():
         raise comfy.Cancelled("중단했어요")
     r = render(job["kind"], job["input"], prompt, negative or "", cancel=cancel)
-    full = r["fullPrompt"] + (f"\n\nNEGATIVE: {r['negative']}" if r["negative"] else "")
+    full = r["fullPrompt"] + (f"\n\nNEGATIVE: {r['negative']}" if r["negative"] else "") + (f"\n\nLORA: {r['loras']}" if r["loras"] else "")
     meta = {"corePrompt": prompt, "negative": negative or "", "engine": r["engine"], "seed": r["seed"], "promptSource": source, "genWarning": r["warning"]}
     jobs.add_attempt(job, full, r["image"], meta)
     return job
