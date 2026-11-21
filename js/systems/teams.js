@@ -48,3 +48,11 @@ export function teamPower(ctx, i = ctx.save.teams.active) {
 export function teamSize(ctx, i) {
   return teamMembers(ctx, i).filter(Boolean).length;
 }
+
+/** 보유 캐릭터 중 전투력 상위 5명 (편성이 비었을 때 미리보기용) */
+export function bestTeam(ctx) {
+  const owned = ctx.data.characters.filter((c) => ctx.save.owned[c.id] && c.pullable !== false);
+  owned.sort((a, b) => charPower(b, ctx.save.owned[b.id], ctx.data.balance) - charPower(a, ctx.save.owned[a.id], ctx.data.balance));
+  return owned.slice(0, TEAM_SIZE).map((c) => ({ charId: c.id, level: ctx.save.owned[c.id].level, breakthrough: ctx.save.owned[c.id].breakthrough }));
+}
+

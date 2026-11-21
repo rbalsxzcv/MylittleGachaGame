@@ -6,17 +6,22 @@ import { openModal } from './modal.js';
 import { charCard, rarityBadge } from './charCard.js';
 import { bannerVisual } from './home.js';
 import { countdownEl, startCountdowns } from './countdown.js';
-import { buildPools, isPoolEmpty, pullMany, rateTable, pityKeyOf, COST, PITY_LIMIT, RATES } from '../systems/gacha.js';
+import { buildPools, isPoolEmpty, pullMany, rateTable, pityKeyOf, pickupList } from '../systems/gacha.js';
+import { RARITIES, MAX_RARITY } from '../config.js';
 import { isBannerActive } from '../systems/banners.js';
 import { canAfford, spendGems, spendScrolls, formatGems } from '../systems/economy.js';
 import { addCharacter } from '../systems/collection.js';
 import { formatPeriod, now } from '../core/time.js';
+import { playGachaFx, preloadResultImages } from '../fx/gachaFx.js';
 
 /** id로 진행 중인 배너 찾기 (없으면 첫 배너) */
 function findBanner(ctx, bannerId) {
   const list = ctx.activeBanners();
   return list.find((b) => b.id === bannerId) || list[0];
 }
+
+/** 1회/10회 보석 비용 */
+const costOf = (ctx, count) => (count >= 10 ? ctx.data.balance.gacha.cost.ten : ctx.data.balance.gacha.cost.single);
 
 /** 모집 증서가 count장 이상이면 증서로, 아니면 보석으로 */
 const usesScrolls = (save, count) => (save.scrolls || 0) >= count;
@@ -25,7 +30,7 @@ const usesScrolls = (save, count) => (save.scrolls || 0) >= count;
 function pullCostEl(ctx, count) {
   return usesScrolls(ctx.save, count)
     ? h('span', { class: 'pull-cost is-scroll' }, scrollIcon(), `증서 ${count}`)
-    : h('span', { class: 'pull-cost' }, gemIcon(), formatGems(COST[count]));
+    : h('span', { class: 'pull-cost' }, gemIcon(), formatGems(costOf(ctx, count)));
 }
 
 /**
@@ -42,7 +47,7 @@ export function executePull(ctx, banner, count) {
     toast('뽑을 수 있는 캐릭터가 없어요', { type: 'error' });
     return null;
   }
-  const cost = COST[count];
+  const cost = costOf(ctx, count);
   const scroll = usesScrolls(ctx.save, count);
   if (!scroll && !canAfford(ctx.save, cost)) {
     toast(`보석이 부족해요 (필요 ${formatGems(cost)} / 보유 ${formatGems(ctx.save.gems)})`, { type: 'error' });
@@ -50,7 +55,7 @@ export function executePull(ctx, banner, count) {
   }
 
   const key = pityKeyOf(banner);
-  const out = pullMany({ pools, count, pity: ctx.save.pity[key] ?? 0, guaranteed: !!ctx.save.guaranteed[key] });
+  const out = pullMany({ pools, count, pity: ctx.save.pity[key] ?? 0, guaranteed: !!ctx.save.guaranteed[key], cfg: ctx.data.balance });
   if (scroll) spendScrolls(ctx.save, count);
   else spendGems(ctx.save, cost);
   ctx.save.pity[key] = out.pity;
@@ -59,15 +64,16 @@ export function executePull(ctx, banner, count) {
   const t = now();
   const detailed = out.results.map((r) => ({ ...r, ...addCharacter(ctx.save, r.char, ctx.data.balance, t) }));
   ctx.commit(); // 연출 전에 저장 → 새로고침해도 결과가 사라지지 않음
+  preloadResultImages(detailed);
   return detailed;
 }
 
 /** 확률표 (상세 모달 안) */
-function rateTableEl(pools) {
+function rateTableEl(pools, cfg) {
   return h(
     'div',
     { class: 'rate-table' },
-    rateTable(pools).map((row) =>
+    rateTable(pools, cfg).map((row) =>
       h(
         'section',
         { class: `rate-group rar-${row.rarity}` },
@@ -85,7 +91,7 @@ function rateTableEl(pools) {
                 ),
               ),
             )
-          : h('p', { class: 'muted' }, '이 등급의 캐릭터가 없어 다른 등급으로 대체됩니다.'),
+          : h('p', { class: 'muted' }, '이 등급의 캐릭터가 없어 가까운 낮은 등급(없으면 높은 등급)으로 대체돼요.'),
       ),
     ),
   );
@@ -94,11 +100,15 @@ function rateTableEl(pools) {
 /** 배너 상세: 기간, 픽업 미리보기, 규칙, 전체 확률표 */
 export function showBannerDetail(ctx, banner) {
   const pools = buildPools(ctx.data.characters, banner);
-  const pickups = [...pools.pickup.SSR, ...pools.pickup.SR, ...pools.pickup.R];
+  const g = ctx.data.balance.gacha;
+  const pickups = pickupList(pools);
+  const share = Math.round(g.pickupShare * 100);
   const rules = [
-    `${PITY_LIMIT}회 안에 SSR이 나오지 않으면 ${PITY_LIMIT}번째는 SSR 확정`,
-    '10회 뽑기는 SR 이상 1장 확정',
-    banner.type === 'pickup' && 'SSR 획득 시 50% 확률로 픽업 캐릭터 · 픽업이 아니었다면 다음 SSR은 픽업 확정',
+    `확률: ${[...RARITIES].reverse().map((r) => `${r}★ ${g.rates[r]}%`).join(' / ')}`,
+    `${g.pity}회 안에 ${MAX_RARITY}★가 나오지 않으면 ${g.pity}번째는 ${MAX_RARITY}★ 확정`,
+    `10회 뽑기는 ${g.tenGuaranteeMin}★ 이상 1장 확정`,
+    banner.type === 'pickup' && `${MAX_RARITY}★ 획득 시 ${share}% 확률로 픽업 캐릭터 · 픽업이 아니었다면 다음 ${MAX_RARITY}★는 픽업 확정`,
+    '이미 가진 캐릭터가 나오면 그 캐릭터의 정수 +1 (돌파 5단계를 넘는 정수는 티켓으로 바뀌어요)',
     banner.type === 'pickup' ? '천장 횟수와 픽업 확정은 모든 픽업 배너가 함께 사용해요' : '천장 횟수는 픽업 배너와 따로 세요',
   ].filter(Boolean);
 
@@ -115,13 +125,13 @@ export function showBannerDetail(ctx, banner) {
         h(
           'div',
           { class: 'bd-pickups' },
-          pickups.map((c) => h('div', { class: 'bd-pickup' }, charCard(c, { owned: true, stars: 0 }), h('div', { class: 'bd-pickup-title' }, c.title))),
+          pickups.map((c) => h('div', { class: 'bd-pickup' }, charCard(c, { owned: true }), h('div', { class: 'bd-pickup-title' }, c.title))),
         ),
       ),
     h('h3', {}, '규칙'),
     h('ul', { class: 'bd-rules' }, rules.map((r) => h('li', {}, r))),
     h('h3', {}, '확률 정보'),
-    rateTableEl(pools),
+    rateTableEl(pools, ctx.data.balance),
   );
   return openModal({ title: banner.title, body, className: 'modal-wide', dismissValue: true });
 }
@@ -173,7 +183,8 @@ export function gachaScreen(ctx) {
         );
 
       const relatedStory = banner.relatedStoryId && ctx.data.storyIndex.find((s) => s.id === banner.relatedStoryId);
-      const pickupNames = [...pools.pickup.SSR, ...pools.pickup.SR, ...pools.pickup.R].map((c) => c.name);
+      const pickupNames = pickupList(pools).map((c) => c.name);
+      const g = ctx.data.balance.gacha;
 
       el.append(
         h(
@@ -200,23 +211,23 @@ export function gachaScreen(ctx) {
           h(
             'div',
             { class: 'pity-box' },
-            h('div', { class: 'pity-label' }, `SSR 확정까지 (${banner.type === 'pickup' ? '픽업' : '상시'})`),
-            h('div', { class: 'pity-value' }, h('b', {}, PITY_LIMIT - pity), '회'),
-            h('div', { class: 'pity-bar' }, h('i', { style: { width: `${(pity / PITY_LIMIT) * 100}%` } })),
+            h('div', { class: 'pity-label' }, `${MAX_RARITY}★ 확정까지 (${banner.type === 'pickup' ? '픽업' : '상시'})`),
+            h('div', { class: 'pity-value' }, h('b', {}, Math.max(0, g.pity - pity)), '회'),
+            h('div', { class: 'pity-bar' }, h('i', { style: { width: `${Math.min(100, (pity / g.pity) * 100)}%` } })),
             banner.type === 'pickup' &&
               h(
                 'div',
                 { class: ['pickup-state', ctx.save.guaranteed.pickup && 'on'] },
-                ctx.save.guaranteed.pickup ? '다음 SSR은 픽업 확정!' : 'SSR 획득 시 50% 픽업',
+                ctx.save.guaranteed.pickup ? `다음 ${MAX_RARITY}★는 픽업 확정!` : `${MAX_RARITY}★ 획득 시 ${Math.round(g.pickupShare * 100)}% 픽업`,
               ),
           ),
-          h('div', { class: 'rate-chips' }, ['SSR', 'SR', 'R'].map((r) => h('span', { class: `rate-chip rar-${r}` }, `${r} ${RATES[r]}%`))),
+          h('div', { class: 'rate-chips' }, [...RARITIES].reverse().map((r) => h('span', { class: `rate-chip rar-${r}` }, `${r}★ ${g.rates[r]}%`))),
           h(
             'div',
             { class: 'gacha-links' },
             h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => showBannerDetail(ctx, banner) }, '상세 · 확률', h('kbd', { class: 'key-hint' }, 'I')),
             relatedStory &&
-              h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => go('stories', { kind: relatedStory.kind, focus: relatedStory.id }) }, '관련 스토리'),
+              h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => (relatedStory.kind === 'main' ? go('adventure') : go('stories', { kind: relatedStory.kind, focus: relatedStory.id })) }, '관련 스토리'),
           ),
           empty && h('p', { class: 'gacha-empty' }, '캐릭터 데이터가 없어요'),
           h(
@@ -248,7 +259,8 @@ export function gachaScreen(ctx) {
 }
 
 // ─────────────────────────────────────────────────────────
-// 결과 연출 화면 (카드 뒤집기)
+// 결과 화면: Phaser 연출(js/fx/GachaFxScene.js) → 끝나면 HTML 결과 격자
+// 설정에서 '연출 건너뛰기'를 켜면 바로 격자. 메뉴 화면은 움직이지 않음(정적)
 // ─────────────────────────────────────────────────────────
 export function revealScreen(ctx) {
   return {
@@ -260,42 +272,33 @@ export function revealScreen(ctx) {
         return {};
       }
       const single = results.length === 1;
-      let done = false;
+      const top = Math.max(...results.map((r) => r.rarity));
+      let playing = !ctx.save.settings?.fxSkip;
+      let alive = true;
 
-      const cards = results.map((r, i) => {
-        // 앞면: 결과 카드 + 배지(NEW / 정수 +1 / 티켓 +N)
+      const cards = results.map((r) => {
         let badge = 'NEW';
         let badgeClass = 'badge-new';
         if (!r.isNew && r.essence) (badge = '정수 +1'), (badgeClass = 'badge-star');
         else if (!r.isNew) (badge = `티켓 +${r.tickets}`), (badgeClass = 'badge-max');
-
-        const front = charCard(r.char, { owned: true, stars: r.breakthrough, badge, badgeClass });
-        const card = h(
-          'button',
-          {
-            class: ['flip', `rar-${r.rarity}`],
-            type: 'button',
-            style: { '--delay': `${i * 40}ms` },
-            'aria-label': `${i + 1}번째 카드 뒤집기`,
-            // 클릭해도 포커스를 가져가지 않게 → Space/Enter가 항상 '다음 카드'로 동작
-            onmousedown: (e) => e.preventDefault(),
-            onclick: () => flip(i),
-          },
-          h(
-            'div',
-            { class: 'flip-inner' },
-            h('div', { class: 'flip-face flip-back' }, h('div', { class: 'back-emblem' }, '✦')),
-            h('div', { class: 'flip-face flip-front' }, front, r.isPickup && h('span', { class: 'pickup-ribbon' }, 'PICKUP')),
-          ),
+        return h(
+          'div',
+          { class: ['reveal-card', `rar-${r.rarity}`, r.rarity === top && top >= 3 && 'is-top'] },
+          charCard(r.char, { owned: true, breakthrough: r.breakthrough, badge, badgeClass }),
+          r.isPickup && h('span', { class: 'pickup-ribbon' }, 'PICKUP'),
         );
-        return { el: card, flipped: false, rarity: r.rarity };
       });
+      const grid = h('div', { class: ['reveal-grid', single ? 'is-single' : 'is-ten'] }, cards);
 
-      const grid = h('div', { class: ['reveal-grid', single ? 'is-single' : 'is-ten'] }, cards.map((c) => c.el));
-
-      const openAllBtn = h('button', { class: 'btn', type: 'button', onclick: () => openAll() }, '모두 열기', h('kbd', { class: 'key-hint' }, 'A'));
-      const skipBtn = h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => skip() }, 'SKIP', h('kbd', { class: 'key-hint' }, 'S'));
-      const progressActions = h('div', { class: 'reveal-actions' }, openAllBtn, skipBtn);
+      // 요약: 새 동료 / 정수 / 티켓
+      const newCount = results.filter((r) => r.isNew).length;
+      const essence = results.reduce((a, r) => a + (r.essence || 0), 0);
+      const tickets = results.reduce((a, r) => a + (r.tickets || 0), 0);
+      const summary = h(
+        'div',
+        { class: 'reveal-summary' },
+        [newCount && `새 동료 ${newCount}명`, essence && `정수 +${essence}`, tickets && `티켓 +${tickets.toLocaleString('ko-KR')}`].filter(Boolean).join(' · ') || ' ',
+      );
 
       const againBtn = h(
         'button',
@@ -316,50 +319,34 @@ export function revealScreen(ctx) {
         pullCostEl(ctx, count),
       );
       const okBtn = h('button', { class: 'btn btn-primary', type: 'button', onclick: () => back() }, '확인');
-      const doneActions = h('div', { class: 'reveal-actions', hidden: true }, againBtn, okBtn);
+      const content = h('div', { class: 'reveal-content', hidden: playing }, h('div', { class: 'reveal-title' }, '모집 결과'), grid, summary, h('div', { class: 'reveal-actions' }, againBtn, okBtn));
+      el.append(h('div', { class: 'reveal-bg' }), content);
 
-      el.append(h('div', { class: 'reveal-bg' }), h('div', { class: 'reveal-title' }, '모집 결과'), grid, progressActions, doneActions);
-
-      function flip(i, { instant = false } = {}) {
-        const c = cards[i];
-        if (!c || c.flipped) return;
-        c.flipped = true;
-        if (instant) c.el.classList.add('instant');
-        c.el.classList.add('flipped');
-        if (c.rarity === 'SSR' && !instant) c.el.classList.add('burst');
-        if (cards.every((x) => x.flipped)) finish();
-      }
-      function flipNext() {
-        const i = cards.findIndex((c) => !c.flipped);
-        if (i >= 0) flip(i);
-      }
-      function openAll() {
-        cards.forEach((c, i) => {
-          if (!c.flipped) setTimeout(() => flip(i), i * 90);
-        });
-      }
-      function skip() {
-        cards.forEach((_, i) => flip(i, { instant: true }));
-      }
-      function finish() {
-        if (done) return;
-        done = true;
-        progressActions.hidden = true;
-        doneActions.hidden = false;
-        // 연출이 끝날 즈음 확인 버튼에 포커스 (Enter로 바로 닫기)
-        setTimeout(() => okBtn.focus({ preventScroll: true }), 50);
-      }
+      const showGrid = () => {
+        playing = false;
+        if (!alive) return;
+        content.hidden = false;
+        setTimeout(() => okBtn.focus({ preventScroll: true }), 30);
+      };
+      if (playing) {
+        const settings = ctx.save.settings;
+        playGachaFx(results, {
+          speed: settings.fxSpeed,
+          onSpeed: (sp) => {
+            settings.fxSpeed = sp;
+            ctx.commit();
+          },
+        }).then(showGrid);
+      } else showGrid();
 
       return {
+        destroy() {
+          alive = false;
+        },
         onKey(e) {
-          if (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter') {
-            done ? back() : flipNext();
-            return true;
-          }
-          if (e.code === 'KeyS' && !done) return skip(), true;
-          if (e.code === 'KeyA' && !done) return openAll(), true;
-          if (e.code === 'Escape') {
-            done ? back() : skip();
+          if (playing) return true; // 연출 중 키는 Phaser 장면이 처리
+          if (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Escape') {
+            back();
             return true;
           }
           return false;

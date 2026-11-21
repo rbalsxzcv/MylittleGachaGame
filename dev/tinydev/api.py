@@ -13,6 +13,7 @@ from pathlib import Path
 from flask import Flask, abort, jsonify, redirect, request, send_from_directory
 
 from . import batch, bible, comfy, pack, config, cutout, genai, imaging, jobs, kit, prompts, publish, settings, store, uislots
+from . import rarity as rarity_mod
 from .genai import GenError
 from .timeutil import now_iso, parse
 
@@ -109,6 +110,24 @@ def preview_root():
     return redirect("/preview/index.html")
 
 
+@app.post("/api/tests/snapshot")
+def tests_snapshot():
+    """테스트 페이지(/preview/tests/)의 '스냅샷 갱신' → tests/snapshots/stages.json 저장"""
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or len(json.dumps(data)) > 2_000_000:
+        raise ValueError("스냅샷 형식이 아니에요")
+    dest = config.ROOT / "tests" / "snapshots" / "stages.json"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    return jsonify(ok=True, path="tests/snapshots/stages.json")
+
+
+@app.get("/fx-test")
+def fx_test():
+    """가챠 연출 테스트 페이지 (dev/fx-test.html) — 게임 모듈/데이터는 /preview/에서 불러옴"""
+    return send_from_directory(config.DEV, "fx-test.html")
+
+
 @app.get("/preview/<path:path>")
 def preview(path):
     """플레이어 게임을 그대로 띄우되, data/와 assets/는 작업 공간에서 제공
@@ -121,7 +140,7 @@ def preview(path):
         if path.startswith("assets/") and not target.exists():
             return send_from_directory(config.ROOT, path)  # 아이콘 등 공개 자산
         return send_from_directory(config.WORKSPACE, path)
-    allowed = path in ("index.html", "style.css", "manifest.webmanifest") or path.startswith("js/")
+    allowed = path in ("index.html", "style.css", "manifest.webmanifest") or path.startswith("js/") or path.startswith("tests/")
     if not allowed:
         abort(404)
     return send_from_directory(config.ROOT, path)
@@ -355,9 +374,9 @@ def recut_job(job_id):
 # 캐릭터
 # ─────────────────────────────────────────────────────────
 def _char_input(data):
-    rarity = data.get("rarity")
-    if rarity not in ("R", "SR", "SSR"):
-        raise ValueError("희귀도를 골라 주세요")
+    rarity = rarity_mod.normalize(data.get("rarity"))
+    if rarity is None:
+        raise ValueError("희귀도(1~5★)를 골라 주세요")
     return {
         "name": text(data, "name", 40, required=True, label="이름"),
         "rarity": rarity,
@@ -379,7 +398,7 @@ def char_describe():
     data = body()
     inp = {
         "name": text(data, "name", 40, required=True, label="이름"),
-        "rarity": data.get("rarity", ""),
+        "rarity": rarity_mod.normalize(data.get("rarity")) or "",
         "title": text(data, "title", 60),
         "keywords": text(data, "keywords", 1000),
         "lore": text(data, "lore", 2000),
@@ -403,9 +422,9 @@ def char_approve():
     cid = c.get("id")
     if not store.valid_id(cid):
         raise ValueError("캐릭터 id는 영문/숫자/_/- 로 1~64자여야 해요 (예: ssr_lumi)")
-    rarity = c.get("rarity")
-    if rarity not in ("R", "SR", "SSR"):
-        raise ValueError("희귀도를 골라 주세요")
+    rarity = rarity_mod.normalize(c.get("rarity"))
+    if rarity is None:
+        raise ValueError("희귀도(1~5★)를 골라 주세요")
     chars = store.read_list("characters")
     existing = next((x for x in chars if x.get("id") == cid), None)
     replacing = job["input"].get("charId") == cid
@@ -469,9 +488,9 @@ def char_update(cid):
     if not existing:
         raise FileNotFoundError("캐릭터가 없어요")
     if "rarity" in data:
-        if data["rarity"] not in ("R", "SR", "SSR"):
-            raise ValueError("희귀도는 R/SR/SSR")
-        existing["rarity"] = data["rarity"]
+        if rarity_mod.normalize(data["rarity"]) is None:
+            raise ValueError("희귀도는 1~5")
+        existing["rarity"] = rarity_mod.normalize(data["rarity"])
     for key, limit in (("name", 40), ("title", 60), ("description", 2000)):
         if key in data:
             existing[key] = text(data, key, limit, required=(key == "name"), label="이름")
@@ -540,13 +559,19 @@ def _clean_kit_draft(raw):
     return out
 
 
+def balance_rarity_stats(bal):
+    """balance.json → {희귀도: {atk, def, hp, spd}} (새 형식 stats.byRarity, 예전 rarityStats 모두)"""
+    by = ((bal or {}).get("stats") or {}).get("byRarity") or (bal or {}).get("rarityStats") or {}
+    return {rarity_mod.normalize(k): v for k, v in by.items() if rarity_mod.normalize(k)}
+
+
 @app.post("/api/char/kit-draft")
 def char_kit_draft():
     """설정 + 희귀도 → Gemini가 스킬 3개 + 돌파 5개 제안. 검사 오류가 있으면 한 번 더 고쳐 쓰게 함"""
     data = body()
-    rarity = data.get("rarity")
-    if rarity not in ("R", "SR", "SSR"):
-        raise ValueError("희귀도를 골라 주세요")
+    rarity = rarity_mod.normalize(data.get("rarity"))
+    if rarity is None:
+        raise ValueError("희귀도(1~5★)를 골라 주세요")
     cid = data.get("charId") if store.valid_id(data.get("charId")) else None
     inp = {
         "name": text(data, "name", 40, required=True, label="이름"),
@@ -558,8 +583,8 @@ def char_kit_draft():
     }
     vocab = kit.load_vocab()
     examples = [c for c in store.read_list("characters") if c.get("kit") and c.get("breakthroughs") and c.get("id") != cid]
-    examples.sort(key=lambda c: c.get("rarity") != rarity)
-    rarity_stats = (store.read_balance().get("rarityStats") or {})
+    examples.sort(key=lambda c: rarity_mod.normalize(c.get("rarity")) != rarity)
+    rarity_stats = balance_rarity_stats(store.read_balance())
     retried = False
     errors = None
     for attempt in range(2):

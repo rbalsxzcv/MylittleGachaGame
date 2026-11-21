@@ -109,6 +109,19 @@ export function settingsScreen(ctx) {
         go('home');
       }
 
+      // ── 연출 설정 (세이브 settings에 저장) ──
+      function toggle(key, label, toValue = (v) => v, isOn = (v) => !!v) {
+        const box = h('input', {
+          type: 'checkbox',
+          checked: isOn(ctx.save.settings[key]),
+          onchange: (e) => {
+            ctx.save.settings[key] = toValue(e.target.checked);
+            ctx.commit();
+          },
+        });
+        return h('label', { class: 'setting-toggle' }, box, h('span', {}, label));
+      }
+
       const status = h(
         'ul',
         { class: 'status-list' },
@@ -126,6 +139,10 @@ export function settingsScreen(ctx) {
             { class: 'settings-card' },
             h('h2', {}, '화면'),
             fsBtn,
+            h('h3', {}, '연출'),
+            toggle('fxSpeed', '뽑기 연출 2배속', (v) => (v ? 2 : 1), (v) => v === 2),
+            toggle('fxSkip', '뽑기 연출 건너뛰기 (결과만 보기)'),
+            toggle('battleSpeed', '전투 2배속', (v) => (v ? 2 : 1), (v) => v === 2),
             h('p', { class: 'muted small' }, 'iPhone은 전체화면을 지원하지 않아요. 공유 → "홈 화면에 추가"로 실행하면 전체화면으로 즐길 수 있어요.'),
           ),
           h(

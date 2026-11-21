@@ -26,7 +26,9 @@ import { growthScreen } from './ui/growthView.js';
 import { teamScreen } from './ui/teamView.js';
 import { shopScreen } from './ui/shopView.js';
 import { unclaimedCount } from './systems/inbox.js';
-import { teamMembers } from './systems/teams.js';
+import { teamMembers, bestTeam } from './systems/teams.js';
+import { battleScreen } from './ui/battleView.js';
+import { adventureScreen } from './ui/adventureView.js';
 import { checkRegistry } from './battle/engine.js';
 import { simulate as simulateBattle } from './battle/sim.js';
 import { runSelfTest } from './battle/selftest.js';
@@ -40,11 +42,15 @@ const IS_LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
  *   ?now=2026-12-01T00:00:00+09:00   그 시각으로 시간 이동
  *   ?story=<id>        스토리 바로 열기     ?banner=<id>  해당 배너 상세 열기
  *   ?shop=gold|cash[&category=<분류>]  상점 바로 열기
+ *   ?screen=<화면>     그 화면 바로 열기 (예: growth, team, collection, gacha)
+ *   ?battle=<스테이지id>  그 스테이지 전투 바로 시작 (보상 없음, 편성이 비면 전투력 상위 5명)
+ *   &ownAll=1          (preview=1일 때만) 모든 캐릭터를 가진 상태로 시작 — 육성/편성/도감 확인용
  */
 function readPreviewOptions() {
   if (!IS_LOCAL) return {};
   const q = new URLSearchParams(location.search);
-  const opts = { preview: q.get('preview') === '1', story: q.get('story'), banner: q.get('banner'), shop: q.get('shop'), category: q.get('category') };
+  const opts = { preview: q.get('preview') === '1', story: q.get('story'), banner: q.get('banner'), shop: q.get('shop'), category: q.get('category'), screen: q.get('screen'), battle: q.get('battle') };
+  opts.ownAll = opts.preview && q.get('ownAll') === '1';
   const t = parseDate(q.get('now'));
   if (t) setNowOverride(t);
   if (opts.preview) usePreviewSaveKey();
@@ -83,8 +89,11 @@ async function boot() {
     save.gold = 10_000_000;
     save.scrolls = 100;
   }
+  if (opts.ownAll) {
+    for (const c of data.characters) if (c.pullable && !save.owned[c.id]) save.owned[c.id] = { level: 1, essence: 0, breakthrough: 0, count: 1, firstAt: save.createdAt };
+  }
   syncKnownIds(save, data.characters, isNew);
-  const daily = isNew ? null : applyDailyLogin(save, { tickets: data.balance.dailyTickets, gold: data.balance.dailyGold });
+  const daily = isNew ? null : applyDailyLogin(save, { tickets: data.balance.daily.tickets, gold: data.balance.daily.gold });
   const passDaily = claimPassDaily(save); // 월정액: 오늘 몫 보석
 
   // 모든 화면이 공유하는 게임 상태(ctx)
@@ -144,13 +153,15 @@ async function boot() {
   registerScreen('reveal', revealScreen(ctx));
   registerScreen('collection', collectionScreen(ctx));
   registerScreen('settings', settingsScreen(ctx));
-  registerScreen('stories', storyListScreen(ctx));
+  registerScreen('adventure', adventureScreen(ctx));
+  registerScreen('stories', storyListScreen(ctx)); // 캐릭터/이벤트 스토리 (메인은 모험)
   registerScreen('story', storyScreen(ctx));
   registerScreen('mail', mailScreen(ctx));
   registerScreen('notices', noticesScreen(ctx));
   registerScreen('growth', growthScreen(ctx));
   registerScreen('team', teamScreen(ctx));
   registerScreen('shop', shopScreen(ctx));
+  registerScreen('battle', battleScreen(ctx, { teamMembers, bestTeam, back }));
 
   ctx.commit();
   go('home');
@@ -174,6 +185,8 @@ async function boot() {
   // 미리보기 바로가기
   if (opts.story) return go('story', { id: opts.story });
   if (opts.shop) return go('shop', { tab: opts.shop, category: opts.category });
+  if (opts.battle) return go('battle', { stageId: opts.battle });
+  if (opts.screen && /^[a-z]{1,20}$/.test(opts.screen)) return go(opts.screen, {});
   if (opts.banner) {
     go('gacha', { bannerId: opts.banner });
     const b = ctx.activeBanners().find((x) => x.id === opts.banner) || data.banners.find((x) => x.id === opts.banner);
@@ -185,10 +198,12 @@ async function boot() {
 
 /** 키보드 단축키 (PC). 한글 입력 상태에서도 동작하도록 e.code 사용 */
 function setupKeyboard(ctx) {
-  const SHORTCUTS = { KeyG: 'gacha', KeyC: 'collection', KeyO: 'settings', KeyT: 'stories', KeyM: 'mail', KeyN: 'notices', KeyU: 'growth', KeyP: 'team', KeyS: 'shop' };
+  const SHORTCUTS = { KeyG: 'gacha', KeyC: 'collection', KeyO: 'settings', KeyT: 'adventure', KeyM: 'mail', KeyN: 'notices', KeyU: 'growth', KeyP: 'team', KeyS: 'shop' };
 
   document.addEventListener('keydown', (e) => {
     if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
+    // Phaser 연출/전투 레이어가 떠 있으면 키는 Phaser 장면이 처리 (preventDefault된 키는 Phaser가 무시하므로 건드리지 않음)
+    if (document.getElementById('fx-layer')?.hidden === false) return;
     const target = e.target;
     const tag = target?.tagName;
 
@@ -235,7 +250,7 @@ function setupDevHelpers(ctx) {
     /** 확률 시뮬레이션 (세이브에 영향 없음). bannerId를 주면 그 배너 기준 */
     simulate: (n = 100000, bannerId) => {
       const banner = ctx.activeBanners().find((b) => b.id === bannerId) || ctx.activeBanners()[0];
-      return simulate(buildPools(ctx.data.characters, banner), n);
+      return simulate(buildPools(ctx.data.characters, banner), ctx.data.balance, n);
     },
     /** 테스트용 보석 추가 */
     addGems: (n = 10000) => {

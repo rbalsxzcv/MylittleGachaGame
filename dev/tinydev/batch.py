@@ -61,7 +61,7 @@ def _job_input(key, extra):
         look = jobs.char_look(ident) or c.get("keywords", "")
         return "char", {
             "name": c.get("name", ident),
-            "rarity": c.get("rarity", "R"),
+            "rarity": c.get("rarity", 3),
             "title": c.get("title", ""),
             "keywords": look,  # 예전에 쓴 외형 → 없으면 메모해 둔 외형 키워드(챕터 팩) → 없으면 Gemini가 소개 문구로 정함
             "lore": c.get("lore") or c.get("description", ""),

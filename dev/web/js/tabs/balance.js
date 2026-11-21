@@ -24,7 +24,7 @@ export function balanceTab(root, { select } = {}) {
   (async () => {
     const kitMods = await loadBattleKit();
     const { vocab, progression, data: gameData } = kitMods;
-    const [sim, selftest] = await Promise.all([import('/preview/js/battle/sim.js'), import('/preview/js/battle/selftest.js')]);
+    const [sim, selftest, gacha, rng] = await Promise.all([import('/preview/js/battle/sim.js'), import('/preview/js/battle/selftest.js'), import('/preview/js/systems/gacha.js'), import('/preview/js/core/rng.js')]);
 
     /** 작업 공간 데이터 → 게임과 같은 모양 */
     function gameDataNow() {
@@ -54,7 +54,7 @@ export function balanceTab(root, { select } = {}) {
     function renderTeam() {
       teamBox.replaceChildren(
         ...team.map((m, i) => {
-          const sel = h('select', { onchange: (e) => ((team[i] = e.target.value ? { charId: e.target.value, level: m?.level || 1, breakthrough: m?.breakthrough || 0 } : null), renderTeam()) }, h('option', { value: '' }, '(빈 칸)'), chars.map((c) => h('option', { value: c.id }, `${c.name} (${c.rarity})`)));
+          const sel = h('select', { onchange: (e) => ((team[i] = e.target.value ? { charId: e.target.value, level: m?.level || 1, breakthrough: m?.breakthrough || 0 } : null), renderTeam()) }, h('option', { value: '' }, '(빈 칸)'), chars.map((c) => h('option', { value: c.id }, `${c.name} (${c.rarity}★)`)));
           sel.value = m?.charId || '';
           return h(
             'div',
@@ -149,11 +149,11 @@ export function balanceTab(root, { select } = {}) {
       const data = gameDataNow();
       const b = data.balance;
       const rows = [];
-      for (const rar of ['SSR', 'SR', 'R']) {
+      for (const rar of [5, 4, 3, 2, 1]) {
         const list = data.characters.filter((c) => c.rarity === rar).map((c) => ({ c, p: progression.powerOf(progression.statsOf(c, 1, 0, b), b) }));
         if (!list.length) continue;
         const avg = list.reduce((a, x) => a + x.p, 0) / list.length;
-        rows.push(h('tr', { class: 'sim-group' }, h('td', { colspan: 3 }, h('b', {}, `${rar} · 평균 ${Math.round(avg)}`))));
+        rows.push(h('tr', { class: 'sim-group' }, h('td', { colspan: 3 }, h('b', {}, `${rar}★ · 평균 ${Math.round(avg)}`))));
         for (const { c, p } of list.sort((x, y) => y.p - x.p)) {
           const others = list.filter((x) => x.c !== c);
           const oAvg = others.length ? others.reduce((a, x) => a + x.p, 0) / others.length : p;
@@ -164,6 +164,51 @@ export function balanceTab(root, { select } = {}) {
       return h('section', { class: 'card' }, h('h2', {}, '전투력 (Lv.1 · 돌파 0)'), h('p', { class: 'muted small' }, `같은 희귀도의 다른 캐릭터 평균보다 ${b.powerWarnPct}% 넘게 높으면 ⚠. 전투력은 능력치만 보고 스킬 강도는 시뮬레이터로 확인하세요.`), h('table', { class: 'sim-table' }, rows));
     }
 
+    // ── 가챠 시뮬레이터: N회 → 관측 확률 / 천장 / 픽업 (설정과 비교) ──
+    function gachaSim() {
+      const bannerSel = h('select', {}, state.data.banners.map((b) => h('option', { value: b.id }, `${b.title} (${b.type === 'pickup' ? '픽업' : '상시'})`)));
+      const pulls = h('input', { type: 'number', class: 'num-input', min: 1000, max: 1000000, step: 10000, value: 100000 });
+      const seed = h('input', { type: 'number', class: 'num-input', value: 1 });
+      const out = h('div');
+      const run = () => {
+        const data = gameDataNow();
+        const b = state.data.banners.find((x) => x.id === bannerSel.value) || { type: 'standard' };
+        // 로테이션 픽업은 지금 시점의 픽업 캐릭터로
+        const pickupIds = b.rotation ? data.characters.filter((c) => c.rarity === Number(b.rotation.rarity)).slice(0, b.rotation.count).map((c) => c.id) : b.pickupIds || [];
+        const pools = gacha.buildPools(data.characters, { ...b, pickupIds });
+        if (gacha.isPoolEmpty(pools)) return out.replaceChildren(h('p', { class: 'error' }, '뽑을 캐릭터가 없어요'));
+        const g = data.balance.gacha;
+        const t0 = performance.now();
+        const r = gacha.simulateStats(pools, data.balance, { pulls: Math.max(1000, Number(pulls.value) || 100000), rand: rng.createRng(Number(seed.value) || 1) });
+        const rows = [5, 4, 3, 2, 1].map((rar) =>
+          h('tr', {}, h('td', {}, `${rar}★`), h('td', {}, `${g.rates[rar]}%`), h('td', {}, `${r.rates[rar].toFixed(2)}%`), h('td', { class: 'muted' }, `${pools[rar].length}명${pools[rar].length ? '' : ' (대체)'}`)),
+        );
+        const bad = (v, ok) => h('td', { class: ok ? 'ok-text' : 'error' }, String(v));
+        out.replaceChildren(
+          h('table', { class: 'sim-table' }, h('tr', {}, h('th', {}, ''), h('th', {}, '설정'), h('th', {}, '관측'), h('th', {}, '풀')), rows),
+          h(
+            'table',
+            { class: 'sim-table' },
+            h('tr', {}, h('td', {}, '뽑기 횟수'), h('td', {}, r.n.toLocaleString('ko-KR'))),
+            h('tr', {}, h('td', {}, `천장(${g.pity}회) 발동`), h('td', {}, r.pityHits.toLocaleString('ko-KR'))),
+            h('tr', {}, h('td', {}, `5★ 없이 최장 연속 (≤ ${g.pity - 1} 정상)`), bad(r.maxSinceTop, r.maxSinceTop < g.pity)),
+            h('tr', {}, h('td', {}, `10연 ${g.tenGuaranteeMin}★+ 확정 발동`), h('td', {}, r.guaranteeHits.toLocaleString('ko-KR'))),
+            h('tr', {}, h('td', {}, `${g.tenGuaranteeMin}★+ 없는 10연 (0 정상)`), bad(r.tenPullsWithoutHigh, r.tenPullsWithoutHigh === 0)),
+            pools.pickup[5].length > 0 && h('tr', {}, h('td', {}, '5★ 중 픽업 비율 (50/50 + 확정 ≈ 66%)'), h('td', {}, `${((r.pickupWins / Math.max(1, r.counts[5])) * 100).toFixed(1)}%`)),
+            pools.pickup[5].length > 0 && h('tr', {}, h('td', {}, '픽업 연속 실패 (0 정상)'), bad(r.lostTwiceInRow, r.lostTwiceInRow === 0)),
+          ),
+          h('p', { class: 'muted small' }, `천장과 10연 확정 때문에 실제 5★ 비율은 설정보다 조금 높아요. (${Math.round(performance.now() - t0)}ms)`),
+        );
+      };
+      return h(
+        'section',
+        { class: 'card' },
+        h('h2', {}, '가챠 시뮬레이터'),
+        h('div', { class: 'row wrap' }, h('label', { class: 'field' }, '배너', bannerSel), h('label', { class: 'inline' }, '횟수', pulls), h('label', { class: 'inline' }, '시드', seed), h('button', { class: 'btn primary', onclick: run }, '돌리기')),
+        out,
+      );
+    }
+
     // ── balance.json 편집 ──
     function balanceEditor() {
       const b = progression.validateBalance(state.data.balance, vocab, () => {});
@@ -172,18 +217,25 @@ export function balanceTab(root, { select } = {}) {
       const field = (obj, key, label, step = 1) =>
         h('label', { class: 'bf-param' }, h('span', {}, label), h('input', { type: 'number', class: 'num-input', step, value: obj[key], oninput: (e) => (obj[key] = Number(e.target.value)) }));
       const issues = h('div');
+      const R = [5, 4, 3, 2, 1];
       box.append(
-        h('div', { class: 'row wrap' }, field(work, 'growth', '레벨당 성장률', 0.01), field(work.levelCost, 'base', '레벨업 비용 base'), field(work.levelCost, 'exp', '비용 지수 exp', 0.05), field(work, 'dailyTickets', '출석 티켓'), field(work, 'dailyGold', '출석 골드'), field(work, 'levelGoldPerTicket', '레벨업 골드 (티켓당)'), field(work, 'maxRounds', '최대 라운드'), field(work, 'powerWarnPct', '전투력 경고 %')),
-        h('p', { class: 'muted small' }, `능력치 = 기본 × (1 + 성장률 × (레벨 − 1)) · 레벨업 비용 = ceil(base × lv^exp) → lv1: ${Math.ceil(work.levelCost.base)}, lv10: ${Math.ceil(work.levelCost.base * 10 ** work.levelCost.exp)}`),
+        h('h3', {}, '뽑기'),
+        h('div', { class: 'row wrap' }, ...R.map((r) => field(work.gacha.rates, r, `${r}★ 확률 %`, 0.1))),
+        h('div', { class: 'row wrap' }, field(work.gacha.cost, 'single', '1회 보석'), field(work.gacha.cost, 'ten', '10회 보석'), field(work.gacha, 'pity', '천장 (회)'), field(work.gacha, 'tenGuaranteeMin', '10연 확정 ★'), field(work.gacha, 'pickupShare', '픽업 확률 (0~1)', 0.05)),
+        h('h3', {}, '성장 · 레벨업'),
+        h('div', { class: 'row wrap' }, field(work.stats, 'growth', '레벨당 성장률', 0.01), field(work.level, 'costBase', '레벨업 비용 base'), field(work.level, 'costExp', '비용 지수 exp', 0.05), field(work.level, 'goldPerTicket', '레벨업 골드 (티켓당)'), field(work.daily, 'tickets', '출석 티켓'), field(work.daily, 'gold', '출석 골드'), field(work, 'powerWarnPct', '전투력 경고 %')),
+        h('p', { class: 'muted small' }, `능력치(공격/방어/HP) = 기본 × (1 + 성장률 × (레벨 − 1)) · 속도/치명타는 레벨과 무관 · 레벨업 티켓 = ceil(base × lv^exp) → lv1: ${Math.ceil(work.level.costBase)}, lv10: ${Math.ceil(work.level.costBase * 10 ** work.level.costExp)} · 골드 = 티켓 × ${work.level.goldPerTicket}`),
         h('h3', {}, '희귀도 기본 능력치 (Lv.1)'),
-        ...['SSR', 'SR', 'R'].map((r) => h('div', { class: 'row wrap' }, h('b', { class: 'rar-label' }, r), field(work.rarityStats[r], 'atk', '공격'), field(work.rarityStats[r], 'def', '방어'), field(work.rarityStats[r], 'hp', 'HP'))),
-        h('div', { class: 'row wrap' }, field(work.crit, 'rate', '치명타 확률', 0.01), field(work.crit, 'dmg', '치명타 피해', 0.05)),
-        h('h3', {}, '기력'),
-        h('div', { class: 'row wrap' }, field(work.energy, 'max', '최대'), field(work.energy, 'basic', '기본 공격'), field(work.energy, 'skill', '스킬'), field(work.energy, 'hit', '피격'), field(work.energy, 'ultimateCost', '궁극기 소모')),
+        ...R.map((r) => h('div', { class: 'row wrap' }, h('b', { class: 'rar-label' }, `${r}★`), field(work.stats.byRarity[r], 'atk', '공격'), field(work.stats.byRarity[r], 'def', '방어'), field(work.stats.byRarity[r], 'hp', 'HP'), field(work.stats.byRarity[r], 'spd', '속도'))),
+        h('div', { class: 'row wrap' }, field(work.stats, 'critRate', '치명타 확률', 0.01), field(work.stats, 'critDmg', '치명타 피해', 0.05)),
+        h('h3', {}, '전투'),
+        h('div', { class: 'row wrap' }, field(work.combat.energy, 'max', '기력 최대'), field(work.combat.energy, 'basic', '기본 공격 기력'), field(work.combat.energy, 'skill', '스킬 기력'), field(work.combat.energy, 'hit', '피격 기력'), field(work.combat.energy, 'ultimateCost', '궁극기 소모')),
+        h('div', { class: 'row wrap' }, field(work.combat.sp, 'start', 'SP 시작'), field(work.combat.sp, 'max', 'SP 최대'), field(work.combat.sp, 'basicGain', '기본 공격 SP +'), field(work.combat.sp, 'skillCost', '스킬 SP −'), field(work.combat, 'maxRounds', '최대 라운드')),
+        h('div', { class: 'row wrap' }, field(work.combat, 'avBase', '행동 수치 기준 (÷속도)'), field(work.combat, 'roundAv', '1라운드 길이'), field(work.combat, 'queuePreview', '행동 순서 표시 인원'), field(work.combat.enemyLevel, 'refPower', '적 레벨 기준 전투력'), field(work.combat.enemyLevel, 'perLevel', '레벨당 전투력'), field(work.combat.fx, 'actionMs', '행동 연출 ms'), field(work.combat.fx, 'cutinMs', '컷인 ms')),
         h('h3', {}, '정수 → 티켓 (돌파 + 정수가 최대일 때)'),
-        h('div', { class: 'row wrap' }, field(work.essenceTickets, 'SSR', 'SSR'), field(work.essenceTickets, 'SR', 'SR'), field(work.essenceTickets, 'R', 'R'), field(work, 'maxBreakthrough', '최대 돌파')),
+        h('div', { class: 'row wrap' }, ...R.map((r) => field(work.essence.overflowTickets, r, `${r}★`)), field(work.essence, 'maxBreakthrough', '최대 돌파')),
         h('h3', {}, '전투력 가중치'),
-        h('div', { class: 'row wrap' }, field(work.power, 'atk', '공격', 0.1), field(work.power, 'def', '방어', 0.1), field(work.power, 'hp', 'HP', 0.05), field(work.power, 'critRate', '치명타 확률'), field(work.power, 'critDmg', '치명타 피해')),
+        h('div', { class: 'row wrap' }, field(work.power, 'atk', '공격', 0.1), field(work.power, 'def', '방어', 0.1), field(work.power, 'hp', 'HP', 0.05), field(work.power, 'spd', '속도', 0.1), field(work.power, 'critRate', '치명타 확률'), field(work.power, 'critDmg', '치명타 피해')),
         h('details', {}, h('summary', {}, h('b', {}, '기본 스킬 (스킬이 없는 캐릭터용)')), h('div', { class: 'be-skills' }, ['basic', 'skill', 'ultimate'].map((a) => skillForm(work.defaultKit[a], a, { onChange: () => {} }).el))),
         issues,
         h(
@@ -227,6 +279,7 @@ export function balanceTab(root, { select } = {}) {
         progress,
       ),
       powerHost,
+      gachaSim(),
     );
     right.replaceChildren(h('section', { class: 'card' }, h('h2', {}, '결과'), result), balanceEditor());
     result.append(h('p', { class: 'muted' }, '왼쪽에서 팀과 스테이지를 고르고 "자동 전투 돌리기"를 눌러 주세요.'));

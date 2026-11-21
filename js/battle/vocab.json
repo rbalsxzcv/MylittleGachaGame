@@ -1,95 +1,316 @@
 {
-  "version": 1,
+  "version": 2,
   "stats": {
     "atk": "공격력",
     "def": "방어력",
     "hp": "최대 HP",
+    "spd": "속도",
     "critRate": "치명타 확률",
     "critDmg": "치명타 피해",
     "dmgDealt": "주는 피해",
     "dmgTaken": "받는 피해"
   },
   "statGroups": {
-    "scaleStats": ["atk", "def", "hp"],
-    "buffStats": ["atk", "def", "critRate", "critDmg", "dmgDealt", "dmgTaken"],
-    "bonusStats": ["atk", "def", "hp", "critRate", "critDmg"]
+    "scaleStats": [
+      "atk",
+      "def",
+      "hp"
+    ],
+    "buffStats": [
+      "atk",
+      "def",
+      "spd",
+      "critRate",
+      "critDmg",
+      "dmgDealt",
+      "dmgTaken"
+    ],
+    "bonusStats": [
+      "atk",
+      "def",
+      "hp",
+      "spd",
+      "critRate",
+      "critDmg"
+    ]
   },
-  "actions": { "basic": "기본 공격", "skill": "스킬", "ultimate": "궁극기" },
+  "actions": {
+    "basic": "기본 공격",
+    "skill": "스킬",
+    "ultimate": "궁극기"
+  },
   "targeting": {
-    "self": { "label": "자신", "text": "자신" },
-    "ally_single": { "label": "아군 1명 (선택)", "text": "아군 1명", "pick": "ally" },
-    "ally_all": { "label": "아군 전체", "text": "아군 전체" },
-    "ally_lowest_hp": { "label": "HP가 가장 낮은 아군", "text": "HP가 가장 낮은 아군" },
-    "enemy_single": { "label": "적 1명 (선택)", "text": "적 1명", "pick": "enemy" },
-    "enemy_all": { "label": "적 전체", "text": "적 전체" },
-    "enemy_random_n": { "label": "무작위 적 N회", "text": "무작위 적 {count}회", "count": true },
-    "trigger_target": { "label": "발동 대상 (공격한 적 / 맞은 적)", "text": "대상", "passiveOnly": true }
+    "self": {
+      "label": "자신",
+      "text": "자신"
+    },
+    "ally_single": {
+      "label": "아군 1명 (선택)",
+      "text": "아군 1명",
+      "pick": "ally"
+    },
+    "ally_all": {
+      "label": "아군 전체",
+      "text": "아군 전체"
+    },
+    "ally_lowest_hp": {
+      "label": "HP가 가장 낮은 아군",
+      "text": "HP가 가장 낮은 아군"
+    },
+    "enemy_single": {
+      "label": "적 1명 (선택)",
+      "text": "적 1명",
+      "pick": "enemy"
+    },
+    "enemy_all": {
+      "label": "적 전체",
+      "text": "적 전체"
+    },
+    "enemy_random_n": {
+      "label": "무작위 적 N회",
+      "text": "무작위 적 {count}회",
+      "count": true
+    },
+    "trigger_target": {
+      "label": "발동 대상 (공격한 적 / 맞은 적)",
+      "text": "대상",
+      "passiveOnly": true
+    }
   },
-  "count": { "kind": "int", "min": 1, "max": 10, "default": 2, "label": "횟수" },
+  "count": {
+    "kind": "int",
+    "min": 1,
+    "max": 10,
+    "default": 2,
+    "label": "횟수"
+  },
   "effectCommon": {
-    "target": { "kind": "targeting", "optional": true, "label": "대상 따로 지정" },
-    "chance": { "kind": "int", "min": 1, "max": 100, "default": 100, "label": "확률(%)" }
+    "target": {
+      "kind": "targeting",
+      "optional": true,
+      "label": "대상 따로 지정"
+    },
+    "chance": {
+      "kind": "int",
+      "min": 1,
+      "max": 100,
+      "default": 100,
+      "label": "확률(%)"
+    }
   },
   "effects": {
     "damage": {
       "label": "피해",
       "params": {
-        "mult": { "kind": "number", "min": 0, "max": 20, "default": 1, "step": 0.05, "label": "배율", "format": "pct" },
-        "stat": { "kind": "enum", "of": "scaleStats", "labels": "stats", "default": "atk", "label": "기준 능력치" },
-        "hits": { "kind": "int", "min": 1, "max": 10, "default": 1, "label": "타수" }
+        "mult": {
+          "kind": "number",
+          "min": 0,
+          "max": 20,
+          "default": 1,
+          "step": 0.05,
+          "label": "배율",
+          "format": "pct"
+        },
+        "stat": {
+          "kind": "enum",
+          "of": "scaleStats",
+          "labels": "stats",
+          "default": "atk",
+          "label": "기준 능력치"
+        },
+        "hits": {
+          "kind": "int",
+          "min": 1,
+          "max": 10,
+          "default": 1,
+          "label": "타수"
+        }
       },
       "text": "{target}에게 {stat}의 {mult} 피해[[ ×{hits}]][[ (현재 {value})]]"
     },
     "heal": {
       "label": "치유",
       "params": {
-        "mult": { "kind": "number", "min": 0, "max": 20, "default": 0.5, "step": 0.05, "label": "배율", "format": "pct" },
-        "stat": { "kind": "enum", "of": "scaleStats", "labels": "stats", "default": "atk", "label": "기준 능력치" }
+        "mult": {
+          "kind": "number",
+          "min": 0,
+          "max": 20,
+          "default": 0.5,
+          "step": 0.05,
+          "label": "배율",
+          "format": "pct"
+        },
+        "stat": {
+          "kind": "enum",
+          "of": "scaleStats",
+          "labels": "stats",
+          "default": "atk",
+          "label": "기준 능력치"
+        }
       },
       "text": "{target}의 HP를 {stat}의 {mult}만큼 회복[[ (현재 {value})]]"
     },
     "shield": {
       "label": "보호막",
       "params": {
-        "mult": { "kind": "number", "min": 0, "max": 20, "default": 1, "step": 0.05, "label": "배율", "format": "pct" },
-        "stat": { "kind": "enum", "of": "scaleStats", "labels": "stats", "default": "def", "label": "기준 능력치" },
-        "turns": { "kind": "int", "min": 1, "max": 20, "default": 2, "label": "지속 턴" }
+        "mult": {
+          "kind": "number",
+          "min": 0,
+          "max": 20,
+          "default": 1,
+          "step": 0.05,
+          "label": "배율",
+          "format": "pct"
+        },
+        "stat": {
+          "kind": "enum",
+          "of": "scaleStats",
+          "labels": "stats",
+          "default": "def",
+          "label": "기준 능력치"
+        },
+        "turns": {
+          "kind": "int",
+          "min": 1,
+          "max": 20,
+          "default": 2,
+          "label": "지속 턴"
+        }
       },
       "text": "{target}에게 {stat}의 {mult} 보호막 ({turns}턴)[[ (현재 {value})]]"
     },
     "buff": {
       "label": "강화",
       "params": {
-        "stat": { "kind": "enum", "of": "buffStats", "labels": "stats", "default": "atk", "label": "능력치" },
-        "pct": { "kind": "int", "min": 1, "max": 500, "default": 20, "label": "%" },
-        "turns": { "kind": "int", "min": 1, "max": 20, "default": 2, "label": "지속 턴" }
+        "stat": {
+          "kind": "enum",
+          "of": "buffStats",
+          "labels": "stats",
+          "default": "atk",
+          "label": "능력치"
+        },
+        "pct": {
+          "kind": "int",
+          "min": 1,
+          "max": 500,
+          "default": 20,
+          "label": "%"
+        },
+        "turns": {
+          "kind": "int",
+          "min": 1,
+          "max": 20,
+          "default": 2,
+          "label": "지속 턴"
+        }
       },
       "text": "{target}의 {stat} {delta} ({turns}턴)"
     },
     "debuff": {
       "label": "약화",
       "params": {
-        "stat": { "kind": "enum", "of": "buffStats", "labels": "stats", "default": "def", "label": "능력치" },
-        "pct": { "kind": "int", "min": 1, "max": 500, "default": 20, "label": "%" },
-        "turns": { "kind": "int", "min": 1, "max": 20, "default": 2, "label": "지속 턴" }
+        "stat": {
+          "kind": "enum",
+          "of": "buffStats",
+          "labels": "stats",
+          "default": "def",
+          "label": "능력치"
+        },
+        "pct": {
+          "kind": "int",
+          "min": 1,
+          "max": 500,
+          "default": 20,
+          "label": "%"
+        },
+        "turns": {
+          "kind": "int",
+          "min": 1,
+          "max": 20,
+          "default": 2,
+          "label": "지속 턴"
+        }
       },
       "text": "{target}의 {stat} {delta} ({turns}턴)"
     },
     "energy_gain": {
       "label": "기력 획득",
-      "params": { "n": { "kind": "int", "min": -100, "max": 100, "default": 10, "label": "기력", "format": "signed" } },
+      "params": {
+        "n": {
+          "kind": "int",
+          "min": -100,
+          "max": 100,
+          "default": 10,
+          "label": "기력",
+          "format": "signed"
+        }
+      },
       "text": "{target} 기력 {n}"
     },
-    "cooldown_reduce": {
-      "label": "스킬 대기 감소",
-      "params": { "n": { "kind": "int", "min": 1, "max": 10, "default": 1, "label": "턴" } },
-      "text": "{target}의 스킬 대기 시간 -{n}턴"
+    "sp_gain": {
+      "label": "SP 획득",
+      "params": {
+        "n": {
+          "kind": "int",
+          "min": -5,
+          "max": 5,
+          "default": 1,
+          "label": "SP",
+          "format": "signed"
+        }
+      },
+      "text": "팀 SP {n}"
+    },
+    "advance_action": {
+      "label": "행동 당기기",
+      "params": {
+        "pct": {
+          "kind": "int",
+          "min": 1,
+          "max": 100,
+          "default": 25,
+          "label": "%"
+        }
+      },
+      "text": "{target}의 행동 {pct}% 당기기"
+    },
+    "delay_action": {
+      "label": "행동 밀기",
+      "params": {
+        "pct": {
+          "kind": "int",
+          "min": 1,
+          "max": 100,
+          "default": 25,
+          "label": "%"
+        }
+      },
+      "text": "{target}의 행동 {pct}% 밀기"
+    },
+    "interrupt": {
+      "label": "차단",
+      "params": {},
+      "text": "{target}이(가) 예고한 큰 공격을 끊음"
     },
     "dot": {
       "label": "지속 피해",
       "params": {
-        "mult": { "kind": "number", "min": 0, "max": 10, "default": 0.3, "step": 0.05, "label": "배율", "format": "pct" },
-        "turns": { "kind": "int", "min": 1, "max": 10, "default": 2, "label": "지속 턴" }
+        "mult": {
+          "kind": "number",
+          "min": 0,
+          "max": 10,
+          "default": 0.3,
+          "step": 0.05,
+          "label": "배율",
+          "format": "pct"
+        },
+        "turns": {
+          "kind": "int",
+          "min": 1,
+          "max": 10,
+          "default": 2,
+          "label": "지속 턴"
+        }
       },
       "text": "{target}에게 {turns}턴 동안 매 턴 공격력의 {mult} 지속 피해[[ (현재 {value})]]"
     },
@@ -100,86 +321,339 @@
     },
     "taunt": {
       "label": "도발",
-      "params": { "turns": { "kind": "int", "min": 1, "max": 10, "default": 1, "label": "지속 턴" } },
+      "params": {
+        "turns": {
+          "kind": "int",
+          "min": 1,
+          "max": 10,
+          "default": 1,
+          "label": "지속 턴"
+        }
+      },
       "text": "{target} 도발 {turns}턴 (상대의 단일 공격을 끌어옴)"
     }
   },
   "triggers": {
-    "onBattleStart": { "label": "전투 시작 시" },
-    "onTurnStart": { "label": "자신의 턴 시작 시" },
-    "onBasic": { "label": "기본 공격 후" },
-    "onSkill": { "label": "스킬 사용 후" },
-    "onUltimate": { "label": "궁극기 사용 후" },
-    "onCrit": { "label": "치명타를 낸 뒤" },
-    "onKill": { "label": "적을 쓰러뜨리면" },
-    "onHit": { "label": "공격받으면" },
+    "onBattleStart": {
+      "label": "전투 시작 시"
+    },
+    "onTurnStart": {
+      "label": "자신의 턴 시작 시"
+    },
+    "onBasic": {
+      "label": "기본 공격 후"
+    },
+    "onSkill": {
+      "label": "스킬 사용 후"
+    },
+    "onUltimate": {
+      "label": "궁극기 사용 후"
+    },
+    "onCrit": {
+      "label": "치명타를 낸 뒤"
+    },
+    "onKill": {
+      "label": "적을 쓰러뜨리면"
+    },
+    "onHit": {
+      "label": "공격받으면"
+    },
     "onHpBelow": {
       "label": "HP가 {pct}% 미만이 되면",
-      "params": { "pct": { "kind": "int", "min": 1, "max": 99, "default": 30, "label": "HP %" } }
+      "params": {
+        "pct": {
+          "kind": "int",
+          "min": 1,
+          "max": 99,
+          "default": 30,
+          "label": "HP %"
+        }
+      }
     }
   },
   "conditions": {
-    "self_hp_below": { "label": "자신의 HP {pct}% 미만", "params": { "pct": { "kind": "int", "min": 1, "max": 100, "default": 50, "label": "HP %" } } },
-    "self_hp_above": { "label": "자신의 HP {pct}% 이상", "params": { "pct": { "kind": "int", "min": 0, "max": 100, "default": 50, "label": "HP %" } } },
-    "target_hp_below": { "label": "대상의 HP {pct}% 미만", "params": { "pct": { "kind": "int", "min": 1, "max": 100, "default": 50, "label": "HP %" } } },
-    "target_has_debuff": { "label": "대상이 약화 상태", "params": {} },
-    "enemies_alive_at_least": { "label": "적이 {n}명 이상", "params": { "n": { "kind": "int", "min": 1, "max": 10, "default": 2, "label": "명" } } },
-    "allies_alive_at_least": { "label": "아군이 {n}명 이상", "params": { "n": { "kind": "int", "min": 1, "max": 5, "default": 3, "label": "명" } } },
-    "round_at_least": { "label": "{n}라운드부터", "params": { "n": { "kind": "int", "min": 1, "max": 99, "default": 3, "label": "라운드" } } },
-    "chance": { "label": "{pct}% 확률", "params": { "pct": { "kind": "int", "min": 1, "max": 100, "default": 50, "label": "%" } } }
+    "self_hp_below": {
+      "label": "자신의 HP {pct}% 미만",
+      "params": {
+        "pct": {
+          "kind": "int",
+          "min": 1,
+          "max": 100,
+          "default": 50,
+          "label": "HP %"
+        }
+      }
+    },
+    "self_hp_above": {
+      "label": "자신의 HP {pct}% 이상",
+      "params": {
+        "pct": {
+          "kind": "int",
+          "min": 0,
+          "max": 100,
+          "default": 50,
+          "label": "HP %"
+        }
+      }
+    },
+    "target_hp_below": {
+      "label": "대상의 HP {pct}% 미만",
+      "params": {
+        "pct": {
+          "kind": "int",
+          "min": 1,
+          "max": 100,
+          "default": 50,
+          "label": "HP %"
+        }
+      }
+    },
+    "target_has_debuff": {
+      "label": "대상이 약화 상태",
+      "params": {}
+    },
+    "enemies_alive_at_least": {
+      "label": "적이 {n}명 이상",
+      "params": {
+        "n": {
+          "kind": "int",
+          "min": 1,
+          "max": 10,
+          "default": 2,
+          "label": "명"
+        }
+      }
+    },
+    "allies_alive_at_least": {
+      "label": "아군이 {n}명 이상",
+      "params": {
+        "n": {
+          "kind": "int",
+          "min": 1,
+          "max": 5,
+          "default": 3,
+          "label": "명"
+        }
+      }
+    },
+    "round_at_least": {
+      "label": "{n}라운드부터",
+      "params": {
+        "n": {
+          "kind": "int",
+          "min": 1,
+          "max": 99,
+          "default": 3,
+          "label": "라운드"
+        }
+      }
+    },
+    "chance": {
+      "label": "{pct}% 확률",
+      "params": {
+        "pct": {
+          "kind": "int",
+          "min": 1,
+          "max": 100,
+          "default": 50,
+          "label": "%"
+        }
+      }
+    }
   },
   "modifiers": {
     "action_targeting": {
       "label": "행동 대상 변경",
       "params": {
-        "action": { "kind": "enum", "of": ["basic", "skill", "ultimate"], "labels": "actions", "default": "skill", "label": "행동" },
-        "targeting": { "kind": "targeting", "default": "enemy_all", "label": "새 대상" },
-        "count": { "kind": "int", "min": 1, "max": 10, "default": 2, "label": "횟수 (무작위일 때)" }
+        "action": {
+          "kind": "enum",
+          "of": [
+            "basic",
+            "skill",
+            "ultimate"
+          ],
+          "labels": "actions",
+          "default": "skill",
+          "label": "행동"
+        },
+        "targeting": {
+          "kind": "targeting",
+          "default": "enemy_all",
+          "label": "새 대상"
+        },
+        "count": {
+          "kind": "int",
+          "min": 1,
+          "max": 10,
+          "default": 2,
+          "label": "횟수 (무작위일 때)"
+        }
       },
       "text": "{action}의 대상이 {targeting}(으)로 바뀜"
     },
     "ultimate_cost": {
       "label": "궁극기 기력 소모",
-      "params": { "delta": { "kind": "int", "min": -100, "max": 100, "default": -20, "label": "변화량", "format": "signed" } },
+      "params": {
+        "delta": {
+          "kind": "int",
+          "min": -100,
+          "max": 100,
+          "default": -20,
+          "label": "변화량",
+          "format": "signed"
+        }
+      },
       "text": "궁극기 기력 소모 {delta}"
     },
-    "cooldown": {
-      "label": "스킬 대기 시간",
-      "params": { "delta": { "kind": "int", "min": -5, "max": 5, "default": -1, "label": "변화량", "format": "signed" } },
-      "text": "스킬 대기 시간 {delta}턴"
+    "sp_cost": {
+      "label": "스킬 SP 소모",
+      "params": {
+        "delta": {
+          "kind": "int",
+          "min": -3,
+          "max": 3,
+          "default": -1,
+          "label": "변화량",
+          "format": "signed"
+        }
+      },
+      "text": "스킬 SP 소모 {delta}"
     },
     "energy_gain": {
       "label": "기력 획득량",
       "params": {
-        "source": { "kind": "enum", "of": ["basic", "skill", "hit"], "labels": { "basic": "기본 공격 시", "skill": "스킬 사용 시", "hit": "공격받을 때" }, "default": "basic", "label": "언제" },
-        "delta": { "kind": "int", "min": -50, "max": 100, "default": 5, "label": "변화량", "format": "signed" }
+        "source": {
+          "kind": "enum",
+          "of": [
+            "basic",
+            "skill",
+            "hit"
+          ],
+          "labels": {
+            "basic": "기본 공격 시",
+            "skill": "스킬 사용 시",
+            "hit": "공격받을 때"
+          },
+          "default": "basic",
+          "label": "언제"
+        },
+        "delta": {
+          "kind": "int",
+          "min": -50,
+          "max": 100,
+          "default": 5,
+          "label": "변화량",
+          "format": "signed"
+        }
       },
       "text": "{source} 기력 획득 {delta}"
     },
     "stat_bonus": {
       "label": "능력치 상승 (상시)",
       "params": {
-        "stat": { "kind": "enum", "of": "bonusStats", "labels": "stats", "default": "atk", "label": "능력치" },
-        "pct": { "kind": "int", "min": -100, "max": 500, "default": 10, "label": "%", "format": "signed" }
+        "stat": {
+          "kind": "enum",
+          "of": "bonusStats",
+          "labels": "stats",
+          "default": "atk",
+          "label": "능력치"
+        },
+        "pct": {
+          "kind": "int",
+          "min": -100,
+          "max": 500,
+          "default": 10,
+          "label": "%",
+          "format": "signed"
+        }
       },
       "text": "{stat} {pct}%"
     },
     "effect_power": {
       "label": "효과 강화",
       "params": {
-        "action": { "kind": "enum", "of": ["any", "basic", "skill", "ultimate"], "labels": { "any": "모든 행동", "basic": "기본 공격", "skill": "스킬", "ultimate": "궁극기" }, "default": "any", "label": "행동" },
-        "effect": { "kind": "enum", "of": ["damage", "heal", "shield", "dot"], "labels": { "damage": "피해", "heal": "치유", "shield": "보호막", "dot": "지속 피해" }, "default": "damage", "label": "효과" },
-        "pct": { "kind": "int", "min": -100, "max": 500, "default": 20, "label": "%", "format": "signed" }
+        "action": {
+          "kind": "enum",
+          "of": [
+            "any",
+            "basic",
+            "skill",
+            "ultimate"
+          ],
+          "labels": {
+            "any": "모든 행동",
+            "basic": "기본 공격",
+            "skill": "스킬",
+            "ultimate": "궁극기"
+          },
+          "default": "any",
+          "label": "행동"
+        },
+        "effect": {
+          "kind": "enum",
+          "of": [
+            "damage",
+            "heal",
+            "shield",
+            "dot"
+          ],
+          "labels": {
+            "damage": "피해",
+            "heal": "치유",
+            "shield": "보호막",
+            "dot": "지속 피해"
+          },
+          "default": "damage",
+          "label": "효과"
+        },
+        "pct": {
+          "kind": "int",
+          "min": -100,
+          "max": 500,
+          "default": 20,
+          "label": "%",
+          "format": "signed"
+        }
       },
       "text": "{action}의 {effect} {pct}%"
     },
     "extra_effects": {
       "label": "행동에 효과 추가",
       "params": {
-        "action": { "kind": "enum", "of": ["basic", "skill", "ultimate"], "labels": "actions", "default": "basic", "label": "행동" },
-        "effects": { "kind": "effects", "label": "추가 효과" }
+        "action": {
+          "kind": "enum",
+          "of": [
+            "basic",
+            "skill",
+            "ultimate"
+          ],
+          "labels": "actions",
+          "default": "basic",
+          "label": "행동"
+        },
+        "effects": {
+          "kind": "effects",
+          "label": "추가 효과"
+        }
       },
       "text": "{action}에 추가: {effects}"
     }
+  },
+  "enemyIcons": {
+    "attack": "공격",
+    "aoe": "광역",
+    "buff": "강화",
+    "heal": "치유",
+    "debuff": "약화"
+  },
+  "enemyTargetRules": {
+    "random": "무작위",
+    "lowest_hp": "HP가 가장 낮은 대상",
+    "highest_atk": "공격력이 가장 높은 대상",
+    "slot1": "1번 칸",
+    "slot2": "2번 칸",
+    "slot3": "3번 칸",
+    "slot4": "4번 칸",
+    "slot5": "5번 칸"
   }
 }

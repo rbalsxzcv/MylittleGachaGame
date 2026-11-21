@@ -152,4 +152,21 @@ export function slugOk(id) {
   return /^[A-Za-z0-9_-]{1,64}$/.test(id || '');
 }
 
-export const RARITIES = ['R', 'SR', 'SSR'];
+// 희귀도 1–5 (높은 것부터). 예전 데이터의 'R'/'SR'/'SSR'은 3/4/5로 읽음 (게임 js/config.js와 같은 규칙)
+export const RARITIES = [5, 4, 3, 2, 1];
+const LEGACY_RARITY = { R: 3, SR: 4, SSR: 5 };
+export function rarOf(v) {
+  if (typeof v === 'string' && v in LEGACY_RARITY) return LEGACY_RARITY[v];
+  const n = Number(v);
+  return Number.isInteger(n) && n >= 1 && n <= 5 ? n : 3;
+}
+/** 표시용: 5 → '5★' */
+export const rarLabel = (v) => `${rarOf(v)}★`;
+/** 희귀도 고르기 select (값은 숫자 문자열 → 쓸 때 rarOf로) */
+export const raritySelect = (value) => {
+  const s = h('select', {}, RARITIES.map((r) => h('option', { value: String(r) }, `${r}★`)));
+  s.value = String(rarOf(value));
+  return s;
+};
+/** 새 캐릭터 id 앞부분 (dev/tinydev/rarity.py ID_PREFIX와 같음) */
+export const RARITY_ID_PREFIX = { 1: 'c1_', 2: 'c2_', 3: 'r_', 4: 'sr_', 5: 'ssr_' };

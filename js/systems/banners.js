@@ -1,11 +1,12 @@
 // 배너 일정: 진행 중인 배너만 골라냄 + 자동 로테이션 픽업
 //
-// 로테이션 픽업 배너: { type: "pickup", rotation: { rarity: "SSR", count: 2, days: 7, anchor: "..." } }
+// 로테이션 픽업 배너: { type: "pickup", rotation: { rarity: 5, count: 2, days: 7, anchor: "..." } }
 //   anchor 시각부터 days일마다 다음 count명이 픽업돼요. 대상은 그 희귀도의 뽑을 수 있는 캐릭터 전체를
 //   공개 시각(addedAt) → id 순서로 줄 세운 것. 끝까지 가면 처음으로 돌아가요.
 //   지금 로테이션이 끝나는 시각이 그 배너의 endAt처럼 보여요(남은 시간 표시). 대상이 없으면 배너를 숨겨요.
 import { inPeriod, now, parseDate } from '../core/time.js';
 import { STANDARD_BANNER } from './gacha.js';
+import { normalizeRarity } from '../config.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -13,13 +14,13 @@ export function isBannerActive(banner, t = now()) {
   return inPeriod(banner.startAt, banner.endAt, t);
 }
 
-/** 뽑기에 나오는 캐릭터인지 (스토리 전용 인물은 pullable: false) */
-export const isPullable = (c) => c.pullable !== false;
+/** 뽑기에 나오는 캐릭터인지 (스토리 전용 인물은 pullable: false, 은퇴는 retired: true) */
+export const isPullable = (c) => c.pullable !== false && !c.retired;
 
 /** 로테이션 대상 순서 (공개 시각 → id) */
 export function rotationPool(characters, rarity) {
   return characters
-    .filter((c) => c.rarity === rarity && isPullable(c))
+    .filter((c) => normalizeRarity(c.rarity) === normalizeRarity(rarity) && isPullable(c))
     .sort((a, b) => (a.addedAt || '').localeCompare(b.addedAt || '') || a.id.localeCompare(b.id));
 }
 

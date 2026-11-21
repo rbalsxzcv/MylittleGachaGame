@@ -42,6 +42,11 @@ python -m http.server 8000
 - `?preview=1`: 실제 세이브와 분리된 미리보기 세이브를 써요.
 - `&now=2026-12-07T00:00:00%2B09:00`: 그 시각으로 시간을 옮겨요.
 - `&story=main_01` 또는 `&banner=<id>`: 해당 스토리나 배너를 바로 열어요.
+- `&ownAll=1`: (preview=1일 때) 모든 캐릭터를 가진 상태로 시작해요.
+- `&screen=adventure` (growth, team, collection, gacha …): 그 화면을 바로 열어요.
+- `&battle=st_01_12`: 그 스테이지 전투를 바로 시작해요 (보상 없음, 편성이 비면 전투력 상위 5명).
+
+**테스트**: 같은 서버에서 http://localhost:8000/tests/index.html 을 열면 전부 실행돼요 (Node가 있으면 `node tests/run.js`). 가챠 연출만 확인하려면 http://localhost:8000/dev/fx-test.html.
 
 ## 조작
 | 키 | 동작 |
@@ -51,22 +56,22 @@ python -m http.server 8000
 | F | 전체화면 |
 | Esc, Backspace | 뒤로 / 팝업 닫기 |
 | 1 / 0 / I / ← → | (뽑기) 1회 / 10회 / 상세·확률 / 배너 전환 |
-| Space, Enter / A / S | (결과) 다음 카드 / 모두 열기 / 건너뛰기 |
+| Space, 탭 / S, Esc | (뽑기 연출) 다음 단계 / 건너뛰기 · 결과 격자에서 Space, Enter = 확인 |
 | Space / A / L / S / 1~4 | (스토리) 다음 / 자동 / 대사 기록 / 건너뛰기 / 선택지 |
 | 1 / 2 / 3 / ← → | (육성) 레벨업 / 스킬 / 돌파 탭, ↑ ↓ 캐릭터 |
 | 1~5 | (편성) 칸 고르기 |
 | 1 / 2 / ↑ ↓ / ← → | (상점) 골드 / 캐시 탭, 캐시 분류, 상품 넘기기 |
-| 1 / 2 / 3 · A · R · Esc | (전투) 기본/스킬/궁극기 → 숫자로 대상 · AUTO · 즉시 결과 · 취소/나가기 |
+| 1 / 2 · 숫자 · A · X · R · Esc | (전투) 기본 공격 / 스킬 · 대상 고르기 · AUTO · 2배속 · 즉시 결과 · 취소/일시정지 (궁극기는 빛나는 초상 탭) |
 
 터치 기기에서는 모든 기능을 탭으로 쓸 수 있어요.
 
 ## 게임 규칙
-- 1회 100 보석, 10회 1,000 보석. 확률은 R 79% · SR 18% · SSR 3%예요.
-- **천장**: 50번째 뽑기까지 SSR이 없으면 50번째는 SSR 확정이에요. 상시 배너와 픽업 배너는 천장 카운트를 따로 세요.
-- **10회 뽑기**는 SR 이상 1장이 확정이에요.
-- **픽업**: SSR이 나오면 50% 확률로 픽업 캐릭터예요. 놓치면 다음 SSR은 픽업 확정이에요.
-- 중복 캐릭터를 얻으면 **정수 +1**이에요. 정수 1개로 돌파 1단계(최대 5)를 열어요. 돌파 + 정수가 5가 된 뒤의 중복은 티켓으로 바뀌어요 (SSR 200 · SR 80 · R 30).
-- 카드의 별(★)은 돌파 단계예요. 희귀도는 SSR = 5★, SR = 4★, R = 3★로 봐요.
+- 1회 100 보석, 10회 1,000 보석. 희귀도는 1★~5★, 확률은 1★ 40% · 2★ 30% · 3★ 20% · 4★ 8% · 5★ 2%예요.
+- **천장**: 70번째 뽑기까지 5★가 없으면 70번째는 5★ 확정이에요. 상시 배너와 픽업 배너는 천장 카운트를 따로 세요.
+- **10회 뽑기**는 4★ 이상 1장이 확정이에요.
+- **픽업**: 5★가 나오면 50% 확률로 픽업 캐릭터예요. 놓치면 다음 5★는 픽업 확정이에요.
+- 중복 캐릭터를 얻으면 **정수 +1**이에요. 정수 1개로 돌파 1단계(최대 5)를 열어요. 돌파 + 정수가 5가 된 뒤의 중복은 티켓으로 바뀌어요 (5★ 200 · 4★ 80 · 3★ 이하 30).
+- 카드 왼쪽 위 배지가 희귀도(1★~5★), 카드 아래 별 칸은 돌파 단계예요. 예전 데이터의 R/SR/SSR은 3★/4★/5★로 읽어요.
 - 첫 시작에 보석 1,000개 + 골드 20,000을 받아요. 매일 첫 접속(한국 시간 자정 기준)마다 보석 300개 + 티켓 30장 + 골드 3,000을 받아요.
 - 골드가 생기기 전의 세이브도 처음 열 때 골드 20,000을 한 번 받아요.
 
@@ -85,18 +90,23 @@ python -m http.server 8000
   - **후원 등급(VIP)**: 누적 가상 결제 금액에 따라 VIP 1~10이 표시돼요 (꾸미기용, 효과 없음).
 
 ### 육성 / 편성 / 전투
-- 숫자는 모두 `data/balance.json`에서 바꿀 수 있어요.
-- 능력치 = 기본 × (1 + 0.08 × (레벨 − 1)), 레벨 제한 없음. 치명타 확률/피해(기본 5% / 50%)는 레벨로 오르지 않고 능력으로만 바뀌어요.
-- 레벨 lv → lv+1 비용: `ceil(10 × lv^1.25)` 티켓 + 그 티켓 × 10 골드 (`levelGoldPerTicket`). 티켓과 골드는 스테이지 클리어, 출석, 우편, 상점에서 얻어요.
-- 전투력 = 2·공격 + 1.5·방어 + 0.2·HP + 300·치명타 확률 + 100·치명타 피해.
-- 전투는 턴제예요. 라운드마다 아군 1→5번, 그다음 적이 행동해요. 기본 공격(기력 +20), 스킬(대기 시간, 기력 +30), 궁극기(기력 100). 맞으면 기력 +10.
+- 숫자는 모두 `data/balance.json`에서 바꿀 수 있어요 (코드는 `js/config.js`가 읽어서 씀).
+- 능력치 = 기본 × (1 + 0.08 × (레벨 − 1)), 레벨 제한 없음. 속도와 치명타 확률/피해(기본 5% / 50%)는 레벨로 오르지 않고 능력으로만 바뀌어요.
+- 레벨 lv → lv+1 비용: `ceil(10 × lv^1.25)` 티켓 + 그 티켓 × 10 골드. 티켓과 골드는 스테이지 클리어, 출석, 우편, 상점에서 얻어요.
+- 전투력 = 2·공격 + 1.5·방어 + 0.2·HP + 2·속도 + 300·치명타 확률 + 100·치명타 피해. 큰 숫자는 1.2만처럼 보여요.
+- 전투는 **속도 타임라인** 턴제예요. 행동 간격 = 10000 ÷ 속도 (빠를수록 자주). 왼쪽에 다음 행동 순서 8명이 보여요.
+  - 아군 차례: 시간 제한 없이 고르기. **기본 공격**(팀 SP +1, 기력 +20) 또는 **스킬**(SP −1, SP 0이면 못 씀, 기력 +30) → 대상. SP는 3으로 시작, 최대 5.
+  - **궁극기**: 기력 100이 되면 초상이 빛나요. 아군 차례 중 언제든 탭 → 턴을 쓰지 않아요. 맞으면 기력 +10.
+  - 적은 다음 행동을 **예고**해요 (아이콘 + ⏱몇 번 뒤 + 노리는 칸 또는 '광역'). 빨간 예고(큰 공격)는 차단 효과로 끊을 수 있어요. 보스는 HP에 따라 페이즈가 바뀌고, 오래 끌면 광폭화해요.
+  - 도발한 아군이 있으면 적의 단일 공격은 그쪽으로 가요.
 - 피해 = 능력치 × 배율 × 100/(100 + 방어) × 치명타(1 + 치명타 피해) × 강화, 내림, 최소 1.
-- AUTO: HP 50% 미만 아군이 있으면 치유 → 궁극기 → 스킬 → 기본 공격. 즉시 결과는 끝까지 한 번에 진행해요.
-- 스테이지는 스토리 안의 전투 장면에서만 싸워요. 이겨야 다음 장면으로 가요. 전에 깬 전투는 건너뛸 수 있고, 다시 싸우면 클리어 보상을 또 받아요 (첫 클리어 보상은 한 번).
+- AUTO: 궁극기는 큰 공격 예고 중이거나 적을 쓰러뜨릴 수 있을 때, 스킬은 SP 2 이상이거나 치유/보호막이 필요할 때, 아니면 기본 공격. 2배속, 즉시 결과(연출 없이 끝까지), 일시정지가 있어요.
+- **모험**: 스테이지 1개 = 스토리 1개 + 전투 1개. 스테이지를 고르면 스토리가 열리고, 스토리 중간의 전투에서 이겨야 다음 장면으로 가요. 다 보면 다음 스테이지가 열려요. 전에 깬 전투는 건너뛸 수 있고, 다시 싸우면 클리어 보상을 또 받아요 (첫 클리어 보상은 한 번).
+- 뽑기 연출과 전투 화면만 움직여요 (Phaser). 설정에서 뽑기 연출 2배속 / 건너뛰기, 전투 2배속을 고를 수 있어요. 기기의 '동작 줄이기' 설정을 켜면 페이드만 나와요.
 - 스토리를 처음 다 읽으면 보상을 받아요. 우편은 기간 안에 한 번만 받을 수 있어요.
 - 모든 시간은 **한국 시간(KST)** 기준으로 판정하고 표시해요.
 - 진행 상황은 브라우저(localStorage, `tinygacha_save_v2`)에 저장돼요. **설정 → 세이브 코드**(`TG2:`)로 다른 기기에 옮길 수 있어요.
-- 예전 세이브(v1)는 처음 열 때 자동으로 옮겨져요. 중복 획득은 정수(최대 5)로, 넘치는 몫은 티켓으로 바뀌어요. v1 원본은 백업으로 그대로 남아요. 예전 세이브 코드(`TG1:`)도 불러올 수 있어요.
+- 예전 세이브는 처음 열 때 순서대로 옮겨져요 (v1 → v2: 중복 획득은 정수(최대 5)로, 넘치는 몫은 티켓 / v2 → v3: 연출 설정 추가). v1 원본은 백업으로 그대로 남아요. 예전 세이브 코드(`TG1:`, v2의 `TG2:`)도 불러올 수 있어요.
 
 ## 콘텐츠 데이터 형식
 
@@ -105,7 +115,7 @@ python -m http.server 8000
 
 ### `data/characters.json`
 ```json
-[{ "id": "ssr_lumi", "name": "루미", "rarity": "SSR", "title": "별을 엮는 무녀",
+[{ "id": "ssr_lumi", "name": "루미", "rarity": 5, "title": "별을 엮는 무녀",
    "description": "소개문", "image": "assets/chars/ssr_lumi.png", "addedAt": "2026-11-15T00:00:00+09:00" }]
 ```
 - `id`는 영문, 숫자, `_`, `-`만 써요. 세이브가 id로 기록되니 **바꾸지 마세요**.
@@ -118,39 +128,52 @@ python -m http.server 8000
 
 캐릭터 전투 데이터(선택, 보통 개발 도구 **캐릭터 탭 → 전투 데이터**로 편집):
 ```json
-{ "stats": { "atk": 125, "def": 55, "hp": 1250, "critRate": 0.05, "critDmg": 0.5 },
+{ "nameEn": "Lumi", "role": "support", "themeColor": "#8fb8ff", "quote": "소원은 내가 엮어 줄게.",
+  "stats": { "atk": 125, "def": 55, "hp": 1250, "spd": 106, "critRate": 0.05, "critDmg": 0.5 },
   "kit": {
     "basic":    { "name": "별가루 화살", "description": "...", "targeting": "enemy_single", "effects": [{ "type": "damage", "mult": 1.0 }] },
-    "skill":    { "name": "별실 매듭", "targeting": "ally_all", "cooldown": 2, "effects": [{ "type": "buff", "stat": "atk", "pct": 20, "turns": 2 }] },
+    "skill":    { "name": "별실 매듭", "targeting": "ally_all", "effects": [{ "type": "buff", "stat": "atk", "pct": 20, "turns": 2 }] },
     "ultimate": { "name": "소원의 별자리", "targeting": "enemy_all", "effects": [{ "type": "damage", "mult": 1.6 }, { "type": "heal", "mult": 0.8, "target": "ally_all" }] } },
   "breakthroughs": [
     { "name": "반짝이는 손끝", "trigger": "onCrit", "targeting": "self", "effects": [{ "type": "energy_gain", "n": 10 }] },
     { "name": "별의 축복", "modifiers": [{ "type": "ultimate_cost", "delta": -20 }] } ] }
 ```
 - 빠진 `stats` 칸은 희귀도 기본값, 빠진 `kit` 칸은 `balance.json`의 기본 스킬을 써요. `breakthroughs`는 최대 5개, N번째가 돌파 N단계에서 켜져요.
+- 스킬에는 대기 시간(cooldown)이 없어요 (팀 SP로 조절). 예전 데이터의 cooldown은 무시돼요.
+- `nameEn`, `role`(`attacker`/`defender`/`support`/`healer`), `themeColor`, `quote`, `cutout`은 뽑기 컷인과 전투 초상에 써요 (선택). 은퇴는 `"retired": true` (뽑기에서 빠지고 보유는 유지).
 - 쓸 수 있는 대상·효과·발동 조건·조건·수정자는 **`js/battle/vocab.json`** 한 곳에 정의돼 있어요 (게임, 개발 도구 폼, 배포 검사, AI 초안이 모두 이 파일을 읽음).
   - 대상: `self`, `ally_single`, `ally_all`, `ally_lowest_hp`, `enemy_single`, `enemy_all`, `enemy_random_n`(+`count`), 돌파 능력만 `trigger_target`
-  - 효과: `damage`, `heal`, `shield`, `buff`, `debuff`, `energy_gain`, `cooldown_reduce`, `dot`, `cleanse`, `taunt` (효과마다 `target`, `chance` 선택)
+  - 효과: `damage`, `heal`, `shield`, `buff`, `debuff`(능력치에 `spd` 포함), `energy_gain`, `sp_gain`, `advance_action`, `delay_action`, `interrupt`, `dot`, `cleanse`, `taunt` (효과마다 `target`, `chance` 선택)
   - 발동: `onBattleStart`, `onTurnStart`, `onBasic`, `onSkill`, `onUltimate`, `onCrit`, `onKill`, `onHit`, `onHpBelow`(+`pct`) · 조건 `conditions` · 횟수 `limit`
-  - 상시 수정자: `action_targeting`, `ultimate_cost`, `cooldown`, `energy_gain`, `stat_bonus`, `effect_power`, `extra_effects`
+  - 상시 수정자: `action_targeting`, `ultimate_cost`, `sp_cost`, `energy_gain`, `stat_bonus`, `effect_power`, `extra_effects`
 - 새 효과 종류를 추가할 때만 코드가 필요해요: `js/battle/effects/`에 모듈 하나 + `effects/index.js`에 한 줄 + `vocab.json`에 한 항목.
 
-### `data/enemies.json` / `data/stages.json` / `data/balance.json`
+### `data/enemies.json` / `data/stages/` / `data/balance.json`
 ```json
 [{ "id": "slime_king", "name": "왕 슬라임", "image": "assets/enemies/slime_king.png", "boss": true,
-   "stats": { "atk": 80, "def": 30, "hp": 1500 },
-   "kit": { "basic": { ... }, "skill": { ... }, "ultimate": null },
+   "stats": { "atk": 80, "def": 30, "hp": 1500, "spd": 102 },
+   "actions": { "bite": { "name": "물기", "targeting": "enemy_single", "icon": "attack", "effects": [ ... ] },
+                "quake": { "name": "대지 진동", "targeting": "enemy_all", "icon": "aoe", "big": true, "effects": [ ... ] } },
+   "pattern": [{ "action": "bite", "target": "lowest_hp" }, { "action": "bite" }, { "action": "quake" }],
+   "phases": [{ "hpBelow": 50, "name": "분노한 왕", "pattern": [ ... ], "enterEffects": [ ... ] }],
+   "enrage": { "round": 15, "effects": [{ "type": "buff", "stat": "atk", "pct": 50, "turns": 20 }] },
    "passives": [{ "name": "분노", "trigger": "onHpBelow", "pct": 50, "limit": 1, "targeting": "self", "effects": [ ... ] }] }]
 ```
+- 적은 캐릭터와 같은 효과 엔진을 써요. `pattern` 순서대로 행동을 예고하고 반복해요. `target` 규칙: `random`(기본) / `lowest_hp` / `highest_atk` / `slot1`~`slot5`. `big: true`는 큰 공격(빨간 예고, 차단 가능).
+- 보스는 `phases`(HP % 아래로 → 패턴 교체 + 들어갈 때 효과)와 `enrage`(정한 라운드부터 효과)를 쓸 수 있어요. 패시브는 항상 켜져 있어요. 그림이 없으면 기본 카드로 보여요.
+- 예전 `kit` 형식도 읽어요 (기본 패턴으로 바뀜). 개발 도구 적 탭에서 저장하면 새 형식이 돼요.
+
+모험 스테이지는 챕터 파일로 나뉘어요: `data/stages/index.json`(`["ch01", ...]`) + `data/stages/ch01.json`
 ```json
-[{ "id": "st_main_02_1", "name": "골목길의 별가루 소동", "recommendedPower": 1200,
-   "waves": [[{ "enemyId": "slime_star", "level": 1 }], [{ "enemyId": "shadow_cat", "level": 2 }]],
-   "turnLimit": 20, "rewards": { "tickets": 40, "gems": 0, "gold": 400 }, "firstClearRewards": { "tickets": 150, "gems": 50, "gold": 1500 } }]
+{ "chapter": "ch01", "title": "챕터 1: 청구서는 피로 쓴다",
+  "stages": [{ "id": "st_01_04", "name": "암시장 뒷골목 소탕", "storyId": "main_01_04", "recommendedPower": 4050,
+               "waves": [[{ "enemyId": "en_scavenger", "level": 4 }], [{ "enemyId": "en_plague_hound" }]],
+               "roundLimit": 20, "rewards": { "tickets": 55, "gems": 0, "gold": 550 }, "firstClearRewards": { "tickets": 190, "gems": 50, "gold": 1900 } }] }
 ```
-- 적은 캐릭터와 같은 스킬/효과 엔진을 써요. 패시브는 항상 켜져 있어요. 그림이 없으면 기본 카드로 보여요.
-- 웨이브는 최대 6명. `turnLimit`(라운드)을 넘기면 패배, `null`이면 제한 없음.
+- **스테이지 1개 = 메인 스토리 1개(`storyId`) + 그 스토리 안의 전투 장면 1개**. 메인 스토리마다 전투 장면이 정확히 하나 있어야 해요 (배포 검사가 확인).
+- 웨이브는 최대 6명. `level`을 비우면 추천 전투력으로 계산해요. `roundLimit`(라운드)을 넘기면 패배, `null`이면 제한 없음.
 - 보상 묶음(스테이지, 우편, 상점)에는 `gems`, `tickets`, `gold`, `scrolls`(모집 증서)를 쓸 수 있어요.
-- `balance.json`: 성장률, 레벨업 비용(`levelCost`, `levelGoldPerTicket`), 희귀도 기본 능력치, 기력, 정수→티켓, 출석 티켓/골드(`dailyTickets`, `dailyGold`), 전투력 가중치, 기본 스킬.
+- `balance.json`: 뽑기(확률/천장/비용/10연 확정/픽업), 성장률, 희귀도 기본 능력치(속도 포함), 레벨업 비용, 정수→티켓, 출석, 전투력 가중치, 전투(기력/SP/타임라인/연출 시간), 기본 스킬. 형식은 `js/config.js`의 DEFAULTS.
 
 ### `data/banners.json`
 ```json
@@ -161,7 +184,7 @@ python -m http.server 8000
    "relatedStoryId": "event_starfest" }]
 ```
 - `type`은 `standard`(상시) 또는 `pickup`(픽업)이에요.
-- **자동 로테이션 픽업**: `pickupIds` 대신 `"rotation": { "rarity": "SSR", "count": 2, "days": 7, "anchor": "2026-11-16T00:00:00+09:00" }`.
+- **자동 로테이션 픽업**: `pickupIds` 대신 `"rotation": { "rarity": 5, "count": 2, "days": 7, "anchor": "2026-11-16T00:00:00+09:00" }`.
   - `anchor`부터 `days`일마다 그 희귀도의 뽑을 수 있는 캐릭터(공개 시각 → id 순서)에서 다음 `count`명이 픽업돼요. 새 캐릭터는 자동으로 순서에 들어가요.
   - 남은 시간은 이번 로테이션이 끝나는 시각이에요. 대상 캐릭터가 없으면 배너가 숨겨져요. 그림이 없으면 픽업 캐릭터 그림이 배너에 보여요.
 - 진행 중인 배너만 홈 캐러셀에 남은 시간과 함께 보여요. 시작 전이거나 끝난 배너는 숨겨져요.
@@ -247,10 +270,14 @@ js/
   main.js        시작점 (데이터 → 세이브 → 화면 → 시작 팝업)
   core/          스테이지 크기 조정, 데이터 로더/검증, 세이브, KST 시간, 난수(시드 포함), 이벤트
   systems/       게임 규칙 (재화, 가챠·픽업, 도감, 육성, 편성, 스테이지 기록, 배너 일정, 스토리 해금, 우편·공지, 상점)
-  battle/        전투 엔진 (DOM 없음, 시드로 재현): vocab.json, effects/, 대상·조건·수정자, AI, 설명 문장, 시뮬레이터
-  ui/            화면 (홈, 뽑기, 결과, 도감, 육성, 편성, 전투, 스토리 목록/뷰어, 우편, 공지, 설정, 상점)
-data/            콘텐츠 JSON
-assets/          chars/(캐릭터), banners/(배너), bg/(스토리 배경), enemies/(적), icon.svg
+  config.js      조정 수치 (balance.json 검사/기본값), 희귀도/큰 숫자 도우미
+  battle/        전투 엔진 (DOM 없음, 시드로 재현): 타임라인/SP/예고, vocab.json, effects/, 대상·조건·수정자, AI, 설명 문장, 시뮬레이터, 자체 검사
+  fx/            Phaser 장면 (뽑기 연출, 전투 화면, 컷인) — 연출 레이어에서만 움직임
+  vendor/        phaser.min.js (3.90.0)
+  ui/            화면 (홈, 뽑기, 결과, 모험, 도감, 육성, 편성, 전투, 스토리 뷰어, 우편, 공지, 설정, 상점)
+data/            콘텐츠 JSON (stages/는 모험 챕터 파일)
+assets/          chars/(캐릭터), banners/(배너), bg/(스토리 배경), enemies/(적), fonts/(Pretendard, OFL), icon.svg
+tests/           테스트 (브라우저 tests/index.html, Node node tests/run.js) — 자세한 건 CLAUDE.md
 dev/             로컬 전용 개발 도구 (dev/README.md)
 ```
 새 기능(미션, 출석 등)은 다음 순서로 붙일 수 있어요 (상점 `systems/shop.js` + `ui/shopView.js`가 예시예요).

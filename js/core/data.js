@@ -2,10 +2,10 @@
 // 각 파일은 독립적으로 불러오며, 한 파일이 깨져도 게임 전체가 멈추지 않습니다.
 // 잘못된 항목은 건너뛰고(콘솔 경고) 나머지는 그대로 사용합니다.
 
-import { cleanKit, cleanStats, cleanPassiveList } from '../battle/schema.js';
-import { validateBalance } from '../systems/progression.js';
+import { cleanKit, cleanStats, cleanPassiveList, cleanEnemyBehavior } from '../battle/schema.js';
+import { loadConfig, normalizeRarity, RARITIES } from '../config.js';
 
-export const RARITIES = ['R', 'SR', 'SSR'];
+export { RARITIES, normalizeRarity };
 export const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 export const STORY_KINDS = ['main', 'character', 'event'];
 
@@ -83,23 +83,35 @@ function cleanList(list, label, fn) {
 const warnData = (msg) => console.warn(`[data] ${msg}`);
 
 // ── characters.json ───────────────────────────────────────
-// 필수: id, name, rarity(R|SR|SSR)
+export const ROLES = ['attacker', 'defender', 'support', 'healer'];
+const colorOrNull = (v) => (typeof v === 'string' && /^#[0-9a-f]{3,8}$/i.test(v) ? v : null);
+
+// 필수: id, name, rarity(1–5, 예전 'R'/'SR'/'SSR'은 3/4/5로 읽음)
+// 표시(선택): nameEn, role, cutout, themeColor, quote — 가챠 컷인/전투 초상에 씀
 // 전투(선택): stats, kit {basic, skill, ultimate}, breakthroughs[5] — 없으면 희귀도 기본값 / 기본 스킬
+// retired: true = 은퇴 (뽑기에서 빠지지만 보유/도감은 유지. id는 절대 지우지 않음)
 export function validateCharacters(json, vocab) {
   return cleanList(asList(json, 'characters'), 'characters', (raw) => {
     const name = str(raw.name).trim();
     if (!name) throw new Error('name 없음');
-    if (!RARITIES.includes(raw.rarity)) throw new Error('rarity는 R/SR/SSR 중 하나여야 함');
+    const rarity = normalizeRarity(raw.rarity);
+    if (!rarity) throw new Error('rarity는 1~5 중 하나여야 함');
     const where = `characters/${raw.id}`;
     return {
       id: raw.id,
       name,
-      rarity: raw.rarity,
+      nameEn: str(raw.nameEn, '', 40).trim(),
+      rarity,
+      role: ROLES.includes(raw.role) ? raw.role : 'attacker',
       title: str(raw.title).trim(),
       description: str(raw.description).trim(),
       image: str(raw.image).trim(),
+      cutout: str(raw.cutout).trim(),
+      themeColor: colorOrNull(raw.themeColor),
+      quote: str(raw.quote, '', 120).trim(),
       addedAt: str(raw.addedAt).trim(),
       pullable: raw.pullable !== false, // false = 스토리 전용 인물 (뽑기/도감에 안 나옴)
+      retired: raw.retired === true,
       stats: cleanStats(raw.stats),
       kit: vocab ? cleanKit(raw.kit, vocab, warnData, `${where}.kit`) : null,
       breakthroughs: vocab ? cleanPassiveList(raw.breakthroughs, vocab, warnData, `${where}.breakthroughs`, 5) : [],
@@ -108,7 +120,8 @@ export function validateCharacters(json, vocab) {
 }
 
 // ── enemies.json ──────────────────────────────────────────
-// { id, name, image, boss, stats, kit, passives[] } — 패시브는 항상 켜짐
+// { id, name, image, boss, stats, actions{}, pattern[], phases[], enrage, passives[] } — 패시브는 항상 켜짐
+// 예전 { kit } 형식도 읽음 (actions + 기본 패턴으로 바뀜). 자세한 형식은 battle/schema.js cleanEnemyBehavior
 export function validateEnemies(json, vocab) {
   return cleanList(asList(json, 'enemies'), 'enemies', (raw) => {
     const name = str(raw.name).trim();
@@ -120,7 +133,7 @@ export function validateEnemies(json, vocab) {
       image: str(raw.image).trim(),
       boss: raw.boss === true,
       stats: cleanStats(raw.stats),
-      kit: cleanKit(raw.kit, vocab, warnData, `${where}.kit`),
+      ...cleanEnemyBehavior(raw, vocab, warnData, where),
       passives: cleanPassiveList(raw.passives, vocab, warnData, `${where}.passives`, 8),
     };
   });
@@ -137,23 +150,33 @@ export function cleanRewards(r, max = 1_000_000) {
   };
 }
 
-export function validateStages(json) {
-  return cleanList(asList(json, 'stages'), 'stages', (raw) => {
+/**
+ * 스테이지 목록 정리. 모험: 스테이지 1개 = 스토리 1개(storyId) = 전투 1개
+ * @param {object|Array} json 챕터 파일 { chapter, title, stages[] } 또는 예전 stages.json 배열
+ * @param {{chapter?:string, chapterTitle?:string}} [ch]
+ */
+export function validateStages(json, ch = {}) {
+  const chapter = ch.chapter || (typeof json?.chapter === 'string' ? json.chapter : 'ch01');
+  return cleanList(asList(json, 'stages'), `stages/${chapter}`, (raw) => {
     const waves = (Array.isArray(raw.waves) ? raw.waves : [])
       .map((w) =>
         (Array.isArray(w) ? w : [])
           .filter((e) => e && idOk(e.enemyId))
           .slice(0, 6)
-          .map((e) => ({ enemyId: e.enemyId, level: int(e.level, 1, 100000, 1) })),
+          .map((e) => ({ enemyId: e.enemyId, level: e.level == null || e.level === '' ? null : int(e.level, 1, 100000, 1) })), // null = 추천 전투력으로 계산
       )
       .filter((w) => w.length);
     if (!waves.length) throw new Error('waves가 비어 있음');
     return {
       id: raw.id,
       name: str(raw.name, raw.id).trim() || raw.id,
+      chapter,
+      storyId: idOk(raw.storyId) ? raw.storyId : null,
+      retired: raw.retired === true,
       recommendedPower: int(raw.recommendedPower, 0, 1e9, 0),
       waves,
-      turnLimit: raw.turnLimit == null || raw.turnLimit === '' ? null : int(raw.turnLimit, 1, 999, 20),
+      // 라운드 제한 (예전 이름 turnLimit도 받음)
+      roundLimit: (raw.roundLimit ?? raw.turnLimit) == null || (raw.roundLimit ?? raw.turnLimit) === '' ? null : int(raw.roundLimit ?? raw.turnLimit, 1, 999, 20),
       rewards: cleanRewards(raw.rewards),
       firstClearRewards: cleanRewards(raw.firstClearRewards),
     };
@@ -172,7 +195,7 @@ export function validateBanners(json) {
       type,
       rotation: rot
         ? {
-            rarity: RARITIES.includes(rot.rarity) ? rot.rarity : 'SSR',
+            rarity: normalizeRarity(rot.rarity) || 5,
             count: int(rot.count, 1, 4, 2),
             days: int(rot.days, 1, 60, 7),
             anchor: dateOrNull(rot.anchor),
@@ -397,10 +420,9 @@ export async function loadGameData() {
   });
   const vocab = vocabResult.data;
   const files = [
-    ['balance', 'data/balance.json', validateBalance({}, vocab), (j) => validateBalance(j, vocab, warnData)],
+    ['balance', 'data/balance.json', loadConfig({}, vocab), (j) => loadConfig(j, vocab, warnData)],
     ['characters', 'data/characters.json', [], (j) => validateCharacters(j, vocab)],
     ['enemies', 'data/enemies.json', [], (j) => validateEnemies(j, vocab)],
-    ['stages', 'data/stages.json', [], validateStages],
     ['banners', 'data/banners.json', [], validateBanners],
     ['storyIndex', 'data/stories/index.json', [], validateStoryIndex],
     ['notices', 'data/notices.json', [], validateNotices],
@@ -412,6 +434,11 @@ export async function loadGameData() {
   const results = await Promise.all(files.map(([, path, fallback, validator]) => loadJson(path, fallback, validator)));
 
   const data = { status: [{ file: 'js/battle/vocab.json', ok: vocabResult.ok, error: vocabResult.error, count: null }], vocab };
+  // 스테이지: data/stages/index.json → 챕터 파일들 (없으면 예전 data/stages.json)
+  const st = await loadStageChapters();
+  data.stages = st.stages;
+  data.chapters = st.chapters;
+  data.status.push(...st.status);
   files.forEach(([key, path], i) => {
     const r = results[i];
     data[key] = r.data;
@@ -419,6 +446,43 @@ export async function loadGameData() {
     data.status.push({ file: path, ok: r.ok, error: r.error, count });
   });
   return data;
+}
+
+/**
+ * 모험 챕터 불러오기: data/stages/index.json (챕터 id 목록) → data/stages/<id>.json
+ * index가 없으면 예전 data/stages.json 하나를 'ch01'로 읽음
+ * @returns {Promise<{stages:Array, chapters:Array<{id, title, stageIds}>, status:Array}>}
+ */
+export async function loadStageChapters() {
+  const status = [];
+  const idx = await loadJson('data/stages/index.json', null, (j) => {
+    const list = Array.isArray(j) ? j : Array.isArray(j?.chapters) ? j.chapters : null;
+    if (!list) throw new Error('챕터 목록(배열)이 아님');
+    return list.map((x) => (typeof x === 'string' ? x : x?.id)).filter(idOk);
+  });
+  if (!idx.ok) {
+    const legacy = await loadJson('data/stages.json', [], (j) => validateStages(j, { chapter: 'ch01' }));
+    status.push({ file: 'data/stages.json', ok: legacy.ok, error: legacy.error, count: legacy.data.length });
+    return { stages: legacy.data, chapters: [{ id: 'ch01', title: '챕터 1', stageIds: legacy.data.map((s) => s.id) }], status };
+  }
+  status.push({ file: 'data/stages/index.json', ok: true, error: null, count: idx.data.length });
+  const files = await Promise.all(
+    idx.data.map((id) =>
+      loadJson(`data/stages/${id}.json`, null, (j) => ({ title: str(j?.title, id, 60).trim() || id, stages: validateStages(j, { chapter: id }) })),
+    ),
+  );
+  const stages = [];
+  const chapters = [];
+  const seen = new Set();
+  idx.data.forEach((id, i) => {
+    const r = files[i];
+    status.push({ file: `data/stages/${id}.json`, ok: r.ok, error: r.error, count: r.data?.stages.length ?? 0 });
+    if (!r.ok || !r.data) return;
+    const list = r.data.stages.filter((s) => (seen.has(s.id) ? (warnData(`stages/${id}: 다른 챕터와 겹치는 id '${s.id}' → 건너뜀`), false) : (seen.add(s.id), true)));
+    stages.push(...list);
+    chapters.push({ id, title: r.data.title, stageIds: list.map((s) => s.id) });
+  });
+  return { stages, chapters, status };
 }
 
 // 스토리 본문 캐시

@@ -20,7 +20,7 @@ PUBLIC_FILE = {
     "notices": "data/notices.json",
     "mail": "data/mail.json",
     "enemies": "data/enemies.json",
-    "stages": "data/stages.json",
+    "stages": "data/stages/index.json",  # 실제로는 챕터 파일 여러 개 (_stage_targets)
 }
 BATTLE_FIELDS = ("stats", "kit", "breakthroughs")
 # 개발 도구 전용 메모 (외형 키워드, 작가용 설정 — 스포일러가 있을 수 있음) → 공개 파일에는 넣지 않음
@@ -150,7 +150,10 @@ def plan(cutoff=None):
     # ── 3) 바뀐 파일 ──
     targets = {}  # 공개 경로 → ('json', 객체) | ('asset', 작업공간 경로)
     for key in LIST_KEYS:
-        targets[PUBLIC_FILE[key]] = ("json", out[key])
+        if key == "stages":
+            targets.update(_stage_targets(out["stages"]))
+        else:
+            targets[PUBLIC_FILE[key]] = ("json", out[key])
     for sid, body in out["stories"].items():
         targets[f"data/stories/{sid}.json"] = ("json", body)
     targets[f"data/{store.UI_FILE}"] = ("json", out["ui"])
@@ -170,6 +173,15 @@ def plan(cutoff=None):
                 changes.append({"file": rel, "status": "modified"})
         elif dest.read_bytes() != value.read_bytes():
             changes.append({"file": rel, "status": "modified"})
+    # 예전 data/stages.json / 없어진 챕터 파일은 삭제
+    if (config.PUBLIC_DATA / "stages.json").exists():
+        changes.append({"file": "data/stages.json", "status": "removed"})
+    pub_stage_dir = config.PUBLIC_DATA / "stages"
+    if pub_stage_dir.exists():
+        for p in pub_stage_dir.glob("*.json"):
+            rel = f"data/stages/{p.name}"
+            if rel not in targets:
+                changes.append({"file": rel, "status": "removed"})
     pub_stories = config.PUBLIC_DATA / "stories"
     if pub_stories.exists():
         for p in pub_stories.glob("*.json"):
@@ -192,11 +204,61 @@ def plan(cutoff=None):
     }
 
 
+def _stage_targets(stages):
+    """스테이지 목록 → 공개 파일들 {'data/stages/index.json': ..., 'data/stages/ch01.json': ...}"""
+    ids, files = store.split_stages(stages, store.stage_chapter_titles(), list(store.stage_chapter_titles()))
+    out = {"data/stages/index.json": ("json", ids)}
+    for ch, payload in files.items():
+        out[f"data/stages/{ch}.json"] = ("json", payload)
+    return out
+
+
+def _public_stages():
+    """공개 스테이지 (챕터 파일 → 한 목록, 예전 stages.json도)"""
+    got = store._read_stage_chapters(config.PUBLIC_DATA / "stages")
+    if got:
+        return got[2]
+    data = _public_json("data/stages.json")
+    return [{**s, "chapter": store.chapter_of(s)} for s in data if isinstance(s, dict)] if isinstance(data, list) else []
+
+
+def _flatten(obj, prefix=""):
+    """{'a': {'b': 1}} → {'a.b': 1} (defaultKit처럼 큰 덩어리는 통째로)"""
+    out = {}
+    for k, v in (obj or {}).items():
+        key = f"{prefix}{k}"
+        if isinstance(v, dict) and k != "defaultKit":
+            out.update(_flatten(v, key + "."))
+        else:
+            out[key] = v
+    return out
+
+
+def balance_diff(old, new):
+    """balance.json에서 바뀐 숫자 → ['gacha.pity 70 → 80', ...] (패치노트용)"""
+    a, b = _flatten(old), _flatten(new)
+    lines = []
+    for key in sorted(set(a) | set(b)):
+        if a.get(key) == b.get(key):
+            continue
+        if key == "defaultKit":
+            lines.append("기본 스킬 변경")
+        elif key not in a:
+            lines.append(f"{key} 추가 ({b[key]})")
+        elif key not in b:
+            lines.append(f"{key} 삭제")
+        else:
+            lines.append(f"{key} {a[key]} → {b[key]}")
+    return lines
+
+
 def draft_notes(out):
     """공개 데이터와 비교해서 패치노트 초안 만들기"""
     notes = []
 
     def public_list(key):
+        if key == "stages":
+            return {x.get("id"): x for x in _public_stages()}
         data = _public_json(PUBLIC_FILE[key])
         return {x.get("id"): x for x in data if isinstance(x, dict)} if isinstance(data, list) else {}
 
@@ -220,7 +282,9 @@ def draft_notes(out):
         notes.append(f"적 추가/수정: {', '.join(changed_enemies)}")
     pub_bal = _public_json(f"data/{store.BALANCE_FILE}")
     if out.get("balance") and pub_bal != out["balance"]:
-        notes.append("전투/육성 밸런스 조정")
+        diffs = balance_diff(pub_bal if isinstance(pub_bal, dict) else {}, out["balance"])
+        shown = ", ".join(diffs[:6]) + (f" 외 {len(diffs) - 6}개" if len(diffs) > 6 else "")
+        notes.append(f"전투/육성 밸런스 조정{': ' + shown if diffs else ''}")
     for b in out["banners"]:
         if b["id"] not in pub["banners"]:
             label = "픽업 모집" if b.get("type") == "pickup" else "모집"

@@ -1,7 +1,9 @@
 // 세이브 데이터: 불러오기 / 검증·정리(sanitize) / 저장 / 세이브 코드 내보내기·가져오기
-// localStorage 키: tinygacha_save_v2 (v1 세이브는 처음 한 번 v2로 옮기고, v1 키는 백업으로 그대로 둠)
+// localStorage 키: tinygacha_save_v2 (이름은 고정). 안의 v = schemaVersion
+// 예전 버전은 MIGRATIONS를 순서대로 적용해서 최신으로 옮김 (v1 키는 백업으로 그대로 둠)
 
 import { ID_PATTERN } from './data.js';
+import { overflowTickets } from '../config.js';
 import { kstDateKey, nowKstIso, now } from './time.js';
 
 const BASE_SAVE_KEY = 'tinygacha_save_v2';
@@ -13,11 +15,11 @@ export function usePreviewSaveKey() {
   SAVE_KEY = `${BASE_SAVE_KEY}_preview`;
   V1_KEY = `${BASE_V1_KEY}_preview`;
 }
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 export const START_GEMS = 1000;
 // 첫 시작 골드. 골드가 생기기 전 세이브에도 한 번 지급 (레벨업에 골드가 필요해졌으므로)
 export const START_GOLD = 20000;
-const CODE_PREFIX = 'TG2:';
+const CODE_PREFIX = 'TG2:'; // 세이브 코드 접두사 (v2·v3 공통, 버전은 안의 v로 구분)
 const V1_CODE_PREFIX = 'TG1:';
 const MAX_GEMS = 999_999_999;
 const MAX_LEVEL = 1_000_000; // 레벨 제한은 없지만 비정상 값 방지
@@ -75,9 +77,26 @@ export function createNewSave(t = now()) {
     scrolls: 0, // 모집 증서 (1장 = 뽑기 1회)
     teams: defaultTeams(),
     stages: {}, // 스테이지 id → { clears, firstClaimed, bestRounds }
+    settings: defaultSettings(),
   };
   for (const [name, def] of slices) save[name] = def.create();
   return save;
+}
+
+/** 연출/전투 설정 (가챠 연출 속도·스킵, 전투 속도·AUTO) */
+export function defaultSettings() {
+  return { fxSpeed: 1, fxSkip: false, battleSpeed: 1, battleAuto: false };
+}
+
+function cleanSettings(raw) {
+  const base = defaultSettings();
+  if (!raw || typeof raw !== 'object') return base;
+  return {
+    fxSpeed: raw.fxSpeed === 2 ? 2 : 1,
+    fxSkip: raw.fxSkip === true,
+    battleSpeed: raw.battleSpeed === 2 ? 2 : 1,
+    battleAuto: raw.battleAuto === true,
+  };
 }
 
 export function defaultTeams() {
@@ -122,23 +141,25 @@ function cleanStages(raw) {
 }
 
 /**
- * v1 → v2: 중복 획득(count − 1)은 정수로, 최대(5)를 넘는 몫은 티켓으로
+ * v1 → v2: 중복 획득(count − 1)은 정수로, 최대 돌파(5)를 넘는 몫은 티켓으로
+ * (희귀도 R/SR/SSR → 3/4/5★ 변환은 데이터 쪽에서 하므로 rarityOf는 이미 1–5를 돌려줌)
  * @param {object} raw v1 세이브 (JSON 그대로)
- * @param {{rarityOf:(id:string)=>string|undefined, balance:object}} env
+ * @param {{rarityOf:(id:string)=>number|undefined, balance:object}} env
  * @returns {{raw:object, tickets:number, essence:number}}
  */
 export function migrateV1(raw, { rarityOf, balance }) {
-  const out = { ...raw, v: SAVE_VERSION, owned: {}, tickets: 0 };
+  const out = { ...raw, v: 2, owned: {}, tickets: 0 };
   let tickets = 0;
   let essence = 0;
-  const maxBt = balance?.maxBreakthrough ?? 5;
+  const maxBt = balance?.essence?.maxBreakthrough ?? 5;
   if (raw?.owned && typeof raw.owned === 'object') {
     for (const [id, entry] of Object.entries(raw.owned)) {
       if (!entry || typeof entry !== 'object') continue;
       const count = int(entry.count, 1, 1_000_000, 1);
       const dupes = count - 1;
       const keep = Math.min(dupes, maxBt);
-      const rate = balance?.essenceTickets?.[rarityOf(id)] ?? balance?.essenceTickets?.R ?? 30;
+      // 데이터에 없는 캐릭터(rarityOf가 undefined)는 3★ 기준
+      const rate = balance ? overflowTickets(rarityOf?.(id) ?? 3, balance) : 30;
       tickets += (dupes - keep) * rate;
       essence += keep;
       out.owned[id] = { level: 1, essence: keep, breakthrough: 0, count, firstAt: entry.firstAt };
@@ -146,6 +167,41 @@ export function migrateV1(raw, { rarityOf, balance }) {
   }
   out.tickets = tickets;
   return { raw: out, tickets, essence };
+}
+
+/** v2 → v3: 연출/전투 설정(settings) 추가. 나머지 필드는 그대로 */
+export function migrateV2(raw) {
+  return { raw: { ...raw, v: 3, settings: cleanSettings(raw?.settings) } };
+}
+
+/**
+ * 순서 있는 마이그레이션 목록. 새 버전은 끝에 하나씩 추가 (from → to, 한 칸씩)
+ * run(raw, env) → { raw, ...보고용 값 }
+ */
+export const MIGRATIONS = [
+  { from: 1, to: 2, run: migrateV1 },
+  { from: 2, to: 3, run: migrateV2 },
+];
+
+/**
+ * 옛 세이브(JSON)를 최신 버전으로. v가 없거나 이상하면 1로 봄. 최신보다 높으면 그대로
+ * @returns {{raw:object, applied:number[], report:{tickets:number, essence:number}}}
+ */
+export function migrate(raw, env) {
+  let cur = raw && typeof raw === 'object' ? raw : {};
+  let v = Number.isInteger(cur.v) && cur.v >= 1 ? cur.v : 1;
+  const applied = [];
+  const report = { tickets: 0, essence: 0 };
+  for (const m of MIGRATIONS) {
+    if (m.from !== v) continue;
+    const out = m.run(cur, env);
+    cur = out.raw;
+    report.tickets += out.tickets || 0;
+    report.essence += out.essence || 0;
+    applied.push(m.to);
+    v = m.to;
+  }
+  return { raw: cur, applied, report };
 }
 
 /**
@@ -213,6 +269,7 @@ export function sanitize(raw) {
     scrolls: int(raw.scrolls, 0, 99_999, 0),
     teams: cleanTeams(raw.teams),
     stages: cleanStages(raw.stages),
+    settings: cleanSettings(raw.settings),
   };
 
   for (const [name, def] of slices) {
@@ -241,8 +298,9 @@ export function loadSave(env) {
   }
   if (!text && v1) {
     try {
-      const m = migrateV1(JSON.parse(v1), env);
-      return { save: sanitize(m.raw), isNew: false, corrupted: false, migrated: { tickets: m.tickets, essence: m.essence } };
+      const raw = JSON.parse(v1);
+      const m = migrate({ ...raw, v: 1 }, env);
+      return { save: sanitize(m.raw), isNew: false, corrupted: false, migrated: m.report };
     } catch (e) {
       console.warn('[save] v1 세이브를 옮기지 못했어요', e);
     }
@@ -250,7 +308,10 @@ export function loadSave(env) {
   if (!text) return { save: createNewSave(), isNew: true, corrupted: false, migrated: null };
 
   try {
-    return { save: sanitize(JSON.parse(text)), isNew: false, corrupted: false, migrated: null };
+    const m = migrate(JSON.parse(text), env);
+    // 정수/티켓 환산이 있었을 때만 안내 (v2→v3처럼 필드만 추가한 경우는 조용히)
+    const migrated = m.report.tickets || m.report.essence ? m.report : null;
+    return { save: sanitize(m.raw), isNew: false, corrupted: false, migrated };
   } catch (e) {
     console.warn('[save] 세이브가 손상되어 새로 시작합니다', e);
     // 손상된 원본은 혹시 모르니 별도 키에 보관
@@ -301,7 +362,7 @@ export function exportCode(save) {
 
 /**
  * 코드 문자열 → 세이브. 형식이 틀리면 ok:false (기존 세이브는 건드리지 않음)
- * 예전 코드(TG1:)는 v2로 옮겨서 불러옴
+ * 예전 코드(TG1:, TG2:의 v2)는 MIGRATIONS로 옮겨서 불러옴
  * @param {string} code
  * @param {{rarityOf:(id:string)=>string|undefined, balance:object}} env
  * @returns {{ok:true, save:object} | {ok:false, error:string}}
@@ -313,10 +374,11 @@ export function parseCode(code, env) {
   if (!isV1 && !cleaned.startsWith(CODE_PREFIX)) return { ok: false, error: 'Tiny Gacha 세이브 코드가 아니에요.' };
   try {
     const raw = JSON.parse(base64ToUtf8(cleaned.slice(CODE_PREFIX.length)));
-    if (!raw || typeof raw !== 'object' || raw.v !== (isV1 ? 1 : SAVE_VERSION) || typeof raw.owned !== 'object') {
+    const versionOk = isV1 ? raw?.v === 1 : Number.isInteger(raw?.v) && raw.v >= 2 && raw.v <= SAVE_VERSION;
+    if (!raw || typeof raw !== 'object' || !versionOk || typeof raw.owned !== 'object') {
       return { ok: false, error: '세이브 내용이 올바르지 않아요.' };
     }
-    return { ok: true, save: sanitize(isV1 ? migrateV1(raw, env).raw : raw) };
+    return { ok: true, save: sanitize(migrate(raw, env).raw) };
   } catch {
     return { ok: false, error: '코드가 손상되었거나 잘렸어요.' };
   }

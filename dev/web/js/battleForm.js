@@ -27,9 +27,17 @@ const ACTION_LABEL = { basic: '기본 공격', skill: '스킬', ultimate: '궁�
 export function cleanEntity(raw, { enemy = false } = {}) {
   const { schema } = gameMods;
   const quiet = () => {};
-  const out = { ...raw, stats: schema.cleanStats(raw.stats), kit: schema.cleanKit(raw.kit, vocab, quiet, raw.id || '?') };
-  if (enemy) out.passives = schema.cleanPassiveList(raw.passives, vocab, quiet, 'passives', 8);
-  else out.breakthroughs = schema.cleanPassiveList(raw.breakthroughs, vocab, quiet, 'breakthroughs', 5);
+  const out = { ...raw, stats: schema.cleanStats(raw.stats) };
+  if (enemy) {
+    // 적: 행동 + 패턴 + 페이즈 + 광폭화 (예전 kit도 변환) — 게임 data.js validateEnemies와 같음
+    Object.assign(out, schema.cleanEnemyBehavior(raw, vocab, quiet, raw.id || '?'));
+    delete out.kit;
+    out.passives = schema.cleanPassiveList(raw.passives, vocab, quiet, 'passives', 8);
+  } else {
+    out.kit = schema.cleanKit(raw.kit, vocab, quiet, raw.id || '?');
+    out.rarity = gameMods.data.normalizeRarity(raw.rarity) || 3; // 예전 'R'/'SR'/'SSR'도 1–5로
+    out.breakthroughs = schema.cleanPassiveList(raw.breakthroughs, vocab, quiet, 'breakthroughs', 5);
+  }
   return out;
 }
 
@@ -202,10 +210,10 @@ export function effectList(list, { onChange, passive = false, nested = false }) 
 /**
  * 스킬 폼 (기본 공격 / 스킬 / 궁극기)
  * @param {object} skill 고칠 객체
- * @param {'basic'|'skill'|'ultimate'} kind
- * @param {{onChange:()=>void, preview?:()=>string[]}} o
+ * @param {'basic'|'skill'|'ultimate'|'enemy'} kind  enemy = 적 행동 (비용 없음)
+ * @param {{onChange:()=>void, preview?:()=>string[], title?:string}} o
  */
-export function skillForm(skill, kind, { onChange, preview }) {
+export function skillForm(skill, kind, { onChange, preview, title }) {
   const box = h('div', { class: ['bf-skill', `bf-${kind}`] });
   const prev = h('ul', { class: 'bf-preview' });
   const changed = () => {
@@ -226,14 +234,13 @@ export function skillForm(skill, kind, { onChange, preview }) {
       },
     );
     box.replaceChildren(
-      h('div', { class: 'bf-title' }, ACTION_LABEL[kind]),
+      h('div', { class: 'bf-title' }, title || ACTION_LABEL[kind] || '행동', kind === 'skill' && h('span', { class: 'muted small' }, ' · 팀 SP 1 사용 (대기 시간 없음)')),
       h(
         'div',
         { class: 'row wrap' },
         h('label', { class: 'bf-param grow' }, h('span', {}, '이름'), h('input', { value: skill.name || '', oninput: (e) => ((skill.name = e.target.value), changed()) })),
         h('label', { class: 'bf-param' }, h('span', {}, '대상'), tSel),
         vocab.targeting[skill.targeting]?.count && h('label', { class: 'bf-param' }, h('span', {}, '횟수'), numberInput(vocab.count, skill.count, (n) => ((skill.count = n), changed()))),
-        kind === 'skill' && h('label', { class: 'bf-param' }, h('span', {}, '대기 턴'), numberInput({ kind: 'int', min: 0, max: 20, default: 2 }, skill.cooldown, (n) => ((skill.cooldown = n), changed()))),
         kind === 'ultimate' &&
           h(
             'label',
@@ -375,6 +382,7 @@ export function statsForm(stats, defaults, { onChange }) {
     row('atk', '공격력', { kind: 'int', min: 0, max: 1e6 }),
     row('def', '방어력', { kind: 'int', min: 0, max: 1e6 }),
     row('hp', 'HP', { kind: 'int', min: 1, max: 1e7 }),
+    row('spd', '속도', { kind: 'int', min: 1, max: 1000 }),
     row('critRate', '치명타 확률', { kind: 'number', min: 0, max: 1, step: 0.01 }),
     row('critDmg', '치명타 피해', { kind: 'number', min: 0, max: 10, step: 0.05 }),
   );
@@ -398,5 +406,5 @@ export function powerWarning({ progression }, char, battle, others, balance) {
   if (!same.length) return { power: pw, avg: null, warn: null };
   const avg = same.reduce((a, c) => a + progression.powerOf(progression.statsOf(c, 1, 0, balance), balance), 0) / same.length;
   const over = (pw / avg - 1) * 100;
-  return { power: pw, avg: Math.round(avg), warn: over > balance.powerWarnPct ? `같은 희귀도(${char.rarity}) 평균 ${Math.round(avg)}보다 ${Math.round(over)}% 높아요 (기준 ${balance.powerWarnPct}%)` : null };
+  return { power: pw, avg: Math.round(avg), warn: over > balance.powerWarnPct ? `같은 희귀도(${char.rarity}★) 평균 ${Math.round(avg)}보다 ${Math.round(over)}% 높아요 (기준 ${balance.powerWarnPct}%)` : null };
 }

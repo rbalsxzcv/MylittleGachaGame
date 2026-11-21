@@ -19,7 +19,7 @@ SLOTS = [
     {"key": "icons.gem", "label": "보석(재화) 아이콘", "kind": "icon", "subject": "a single shiny blue faceted gemstone"},
     {"key": "icons.menu_gacha", "label": "메뉴: 뽑기", "kind": "icon", "subject": "a glowing four-pointed star with sparkles (summon icon)"},
     {"key": "icons.menu_collection", "label": "메뉴: 도감", "kind": "icon", "subject": "a small fanned stack of collectible cards"},
-    {"key": "icons.menu_stories", "label": "메뉴: 스토리", "kind": "icon", "subject": "an open storybook with a bookmark"},
+    {"key": "icons.menu_stories", "label": "메뉴: 모험 (스토리)", "kind": "icon", "subject": "an open storybook with a bookmark"},
     {"key": "icons.menu_mail", "label": "메뉴: 우편", "kind": "icon", "subject": "a sealed envelope with a heart wax seal"},
     {"key": "icons.menu_notices", "label": "메뉴: 공지", "kind": "icon", "subject": "a rolled parchment scroll with a ribbon"},
     {"key": "icons.menu_settings", "label": "메뉴: 설정", "kind": "icon", "subject": "a cute gear cog"},

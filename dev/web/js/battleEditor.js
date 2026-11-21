@@ -52,7 +52,7 @@ export async function openCharBattleEditor(c, { onSaved } = {}) {
     const pw = powerWarning(kitMods, ch, {}, others, balance);
     summary.replaceChildren(
       ...[
-        h('span', { class: `chip r-${c.rarity}` }, c.rarity),
+        h('span', { class: `chip r-${c.rarity}` }, `${c.rarity}★`),
         h('b', {}, ` 전투력 ${pw.power.toLocaleString('ko-KR')}`),
         h('span', { class: 'muted small' }, ' (Lv.1 · 돌파 0 기준)'),
         pw.avg != null && h('span', { class: 'muted small' }, ` · 같은 희귀도 평균 ${pw.avg.toLocaleString('ko-KR')}`),
@@ -66,7 +66,7 @@ export async function openCharBattleEditor(c, { onSaved } = {}) {
   };
 
   function renderForms() {
-    const statsDefault = { ...(balance.rarityStats[c.rarity] || {}), critRate: balance.crit.rate, critDmg: balance.crit.dmg };
+    const statsDefault = { ...(balance.stats.byRarity[c.rarity] || balance.stats.byRarity[3]), critRate: balance.stats.critRate, critDmg: balance.stats.critDmg };
     const skillPreview = (a) => () => {
       const { ch } = cleaned();
       const stats = progression.statsOf(ch, 1, 0, balance);

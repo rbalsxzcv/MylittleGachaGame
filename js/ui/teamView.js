@@ -6,7 +6,10 @@ import { charArt, rarityBadge, starRow } from './charCard.js';
 import { charPower } from '../systems/progression.js';
 import { presetOf, setActive, setSlot, renamePreset, teamPower } from '../systems/teams.js';
 
-const num = (n) => Number(n).toLocaleString('ko-KR');
+import { formatBig } from '../config.js';
+
+// 전투력은 큰 숫자 표기 (12,345 → 1.2만)
+const num = (n) => formatBig(n);
 
 /** 캐릭터 고르기 모달 → 고른 id, '' (비우기), null (취소) */
 export async function pickCharacter(ctx, { presetIdx, slot }) {

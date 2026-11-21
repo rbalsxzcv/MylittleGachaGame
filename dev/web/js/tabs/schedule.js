@@ -25,7 +25,7 @@ export function scheduleTab(root) {
   for (const m of d.mail) add('우편', { id: m.id, label: `${m.title} (보석 ${m.rewards?.gems ?? 0})`, start: t(m.startAt), end: t(m.endAt), link: `#inbox/${m.id}`, cls: 'mail' });
   for (const c of d.characters) {
     const at = t(c.addedAt);
-    if (!Number.isNaN(at) && at > now - 30 * DAY) add('캐릭터 공개', { id: c.id, label: `${c.name} (${c.rarity})`, start: at, end: NaN, point: true, link: '#characters', cls: 'char' });
+    if (!Number.isNaN(at) && at > now - 30 * DAY) add('캐릭터 공개', { id: c.id, label: `${c.name} (${c.rarity}★)`, start: at, end: NaN, point: true, link: '#characters', cls: 'char' });
   }
   for (const n of d.notices) {
     const at = t(n.date);

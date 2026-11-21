@@ -5,13 +5,14 @@
 
 r 는 validate.Report 처럼 error(where, msg) / warn(where, msg) 가 있는 객체.
 """
+import re
 import json
 
 from . import config
 
 VOCAB_PATH = config.ROOT / "js" / "battle" / "vocab.json"
 ACTIONS = ("basic", "skill", "ultimate")
-STAT_LIMITS = {"atk": (0, 1e6), "def": (0, 1e6), "hp": (1, 1e7), "critRate": (0, 1), "critDmg": (0, 10)}
+STAT_LIMITS = {"atk": (0, 1e6), "def": (0, 1e6), "hp": (1, 1e7), "spd": (1, 1000), "critRate": (0, 1), "critDmg": (0, 10)}
 MAX_BREAKTHROUGHS = 5
 
 _cache = {"mtime": None, "vocab": None}
@@ -130,10 +131,8 @@ def check_skill(r, where, skill, kind, vocab):
     elif vocab["targeting"][t].get("count"):
         _check_param(r, where, "count", skill.get("count"), vocab["count"], vocab)
     check_effect_list(r, f"{where}.effects", skill.get("effects"), vocab)
-    if kind == "skill":
-        cd = skill.get("cooldown")
-        if not (isinstance(cd, int) and not isinstance(cd, bool) and 0 <= cd <= 20):
-            r.error(where, f"스킬 cooldown은 0~20 정수여야 해요: {cd!r}")
+    if "cooldown" in skill or "initialCooldown" in skill:
+        r.warn(where, "cooldown은 더 이상 쓰지 않아요 (스킬은 팀 SP를 써요) — 지워 주세요")
     if kind == "ultimate" and skill.get("cost") is not None:
         c = skill.get("cost")
         if not (isinstance(c, int) and 0 <= c <= 1000):
@@ -243,9 +242,63 @@ def check_character_battle(r, where, c, vocab):
         check_passive(r, f"{where}.돌파{i + 1}", p, vocab)
 
 
+ENEMY_ICONS = ("attack", "aoe", "buff", "heal", "debuff")
+ENEMY_TARGET_RULES = ("random", "lowest_hp", "highest_atk", "slot1", "slot2", "slot3", "slot4", "slot5")
+ACTION_ID_RE = re.compile(r"^[a-z0-9_]{1,24}$")
+
+
+def _check_pattern(r, where, pattern, actions, required=True):
+    if not isinstance(pattern, list) or (required and not pattern):
+        r.error(where, "패턴(pattern)은 행동 목록이어야 해요 (최소 1개)")
+        return
+    for i, p in enumerate(pattern):
+        pw = f"{where}[{i}]"
+        if not isinstance(p, dict) or p.get("action") not in actions:
+            r.error(pw, f"없는 행동: {(p or {}).get('action') if isinstance(p, dict) else p!r} (있는 것: {', '.join(actions)})")
+            continue
+        if p.get("target") not in (None, "") and p["target"] not in ENEMY_TARGET_RULES:
+            r.error(pw, f"대상 규칙은 {', '.join(ENEMY_TARGET_RULES)} 중 하나: {p['target']!r}")
+
+
 def check_enemy_battle(r, where, e, vocab):
+    """적: stats / actions / pattern / phases / enrage / passives (예전 kit 형식은 경고)"""
     check_stats(r, f"{where}.stats", e.get("stats"))
-    check_kit(r, f"{where}.kit", e.get("kit"), vocab, enemy=True)
+    actions = e.get("actions")
+    if actions is None and e.get("kit") is not None:
+        r.warn(where, "예전 형식(kit)이에요. 게임은 읽을 수 있지만 적 편집기에서 다시 저장하면 actions/pattern으로 바뀌어요")
+        check_kit(r, f"{where}.kit", e.get("kit"), vocab, enemy=True)
+    elif not isinstance(actions, dict) or not actions:
+        r.error(where, "행동(actions)이 하나도 없어요")
+        actions = {}
+    else:
+        for aid, a in actions.items():
+            aw = f"{where}.actions.{aid}"
+            if not ACTION_ID_RE.match(str(aid)):
+                r.error(aw, "행동 id는 영문 소문자/숫자/_ (24자까지)")
+            check_skill(r, aw, a, "enemy", vocab)
+            if isinstance(a, dict):
+                if a.get("icon") not in (None, "") and a["icon"] not in ENEMY_ICONS:
+                    r.error(aw, f"icon은 {', '.join(ENEMY_ICONS)} 중 하나: {a['icon']!r}")
+                if a.get("big") not in (None, True, False):
+                    r.error(aw, "big은 true/false")
+        _check_pattern(r, f"{where}.pattern", e.get("pattern"), list(actions))
+        phases = e.get("phases") or []
+        if not isinstance(phases, list):
+            r.error(where, "phases가 목록이 아니에요")
+            phases = []
+        for i, ph in enumerate(phases):
+            pw = f"{where}.phases[{i}]"
+            hb = (ph or {}).get("hpBelow")
+            if not (isinstance(hb, int) and 1 <= hb <= 99):
+                r.error(pw, f"hpBelow는 1~99 정수: {hb!r}")
+            _check_pattern(r, f"{pw}.pattern", (ph or {}).get("pattern") or [], list(actions), required=False)
+            check_effect_list(r, f"{pw}.enterEffects", (ph or {}).get("enterEffects") or [], vocab, required=False)
+        en = e.get("enrage")
+        if en is not None:
+            if not isinstance(en, dict) or not (isinstance(en.get("round"), int) and 1 <= en["round"] <= 999):
+                r.error(f"{where}.enrage", "enrage는 {round: 1~999, effects: [...]}")
+            else:
+                check_effect_list(r, f"{where}.enrage.effects", en.get("effects"), vocab)
     ps = e.get("passives") or []
     if not isinstance(ps, list):
         r.error(where, "passives가 목록이 아니에요")

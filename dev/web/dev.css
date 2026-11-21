@@ -10,7 +10,7 @@
   --ok: #1f9d62;
   --warn: #c07a00;
   --err: #d23a5a;
-  --r: #8fa3b8;
+  --r: #4f9dff;
   --sr: #a970ff;
   --ssr: #e0a400;
   font-family: -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
@@ -98,9 +98,11 @@ button.plain { all: unset; cursor: pointer; display: block; }
 .top .chip.ok { background: #1f6b4a; color: #d9ffe9; }
 .top .chip.warn { background: #6b4e12; color: #ffe9b8; }
 .top .chip.error { background: #7a2034; color: #ffdbe3; }
-.chip.r-R { background: #e7edf3; color: #50677f; }
-.chip.r-SR { background: #f0e6ff; color: #7a3fd6; }
-.chip.r-SSR { background: #fff3cf; color: #9a6c00; }
+.chip.r-1 { background: #eef0f2; color: #5f6873; }
+.chip.r-2 { background: #e2f6e7; color: #2f7d45; }
+.chip.r-3 { background: #e3efff; color: #2a64b8; }
+.chip.r-4 { background: #f0e6ff; color: #7a3fd6; }
+.chip.r-5 { background: #fff3cf; color: #9a6c00; }
 
 /* ── 목록 ── */
 .item-list { display: grid; gap: 6px; }
@@ -114,8 +116,10 @@ button.list-item { display: block; }
 
 .char-list { display: grid; gap: 8px; }
 .char-item { display: flex; gap: 10px; align-items: center; padding: 8px; border: 1px solid var(--line); border-radius: 10px; border-left: 4px solid var(--r); }
-.char-item.r-SR { border-left-color: var(--sr); }
-.char-item.r-SSR { border-left-color: var(--ssr); }
+.char-item.r-1 { border-left-color: #9aa3ad; }
+.char-item.r-2 { border-left-color: #5fc77a; }
+.char-item.r-4 { border-left-color: var(--sr); }
+.char-item.r-5 { border-left-color: var(--ssr); }
 .thumb { width: 56px; height: 70px; flex: none; display: grid; place-items: center; border-radius: 8px; overflow: hidden; font-size: 11px; color: var(--muted); }
 .thumb img { max-width: 100%; max-height: 100%; }
 .jobs-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }

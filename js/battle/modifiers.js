@@ -3,7 +3,7 @@
 
 export const MODIFIERS = {
   action_targeting: (u, m) => {
-    const s = u.kit[m.action];
+    const s = u.kit?.[m.action];
     if (!s) return;
     s.targeting = m.targeting;
     if (m.count) s.count = m.count;
@@ -11,8 +11,8 @@ export const MODIFIERS = {
   ultimate_cost: (u, m) => {
     u.ultCost += m.delta;
   },
-  cooldown: (u, m) => {
-    if (u.kit.skill) u.kit.skill.cooldown = Math.max(0, (u.kit.skill.cooldown || 0) + m.delta);
+  sp_cost: (u, m) => {
+    u.spCostDelta += m.delta; // 스킬 SP 소모 (최소 0)
   },
   energy_gain: (u, m) => {
     u.energyGain[m.source] = (u.energyGain[m.source] || 0) + m.delta;
@@ -22,7 +22,7 @@ export const MODIFIERS = {
     u.effectPower.push({ action: m.action, effect: m.effect, pct: m.pct });
   },
   extra_effects: (u, m) => {
-    const s = u.kit[m.action];
+    const s = u.kit?.[m.action];
     if (!s) return;
     for (const e of m.effects) s.effects.push(m.target && !e.target ? { ...e, target: m.target } : { ...e });
   },

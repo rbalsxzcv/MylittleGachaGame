@@ -10,13 +10,25 @@
 import json
 import re
 
-from . import config
+from . import config, rarity
 
-RARITY_HINT = {
-    "R": "simple and cute outfit, modest details, gentle natural pose",
-    "SR": "detailed elegant outfit, a few accessories, light glow effects, confident pose",
-    "SSR": "very ornate legendary outfit, sparkling magical effects close to the body, dramatic dynamic pose",
+_RARITY_HINT = {
+    1: "plain simple outfit, few details, relaxed natural pose",
+    2: "simple and cute outfit, modest details, gentle natural pose",
+    3: "neat outfit with a few details, natural confident pose",
+    4: "detailed elegant outfit, a few accessories, light glow effects, confident pose",
+    5: "very ornate legendary outfit, sparkling magical effects close to the body, dramatic dynamic pose",
 }
+
+
+class _HintMap(dict):
+    """희귀도(1–5, 예전 'R'/'SR'/'SSR'도 됨) → 그림 프롬프트 힌트"""
+
+    def get(self, key, default=""):
+        return _RARITY_HINT.get(rarity.normalize(key), default)
+
+
+RARITY_HINT = _HintMap()
 
 # 에셋 종류(pkind)별 공통 스타일 파일
 STYLE_FILE = {"char": "style.txt", "banner": "style_banner.txt", "bg": "style_bg.txt", "ui_bg": "style_bg.txt", "ui_icon": "style_icon.txt", "logo": "style_icon.txt", "enemy": "style.txt", "prop": "style_icon.txt"}
@@ -120,7 +132,7 @@ def brief(kind, inp, chars=(), theme="", slot=None):
             "Original full-body character standee for a casual mobile collection (gacha) game.",
             f"Name: {inp.get('name', '')}",
             f"Title / role: {inp.get('title', '')}",
-            f"Rarity: {inp.get('rarity', 'R')} — {RARITY_HINT.get(inp.get('rarity'), '')}",
+            f"Rarity: {rarity.label(inp.get('rarity', 3))} (1-5 stars) — {RARITY_HINT.get(inp.get('rarity'), '')}",
             f"Appearance keywords (Korean ok): {inp.get('keywords') or '(none given — invent a fitting original look from the title and description)'}",
         ]
         if inp.get("lore"):
@@ -134,7 +146,7 @@ def brief(kind, inp, chars=(), theme="", slot=None):
         if chars:
             lines.append(f"Featured characters ({len(chars)}), draw exactly these:")
             for c in chars:
-                lines.append(f"- {c['name']} ({c.get('rarity', '')}, {c.get('title', '')}): {c.get('description', '')}")
+                lines.append(f"- {c['name']} ({rarity.label(c.get('rarity', ''))}, {c.get('title', '')}): {c.get('description', '')}")
                 look = look_tags(c.get("look", ""))
                 if look:
                     lines.append(f"  Appearance tags used for this character's standee art (keep hair/eyes/outfit the same): {look}")
@@ -317,7 +329,7 @@ REQUEST:
 
 # ── 캐릭터 소개 ───────────────────────────────────────────
 def describe(inp, examples):
-    ex = "\n".join(f"- {e['name']} ({e['rarity']}, {e.get('title', '')}): {e.get('description', '')}" for e in examples[:4])
+    ex = "\n".join(f"- {e['name']} ({rarity.label(e['rarity'])}, {e.get('title', '')}): {e.get('description', '')}" for e in examples[:4])
     text = f"""당신은 모바일 수집 게임의 캐릭터 소개 문구를 쓰는 작가입니다.
 아래 캐릭터의 도감 소개를 한국어로 2~3문장(150자 안팎) 써 주세요.
 - 첫 문장: 정체/역할, 둘째 문장: 성격이나 귀여운 반전 포인트
@@ -325,7 +337,7 @@ def describe(inp, examples):
 
 캐릭터
 - 이름: {inp.get('name', '')}
-- 희귀도: {inp.get('rarity', '')}
+- 희귀도: {rarity.label(inp.get('rarity', ''))}
 - 칭호: {inp.get('title', '')}
 - 외형 키워드: {inp.get('keywords', '')}
 - 설정 메모: {inp.get('lore', '')}
@@ -558,10 +570,10 @@ def vocab_summary(vocab):
 
 
 KIT_SCHEMA = """{
-  "stats": {"atk": 100, "def": 40, "hp": 900, "critRate": 0.05, "critDmg": 0.5},
+  "stats": {"atk": 100, "def": 40, "hp": 900, "spd": 100, "critRate": 0.05, "critDmg": 0.5},
   "kit": {
     "basic":    {"name": "...", "description": "...", "targeting": "enemy_single", "effects": [{"type": "damage", "mult": 1.0, "stat": "atk", "hits": 1}]},
-    "skill":    {"name": "...", "description": "...", "targeting": "...", "cooldown": 2, "effects": [...]},
+    "skill":    {"name": "...", "description": "...", "targeting": "...", "effects": [...]},
     "ultimate": {"name": "...", "description": "...", "targeting": "...", "effects": [...]}
   },
   "breakthroughs": [
@@ -572,22 +584,24 @@ KIT_SCHEMA = """{
 
 
 def kit_draft(inp, vocab, examples, rarity_stats, errors=None):
-    rs = rarity_stats.get(inp["rarity"]) or {}
+    rs = rarity_stats.get(rarity.normalize(inp["rarity"])) or {}
     ex = "\n".join(json.dumps({k: c.get(k) for k in ("name", "rarity", "description", "stats", "kit", "breakthroughs")}, ensure_ascii=False) for c in examples)
     text = f"""당신은 턴제 수집형 RPG의 전투 기획자입니다. 아래 캐릭터의 전투 데이터(스킬 3개 + 돌파 능력 5개)를 JSON으로 설계해 주세요.
 
 캐릭터
-- 이름: {inp['name']} / 희귀도: {inp['rarity']} / 칭호: {inp.get('title', '')}
+- 이름: {inp['name']} / 희귀도: {rarity.label(inp['rarity'])} (1~5★) / 칭호: {inp.get('title', '')}
 - 설정: {inp.get('lore') or '(없음)'}
 
 전투 규칙 요약
-- 팀 5명 vs 적 웨이브. 아군 1→5번, 그다음 적 순서로 행동.
-- 기본 공격(basic): 대기 없음, 기력 +20. 스킬(skill): cooldown 턴 동안 다시 못 씀(1~4 권장), 기력 +30. 궁극기(ultimate): 기력 100 소모. 맞으면 기력 +10.
+- 팀 5명 vs 적 웨이브. 속도(spd) 타임라인: 속도가 높을수록 자주 행동 (행동 간격 = 10000 ÷ 속도). advance_action/delay_action으로 순서를 당기고 밀 수 있음.
+- 팀 공용 SP (시작 3, 최대 5): 기본 공격(basic) SP +1 · 기력 +20, 스킬(skill) SP −1 · 기력 +30. 스킬은 대기 시간(cooldown)이 없고 SP로 조절해요 → cooldown 필드를 쓰지 마세요.
+- 궁극기(ultimate): 기력 100 소모, 아군 차례 중 언제든 쓸 수 있고 턴을 쓰지 않아요. 맞으면 기력 +10.
+- 적은 다음 행동을 예고하고, 큰 공격(big)은 interrupt 효과로 끊을 수 있어요.
 - 피해 = 능력치 × mult × 100/(100+방어) × 치명타. mult 1.0 = 공격력 100%.
-- 이 희귀도의 기본 능력치: {json.dumps(rs, ensure_ascii=False)}, 치명타 확률 0.05, 치명타 피해 0.5. stats는 이 값의 ±25% 안에서 역할에 맞게.
+- 이 희귀도의 기본 능력치: {json.dumps(rs, ensure_ascii=False)}, 치명타 확률 0.05, 치명타 피해 0.5. stats는 이 값의 ±25% 안에서 역할에 맞게 (spd는 ±15%: 지원/속공형은 빠르게, 방어형은 느리게).
 
 설계 규칙
-- 캐릭터 설정에 맞는 '전투 방식'(예: 지속 피해, 치유, 보호막, 치명타, 기력 순환)을 하나 정하고, 스킬과 돌파 능력 모두 그 방식을 살려 주세요.
+- 캐릭터 설정에 맞는 '전투 방식'(예: 지속 피해, 치유, 보호막, 치명타, 기력 순환, SP 순환, 행동 당기기/밀기, 큰 공격 차단)을 하나 정하고, 스킬과 돌파 능력 모두 그 방식을 살려 주세요.
 - 돌파 능력 5개는 각자 다른 능력. 단순 능력치 상승(stat_bonus)은 최대 1개. 발동형(trigger)과 상시형(modifiers)을 섞어 주세요.
 - 숫자 범위: 피해 mult 기본 0.8~1.2, 스킬 1.2~2.5(전체 대상이면 0.6~1.0), 궁극기 1.4~3.0(전체 대상이면 1.0~1.8). 치유 mult 0.5~1.5. 강화/약화 pct 10~40, turns 1~3.
 - name/description은 한국어, 설정의 분위기에 맞게. description은 한 문장.
@@ -620,11 +634,11 @@ def mock_kit(inp):
     tag = f" ({inp['feedback'][:12]})" if inp.get("feedback") else ""
     dmg = lambda m, **kw: {"type": "damage", "mult": m, "stat": "atk", "hits": 1, **kw}  # noqa: E731
     if style == "dot":
-        skill = {"name": f"{name}의 독안개{tag}", "description": "적 전체에 지속 피해를 남겨요.", "targeting": "enemy_all", "cooldown": 2, "effects": [dmg(0.6), {"type": "dot", "mult": 0.3, "turns": 2}]}
+        skill = {"name": f"{name}의 독안개{tag}", "description": "적 전체에 지속 피해를 남겨요.", "targeting": "enemy_all", "effects": [dmg(0.6), {"type": "dot", "mult": 0.3, "turns": 2}]}
     elif style == "heal":
-        skill = {"name": f"{name}의 손길{tag}", "description": "가장 지친 동료를 치유해요.", "targeting": "ally_lowest_hp", "cooldown": 2, "effects": [{"type": "heal", "mult": 1.2, "stat": "atk"}]}
+        skill = {"name": f"{name}의 손길{tag}", "description": "가장 지친 동료를 치유해요.", "targeting": "ally_lowest_hp", "effects": [{"type": "heal", "mult": 1.2, "stat": "atk"}]}
     else:
-        skill = {"name": f"{name}의 일격{tag}", "description": "적 하나를 강하게 노려요.", "targeting": "enemy_single", "cooldown": 2, "effects": [dmg(2.0)]}
+        skill = {"name": f"{name}의 일격{tag}", "description": "적 하나를 강하게 노려요.", "targeting": "enemy_single", "effects": [dmg(2.0)]}
     return json.dumps(
         {
             "stats": {"critRate": 0.12} if style == "crit" else {},
@@ -635,7 +649,7 @@ def mock_kit(inp):
             },
             "breakthroughs": [
                 {"name": "집중", "description": "치명타 시 기력을 얻어요.", "trigger": "onCrit", "targeting": "self", "effects": [{"type": "energy_gain", "n": 10}]},
-                {"name": "숙련", "description": "스킬 대기 시간이 줄어요.", "modifiers": [{"type": "cooldown", "delta": -1}]},
+                {"name": "숙련", "description": "기본 공격 후 SP를 더 얻어요.", "trigger": "onBasic", "conditions": [{"type": "chance", "pct": 30}], "targeting": "self", "effects": [{"type": "sp_gain", "n": 1}]},
                 {"name": "각성", "description": "궁극기 기력 소모가 줄어요.", "modifiers": [{"type": "ultimate_cost", "delta": -20}]},
                 {"name": "버팀", "description": "HP가 30% 아래면 보호막.", "trigger": "onHpBelow", "pct": 30, "limit": 1, "targeting": "self", "effects": [{"type": "shield", "mult": 1.5, "stat": "def", "turns": 2}]},
                 {"name": "단련", "description": "공격력이 올라요.", "modifiers": [{"type": "stat_bonus", "stat": "atk", "pct": 10}]},

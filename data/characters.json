@@ -2,7 +2,7 @@
   {
     "id": "sr_1",
     "name": "시논",
-    "rarity": "SR",
+    "rarity": 4,
     "title": "웃지않는 소녀",
     "description": "어릴 적 모든 것을 잃고 거친 거리에서 살아남아 용병단으로 흘러들어온 과묵한 도적 소녀입니다.\n웃는 법을 잊어 늘 차가운 무표정을 짓고 있지만, 머리를 쓰다듬어 주면 뺨을 붉히며 어쩔 줄 몰라 하는 귀여운 반전이 있습니다.",
     "image": "assets/chars/sr_1.png",
@@ -11,7 +11,7 @@
   {
     "id": "ssr_valeria",
     "name": "발레리아",
-    "rarity": "SSR",
+    "rarity": 5,
     "title": "파문당한 성기사",
     "description": "교단에서 파문당한 뒤 하루 벌어 하루 먹고사는 떠돌이 기사. 입은 험하지만 묵직한 대검 한 방만큼은 확실한 밥값을 증명합니다.",
     "image": "assets/chars/ssr_valeria.png",
@@ -20,7 +20,7 @@
   {
     "id": "r_garrick",
     "name": "가린",
-    "rarity": "R",
+    "rarity": 3,
     "title": "빚쟁이 석궁잡이",
     "description": "노름빚에 쫓겨 다니는 전직 밀렵꾼 출신의 사수. 비겁하지만 목숨이 걸리면 귀신같은 사격 솜씨를 뽐냅니다.",
     "image": "assets/chars/r_garrick.png",
@@ -29,7 +29,7 @@
   {
     "id": "npc_broker_baran",
     "name": "바바루아",
-    "rarity": "R",
+    "rarity": 3,
     "title": "시궁창 정보상",
     "description": "뒷골목과 암시장에서 의뢰를 중개하는 능구렁이 정보상입니다.",
     "image": "assets/chars/npc_broker_baran.png",
@@ -38,7 +38,7 @@
   {
     "id": "npc_baron_hendrik",
     "name": "헨드릭 남작",
-    "rarity": "R",
+    "rarity": 3,
     "title": "피에 굶주린 영주",
     "description": "국경 지대를 다스리는 잔혹하고 탐욕스러운 영주입니다.",
     "image": "assets/chars/npc_baron_hendrik.png",

@@ -155,7 +155,7 @@ export function storyScreen(ctx) {
               stage.recommendedPower > 0 && h('span', {}, `권장 전투력 ${num(stage.recommendedPower)}`),
               h('span', { class: low ? 'bad' : '' }, `「${presetOf(ctx.save).name}」 ${num(power)}`),
               h('span', {}, `웨이브 ${stage.waves.length}`),
-              stage.turnLimit && h('span', {}, `${stage.turnLimit}라운드 제한`),
+              stage.roundLimit && h('span', {}, `${stage.roundLimit}라운드 제한`),
             ),
             h(
               'div',
@@ -195,10 +195,12 @@ export function storyScreen(ctx) {
           nodeEl.hidden = false;
           nodeEl.render();
         };
+        const bg = scene()?.background;
         battleUi = mountBattle(host, {
           ctx,
           stage,
           team: teamMembers(ctx),
+          background: bg?.type === 'image' ? bg.value : null,
           onResult(summary) {
             if (summary.result !== 'win') return null;
             const r = recordClear(ctx.save, stage, summary.rounds);

@@ -9,9 +9,10 @@
       "def": 18,
       "hp": 400,
       "critRate": 0.05,
-      "critDmg": 0.5
+      "critDmg": 0.5,
+      "spd": 95
     },
-    "kit": {
+    "actions": {
       "basic": {
         "name": "녹슨 칼 찌르기",
         "description": "",
@@ -23,11 +24,15 @@
             "stat": "atk",
             "hits": 1
           }
-        ]
-      },
-      "skill": null,
-      "ultimate": null
+        ],
+        "icon": "attack"
+      }
     },
+    "pattern": [
+      {
+        "action": "basic"
+      }
+    ],
     "passives": []
   },
   {
@@ -40,9 +45,10 @@
       "def": 16,
       "hp": 380,
       "critRate": 0.05,
-      "critDmg": 0.5
+      "critDmg": 0.5,
+      "spd": 108
     },
-    "kit": {
+    "actions": {
       "basic": {
         "name": "물어뜯기",
         "description": "",
@@ -60,7 +66,8 @@
             "turns": 2,
             "chance": 50
           }
-        ]
+        ],
+        "icon": "attack"
       },
       "skill": {
         "name": "부패의 이빨",
@@ -79,10 +86,20 @@
             "turns": 2
           }
         ],
-        "cooldown": 3
-      },
-      "ultimate": null
+        "icon": "aoe"
+      }
     },
+    "pattern": [
+      {
+        "action": "basic"
+      },
+      {
+        "action": "basic"
+      },
+      {
+        "action": "skill"
+      }
+    ],
     "passives": []
   },
   {
@@ -95,9 +112,10 @@
       "def": 18,
       "hp": 400,
       "critRate": 0.05,
-      "critDmg": 0.5
+      "critDmg": 0.5,
+      "spd": 100
     },
-    "kit": {
+    "actions": {
       "basic": {
         "name": "창 찌르기",
         "description": "",
@@ -109,11 +127,16 @@
             "stat": "atk",
             "hits": 1
           }
-        ]
-      },
-      "skill": null,
-      "ultimate": null
+        ],
+        "icon": "attack"
+      }
     },
+    "pattern": [
+      {
+        "action": "basic",
+        "target": "lowest_hp"
+      }
+    ],
     "passives": []
   },
   {
@@ -126,9 +149,10 @@
       "def": 34,
       "hp": 975,
       "critRate": 0.05,
-      "critDmg": 0.5
+      "critDmg": 0.5,
+      "spd": 88
     },
-    "kit": {
+    "actions": {
       "basic": {
         "name": "철퇴 내려치기",
         "description": "",
@@ -140,7 +164,8 @@
             "stat": "atk",
             "hits": 1
           }
-        ]
+        ],
+        "icon": "attack"
       },
       "skill": {
         "name": "철벽 방진",
@@ -158,10 +183,20 @@
             "turns": 1
           }
         ],
-        "cooldown": 3
-      },
-      "ultimate": null
+        "icon": "buff"
+      }
     },
+    "pattern": [
+      {
+        "action": "skill"
+      },
+      {
+        "action": "basic"
+      },
+      {
+        "action": "basic"
+      }
+    ],
     "passives": []
   },
   {
@@ -174,9 +209,10 @@
       "def": 36,
       "hp": 2000,
       "critRate": 0.05,
-      "critDmg": 0.5
+      "critDmg": 0.5,
+      "spd": 102
     },
-    "kit": {
+    "actions": {
       "basic": {
         "name": "레이피어 연속 찌르기",
         "description": "",
@@ -188,7 +224,8 @@
             "stat": "atk",
             "hits": 1
           }
-        ]
+        ],
+        "icon": "attack"
       },
       "skill": {
         "name": "금기의 피안개",
@@ -208,7 +245,7 @@
             "turns": 2
           }
         ],
-        "cooldown": 3
+        "icon": "attack"
       },
       "ultimate": {
         "name": "채무자의 단두대",
@@ -227,8 +264,68 @@
             "pct": 15,
             "turns": 2
           }
+        ],
+        "icon": "aoe",
+        "big": true
+      }
+    },
+    "pattern": [
+      {
+        "action": "basic"
+      },
+      {
+        "action": "skill",
+        "target": "highest_atk"
+      },
+      {
+        "action": "basic"
+      },
+      {
+        "action": "ultimate"
+      }
+    ],
+    "phases": [
+      {
+        "hpBelow": 50,
+        "name": "빚 독촉의 광기",
+        "pattern": [
+          {
+            "action": "skill",
+            "target": "highest_atk"
+          },
+          {
+            "action": "ultimate"
+          },
+          {
+            "action": "basic"
+          }
+        ],
+        "enterEffects": [
+          {
+            "type": "buff",
+            "stat": "atk",
+            "pct": 20,
+            "turns": 3
+          }
         ]
       }
+    ],
+    "enrage": {
+      "round": 15,
+      "effects": [
+        {
+          "type": "buff",
+          "stat": "atk",
+          "pct": 50,
+          "turns": 20
+        },
+        {
+          "type": "buff",
+          "stat": "spd",
+          "pct": 20,
+          "turns": 20
+        }
+      ]
     },
     "passives": [
       {
@@ -250,5 +347,66 @@
         "modifiers": []
       }
     ]
+  },
+  {
+    "id": "en_cult_hunter",
+    "name": "광휘교단 이단 사냥꾼",
+    "image": "",
+    "boss": false,
+    "stats": {
+      "atk": 66,
+      "def": 22,
+      "hp": 460,
+      "spd": 104,
+      "critRate": 0.1,
+      "critDmg": 0.5
+    },
+    "actions": {
+      "basic": {
+        "name": "단죄의 일격",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.0,
+            "stat": "atk",
+            "hits": 1
+          }
+        ],
+        "icon": "attack"
+      },
+      "skill": {
+        "name": "정화의 낙인",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.7,
+            "stat": "atk",
+            "hits": 1
+          },
+          {
+            "type": "debuff",
+            "stat": "def",
+            "pct": 20,
+            "turns": 2
+          }
+        ],
+        "icon": "attack"
+      }
+    },
+    "pattern": [
+      {
+        "action": "basic",
+        "target": "highest_atk"
+      },
+      {
+        "action": "skill",
+        "target": "highest_atk"
+      }
+    ],
+    "passives": []
   }
 ]

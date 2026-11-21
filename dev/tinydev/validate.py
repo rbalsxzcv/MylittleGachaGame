@@ -5,11 +5,10 @@ error가 하나라도 있으면 배포할 수 없습니다.
 """
 import re
 
-from . import kit
+from . import kit, rarity
 from .store import valid_id
 from .timeutil import parse
 
-RARITIES = ("R", "SR", "SSR")
 STORY_KINDS = ("main", "character", "event")
 HEX_RE = re.compile(r"^#[0-9a-fA-F]{3,8}$")
 
@@ -206,8 +205,10 @@ def validate(content, asset_exists, held=None):
         where = f"characters/{c['id']}"
         if not str(c.get("name") or "").strip():
             r.error(where, "이름(name)이 비어 있어요")
-        if c.get("rarity") not in RARITIES:
-            r.error(where, f"희귀도(rarity)는 R/SR/SSR 중 하나여야 해요: {c.get('rarity')!r}")
+        if rarity.normalize(c.get("rarity")) is None:
+            r.error(where, f"희귀도(rarity)는 1~5 중 하나여야 해요: {c.get('rarity')!r}")
+        elif not isinstance(c.get("rarity"), int):
+            r.warn(where, f"희귀도가 예전 형식이에요 ({c.get('rarity')!r} → {rarity.normalize(c.get('rarity'))}). 저장하면 숫자로 바뀌어요")
         # 스토리 전용 인물(pullable: false)은 그림이 없어도 경고하지 않음
         _check_asset(r, where, "image", c.get("image"), asset_exists, required=c.get("pullable") is not False)
         released_at[c["id"]] = _check_date(r, where, "addedAt", c.get("addedAt"))
@@ -248,11 +249,17 @@ def validate(content, asset_exists, held=None):
                 if eid not in enemy_ids:
                     r.error(ew, f"알 수 없는 적 id: {eid!r}")
                 lv = (en or {}).get("level")
-                if not isinstance(lv, int) or isinstance(lv, bool) or lv < 1:
-                    r.error(ew, f"level은 1 이상의 정수여야 해요: {lv!r}")
-        tl = st.get("turnLimit")
+                if lv is not None and (not isinstance(lv, int) or isinstance(lv, bool) or lv < 1):
+                    r.error(ew, f"level은 비우거나(추천 전투력으로 계산) 1 이상의 정수여야 해요: {lv!r}")
+        if "turnLimit" in st:
+            r.warn(where, "turnLimit은 예전 이름이에요 → roundLimit")
+        tl = st.get("roundLimit", st.get("turnLimit"))
         if tl is not None and not (isinstance(tl, int) and 1 <= tl <= 999):
-            r.error(where, f"turnLimit은 비우거나 1~999 정수여야 해요: {tl!r}")
+            r.error(where, f"roundLimit은 비우거나 1~999 정수여야 해요: {tl!r}")
+        if not st.get("storyId"):
+            r.error(where, "storyId가 없어요 (모험: 스테이지 1개 = 스토리 1개 + 전투 1개)")
+        if not st.get("chapter"):
+            r.warn(where, "chapter가 없어서 ch01에 넣어요")
         for key in ("rewards", "firstClearRewards"):
             for cur, v in (st.get(key) or {}).items():
                 if cur not in ("tickets", "gems", "gold", "scrolls"):
@@ -412,18 +419,19 @@ def validate(content, asset_exists, held=None):
         rot = b.get("rotation")
         if b.get("type") == "pickup" and isinstance(rot, dict):
             # 자동 로테이션 픽업: 대상은 실행할 때 정해짐
-            if rot.get("rarity") not in RARITIES:
-                r.error(where, f"rotation.rarity는 R/SR/SSR 중 하나여야 해요: {rot.get('rarity')!r}")
+            rot_rarity = rarity.normalize(rot.get("rarity"))
+            if rot_rarity is None:
+                r.error(where, f"rotation.rarity는 1~5 중 하나여야 해요: {rot.get('rarity')!r}")
             for key, lo, hi in (("count", 1, 4), ("days", 1, 60)):
                 v = rot.get(key)
                 if not isinstance(v, int) or not lo <= v <= hi:
                     r.error(where, f"rotation.{key}는 {lo}~{hi} 정수여야 해요: {v!r}")
             _check_date(r, where, "rotation.anchor", rot.get("anchor"), required=True)
-            pool = [c for c in chars if c.get("rarity") == rot.get("rarity") and c.get("pullable") is not False]
+            pool = [c for c in chars if rarity.normalize(c.get("rarity")) == rot_rarity and c.get("pullable") is not False and not c.get("retired")]
             if not pool:
-                r.warn(where, f"로테이션할 {rot.get('rarity')} 캐릭터가 없어요 (그동안 배너가 숨겨져요)")
+                r.warn(where, f"로테이션할 {rarity.label(rot_rarity)} 캐릭터가 없어요 (그동안 배너가 숨겨져요)")
             elif len(pool) < (rot.get("count") or 0):
-                r.warn(where, f"{rot.get('rarity')} 캐릭터가 {len(pool)}명뿐이라 매번 같은 픽업이에요")
+                r.warn(where, f"{rarity.label(rot_rarity)} 캐릭터가 {len(pool)}명뿐이라 매번 같은 픽업이에요")
         elif b.get("type") == "pickup":
             ids = b.get("pickupIds") or []
             if not ids:
@@ -467,6 +475,7 @@ def validate(content, asset_exists, held=None):
     for st in stages:
         if st["id"] not in used_stages:
             r.warn(f"stages/{st['id']}", "어느 스토리에도 쓰이지 않는 스테이지예요 (게임에서 싸울 수 없음)")
+    _check_adventure(r, stages, index, content.get("stories") or {})
 
     # ── 밸런스 ──
     bal = content.get("balance")
@@ -474,15 +483,7 @@ def validate(content, asset_exists, held=None):
         if not isinstance(bal, dict):
             r.error("balance", "객체 형식이어야 해요")
         else:
-            for key in ("growth", "maxBreakthrough", "dailyTickets", "dailyGold", "levelGoldPerTicket", "powerWarnPct"):
-                if key in bal and not kit._is_num(bal[key]):
-                    r.error("balance", f"{key}는 숫자여야 해요")
-            for group in ("levelCost", "crit", "energy", "essenceTickets", "power"):
-                for k, v in (bal.get(group) or {}).items():
-                    if not kit._is_num(v) or v < 0:
-                        r.error("balance", f"{group}.{k}는 0 이상의 숫자여야 해요: {v!r}")
-            for rar, st in (bal.get("rarityStats") or {}).items():
-                kit.check_stats(r, f"balance.rarityStats.{rar}", st)
+            _check_balance(r, bal)
             if vocab and bal.get("defaultKit") is not None:
                 kit.check_kit(r, "balance.defaultKit", bal["defaultKit"], vocab)
 
@@ -506,3 +507,88 @@ def validate(content, asset_exists, held=None):
         check_shop(r, content["shop"], asset_exists)
 
     return r
+
+
+def _check_balance(r, bal):
+    """balance.json 숫자 검사 (형식: js/config.js DEFAULTS와 같음)"""
+    def nums(where, group, lo=0):
+        if group is None:
+            return
+        if not isinstance(group, dict):
+            r.error("balance", f"{where}는 객체여야 해요")
+            return
+        for k, v in group.items():
+            if isinstance(v, dict):
+                nums(f"{where}.{k}", v, lo)
+            elif not kit._is_num(v) or v < lo:
+                r.error("balance", f"{where}.{k}는 {lo} 이상의 숫자여야 해요: {v!r}")
+
+    legacy = [k for k in ("rarityStats", "levelCost", "essenceTickets", "energy", "dailyTickets") if k in bal]
+    if legacy:
+        r.warn("balance", f"예전 형식의 키가 있어요 ({', '.join(legacy)}). 게임은 읽을 수 있지만 밸런스 탭에서 다시 저장하면 새 형식으로 바뀌어요")
+    for group in ("gacha", "level", "essence", "daily", "power", "combat"):
+        nums(group, bal.get(group))
+    stats = bal.get("stats")
+    if isinstance(stats, dict):
+        for key in ("growth", "critRate", "critDmg"):
+            if key in stats and (not kit._is_num(stats[key]) or stats[key] < 0):
+                r.error("balance", f"stats.{key}는 0 이상의 숫자여야 해요")
+        for rar, st in (stats.get("byRarity") or {}).items():
+            if rarity.normalize(rar) is None:
+                r.error("balance", f"stats.byRarity의 키는 1~5여야 해요: {rar!r}")
+            kit.check_stats(r, f"balance.stats.byRarity.{rar}", st)
+    rates = (bal.get("gacha") or {}).get("rates")
+    if isinstance(rates, dict):
+        if set(rates) - {"1", "2", "3", "4", "5"}:
+            r.error("balance", "gacha.rates의 키는 1~5여야 해요")
+        total = sum(v for v in rates.values() if kit._is_num(v))
+        if abs(total - 100) > 0.001:
+            r.warn("balance", f"gacha.rates 합계가 100이 아니에요 ({total}). 비율로 계산돼요")
+    if "powerWarnPct" in bal and not kit._is_num(bal["powerWarnPct"]):
+        r.error("balance", "powerWarnPct는 숫자여야 해요")
+
+
+def _check_adventure(r, stages, index, stories):
+    """모험 규칙 (게임 js/systems/adventure.js adventureIssues와 같음):
+    스테이지 1개 = 메인 스토리 1개(storyId) = 그 스토리 안의 전투 장면 1개"""
+    story_ids = {s.get("id"): s for s in index if isinstance(s, dict)}
+    by_stage = {st["id"]: st for st in stages}
+    used = {}
+    for st in stages:
+        if st.get("retired"):
+            continue
+        sid = st.get("storyId")
+        where = f"stages/{st['id']}"
+        if not sid:
+            continue  # storyId 없음은 위에서 오류
+        if sid not in story_ids:
+            r.error(where, f"storyId의 스토리가 없어요: {sid!r}")
+        elif sid in used:
+            r.error(where, f"스토리 {sid}를 {used[sid]}도 쓰고 있어요 (스토리 1개 = 스테이지 1개)")
+        else:
+            used[sid] = st["id"]
+    for s in index:
+        if not isinstance(s, dict) or s.get("kind") != "main":
+            continue
+        body = stories.get(s.get("id"))
+        if not isinstance(body, dict):
+            continue
+        where = f"stories/{s['id']}"
+        scenes = [sc for sc in body.get("scenes") or [] if isinstance(sc, dict)]
+        battles = [sc for sc in scenes if sc.get("type") == "battle"]
+        if len(battles) != 1:
+            r.error(where, f"메인 스토리에는 전투 장면이 정확히 1개 있어야 해요 (지금 {len(battles)}개)")
+            continue
+        st = by_stage.get(battles[0].get("stageId"))
+        if st and st.get("storyId") != s["id"]:
+            r.error(where, f"전투 스테이지 {st['id']}의 storyId가 {st.get('storyId')!r}예요 → '{s['id']}'로 맞춰 주세요")
+        # 선택지가 전투 장면을 건너뛰면 안 됨
+        ids = [sc.get("id") for sc in scenes]
+        b = scenes.index(battles[0])
+        for i, sc in enumerate(scenes):
+            for line in sc.get("lines") or []:
+                for c in (line or {}).get("choices") or []:
+                    to = ids.index(c.get("goto")) if c.get("goto") in ids else -1
+                    if i < b < to:
+                        r.error(f"{where}/{sc.get('id')}", f"선택지 '{c.get('text', '')[:20]}'가 전투 장면을 건너뛰어요 (→ {c.get('goto')})")
+

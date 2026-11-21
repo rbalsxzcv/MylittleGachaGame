@@ -1,55 +1,112 @@
 {
-  "growth": 0.08,
-  "levelCost": {
-    "base": 10,
-    "exp": 1.25
-  },
-  "levelGoldPerTicket": 10,
-  "crit": {
-    "rate": 0.05,
-    "dmg": 0.5
-  },
-  "rarityStats": {
-    "R": {
-      "atk": 100,
-      "def": 40,
-      "hp": 900
+  "gacha": {
+    "rates": {
+      "1": 40,
+      "2": 30,
+      "3": 20,
+      "4": 8,
+      "5": 2
     },
-    "SR": {
-      "atk": 115,
-      "def": 46,
-      "hp": 1035
+    "cost": {
+      "single": 100,
+      "ten": 1000
     },
-    "SSR": {
-      "atk": 130,
-      "def": 52,
-      "hp": 1170
+    "pity": 70,
+    "tenGuaranteeMin": 4,
+    "pickupShare": 0.5
+  },
+  "stats": {
+    "growth": 0.08,
+    "byRarity": {
+      "1": {
+        "atk": 85,
+        "def": 34,
+        "hp": 765,
+        "spd": 95
+      },
+      "2": {
+        "atk": 92,
+        "def": 37,
+        "hp": 830,
+        "spd": 97
+      },
+      "3": {
+        "atk": 100,
+        "def": 40,
+        "hp": 900,
+        "spd": 100
+      },
+      "4": {
+        "atk": 115,
+        "def": 46,
+        "hp": 1035,
+        "spd": 102
+      },
+      "5": {
+        "atk": 130,
+        "def": 52,
+        "hp": 1170,
+        "spd": 105
+      }
+    },
+    "critRate": 0.05,
+    "critDmg": 0.5
+  },
+  "level": {
+    "costBase": 10,
+    "costExp": 1.25,
+    "goldPerTicket": 10
+  },
+  "essence": {
+    "maxBreakthrough": 5,
+    "overflowTickets": {
+      "1": 30,
+      "2": 30,
+      "3": 30,
+      "4": 80,
+      "5": 200
     }
   },
-  "energy": {
-    "max": 100,
-    "basic": 20,
-    "skill": 30,
-    "hit": 10,
-    "ultimateCost": 100
+  "daily": {
+    "tickets": 30,
+    "gold": 3000
   },
-  "essenceTickets": {
-    "SSR": 200,
-    "SR": 80,
-    "R": 30
-  },
-  "maxBreakthrough": 5,
-  "dailyTickets": 30,
-  "dailyGold": 3000,
   "power": {
     "atk": 2,
     "def": 1.5,
     "hp": 0.2,
+    "spd": 2,
     "critRate": 300,
     "critDmg": 100
   },
-  "powerWarnPct": 25,
-  "maxRounds": 200,
+  "powerWarnPct": 15,
+  "combat": {
+    "avBase": 10000,
+    "roundAv": 100,
+    "queuePreview": 8,
+    "maxRounds": 200,
+    "energy": {
+      "max": 100,
+      "basic": 20,
+      "skill": 30,
+      "hit": 10,
+      "ultimateCost": 100
+    },
+    "sp": {
+      "start": 3,
+      "max": 5,
+      "basicGain": 1,
+      "skillCost": 1
+    },
+    "enemyLevel": {
+      "refPower": 705,
+      "perLevel": 35
+    },
+    "fx": {
+      "actionMs": 500,
+      "cutinMs": 1000
+    }
+  },
   "defaultKit": {
     "basic": {
       "name": "기본 공격",
@@ -68,7 +125,6 @@
       "name": "강타",
       "description": "적 하나에게 큰 피해를 줘요.",
       "targeting": "enemy_single",
-      "cooldown": 2,
       "effects": [
         {
           "type": "damage",

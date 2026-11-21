@@ -4,7 +4,7 @@
 // 게임(data.js)과 개발 도구(폼 미리보기, 밸런스 시뮬레이터)가 같이 씁니다. DOM을 쓰지 않습니다.
 
 export const ACTIONS = ['basic', 'skill', 'ultimate'];
-export const STAT_KEYS = ['atk', 'def', 'hp', 'critRate', 'critDmg'];
+export const STAT_KEYS = ['atk', 'def', 'hp', 'spd', 'critRate', 'critDmg'];
 const MAX_EFFECTS = 8;
 const MAX_LIST = 8;
 
@@ -96,7 +96,8 @@ export function cleanEffectList(list, vocab, warn, where, ctx = {}) {
 }
 
 /**
- * 스킬: { name, description, targeting, count?, cooldown?, initialCooldown?, cost?, effects[] }
+ * 스킬: { name, description, targeting, count?, cost?, effects[] }
+ * 스킬 대기 시간(cooldown)은 없어졌어요 → 팀 SP로 대체 (예전 데이터의 cooldown은 경고 후 무시)
  * 효과가 하나도 없으면 null
  */
 export function cleanSkill(raw, kind, vocab, warn, where) {
@@ -113,11 +114,7 @@ export function cleanSkill(raw, kind, vocab, warn, where) {
   }
   const out = { name: str(raw.name, 40) || vocab.actions[kind], description: str(raw.description), targeting, effects };
   if (vocab.targeting[targeting].count) out.count = cleanNumber(raw.count, vocab.count, true);
-  if (kind === 'skill') {
-    out.cooldown = cleanNumber(raw.cooldown, { min: 0, max: 20, default: 2 }, true);
-    const ic = cleanNumber(raw.initialCooldown, { min: 0, max: 20, default: 0 }, true);
-    if (ic) out.initialCooldown = ic;
-  }
+  if (raw.cooldown != null || raw.initialCooldown != null) warn?.(`${where}: cooldown은 더 이상 쓰지 않아요 (스킬은 팀 SP를 써요) → 무시`);
   if (kind === 'ultimate' && raw.cost != null && raw.cost !== '') {
     out.cost = cleanNumber(raw.cost, { min: 0, max: 1000, default: 100 }, true);
   }
@@ -208,7 +205,7 @@ export function cleanKit(raw, vocab, warn, where, fallback = null) {
 export function cleanStats(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const out = {};
-  const lim = { atk: [0, 1e6], def: [0, 1e6], hp: [1, 1e7], critRate: [0, 1], critDmg: [0, 10] };
+  const lim = { atk: [0, 1e6], def: [0, 1e6], hp: [1, 1e7], spd: [1, 1000], critRate: [0, 1], critDmg: [0, 10] };
   for (const k of STAT_KEYS) {
     const n = Number(raw[k]);
     if (raw[k] != null && raw[k] !== '' && Number.isFinite(n)) out[k] = Math.min(lim[k][1], Math.max(lim[k][0], k.startsWith('crit') ? n : Math.round(n)));
@@ -224,3 +221,95 @@ export function cleanPassiveList(list, vocab, warn, where, max = 5) {
     .slice(0, max)
     .map((p, i) => cleanPassive(p, vocab, warn, `${where}[${i}]`) || { name: '돌파 능력', description: '', conditions: [], targeting: 'self', effects: [], modifiers: [] });
 }
+
+// ── 적 행동 (행동 정의 + 패턴 + 보스 페이즈 + 광폭화) ──────────────
+export const ENEMY_ICONS = ['attack', 'aoe', 'buff', 'heal', 'debuff'];
+export const ENEMY_TARGET_RULES = ['random', 'lowest_hp', 'highest_atk', 'slot1', 'slot2', 'slot3', 'slot4', 'slot5'];
+const ACTION_ID = /^[a-z0-9_]{1,24}$/;
+
+/** 아이콘이 없으면 효과/대상으로 짐작 */
+export function guessIcon(skill) {
+  const types = skill.effects.map((e) => e.type);
+  if (skill.targeting === 'enemy_all' || skill.targeting === 'enemy_random_n') return 'aoe';
+  if (skill.targeting.startsWith('enemy')) return types.includes('debuff') && !types.includes('damage') ? 'debuff' : 'attack';
+  if (types.includes('heal')) return 'heal';
+  return 'buff';
+}
+
+function cleanPattern(list, actions, warn, where) {
+  const out = [];
+  for (const [i, e] of (Array.isArray(list) ? list : []).slice(0, 16).entries()) {
+    const entry = typeof e === 'string' ? { action: e } : e;
+    if (!entry || !actions[entry.action]) {
+      warn?.(`${where}[${i}]: 없는 행동 '${entry?.action}' → 건너뜀`);
+      continue;
+    }
+    const p = { action: entry.action };
+    if (entry.target != null && entry.target !== '') {
+      if (ENEMY_TARGET_RULES.includes(entry.target)) p.target = entry.target;
+      else warn?.(`${where}[${i}]: 알 수 없는 대상 규칙 '${entry.target}' → 무작위`);
+    }
+    out.push(p);
+  }
+  return out;
+}
+
+/**
+ * 적 행동 정리: { actions:{id: Skill & {icon, big}}, pattern:[{action, target?}], phases:[{hpBelow, name, pattern, enterEffects}], enrage:{round, effects}|null }
+ * 예전 형식 { kit:{basic, skill, ultimate} }도 받음 → actions + 기본 패턴 [basic, basic, skill (, ultimate)]
+ */
+export function cleanEnemyBehavior(raw, vocab, warn, where) {
+  const actions = {};
+  let srcActions = raw?.actions;
+  let legacy = false;
+  if (!srcActions || typeof srcActions !== 'object') {
+    srcActions = {};
+    for (const k of ACTIONS) if (raw?.kit?.[k]) srcActions[k] = raw.kit[k];
+    legacy = true;
+  }
+  for (const [id, a] of Object.entries(srcActions).slice(0, 12)) {
+    if (!ACTION_ID.test(id)) {
+      warn?.(`${where}.actions: 행동 id '${id}'는 영문 소문자/숫자/_만 → 건너뜀`);
+      continue;
+    }
+    // 적 행동은 스킬 대기/비용 개념이 없어서 cooldown 경고를 내지 않음
+    const { cooldown, initialCooldown, cost, ...rest } = a || {};
+    const sk = cleanSkill(rest, 'skill', vocab, warn, `${where}.actions.${id}`);
+    if (!sk) continue;
+    sk.icon = ENEMY_ICONS.includes(a.icon) ? a.icon : guessIcon(sk);
+    if (a.big === true || (legacy && id === 'ultimate')) sk.big = true;
+    actions[id] = sk;
+  }
+  if (!Object.keys(actions).length) {
+    warn?.(`${where}: 쓸 수 있는 행동이 없어서 기본 공격을 넣었어요`);
+    actions.basic = { name: '공격', description: '', targeting: 'enemy_single', effects: [{ type: 'damage', mult: 1, stat: 'atk', hits: 1 }], icon: 'attack' };
+  }
+  let pattern = cleanPattern(raw?.pattern, actions, warn, `${where}.pattern`);
+  if (!pattern.length) {
+    const ids = Object.keys(actions);
+    pattern = legacy
+      ? [...(actions.basic ? ['basic', 'basic'] : []), ...(actions.skill ? ['skill'] : []), ...(actions.ultimate ? ['ultimate'] : [])].map((action) => ({ action }))
+      : ids.map((action) => ({ action }));
+    if (!pattern.length) pattern = ids.map((action) => ({ action }));
+  }
+  const phases = (Array.isArray(raw?.phases) ? raw.phases : [])
+    .slice(0, 4)
+    .map((ph, i) => {
+      const hpBelow = cleanNumber(ph?.hpBelow, { min: 1, max: 99, default: 50 }, true);
+      const pat = cleanPattern(ph?.pattern, actions, warn, `${where}.phases[${i}].pattern`);
+      return {
+        hpBelow,
+        name: str(ph?.name, 30) || `페이즈 ${i + 2}`,
+        pattern: pat.length ? pat : pattern,
+        enterEffects: cleanEffectList(ph?.enterEffects, vocab, warn, `${where}.phases[${i}].enterEffects`),
+      };
+    })
+    .sort((a, b) => b.hpBelow - a.hpBelow);
+  let enrage = null;
+  if (raw?.enrage && typeof raw.enrage === 'object') {
+    const effects = cleanEffectList(raw.enrage.effects, vocab, warn, `${where}.enrage.effects`);
+    if (effects.length) enrage = { round: cleanNumber(raw.enrage.round, { min: 1, max: 999, default: 15 }, true), effects };
+  }
+  return { actions, pattern, phases, enrage };
+}
+

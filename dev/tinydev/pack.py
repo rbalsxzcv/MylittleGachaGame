@@ -21,7 +21,7 @@ ROLES = ("minion", "elite", "boss")
 STYLES = ("physical", "dot", "heal", "tank", "debuff")
 ROLE_LABEL = {"minion": "잡몹", "elite": "정예", "boss": "보스"}
 STYLE_LABEL = {"physical": "물리", "dot": "지속 피해", "heal": "치유", "tank": "방어", "debuff": "약화"}
-RARITIES = ("R", "SR", "SSR")
+from .rarity import ID_PREFIX, normalize as norm_rarity  # 희귀도 1–5
 SLUG = re.compile(r"[^a-z0-9_]+")
 
 _lock = threading.Lock()
@@ -70,7 +70,7 @@ PLAN_SCHEMA = """{
   "title": "챕터 제목",
   "summary": "챕터 한 줄 소개 (스포일러 없이)",
   "characters": [
-    {"id": "ssr_haru", "name": "하루", "rarity": "SSR", "title": "칭호", "pullable": true,
+    {"id": "ssr_haru", "name": "하루", "rarity": 5, "title": "칭호", "pullable": true,
      "keywords": "외형 키워드 (머리색, 눈색, 옷, 소품 — 그림 생성용)",
      "description": "도감에 보일 공개 소개 1~2문장 (스포일러 없이)",
      "lore": "작가용 설정 메모 (성격, 말투, 비밀, 이 챕터에서의 역할)"}
@@ -123,12 +123,12 @@ def plan_prompt(outline, arc, ex, feedback="", previous=None):
 [규칙]
 - chapters는 정확히 12개 (n: 1~12). 각 장 개요는 사건 중심 2~4문장. 1장 도입 → 중반 전개/반전 → 11~12장 클라이맥스와 마무리, 마지막에 다음 챕터 떡밥.
 - characters: 이 챕터에 새로 나오는 인물만.
-  - 뽑을 수 있는 동료(pullable true)는 2~5명: SSR 1~2명, SR 1~2명, 나머지 R. 동료로 어울리지 않는 인물(악역, 마을 사람, 수수께끼의 인물 등)은 pullable false, rarity는 "R".
+  - 뽑을 수 있는 동료(pullable true)는 2~5명: rarity는 1~5 숫자(별 개수). 5 1~2명, 4 1~2명, 나머지 1~3. 동료로 어울리지 않는 인물(악역, 마을 사람, 수수께끼의 인물 등)은 pullable false, rarity는 3.
   - id는 영문 소문자/숫자/_ (예: ssr_haru, npc_merchant). 이름은 한국어.
   - keywords는 그림 생성용 외형(머리 모양/색, 눈 색, 옷, 소품, 체형). description은 공개용이라 스포일러 금지. lore는 작가용 메모라 비밀/역할을 자유롭게.
 - backgrounds: 4~8개. 여러 장에서 재사용될 장소 위주. name은 영문 소문자 slug. prompt는 사람 없는 배경 그림 설명.
 - enemies: 3~6종. role은 minion(잡몹) / elite(정예) / boss(보스, 마지막 장 전투에 반드시 등장). style은 physical / dot / heal / tank / debuff 중 하나.
-- 전투(battle): 12장 중 5~8장에 넣기. 전투가 어울리는 장에만. waves는 1~3개, 웨이브마다 적 1~5명(적 id 목록, 같은 적 반복 가능). 12장에는 boss가 나오는 전투.
+- 전투(battle): 12장 모두 하나씩 (모험: 스테이지 1개 = 스토리 1장 + 전투 1개). 장의 사건에 어울리는 전투로. waves는 1~3개, 웨이브마다 적 1~5명(적 id 목록, 같은 적 반복 가능). 12장에는 boss가 나오는 전투.
 - 이전 챕터와 모순 없이, 세계관의 고유 명사와 설정을 지키기.
 
 오직 JSON만 출력. 형식:
@@ -146,9 +146,7 @@ def mock_plan(outline, arc):
     p = f"a{arc:02d}_"
     chapters = []
     for n in range(1, ARC_SIZE + 1):
-        battle = None
-        if n in (2, 4, 6, 8, 10):
-            battle = {"name": f"{n}장의 전투", "waves": [["en_mock_slime", "en_mock_slime"], ["en_mock_slime", "en_mock_knight"]]}
+        battle = {"name": f"{n}장의 전투", "waves": [["en_mock_slime", "en_mock_slime"], ["en_mock_slime", "en_mock_knight"]]}
         if n == 12:
             battle = {"name": "챕터 보스전", "waves": [["en_mock_slime", "en_mock_slime"], ["en_mock_boss", "en_mock_knight"]]}
         chapters.append({"n": n, "title": f"모의 {n}장", "outline": f"[모의 모드] {n}장. {outline[:60]}", "characters": ["ssr_mock_hero", "npc_mock_guide"], "battle": battle})
@@ -157,9 +155,9 @@ def mock_plan(outline, arc):
             "title": f"모의 챕터 {arc}",
             "summary": "[모의 모드] 새로운 여행이 시작된다",
             "characters": [
-                {"id": "ssr_mock_hero", "name": "모의 주인공", "rarity": "SSR", "title": "견습 여행자", "pullable": True, "keywords": "silver short hair, blue eyes, travel coat, satchel", "description": "길을 떠난 견습 여행자.", "lore": "[모의] 밝고 덤벙댐"},
-                {"id": "sr_mock_friend", "name": "모의 동료", "rarity": "SR", "title": "길잡이", "pullable": True, "keywords": "brown ponytail, green eyes, scarf", "description": "길을 잘 아는 동료.", "lore": "[모의] 무뚝뚝하지만 다정"},
-                {"id": "npc_mock_guide", "name": "모의 안내인", "rarity": "R", "title": "마을 사람", "pullable": False, "keywords": "old man, beard, robe", "description": "마을의 안내인.", "lore": "[모의] 사실은 비밀이 있음"},
+                {"id": "ssr_mock_hero", "name": "모의 주인공", "rarity": 5, "title": "견습 여행자", "pullable": True, "keywords": "silver short hair, blue eyes, travel coat, satchel", "description": "길을 떠난 견습 여행자.", "lore": "[모의] 밝고 덤벙댐"},
+                {"id": "sr_mock_friend", "name": "모의 동료", "rarity": 4, "title": "길잡이", "pullable": True, "keywords": "brown ponytail, green eyes, scarf", "description": "길을 잘 아는 동료.", "lore": "[모의] 무뚝뚝하지만 다정"},
+                {"id": "npc_mock_guide", "name": "모의 안내인", "rarity": 3, "title": "마을 사람", "pullable": False, "keywords": "old man, beard, robe", "description": "마을의 안내인.", "lore": "[모의] 사실은 비밀이 있음"},
             ],
             "backgrounds": [
                 {"name": f"{p}village", "label": "고향 마을", "prompt": "quiet fantasy village at dawn, wooden houses, soft light"},
@@ -204,10 +202,10 @@ def clean_plan(raw, arc):
             char_map[c["id"]] = c["id"]  # 이미 있는 캐릭터 → 재사용
             continue
         pullable = c.get("pullable") is not False
-        rarity = c.get("rarity") if c.get("rarity") in RARITIES else "R"
+        rarity = norm_rarity(c.get("rarity")) or 3
         if not pullable:
-            rarity = "R"
-        prefix = {"SSR": "ssr_", "SR": "sr_", "R": "r_"}[rarity] if pullable else "npc_"
+            rarity = 3
+        prefix = ID_PREFIX[rarity] if pullable else "npc_"
         cid = unique(slug(c.get("id"), prefix), taken)
         char_map[str(c.get("id"))] = cid
         chars.append(
@@ -287,6 +285,11 @@ def clean_plan(raw, arc):
         boss = next(e for e in enemies if e["role"] == "boss")
         chapters[-1]["battle"] = {"name": f"{boss['name']} 결전", "waves": [[boss["id"]]]}
         warnings.append("12장에 보스전이 없어서 넣었어요")
+    for c in chapters:
+        if not c["battle"]:
+            c["battle"] = default_battle(c["n"], enemies)
+            if c["battle"]:
+                warnings.append(f"{c['n']}장에 전투가 없어서 기본 전투를 넣었어요 (모든 장에 전투 1개)")
     plan = {"arc": arc, "title": str(raw.get("title") or f"챕터 {arc}").strip()[:40], "summary": str(raw.get("summary") or "").strip()[:200], "characters": chars, "backgrounds": bgs, "enemies": enemies, "chapters": chapters}
     return plan, warnings
 
@@ -315,19 +318,36 @@ def _sk(name, targeting, effects, **kw):
     return {"name": name, "description": "", "targeting": targeting, "effects": effects, **kw}
 
 
+def default_battle(n, enemies):
+    """전투가 없는 장에 넣을 기본 전투: 잡몹 2 → (정예 섞인) 잡몹 3, 12장은 보스"""
+    by_role = {r: [e["id"] for e in enemies if e.get("role") == r] for r in ROLE_STATS}
+    minions = by_role["minion"] or by_role["elite"] or [e["id"] for e in enemies if e.get("role") != "boss"]
+    if not minions and not by_role["boss"]:
+        return None
+    if n == ARC_SIZE and by_role["boss"]:
+        return {"name": f"{n}장 결전", "waves": [minions[:2] or by_role["boss"][:1], [by_role["boss"][0]] + (by_role["elite"][:1] or minions[:1])]}
+    m = minions[(n - 1) % len(minions)]
+    second = (by_role["elite"] or minions)[n % len(by_role["elite"] or minions)]
+    waves = [[m, m]] if n <= 2 else [[m, m], [m, second, m]]
+    return {"name": f"{n}장의 전투", "waves": waves}
+
+
+STYLE_SPD = {"physical": 100, "dot": 104, "heal": 96, "tank": 88, "debuff": 102}
+
+
 def enemy_entry(e):
     role, style, names = e["role"], e["style"], e.get("skills") or {}
     a, d, h = STYLE_MUL[style]
     base = ROLE_STATS[role]
-    stats = {"atk": round(base["atk"] * a), "def": round(base["def"] * d), "hp": round(base["hp"] * h), "critRate": 0.05, "critDmg": 0.5}
+    stats = {"atk": round(base["atk"] * a), "def": round(base["def"] * d), "hp": round(base["hp"] * h), "spd": STYLE_SPD[style] + (2 if role == "boss" else 0), "critRate": 0.05, "critDmg": 0.5}
     basic_fx = [_dmg(0.8), {"type": "dot", "mult": 0.2, "turns": 2, "chance": 50}] if style == "dot" else [_dmg(1.0)]
     basic = _sk(names.get("basic") or "공격", "enemy_single", basic_fx)
     skill = {
-        "physical": _sk(names.get("skill") or "강타", "enemy_single", [_dmg(1.6)], cooldown=2),
-        "dot": _sk(names.get("skill") or "독기", "enemy_all", [_dmg(0.4), {"type": "dot", "mult": 0.25, "turns": 2}], cooldown=3),
-        "heal": _sk(names.get("skill") or "치유", "ally_lowest_hp", [{"type": "heal", "mult": 0.9, "stat": "atk"}], cooldown=3),
-        "tank": _sk(names.get("skill") or "철벽", "self", [{"type": "shield", "mult": 0.15, "stat": "hp", "turns": 2}, {"type": "taunt", "turns": 1}], cooldown=3),
-        "debuff": _sk(names.get("skill") or "약화", "enemy_single", [_dmg(0.6), {"type": "debuff", "stat": "def", "pct": 20, "turns": 2}], cooldown=3),
+        "physical": _sk(names.get("skill") or "강타", "enemy_single", [_dmg(1.6)]),
+        "dot": _sk(names.get("skill") or "독기", "enemy_all", [_dmg(0.4), {"type": "dot", "mult": 0.25, "turns": 2}]),
+        "heal": _sk(names.get("skill") or "치유", "ally_lowest_hp", [{"type": "heal", "mult": 0.9, "stat": "atk"}]),
+        "tank": _sk(names.get("skill") or "철벽", "self", [{"type": "shield", "mult": 0.15, "stat": "hp", "turns": 2}, {"type": "taunt", "turns": 1}]),
+        "debuff": _sk(names.get("skill") or "약화", "enemy_single", [_dmg(0.6), {"type": "debuff", "stat": "def", "pct": 20, "turns": 2}]),
     }[style]
     if role == "minion" and style == "physical":
         skill = None
@@ -343,13 +363,28 @@ def enemy_entry(e):
         }[style]
         ultimate = _sk(names.get("ultimate") or "필살기", "enemy_all", [_dmg(1.2)] + extra)
         passives = [{"name": "분노", "description": "HP가 절반 아래면 공격력이 올라요.", "trigger": "onHpBelow", "pct": 50, "limit": 1, "targeting": "self", "conditions": [], "effects": [{"type": "buff", "stat": "atk", "pct": 30, "turns": 3}], "modifiers": []}]
+    # 행동 + 패턴 (적은 예고한 순서대로 반복). 아이콘/큰 공격은 게임이 예고 배지에 표시
+    icon = lambda sk: "aoe" if sk["targeting"] == "enemy_all" else ("heal" if sk["targeting"].startswith("ally") else ("buff" if sk["targeting"] == "self" else "attack"))  # noqa: E731
+    actions = {"basic": {**basic, "icon": "attack"}}
+    pattern = [{"action": "basic"}]
+    if skill:
+        actions["skill"] = {**skill, "icon": icon(skill)}
+        pattern = [{"action": "basic"}, {"action": "basic"}, {"action": "skill"}] if style != "tank" else [{"action": "skill"}, {"action": "basic"}, {"action": "basic"}]
+    out = {}
+    if ultimate:
+        actions["ultimate"] = {**ultimate, "icon": "aoe", "big": True}
+        pattern = [{"action": "basic"}, {"action": "skill"} if skill else {"action": "basic"}, {"action": "basic"}, {"action": "ultimate"}]
+        out["phases"] = [{"hpBelow": 50, "name": f"{e['name']}의 분노", "pattern": [{"action": "skill"} if skill else {"action": "basic"}, {"action": "ultimate"}, {"action": "basic"}], "enterEffects": [{"type": "buff", "stat": "atk", "pct": 20, "turns": 3}]}]
+        out["enrage"] = {"round": 15, "effects": [{"type": "buff", "stat": "atk", "pct": 50, "turns": 20}]}
     return {
         "id": e["id"],
         "name": e["name"],
         "image": "",
         "boss": role == "boss",
         "stats": stats,
-        "kit": {"basic": basic, "skill": skill, "ultimate": ultimate},
+        "actions": actions,
+        "pattern": pattern,
+        **out,
         "passives": passives,
         "keywords": e.get("keywords", ""),
         "memo": e.get("description", ""),
@@ -357,12 +392,13 @@ def enemy_entry(e):
 
 
 def _power(enemy, level, balance):
-    g = float(balance.get("growth", 0.08))
-    w = {"atk": 2, "def": 1.5, "hp": 0.2, "critRate": 300, "critDmg": 100, **(balance.get("power") or {})}
+    """전투력 (게임 progression.powerOf와 같은 공식, balance.json 새/예전 형식 모두)"""
+    g = float((balance.get("stats") or {}).get("growth", balance.get("growth", 0.08)))
+    w = {"atk": 2, "def": 1.5, "hp": 0.2, "spd": 2, "critRate": 300, "critDmg": 100, **(balance.get("power") or {})}
     s = enemy.get("stats") or {}
     mul = 1 + g * (max(1, level) - 1)
     atk, df, hp = (int(int(s.get(k, 0)) * mul) for k in ("atk", "def", "hp"))
-    return int(w["atk"] * atk + w["def"] * df + w["hp"] * hp + w["critRate"] * s.get("critRate", 0.05) + w["critDmg"] * s.get("critDmg", 0.5))
+    return int(w["atk"] * atk + w["def"] * df + w["hp"] * hp + w["spd"] * s.get("spd", 100) + w["critRate"] * s.get("critRate", 0.05) + w["critDmg"] * s.get("critDmg", 0.5))
 
 
 def stage_entry(arc, n, battle, enemies_by_id, roles, balance):
@@ -381,9 +417,11 @@ def stage_entry(arc, n, battle, enemies_by_id, roles, balance):
     return {
         "id": stage_id(arc, n),
         "name": battle["name"],
+        "chapter": f"ch{arc:02d}",
+        "storyId": story_id(arc, n),
         "recommendedPower": int(round(strongest * 1.2 / 100.0) * 100),
         "waves": waves,
-        "turnLimit": 25 if has_boss else 20,
+        "roundLimit": 25 if has_boss else 20,
         "rewards": {"tickets": 40 + 5 * (n - 1) + 30 * (arc - 1), "gems": 0, "gold": (40 + 5 * (n - 1) + 30 * (arc - 1)) * 10},
         "firstClearRewards": {"tickets": 150 + 10 * n, "gems": 100 if has_boss else 50, "gold": (150 + 10 * n) * 10},
     }
@@ -461,7 +499,7 @@ def normalize_edited(plan, arc):
         if not str(c.get("name") or "").strip():
             raise ValueError(f"캐릭터 {c['id']}의 이름이 비어 있어요")
         pullable = c.get("pullable") is not False
-        chars.append({**c, "rarity": c.get("rarity") if c.get("rarity") in RARITIES else "R", "pullable": pullable})
+        chars.append({**c, "rarity": norm_rarity(c.get("rarity")) or 3, "pullable": pullable})
     bgs = ids_ok(plan.get("backgrounds"), "배경")
     enemies = []
     for e in ids_ok(plan.get("enemies"), "적"):
@@ -480,6 +518,10 @@ def normalize_edited(plan, arc):
             if not waves:
                 warnings.append(f"{n}장 전투에 적이 없어서 전투를 뺐어요")
             battle = {"name": str(battle.get("name") or f"{n}장 전투")[:40], "waves": waves} if waves else None
+        if not battle:
+            battle = default_battle(n, enemies)
+            if battle:
+                warnings.append(f"{n}장에 전투가 없어서 기본 전투를 넣었어요")
         chapters.append({"n": n, "title": str(c.get("title") or f"{n}장")[:40], "outline": str(c.get("outline") or "")[:1200], "characters": [x for x in c.get("characters") or [] if x in known_chars], "battle": battle})
     return {"arc": arc, "title": str(plan.get("title") or f"챕터 {arc}")[:40], "summary": str(plan.get("summary") or "")[:200], "outline": plan.get("outline", ""), "characters": chars, "backgrounds": bgs, "enemies": enemies, "chapters": chapters}, warnings
 

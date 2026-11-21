@@ -1,0 +1,9 @@
+{
+  "name": "tiny-gacha",
+  "private": true,
+  "type": "module",
+  "description": "빌드 단계 없음. 이 파일은 Node로 테스트를 돌릴 때(ES 모듈) 필요해요.",
+  "scripts": {
+    "test": "node tests/run.js"
+  }
+}

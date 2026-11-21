@@ -5,7 +5,6 @@ import { grantDuplicate } from './progression.js';
 
 /** 카드의 별 칸 수 = 최대 돌파 단계 */
 export const MAX_STARS = 5;
-const RARITY_ORDER = { SSR: 3, SR: 2, R: 1 };
 
 export function isOwned(save, id) {
   return !!save.owned[id];
@@ -63,7 +62,7 @@ export function hasUnseenNew(save, charMap) {
 export function sortCharacters(list) {
   return [...list].sort(
     (a, b) =>
-      RARITY_ORDER[b.rarity] - RARITY_ORDER[a.rarity] ||
+      b.rarity - a.rarity ||
       (b.addedAt || '').localeCompare(a.addedAt || '') ||
       a.name.localeCompare(b.name, 'ko'),
   );

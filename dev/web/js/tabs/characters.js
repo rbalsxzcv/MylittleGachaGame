@@ -1,5 +1,5 @@
 // 캐릭터 탭: 생성 → 검토(원본/배경 제거) → 승인/거절/다시 생성, 소개문 AI 작성, 기존 캐릭터 수정/삭제
-import { h, toast, modal, confirmBox, busy, wsImage, slugOk, nowIso, isoToLocal, localToIso, RARITIES } from '../ui.js';
+import { h, toast, modal, confirmBox, busy, wsImage, slugOk, nowIso, isoToLocal, localToIso, rarOf, rarLabel, raritySelect, RARITY_ID_PREFIX } from '../ui.js';
 import { api, tryApi } from '../api.js';
 import { state, reloadData } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
@@ -16,7 +16,7 @@ export function charactersTab(root) {
   // ── 생성 폼 ──
   const f = {
     name: h('input', { placeholder: '예: 루미' }),
-    rarity: h('select', {}, RARITIES.map((r) => h('option', { value: r }, r))),
+    rarity: raritySelect(3),
     title: h('input', { placeholder: '예: 별을 엮는 무녀' }),
     keywords: h('textarea', { rows: 3, placeholder: '예: 은발 긴 머리, 별 장식 머리핀, 남색 무녀복, 금색 눈' }),
     lore: h('textarea', { rows: 3, placeholder: '예: 별빛을 실처럼 엮어 소원을 들어주는 무녀. 단 것을 좋아함' }),
@@ -26,7 +26,7 @@ export function charactersTab(root) {
 
   // 입력값 확인 → Gemini가 그림 프롬프트 작성 → (확인/수정) → ComfyUI로 생성
   const charInput = () => {
-    const payload = { name: f.name.value.trim(), rarity: f.rarity.value, title: f.title.value, keywords: f.keywords.value.trim(), lore: f.lore.value, charId: replacingId };
+    const payload = { name: f.name.value.trim(), rarity: rarOf(f.rarity.value), title: f.title.value, keywords: f.keywords.value.trim(), lore: f.lore.value, charId: replacingId };
     if (!payload.name) return toast('이름을 입력해 주세요', 'error'), null;
     if (!payload.keywords) return toast('외형 키워드를 입력해 주세요', 'error'), null;
     return payload;
@@ -47,7 +47,7 @@ export function charactersTab(root) {
     replaceNote.textContent = c ? `「${c.name}」(${c.id})의 그림을 교체합니다. 승인하면 기존 그림을 덮어써요.` : '';
     if (c) {
       f.name.value = c.name;
-      f.rarity.value = c.rarity;
+      f.rarity.value = String(rarOf(c.rarity));
       f.title.value = c.title || '';
       f.lore.value = c.description || '';
       f.keywords.focus();
@@ -61,21 +61,20 @@ export function charactersTab(root) {
     const a = {
       id: h('input', { value: existing?.id || '', placeholder: '영문 id 예: ssr_lumi', disabled: !!existing }),
       name: h('input', { value: existing?.name || inp.name }),
-      rarity: h('select', {}, RARITIES.map((r) => h('option', { value: r }, r))),
+      rarity: raritySelect(existing?.rarity || inp.rarity),
       title: h('input', { value: existing?.title || inp.title }),
       description: h('textarea', { rows: 4 }, existing?.description || ''),
       feedback: h('input', { placeholder: '소개문 수정 요청 (예: 더 귀엽게, 존댓말로)' }),
       addedAt: h('input', { type: 'datetime-local', value: isoToLocal(existing?.addedAt || nowIso()) }),
     };
-    a.rarity.value = existing?.rarity || inp.rarity;
-    if (!existing) a.id.value = `${inp.rarity.toLowerCase()}_`;
+    if (!existing) a.id.value = RARITY_ID_PREFIX[rarOf(inp.rarity)];
 
     const writeDesc = async (withFeedback) => {
       const r = await busy('소개문 쓰는 중…', () =>
         tryApi(() =>
           api.post('/api/char/describe', {
             name: a.name.value,
-            rarity: a.rarity.value,
+            rarity: rarOf(a.rarity.value),
             title: a.title.value,
             keywords: inp.keywords,
             lore: inp.lore,
@@ -123,7 +122,7 @@ export function charactersTab(root) {
           api.post('/api/char/approve', {
             jobId: job.id,
             attempt: n,
-            character: { id, name: a.name.value, rarity: a.rarity.value, title: a.title.value, description: a.description.value, addedAt: localToIso(a.addedAt.value) },
+            character: { id, name: a.name.value, rarity: rarOf(a.rarity.value), title: a.title.value, description: a.description.value, addedAt: localToIso(a.addedAt.value) },
           }),
         );
         if (!r) return false;
@@ -156,19 +155,18 @@ export function charactersTab(root) {
   const jobsBox = h('div', { class: 'jobs-box' });
 
   function renderList() {
-    const order = { SSR: 0, SR: 1, R: 2 };
-    const chars = [...state.data.characters].sort((x, y) => order[x.rarity] - order[y.rarity] || x.id.localeCompare(y.id));
+    const chars = [...state.data.characters].sort((x, y) => rarOf(y.rarity) - rarOf(x.rarity) || x.id.localeCompare(y.id));
     list.replaceChildren(
       ...chars.map((c) =>
         h(
           'div',
-          { class: `char-item r-${c.rarity}` },
+          { class: `char-item r-${rarOf(c.rarity)}` },
           h('div', { class: 'thumb checker' }, c.image ? h('img', { src: wsImage(c.image), alt: '', onerror: (e) => e.target.remove() }) : h('span', {}, '그림 없음')),
           h(
             'div',
             { class: 'grow' },
             h('b', {}, `${c.name} `),
-            h('span', { class: `chip r-${c.rarity}` }, c.rarity),
+            h('span', { class: `chip r-${rarOf(c.rarity)}` }, rarLabel(c.rarity)),
             ' ',
             c.kit ? h('span', { class: 'chip ok', title: `돌파 능력 ${(c.breakthroughs || []).length}개` }, `전투 ✓ 돌파 ${(c.breakthroughs || []).length}`) : h('span', { class: 'chip warn' }, '기본 스킬'),
             h('div', { class: 'muted small' }, `${c.id} · ${c.title || ''}`),
@@ -204,16 +202,15 @@ export function charactersTab(root) {
   async function editChar(c) {
     const e = {
       name: h('input', { value: c.name }),
-      rarity: h('select', {}, RARITIES.map((r) => h('option', { value: r }, r))),
+      rarity: raritySelect(c.rarity),
       title: h('input', { value: c.title || '' }),
       description: h('textarea', { rows: 5 }, c.description || ''),
       feedback: h('input', { placeholder: '수정 요청 (예: 더 짧게)' }),
       addedAt: h('input', { type: 'datetime-local', value: isoToLocal(c.addedAt) }),
     };
-    e.rarity.value = c.rarity;
     const rewrite = async () => {
       const r = await busy('소개문 다시 쓰는 중…', () =>
-        tryApi(() => api.post('/api/char/describe', { name: e.name.value, rarity: e.rarity.value, title: e.title.value, current: e.description.value, feedback: e.feedback.value })),
+        tryApi(() => api.post('/api/char/describe', { name: e.name.value, rarity: rarOf(e.rarity.value), title: e.title.value, current: e.description.value, feedback: e.feedback.value })),
       );
       if (r) e.description.value = r.description;
     };
@@ -233,7 +230,7 @@ export function charactersTab(root) {
     });
     if (ok !== 'save') return;
     const r = await tryApi(() =>
-      api.put(`/api/characters/${c.id}`, { name: e.name.value, rarity: e.rarity.value, title: e.title.value, description: e.description.value, addedAt: localToIso(e.addedAt.value) }),
+      api.put(`/api/characters/${c.id}`, { name: e.name.value, rarity: rarOf(e.rarity.value), title: e.title.value, description: e.description.value, addedAt: localToIso(e.addedAt.value) }),
     );
     if (r) {
       await reloadData();

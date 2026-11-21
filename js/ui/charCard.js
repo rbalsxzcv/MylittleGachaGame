@@ -3,6 +3,7 @@
 
 import { h } from './dom.js';
 import { MAX_STARS } from '../systems/collection.js';
+import { rarityLabel } from '../config.js';
 
 // 한 번 실패한 이미지 주소는 다시 요청하지 않음
 const failedImages = new Set();
@@ -12,7 +13,7 @@ function fallbackArt(char, locked) {
   return h(
     'div',
     { class: ['art-fallback', `rar-${char.rarity}`, locked && 'is-locked'] },
-    h('div', { class: 'af-rarity' }, char.rarity),
+    h('div', { class: 'af-rarity' }, rarityLabel(char.rarity)),
     h('div', { class: 'af-name' }, locked ? '?' : char.name),
   );
 }
@@ -43,8 +44,14 @@ export function charArt(char, { locked = false } = {}) {
   return wrap;
 }
 
+/** 희귀도 배지: '5★' */
 export function rarityBadge(rarity) {
-  return h('span', { class: `rarity-badge rar-${rarity}` }, rarity);
+  return h('span', { class: `rarity-badge rar-${rarity}`, 'aria-label': `${rarity}성` }, rarityLabel(rarity));
+}
+
+/** 희귀도 별 (희귀도 개수만큼, 희귀도 색) */
+export function rarityStarRow(rarity) {
+  return h('span', { class: `rstars rar-${rarity}`, 'aria-label': `${rarity}성` }, '★'.repeat(rarity));
 }
 
 /** 별 칸 = 돌파 단계 (0~5) */
@@ -57,27 +64,31 @@ export function starRow(stars) {
 }
 
 /**
- * 도감/결과용 캐릭터 카드
+ * 도감/결과용 캐릭터 카드: 희귀도 테두리 · 별 = 희귀도 · 돌파 단계 배지 · (선택) 정수 수
  * @param {object} char
- * @param {{owned?:boolean, stars?:number, badge?:string|null, badgeClass?:string, onClick?:Function}} [opts]
+ * @param {{owned?:boolean, breakthrough?:number, stars?:number, essence?:number|null, badge?:string|null, badgeClass?:string, onClick?:Function}} [opts]
+ *   stars: 예전 이름 (= breakthrough)
  */
-export function charCard(char, { owned = true, stars = 0, badge = null, badgeClass = '', onClick } = {}) {
+export function charCard(char, { owned = true, breakthrough, stars = 0, essence = null, badge = null, badgeClass = '', onClick } = {}) {
+  const bt = breakthrough ?? stars;
   return h(
     onClick ? 'button' : 'div',
     {
       class: ['ccard', `rar-${char.rarity}`, !owned && 'is-locked'],
       onclick: onClick,
       type: onClick ? 'button' : null,
-      'aria-label': owned ? `${char.rarity} ${char.name}` : `${char.rarity} 미보유 캐릭터`,
+      'aria-label': owned ? `${char.rarity}성 ${char.name}` : `${char.rarity}성 미보유 캐릭터`,
     },
     h('div', { class: 'ccard-art' }, charArt(char, { locked: !owned })),
     h(
       'div',
       { class: 'ccard-plate' },
       h('div', { class: 'ccard-name' }, owned ? char.name : '???'),
-      owned ? starRow(stars) : h('span', { class: 'stars' }, ' '),
+      owned ? rarityStarRow(char.rarity) : h('span', { class: 'rstars' }, ' '),
     ),
     rarityBadge(char.rarity),
+    owned && bt > 0 && h('span', { class: 'ccard-bt', title: `돌파 ${bt}단계` }, `돌파 ${bt}`),
+    owned && essence != null && h('span', { class: 'ccard-ess', title: '정수 (돌파 재료)' }, `정수 ${essence}`),
     badge && h('span', { class: ['ccard-badge', badgeClass] }, badge),
   );
 }

@@ -78,6 +78,40 @@
       ]
     },
     {
+      "id": "b0",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "구석 테이블로 가는 길을 술 취한 건달 둘이 가로막았다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“어이, 절뚝이. 여긴 통행세 내고 지나가는 데야.”",
+          "name": "건달"
+        },
+        {
+          "speaker": "narrator",
+          "text": "“통행세? 마침 잘됐네. 나도 받을 돈이 많거든.”",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "battle",
+      "type": "battle",
+      "stageId": "st_01_02",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "color": "#2a2152"
+      }
+    },
+    {
       "id": "s3",
       "background": {
         "type": "image",

@@ -193,6 +193,16 @@
           "text": "“……사기꾼. 닥치고 뒤나 봐.”"
         }
       ]
+    },
+    {
+      "id": "battle",
+      "type": "battle",
+      "stageId": "st_01_03",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_slum_black_market.jpg",
+        "color": "#2b1f3a"
+      }
     }
   ]
 }

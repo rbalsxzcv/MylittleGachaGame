@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>가챠 연출 테스트</title>
+  <style>
+    body { margin: 0; font: 14px/1.5 -apple-system, "Malgun Gothic", "Noto Sans KR", sans-serif; background: #15101f; color: #eee; }
+    main { max-width: 980px; margin: 0 auto; padding: 20px; }
+    h1 { font-size: 20px; margin: 0 0 4px; }
+    h2 { font-size: 15px; margin: 18px 0 8px; color: #cdb8ff; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    button { font: inherit; font-weight: 700; padding: 8px 14px; border-radius: 10px; border: 1px solid #4b3a78; background: #2a1f45; color: #fff; cursor: pointer; }
+    button:hover { background: #3a2b60; }
+    .r1 { border-color: #9aa3ad; } .r2 { border-color: #5fc77a; } .r3 { border-color: #4f9dff; } .r4 { border-color: #a970ff; } .r5 { border-color: #ffc23d; }
+    label { display: inline-flex; gap: 6px; align-items: center; margin-right: 14px; }
+    select { font: inherit; }
+    #log { margin-top: 16px; padding: 10px; background: #0c0816; border-radius: 10px; min-height: 80px; white-space: pre-wrap; font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: #b8f5c8; }
+    .muted { color: #9a90b0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>가챠 연출 테스트 (GachaFxScene)</h1>
+    <p class="muted">희귀도 조합을 골라 연출만 돌려 봐요. 세이브는 건드리지 않아요. 연출 중: 탭/스페이스 = 다음 단계, ESC/S/SKIP = 끝내기.</p>
+
+    <h2>옵션</h2>
+    <div class="row">
+      <label><input type="checkbox" id="speed2"> 2배속</label>
+      <label><input type="checkbox" id="reduced"> 모션 줄이기 (페이드만)</label>
+      <label>5★ 승급(보라→금) <select id="fake"><option value="">자동 (30%)</option><option value="1">항상</option><option value="0">안 함</option></select></label>
+      <label><input type="checkbox" id="allNew" checked> 모두 NEW로</label>
+    </div>
+
+    <h2>1회</h2>
+    <div class="row" id="singles"></div>
+
+    <h2>10회</h2>
+    <div class="row">
+      <button data-ten="random">실제 확률로 10연</button>
+      <button data-ten="guarantee" class="r4">1~3★ 9장 + 확정 4★</button>
+      <button data-ten="top" class="r5">1★ 9장 + 5★</button>
+      <button data-ten="double" class="r5">5★ 2장 + 새 4★</button>
+      <button data-ten="all5" class="r5">5★ 10장</button>
+    </div>
+
+    <div id="log">준비 중…</div>
+  </main>
+  <script type="module">
+    // 정적 서버(/dev/fx-test.html)면 ../, 개발 도구(/fx-test)면 /preview/ (작업 공간 데이터)
+    const ROOT = location.pathname.includes('/dev/') ? new URL('../', location.href).href : `${location.origin}/preview/`;
+    const log = (msg) => {
+      const el = document.getElementById('log');
+      el.textContent = `${new Date().toLocaleTimeString()}  ${msg}\n${el.textContent}`.slice(0, 4000);
+    };
+
+    const [{ playGachaFx }, { buildPools, pullMany }, { loadConfig }, { createRng }] = await Promise.all([
+      import(`${ROOT}js/fx/gachaFx.js`),
+      import(`${ROOT}js/systems/gacha.js`),
+      import(`${ROOT}js/config.js`),
+      import(`${ROOT}js/core/rng.js`),
+    ]);
+    const cfg = loadConfig(await fetch(`${ROOT}data/balance.json`).then((r) => r.json()).catch(() => ({})));
+    const raw = await fetch(`${ROOT}data/characters.json`).then((r) => r.json()).catch(() => []);
+    const { normalizeRarity } = await import(`${ROOT}js/config.js`);
+    const chars = raw.map((c) => ({ ...c, rarity: normalizeRarity(c.rarity) || 3 })).filter((c) => c.pullable !== false);
+    log(`캐릭터 ${chars.length}명 불러옴 (${ROOT})`);
+
+    // 그 희귀도 캐릭터가 없으면 이름만 있는 샘플
+    let seq = 0;
+    const charOf = (r) => {
+      const list = chars.filter((c) => c.rarity === r);
+      if (list.length) return list[seq++ % list.length];
+      return { id: `sample_${r}_${seq++}`, name: `${r}성 샘플`, nameEn: `SAMPLE ${r}`, rarity: r, title: '샘플 캐릭터', quote: '연출 확인용 샘플이에요.', image: '' };
+    };
+    const allNew = () => document.getElementById('allNew').checked;
+    const result = (r, extra = {}) => ({ char: charOf(r), rarity: r, isNew: allNew(), essence: allNew() ? 0 : 1, tickets: 0, breakthrough: 0, isPickup: false, ...extra });
+
+    async function play(results) {
+      const fake = document.getElementById('fake').value;
+      log(`시작: ${results.map((r) => `${r.rarity}★`).join(' ')}`);
+      const out = await playGachaFx(results, {
+        speed: document.getElementById('speed2').checked ? 2 : 1,
+        onSpeed: (s) => {
+          document.getElementById('speed2').checked = s === 2;
+          log(`속도 → ${s}배`);
+        },
+        fakeout: fake === '' ? null : fake === '1',
+        reduced: document.getElementById('reduced').checked,
+      });
+      log(`gachaFxComplete ${JSON.stringify(out)}`);
+    }
+
+    const singles = document.getElementById('singles');
+    for (const r of [1, 2, 3, 4, 5]) {
+      const b = Object.assign(document.createElement('button'), { className: `r${r}`, textContent: `${r}★` });
+      b.onclick = () => play([result(r)]);
+      singles.append(b);
+    }
+    const b4 = Object.assign(document.createElement('button'), { className: 'r4', textContent: '새 4★ (컷인)' });
+    b4.onclick = () => play([result(4, { isNew: true, essence: 0 })]);
+    const b5 = Object.assign(document.createElement('button'), { className: 'r5', textContent: '5★ 픽업 + 정수' });
+    b5.onclick = () => play([result(5, { isNew: false, essence: 1, isPickup: true })]);
+    singles.append(b4, b5);
+
+    document.querySelectorAll('[data-ten]').forEach((b) => {
+      b.onclick = () => {
+        const kind = b.dataset.ten;
+        let list;
+        if (kind === 'random') {
+          const pools = buildPools(chars, { type: 'standard' });
+          const out = pullMany({ pools, count: 10, pity: 0, cfg, rand: createRng(Date.now() >>> 0) });
+          list = out.results.map((x) => ({ ...result(x.rarity), char: x.char }));
+        } else if (kind === 'guarantee') list = [1, 2, 3, 1, 2, 3, 1, 2, 3, 4].map((r) => result(r));
+        else if (kind === 'top') list = [1, 1, 1, 1, 1, 1, 1, 1, 1, 5].map((r) => result(r));
+        else if (kind === 'double') list = [3, 5, 2, 4, 3, 1, 5, 3, 2, 3].map((r) => result(r, { isNew: r === 4 || allNew() }));
+        else list = Array.from({ length: 10 }, () => result(5));
+        play(list);
+      };
+    });
+
+    // ?auto=5 (1회 5★) / ?auto=double (10회 프리셋) — 열자마자 실행 (자동 확인용). &fake=1, &speed=2, &reduced=1
+    const q = new URLSearchParams(location.search);
+    if (q.get('fake')) document.getElementById('fake').value = q.get('fake');
+    if (q.get('speed') === '2') document.getElementById('speed2').checked = true;
+    if (q.get('reduced') === '1') document.getElementById('reduced').checked = true;
+    const auto = q.get('auto');
+    if (auto) (/^[1-5]$/.test(auto) ? singles.children[Number(auto) - 1] : document.querySelector(`[data-ten="${auto}"]`))?.click();
+  </script>
+</body>
+</html>

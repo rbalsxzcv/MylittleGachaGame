@@ -1,0 +1,480 @@
+{
+  "chapter": "ch01",
+  "title": "챕터 1: 청구서는 피로 쓴다",
+  "stages": [
+    {
+      "id": "st_01_01",
+      "name": "시체밭의 약탈꾼",
+      "storyId": "main_01_01",
+      "recommendedPower": 3500,
+      "waves": [
+        [
+          {
+            "enemyId": "en_scavenger",
+            "level": 1
+          },
+          {
+            "enemyId": "en_scavenger",
+            "level": 1
+          }
+        ]
+      ],
+      "roundLimit": 20,
+      "rewards": {
+        "tickets": 30,
+        "gems": 0,
+        "gold": 300
+      },
+      "firstClearRewards": {
+        "tickets": 90,
+        "gems": 50,
+        "gold": 900
+      }
+    },
+    {
+      "id": "st_01_02",
+      "name": "썩은 주점의 텃세",
+      "storyId": "main_01_02",
+      "recommendedPower": 3700,
+      "waves": [
+        [
+          {
+            "enemyId": "en_scavenger",
+            "level": 2
+          },
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 2
+          }
+        ]
+      ],
+      "roundLimit": 20,
+      "rewards": {
+        "tickets": 40,
+        "gems": 0,
+        "gold": 400
+      },
+      "firstClearRewards": {
+        "tickets": 120,
+        "gems": 50,
+        "gold": 1200
+      }
+    },
+    {
+      "id": "st_01_03",
+      "name": "암시장 3번 구역 불한당",
+      "storyId": "main_01_03",
+      "recommendedPower": 3900,
+      "waves": [
+        [
+          {
+            "enemyId": "en_scavenger",
+            "level": 3
+          },
+          {
+            "enemyId": "en_scavenger",
+            "level": 3
+          }
+        ],
+        [
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 3
+          },
+          {
+            "enemyId": "en_scavenger",
+            "level": 3
+          }
+        ]
+      ],
+      "roundLimit": 20,
+      "rewards": {
+        "tickets": 50,
+        "gems": 0,
+        "gold": 500
+      },
+      "firstClearRewards": {
+        "tickets": 150,
+        "gems": 50,
+        "gold": 1500
+      }
+    },
+    {
+      "id": "st_01_04",
+      "name": "암시장 뒷골목 소탕",
+      "storyId": "main_01_04",
+      "recommendedPower": 4050,
+      "waves": [
+        [
+          {
+            "enemyId": "en_scavenger",
+            "level": 4
+          },
+          {
+            "enemyId": "en_scavenger",
+            "level": 4
+          }
+        ],
+        [
+          {
+            "enemyId": "en_scavenger",
+            "level": 4
+          },
+          {
+            "enemyId": "en_scavenger",
+            "level": 4
+          },
+          {
+            "enemyId": "en_plague_hound",
+            "level": 4
+          }
+        ]
+      ],
+      "roundLimit": 20,
+      "rewards": {
+        "tickets": 55,
+        "gems": 0,
+        "gold": 550
+      },
+      "firstClearRewards": {
+        "tickets": 190,
+        "gems": 50,
+        "gold": 1900
+      }
+    },
+    {
+      "id": "st_01_05",
+      "name": "정보상 은신처 돌입",
+      "storyId": "main_01_05",
+      "recommendedPower": 4050,
+      "waves": [
+        [
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 4
+          },
+          {
+            "enemyId": "en_plague_hound",
+            "level": 4
+          }
+        ],
+        [
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 4
+          },
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 4
+          },
+          {
+            "enemyId": "en_plague_hound",
+            "level": 4
+          }
+        ]
+      ],
+      "roundLimit": 20,
+      "rewards": {
+        "tickets": 60,
+        "gems": 0,
+        "gold": 600
+      },
+      "firstClearRewards": {
+        "tickets": 180,
+        "gems": 50,
+        "gold": 1800
+      }
+    },
+    {
+      "id": "st_01_06",
+      "name": "비포장도로 매복전",
+      "storyId": "main_01_06",
+      "recommendedPower": 4400,
+      "waves": [
+        [
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 6
+          },
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 6
+          }
+        ],
+        [
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 6
+          },
+          {
+            "enemyId": "en_plague_hound",
+            "level": 6
+          },
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 6
+          }
+        ]
+      ],
+      "roundLimit": 20,
+      "rewards": {
+        "tickets": 65,
+        "gems": 0,
+        "gold": 650
+      },
+      "firstClearRewards": {
+        "tickets": 210,
+        "gems": 50,
+        "gold": 2100
+      }
+    },
+    {
+      "id": "st_01_07",
+      "name": "이단 사냥꾼 퇴치",
+      "storyId": "main_01_07",
+      "recommendedPower": 4400,
+      "waves": [
+        [
+          {
+            "enemyId": "en_cult_hunter",
+            "level": 6
+          },
+          {
+            "enemyId": "en_cult_hunter",
+            "level": 6
+          }
+        ],
+        [
+          {
+            "enemyId": "en_cult_hunter",
+            "level": 6
+          },
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 6
+          },
+          {
+            "enemyId": "en_cult_hunter",
+            "level": 6
+          }
+        ]
+      ],
+      "roundLimit": 20,
+      "rewards": {
+        "tickets": 80,
+        "gems": 0,
+        "gold": 800
+      },
+      "firstClearRewards": {
+        "tickets": 240,
+        "gems": 50,
+        "gold": 2400
+      }
+    },
+    {
+      "id": "st_01_08",
+      "name": "피 묻은 구출 계약",
+      "storyId": "main_01_08",
+      "recommendedPower": 4900,
+      "waves": [
+        [
+          {
+            "enemyId": "en_scavenger",
+            "level": 8
+          },
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 8
+          }
+        ],
+        [
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 8
+          },
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 8
+          },
+          {
+            "enemyId": "en_manor_guard",
+            "level": 9
+          }
+        ]
+      ],
+      "roundLimit": 20,
+      "rewards": {
+        "tickets": 75,
+        "gems": 0,
+        "gold": 750
+      },
+      "firstClearRewards": {
+        "tickets": 230,
+        "gems": 50,
+        "gold": 2300
+      }
+    },
+    {
+      "id": "st_01_09",
+      "name": "폐묘지의 맹수들",
+      "storyId": "main_01_09",
+      "recommendedPower": 5100,
+      "waves": [
+        [
+          {
+            "enemyId": "en_plague_hound",
+            "level": 9
+          },
+          {
+            "enemyId": "en_plague_hound",
+            "level": 9
+          },
+          {
+            "enemyId": "en_plague_hound",
+            "level": 9
+          }
+        ],
+        [
+          {
+            "enemyId": "en_plague_hound",
+            "level": 9
+          },
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 9
+          },
+          {
+            "enemyId": "en_manor_guard",
+            "level": 10
+          }
+        ]
+      ],
+      "roundLimit": 20,
+      "rewards": {
+        "tickets": 80,
+        "gems": 0,
+        "gold": 800
+      },
+      "firstClearRewards": {
+        "tickets": 240,
+        "gems": 50,
+        "gold": 2400
+      }
+    },
+    {
+      "id": "st_01_10",
+      "name": "저택 후문 돌파",
+      "storyId": "main_01_10",
+      "recommendedPower": 5300,
+      "waves": [
+        [
+          {
+            "enemyId": "en_manor_guard",
+            "level": 11
+          },
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 10
+          }
+        ],
+        [
+          {
+            "enemyId": "en_manor_guard",
+            "level": 11
+          },
+          {
+            "enemyId": "en_manor_guard",
+            "level": 11
+          },
+          {
+            "enemyId": "en_plague_hound",
+            "level": 10
+          }
+        ]
+      ],
+      "roundLimit": 20,
+      "rewards": {
+        "tickets": 85,
+        "gems": 0,
+        "gold": 850
+      },
+      "firstClearRewards": {
+        "tickets": 250,
+        "gems": 50,
+        "gold": 2500
+      }
+    },
+    {
+      "id": "st_01_11",
+      "name": "연회장 진압 작전",
+      "storyId": "main_01_11",
+      "recommendedPower": 5450,
+      "waves": [
+        [
+          {
+            "enemyId": "en_manor_guard",
+            "level": 12
+          },
+          {
+            "enemyId": "en_manor_guard",
+            "level": 12
+          }
+        ],
+        [
+          {
+            "enemyId": "en_manor_guard",
+            "level": 12
+          },
+          {
+            "enemyId": "en_deserter_spear",
+            "level": 11
+          },
+          {
+            "enemyId": "en_manor_guard",
+            "level": 12
+          }
+        ]
+      ],
+      "roundLimit": 20,
+      "rewards": {
+        "tickets": 90,
+        "gems": 0,
+        "gold": 900
+      },
+      "firstClearRewards": {
+        "tickets": 260,
+        "gems": 50,
+        "gold": 2600
+      }
+    },
+    {
+      "id": "st_01_12",
+      "name": "영주 추심 결전",
+      "storyId": "main_01_12",
+      "recommendedPower": 6000,
+      "waves": [
+        [
+          {
+            "enemyId": "en_manor_guard",
+            "level": 13
+          },
+          {
+            "enemyId": "en_boss_baron_hendrik",
+            "level": 15
+          }
+        ]
+      ],
+      "roundLimit": 25,
+      "rewards": {
+        "tickets": 95,
+        "gems": 0,
+        "gold": 950
+      },
+      "firstClearRewards": {
+        "tickets": 270,
+        "gems": 100,
+        "gold": 2700
+      }
+    }
+  ]
+}

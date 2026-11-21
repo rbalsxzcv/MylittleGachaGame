@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tiny Gacha 테스트</title>
+  <style>
+    :root { color-scheme: light dark; --ok: #1f9d55; --err: #d6334f; --muted: #888; }
+    body { font: 14px/1.5 -apple-system, "Malgun Gothic", "Noto Sans KR", sans-serif; margin: 24px; max-width: 980px; }
+    h1 { font-size: 20px; margin: 0 0 4px; }
+    #summary { font-size: 16px; font-weight: 700; margin: 12px 0; }
+    #summary.ok { color: var(--ok); }
+    #summary.fail { color: var(--err); }
+    .suite { margin-top: 14px; font-weight: 700; }
+    .t { margin-left: 12px; }
+    .t.ok::before { content: '✓ '; color: var(--ok); }
+    .t.fail::before { content: '✕ '; color: var(--err); }
+    .t .ms { color: var(--muted); font-size: 12px; }
+    pre { margin: 2px 0 6px 28px; color: var(--err); white-space: pre-wrap; font-size: 12px; }
+    .muted { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <h1>Tiny Gacha 테스트</h1>
+  <p class="muted">게임 폴더를 로컬 서버로 연 뒤(예: <code>python -m http.server</code>) 이 페이지를 열면 자동으로 실행돼요. 주소 뒤에 <code>?filter=gacha</code>를 붙이면 이름에 그 글자가 들어간 테스트만 돌려요.</p>
+  <div id="summary">실행 중…</div>
+  <p><button id="snap" hidden>스냅샷 갱신</button> <span id="snap-note" class="muted"></span></p>
+  <div id="list"></div>
+  <script type="module">
+    import { run } from './lib/runner.js';
+
+    const list = document.getElementById('list');
+    const summary = document.getElementById('summary');
+    let lastSuite = '';
+    const el = (tag, cls, text) => Object.assign(document.createElement(tag), { className: cls || '', textContent: text || '' });
+
+    try {
+      await import('./all.js');
+      const filter = new URLSearchParams(location.search).get('filter') || '';
+      const res = await run({
+        filter,
+        onResult(r) {
+          if (r.suite !== lastSuite) {
+            list.append(el('div', 'suite', r.suite));
+            lastSuite = r.suite;
+          }
+          const row = el('div', `t ${r.ok ? 'ok' : 'fail'}`, r.name + ' ');
+          row.append(el('span', 'ms', `${r.ms}ms`));
+          list.append(row);
+          if (!r.ok) list.append(el('pre', '', r.error));
+        },
+      });
+      summary.textContent = `${res.failed ? 'FAIL' : 'PASS'} — 통과 ${res.passed} / 실패 ${res.failed} (${res.ms}ms)`;
+      summary.className = res.failed ? 'fail' : 'ok';
+    } catch (e) {
+      summary.textContent = `FAIL — 테스트를 불러오지 못했어요: ${e?.message || e}`;
+      summary.className = 'fail';
+      list.append(el('pre', '', String(e?.stack || e)));
+    }
+    document.body.dataset.done = '1'; // 헤드리스 실행(브라우저 --dump-dom)에서 끝났는지 확인용
+
+    // 회귀 스냅샷 갱신: 개발 도구(/preview/tests/)면 서버가 파일로 저장, 아니면 JSON 내려받기
+    const snapBtn = document.getElementById('snap');
+    const snapNote = document.getElementById('snap-note');
+    if (globalThis.__tgSnapshot) {
+      snapBtn.hidden = false;
+      snapBtn.onclick = async () => {
+        const { current, path } = globalThis.__tgSnapshot;
+        const text = JSON.stringify(current, null, 2) + '\n';
+        if (location.pathname.startsWith('/preview/')) {
+          const res = await fetch('/api/tests/snapshot', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tiny-Dev': '1' }, body: text });
+          snapNote.textContent = res.ok ? `${path}에 저장했어요. 새로고침하면 통과해야 해요.` : `저장 실패 (HTTP ${res.status})`;
+        } else {
+          const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([text], { type: 'application/json' })), download: 'stages.json' });
+          a.click();
+          snapNote.textContent = `내려받은 파일을 ${path}에 넣어 주세요 (개발 도구 /preview/tests/에서 열면 바로 저장돼요).`;
+        }
+      };
+    }
+  </script>
+</body>
+</html>

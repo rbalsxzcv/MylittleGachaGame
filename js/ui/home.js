@@ -8,9 +8,9 @@ import { createCarousel } from './carousel.js';
 import { countdownEl, startCountdowns } from './countdown.js';
 import { getFeatured, hasUnseenNew } from '../systems/collection.js';
 import { bannerSignature } from '../systems/banners.js';
-import { hasUnreadUnlocked } from '../systems/stories.js';
+import { hasOpenAdventure } from '../systems/adventure.js';
 import { canBreakthrough } from '../systems/progression.js';
-import { RATES, PITY_LIMIT } from '../systems/gacha.js';
+import { MAX_RARITY } from '../config.js';
 import { iconOr } from './theme.js';
 import { hasFreeItem } from '../systems/shop.js';
 
@@ -20,7 +20,8 @@ import { hasFreeItem } from '../systems/shop.js';
 // 우편 / 공지 / 설정은 위쪽 HUD 아이콘 (main.js의 HUD_LINKS)
 const MENU = [
   { id: 'gacha', label: '뽑기', icon: '✦', key: 'G', screen: 'gacha', primary: true },
-  { id: 'stories', label: '스토리', icon: '❝', key: 'T', screen: 'stories', dot: (ctx) => hasUnreadUnlocked(ctx) },
+  // id는 예전 그대로 'stories' (화면 에셋 icons.menu_stories를 계속 씀), 화면은 모험
+  { id: 'stories', label: '모험', icon: '⚔', key: 'T', screen: 'adventure', dot: (ctx) => hasOpenAdventure(ctx) },
   { id: 'growth', label: '육성', icon: '▲', key: 'U', screen: 'growth', dot: (ctx) => canGrowAny(ctx) },
   { id: 'team', label: '편성', icon: '⚑', key: 'P', screen: 'team' },
   { id: 'collection', label: '도감', icon: '❖', key: 'C', screen: 'collection', dot: (ctx) => hasUnseenNew(ctx.save, ctx.data.charMap) },
@@ -76,7 +77,7 @@ export function homeScreen(ctx) {
               'div',
               { class: 'banner-info' },
               h('div', { class: 'banner-title' }, banner.title),
-              h('div', { class: 'banner-sub' }, `SSR ${RATES.SSR}% · ${PITY_LIMIT}회 천장`),
+              h('div', { class: 'banner-sub' }, `${MAX_RARITY}★ ${ctx.data.balance.gacha.rates[MAX_RARITY]}% · ${ctx.data.balance.gacha.pity}회 천장`),
               countdownEl(banner.endAt, 'countdown banner-countdown'),
             ),
           ),

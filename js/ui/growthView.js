@@ -14,9 +14,9 @@ import {
   doBreakthrough,
   canBreakthrough,
   essenceTicketRate,
-  RARITY_STARS,
 } from '../systems/progression.js';
 import { buildUnit } from '../battle/units.js';
+import { formatBig } from '../config.js';
 import { describeSkill, describePassive, describeModifier } from '../battle/describe.js';
 
 const SORTS = [
@@ -29,11 +29,11 @@ const TABS = [
   { id: 'skills', label: '스킬' },
   { id: 'break', label: '돌파' },
 ];
-const RARITY_ORDER = { SSR: 3, SR: 2, R: 1 };
 const STAT_ROWS = [
   ['atk', '공격력'],
   ['def', '방어력'],
   ['hp', 'HP'],
+  ['spd', '속도'],
   ['critRate', '치명타 확률'],
   ['critDmg', '치명타 피해'],
 ];
@@ -46,7 +46,7 @@ const fmtStat = (key, v) => (key.startsWith('crit') ? `${Math.round(v * 1000) / 
 function modifierAction(m) {
   if (m.type === 'action_targeting' || m.type === 'extra_effects') return m.action;
   if (m.type === 'effect_power') return m.action;
-  if (m.type === 'cooldown') return 'skill';
+  if (m.type === 'sp_cost') return 'skill';
   if (m.type === 'ultimate_cost') return 'ultimate';
   if (m.type === 'energy_gain') return m.source === 'hit' ? null : m.source;
   return null;
@@ -76,7 +76,7 @@ export function growthScreen(ctx) {
         const by = {
           power: (a, b) => b.p - a.p,
           level: (a, b) => b.e.level - a.e.level || b.p - a.p,
-          rarity: (a, b) => RARITY_ORDER[b.c.rarity] - RARITY_ORDER[a.c.rarity] || b.p - a.p,
+          rarity: (a, b) => b.c.rarity - a.c.rarity || b.p - a.p,
         }[sort];
         return arr.sort((a, b) => by(a, b) || a.c.name.localeCompare(b.c.name, 'ko'));
       }
@@ -100,7 +100,7 @@ export function growthScreen(ctx) {
                 { class: 'grow-row-main' },
                 h('div', { class: 'grow-row-name' }, rarityBadge(c.rarity), c.name),
                 h('div', { class: 'grow-row-sub' }, `Lv.${e.level}`, starRow(e.breakthrough)),
-                h('div', { class: 'grow-row-power' }, `전투력 ${num(p)}`),
+                h('div', { class: 'grow-row-power' }, `전투력 ${formatBig(p)}`),
               ),
               canBreakthrough(e, balance) && h('span', { class: 'menu-dot' }),
             ),
@@ -136,10 +136,10 @@ export function growthScreen(ctx) {
           h(
             'div',
             { class: 'grow-head-info' },
-            h('div', { class: 'detail-top' }, rarityBadge(c.rarity), h('span', { class: 'muted small' }, `${RARITY_STARS[c.rarity]}★`), starRow(e.breakthrough)),
+            h('div', { class: 'detail-top' }, rarityBadge(c.rarity), starRow(e.breakthrough)),
             c.title && h('div', { class: 'muted' }, c.title),
             h('div', { class: 'grow-name' }, c.name),
-            h('div', { class: 'grow-meta' }, h('b', {}, `Lv.${e.level}`), h('span', {}, `전투력 ${num(powerOf(stats, balance))}`), h('span', {}, `정수 ${e.essence}`)),
+            h('div', { class: 'grow-meta' }, h('b', {}, `Lv.${e.level}`), h('span', {}, `전투력 ${formatBig(powerOf(stats, balance))}`), h('span', {}, `정수 ${e.essence}`)),
           ),
         );
         const tabBar = h(
@@ -228,7 +228,13 @@ export function growthScreen(ctx) {
           ['basic', 'skill', 'ultimate'].map((a) => {
             const s = unit.kit[a];
             if (!s) return null;
-            const meta = a === 'skill' ? `대기 ${s.cooldown || 0}턴` : a === 'ultimate' ? `기력 ${unit.ultCost}` : `기력 +${unit.energyGain.basic}`;
+            const spCost = Math.max(0, balance.combat.sp.skillCost + unit.spCostDelta);
+            const meta =
+              a === 'skill'
+                ? `SP ${spCost} 소모 · 기력 +${unit.energyGain.skill}`
+                : a === 'ultimate'
+                  ? `기력 ${unit.ultCost} · 턴을 쓰지 않음`
+                  : `SP +${balance.combat.sp.basicGain} · 기력 +${unit.energyGain.basic}`;
             const applied = [];
             unlocked.forEach((p, i) => {
               for (const m of p.modifiers || []) {
@@ -250,7 +256,7 @@ export function growthScreen(ctx) {
 
       function breakTab(c, e) {
         const nodes = c.breakthroughs || [];
-        const max = balance.maxBreakthrough;
+        const max = balance.essence.maxBreakthrough;
         const rate = essenceTicketRate(c.rarity, balance);
         return h(
           'div',

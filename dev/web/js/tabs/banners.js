@@ -1,5 +1,5 @@
 // 배너 탭: 픽업 캐릭터 고르기, 기간(KST), 키 아트 생성(승인/거절/다시 생성), 관련 스토리, 게임 화면 미리보기
-import { h, toast, confirmBox, busy, dateField, wsImage, slugOk, fmt, nowIso } from '../ui.js';
+import { h, toast, confirmBox, busy, dateField, wsImage, slugOk, fmt, nowIso, rarOf, rarLabel, raritySelect } from '../ui.js';
 import { api, tryApi } from '../api.js';
 import { state, saveList, reloadData } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
@@ -38,7 +38,7 @@ export function bannersTab(root, { select } = {}) {
         return h(
           'button',
           { class: ['list-item', b.id === selectedId && 'active'], onclick: () => edit(b) },
-          h('div', {}, h('b', {}, b.title), ' ', h('span', { class: `chip ${cls}` }, label), ' ', h('span', { class: 'chip' }, b.rotation ? `로테이션 ${b.rotation.rarity} ${b.rotation.count}명/${b.rotation.days}일` : b.type === 'pickup' ? '픽업' : '상시')),
+          h('div', {}, h('b', {}, b.title), ' ', h('span', { class: `chip ${cls}` }, label), ' ', h('span', { class: 'chip' }, b.rotation ? `로테이션 ${rarLabel(b.rotation.rarity)} ${b.rotation.count}명/${b.rotation.days}일` : b.type === 'pickup' ? '픽업' : '상시')),
           h('div', { class: 'muted small' }, `${fmt(b.startAt)} ~ ${fmt(b.endAt)}`),
         );
       }),
@@ -74,19 +74,18 @@ export function bannersTab(root, { select } = {}) {
       { class: 'pick-grid' },
       state.data.characters.map((c) => {
         const cb = h('input', { type: 'checkbox', checked: picked.has(c.id), onchange: (e) => (e.target.checked ? picked.add(c.id) : picked.delete(c.id)) });
-        return h('label', { class: `pick r-${c.rarity}` }, cb, h('div', { class: 'thumb checker' }, c.image ? h('img', { src: wsImage(c.image), onerror: (e) => e.target.remove() }) : ''), h('span', {}, `${c.name} (${c.rarity})`));
+        return h('label', { class: `pick r-${rarOf(c.rarity)}` }, cb, h('div', { class: 'thumb checker' }, c.image ? h('img', { src: wsImage(c.image), onerror: (e) => e.target.remove() }) : ''), h('span', {}, `${c.name} (${rarLabel(c.rarity)})`));
       }),
     );
     // 자동 로테이션: 최고 등급 캐릭터 N명이 기간마다 돌아가며 픽업
-    const rot = v.rotation || { rarity: 'SSR', count: 2, days: 7, anchor: null };
+    const rot = v.rotation || { rarity: 5, count: 2, days: 7, anchor: null };
     const rotOn = h('input', { type: 'checkbox', checked: !!v.rotation });
-    const rotRarity = h('select', {}, ['SSR', 'SR', 'R'].map((r) => h('option', { value: r }, r)));
-    rotRarity.value = rot.rarity;
+    const rotRarity = raritySelect(rot.rarity);
     const rotCount = h('input', { type: 'number', class: 'small-input', min: 1, max: 4, value: rot.count });
     const rotDays = h('input', { type: 'number', class: 'small-input', min: 1, max: 60, value: rot.days });
     const rotAnchor = dateField('로테이션 기준 시각 (이 시각부터 기간마다 교대)', rot.anchor || nowIso(), { allowEmpty: false });
     const rotPreview = h('div', { class: 'muted small' });
-    const rotation = () => ({ rarity: rotRarity.value, count: Math.min(4, Math.max(1, parseInt(rotCount.value, 10) || 2)), days: Math.min(60, Math.max(1, parseInt(rotDays.value, 10) || 7)), anchor: rotAnchor.get() });
+    const rotation = () => ({ rarity: rarOf(rotRarity.value), count: Math.min(4, Math.max(1, parseInt(rotCount.value, 10) || 2)), days: Math.min(60, Math.max(1, parseInt(rotDays.value, 10) || 7)), anchor: rotAnchor.get() });
     async function showRotation() {
       const { rotationSchedule } = await import('/preview/js/systems/banners.js');
       const list = rotationSchedule({ ...v, rotation: rotation() }, state.data.characters, 4, new Date());
@@ -106,7 +105,7 @@ export function bannersTab(root, { select } = {}) {
       h('p', { class: 'muted small' }, '대상은 그 희귀도의 뽑을 수 있는 캐릭터 전체 (공개 시각 → id 순서). 새 캐릭터가 추가되면 자동으로 순서에 들어가요. 남은 시간은 지금 로테이션이 끝나는 시각으로 보여요.'),
       rotPreview,
     );
-    const pickWrap = h('div', {}, h('div', { class: 'label' }, '픽업 캐릭터 (SSR이 나오면 50% 확률로 픽업)'), pickGrid);
+    const pickWrap = h('div', {}, h('div', { class: 'label' }, '픽업 캐릭터 (5★가 나오면 50% 확률로 픽업)'), pickGrid);
     const rotWrap = h('div', {}, h('label', { class: 'inline' }, rotOn, h('b', {}, '자동 로테이션 픽업')), rotBox);
     const syncType = () => {
       const pickup = type.value === 'pickup';

@@ -1,11 +1,41 @@
-// 적 탭: 목록 / 만들기 / 고치기 / 지우기 — 능력치, 스킬(같은 효과 엔진), 패시브, 그림
+// 적 탭: 목록 / 만들기 / 고치기 / 지우기 — 능력치, 행동(같은 효과 엔진) + 패턴(예고 순서) + 보스 페이즈/광폭화, 패시브, 그림
 import { h, toast, confirmBox, slugOk, wsImage } from '../ui.js';
 import { api, tryApi } from '../api.js';
 import { state, reloadData } from '../state.js';
-import { loadBattleKit, skillForm, passiveForm, statsForm, issueList, blankPassive, cleanEntity } from '../battleForm.js';
+import { loadBattleKit, skillForm, passiveForm, statsForm, issueList, blankPassive, cleanEntity, effectList, newEffect } from '../battleForm.js';
 import { openEnemyGenerator } from './assets.js';
 
-const ACTIONS = ['basic', 'skill', 'ultimate'];
+const ICONS = { attack: '⚔ 공격', aoe: '✸ 광역', buff: '▲ 강화', heal: '✚ 치유', debuff: '▼ 약화' };
+const TARGET_RULES = { random: '무작위', lowest_hp: 'HP 가장 낮은', highest_atk: '공격력 가장 높은', slot1: '1번 칸', slot2: '2번 칸', slot3: '3번 칸', slot4: '4번 칸', slot5: '5번 칸' };
+const pick = (options, value, onChange) => {
+  const s = h('select', { onchange: (e) => onChange(e.target.value) }, Object.entries(options).map(([k, label]) => h('option', { value: k }, label)));
+  s.value = value;
+  return s;
+};
+
+/** 패턴 편집기: [{action, target?}] — 순서대로 반복 */
+function patternEditor(list, actionIds, onChange, { hint = '' } = {}) {
+  const host = h('div', { class: 'pattern-list' });
+  const render = () => {
+    host.replaceChildren(
+      ...list.map((p, i) =>
+        h(
+          'div',
+          { class: 'row wrap pattern-row' },
+          h('b', { class: 'muted small' }, `${i + 1}.`),
+          pick(Object.fromEntries(actionIds().map((a) => [a, a])), p.action, (v) => ((p.action = v), onChange())),
+          pick({ '': '(대상 규칙: 무작위)', ...TARGET_RULES }, p.target || '', (v) => (v ? (p.target = v) : delete p.target, onChange())),
+          h('button', { class: 'btn tiny', disabled: i === 0, onclick: () => ([list[i - 1], list[i]] = [list[i], list[i - 1]], onChange(), render()) }, '↑'),
+          h('button', { class: 'btn tiny danger-outline', disabled: list.length <= 1 && !hint, onclick: () => (list.splice(i, 1), onChange(), render()) }, '✕'),
+        ),
+      ),
+      h('button', { class: 'btn tiny', onclick: () => (list.push({ action: actionIds()[0] }), onChange(), render()) }, '+ 순서 추가'),
+      hint && h('span', { class: 'muted small' }, ` ${hint}`),
+    );
+  };
+  render();
+  return { el: host, render };
+}
 
 export function enemiesTab(root, { select } = {}) {
   let editing = null; // { v, isNew }
@@ -51,12 +81,20 @@ export function enemiesTab(root, { select } = {}) {
         name: '',
         image: '',
         boss: false,
-        stats: { atk: 70, def: 20, hp: 500 },
-        kit: { basic: structuredClone(balance.defaultKit.basic), skill: null, ultimate: null },
+        stats: { atk: 70, def: 20, hp: 500, spd: 100 },
+        actions: { basic: { ...structuredClone(balance.defaultKit.basic), icon: 'attack' } },
+        pattern: [{ action: 'basic' }],
         passives: [],
       },
     );
-    v.kit = v.kit || { basic: structuredClone(balance.defaultKit.basic), skill: null, ultimate: null };
+    // 예전 형식(kit)이면 행동 + 패턴으로 바꿔서 편집 (저장하면 새 형식)
+    if (!v.actions || !Object.keys(v.actions).length) {
+      const conv = kitMods.schema.cleanEnemyBehavior(v, vocab, () => {}, v.id || 'new');
+      Object.assign(v, { actions: conv.actions, pattern: conv.pattern });
+      delete v.kit;
+    }
+    v.pattern = v.pattern?.length ? v.pattern : [{ action: Object.keys(v.actions)[0] }];
+    v.phases = v.phases || [];
     v.passives = v.passives || [];
     v.stats = v.stats || {};
     editing = { v, isNew };
@@ -131,22 +169,104 @@ export function enemiesTab(root, { select } = {}) {
       'AI로 그리기',
     );
 
+    // ── 행동 (적이 할 수 있는 것) ──
+    const actionIds = () => Object.keys(v.actions);
     const kitBox = h('div', { class: 'be-skills' });
-    const renderKit = () => {
+    const renderActions = () => {
       kitBox.replaceChildren(
-        ...ACTIONS.map((a) => {
-          if (!v.kit[a]) {
-            return h('div', { class: 'bf-skill empty-skill' }, h('div', { class: 'bf-title' }, vocab.actions[a]), h('p', { class: 'muted small' }, a === 'basic' ? '기본 공격을 쓰려면 추가해 주세요' : '없음'), h('button', { class: 'btn small', onclick: () => ((v.kit[a] = structuredClone(balance.defaultKit[a])), mark(), renderKit()) }, `+ ${vocab.actions[a]}`));
-          }
-          const form = skillForm(v.kit[a], a, {
+        ...actionIds().map((aid) => {
+          const a = v.actions[aid];
+          const form = skillForm(a, 'enemy', {
+            title: `행동 '${aid}'`,
             onChange: mark,
-            preview: () => describe.describeSkill(cleaned().kit?.[a], vocab, { stats: progression.statsOf(cleaned(), 1, 0, balance), action: a }),
+            preview: () => describe.describeSkill(cleaned().actions?.[aid], vocab, { stats: progression.statsOf(cleaned(), 1, 0, balance), action: aid }),
           });
-          return h('div', {}, form.el, a !== 'basic' && h('button', { class: 'btn tiny danger-outline', onclick: () => ((v.kit[a] = null), mark(), renderKit()) }, `${vocab.actions[a]} 없애기`));
+          const used = v.pattern.some((p) => p.action === aid) || v.phases.some((ph) => ph.pattern.some((p) => p.action === aid));
+          return h(
+            'div',
+            { class: 'enemy-action' },
+            h(
+              'div',
+              { class: 'row wrap' },
+              h('label', { class: 'bf-param' }, h('span', {}, '예고 아이콘'), pick({ '': '(자동)', ...ICONS }, a.icon || '', (x) => (x ? (a.icon = x) : delete a.icon, mark()))),
+              h('label', { class: 'inline' }, h('input', { type: 'checkbox', checked: !!a.big, onchange: (e) => (e.target.checked ? (a.big = true) : delete a.big, mark()) }), '큰 공격 (빨간 예고, 차단 가능)'),
+              h('button', { class: 'btn tiny danger-outline', disabled: actionIds().length <= 1 || used, title: used ? '패턴에서 먼저 빼 주세요' : '', onclick: () => (delete v.actions[aid], mark(), renderActions()) }, '행동 삭제'),
+            ),
+            form.el,
+          );
         }),
+        h(
+          'div',
+          { class: 'row wrap' },
+          h('input', { class: 'small-input', placeholder: '새 행동 id (예: slam)', id: 'new-action-id' }),
+          h(
+            'button',
+            {
+              class: 'btn small',
+              onclick: () => {
+                const inp = kitBox.querySelector('#new-action-id');
+                const nid = (inp.value || '').trim();
+                if (!/^[a-z0-9_]{1,24}$/.test(nid)) return toast('행동 id는 영문 소문자/숫자/_ (24자까지)', 'error');
+                if (v.actions[nid]) return toast('이미 있는 행동이에요', 'error');
+                v.actions[nid] = { name: nid, description: '', targeting: 'enemy_single', effects: [newEffect('damage')], icon: 'attack' };
+                mark();
+                renderActions();
+                pattern.render();
+                renderPhases();
+              },
+            },
+            '+ 행동',
+          ),
+        ),
       );
     };
-    renderKit();
+    renderActions();
+
+    // ── 패턴 (예고 순서, 반복) ──
+    const pattern = patternEditor(v.pattern, actionIds, mark);
+
+    // ── 보스 페이즈 / 광폭화 ──
+    const phaseBox = h('div');
+    const renderPhases = () => {
+      phaseBox.replaceChildren(
+        ...v.phases.map((ph, i) =>
+          h(
+            'div',
+            { class: 'scene-card' },
+            h(
+              'div',
+              { class: 'row wrap' },
+              h('b', {}, `페이즈 ${i + 2}`),
+              h('label', { class: 'bf-param' }, h('span', {}, 'HP % 미만'), h('input', { type: 'number', class: 'num-input', min: 1, max: 99, value: ph.hpBelow, oninput: (e) => ((ph.hpBelow = Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 50))), mark()) })),
+              h('label', { class: 'bf-param grow' }, h('span', {}, '이름 (배너)'), h('input', { value: ph.name || '', oninput: (e) => ((ph.name = e.target.value), mark()) })),
+              h('button', { class: 'btn tiny danger-outline', onclick: () => (v.phases.splice(i, 1), mark(), renderPhases()) }, '페이즈 삭제'),
+            ),
+            h('div', { class: 'muted small' }, '이 페이즈의 패턴'),
+            patternEditor(ph.pattern, actionIds, mark).el,
+            h('div', { class: 'muted small' }, '들어갈 때 효과 (대상 미지정 = 자신)'),
+            effectList((ph.enterEffects ||= []), { onChange: mark }),
+          ),
+        ),
+        h('button', { class: 'btn small', onclick: () => (v.phases.push({ hpBelow: 50, name: `페이즈 ${v.phases.length + 2}`, pattern: structuredClone(v.pattern), enterEffects: [] }), mark(), renderPhases()) }, '+ 페이즈 (보스)'),
+      );
+    };
+    renderPhases();
+
+    const enrageBox = h('div');
+    const renderEnrage = () => {
+      const on = !!v.enrage;
+      enrageBox.replaceChildren(
+        h(
+          'label',
+          { class: 'inline' },
+          h('input', { type: 'checkbox', checked: on, onchange: (e) => ((v.enrage = e.target.checked ? { round: 15, effects: [{ type: 'buff', stat: 'atk', pct: 50, turns: 20 }] } : null), mark(), renderEnrage()) }),
+          '광폭화 (정한 라운드부터 효과)',
+        ),
+        on && h('label', { class: 'bf-param' }, h('span', {}, '라운드'), h('input', { type: 'number', class: 'num-input', min: 1, max: 999, value: v.enrage.round, oninput: (e) => ((v.enrage.round = Math.max(1, parseInt(e.target.value, 10) || 15)), mark()) })),
+        on && effectList(v.enrage.effects, { onChange: mark }),
+      );
+    };
+    renderEnrage();
 
     const passBox = h('div');
     const renderPassives = () => {
@@ -166,6 +286,9 @@ export function enemiesTab(root, { select } = {}) {
       const item = structuredClone(v);
       if (!item.image) delete item.image;
       if (!item.boss) delete item.boss;
+      if (!item.phases?.length) delete item.phases;
+      if (!item.enrage) delete item.enrage;
+      delete item.kit;
       const items = state.data.enemies.filter((x) => x.id !== item.id);
       const pos = state.data.enemies.findIndex((x) => x.id === item.id);
       pos >= 0 ? items.splice(pos, 0, item) : items.push(item);
@@ -205,9 +328,15 @@ export function enemiesTab(root, { select } = {}) {
         h('div', { class: 'row', style: { gap: '16px', alignItems: 'flex-start' } }, imgBox, h('div', { class: 'grow' }, h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (바꾸지 않기)', id), h('label', { class: 'field' }, '이름', name)), h('label', { class: 'inline' }, boss, '보스 (카드가 크게 표시)'), h('label', { class: 'field' }, '그림 (assets/enemies) — 올리기 또는 AI로 그리기', h('div', { class: 'row wrap' }, imgSel, upload, drawAi)))),
         power,
         h('h3', {}, '기본 능력치 (Lv.1, 레벨에 따라 성장)'),
-        statsForm(v.stats, { ...balance.rarityStats.R, critRate: balance.crit.rate, critDmg: balance.crit.dmg }, { onChange: mark }),
-        h('h3', {}, '스킬 (적도 같은 AI: 궁극기 → 스킬 → 기본)'),
+        statsForm(v.stats, { ...balance.stats.byRarity[3], critRate: balance.stats.critRate, critDmg: balance.stats.critDmg }, { onChange: mark }),
+        h('h3', {}, '행동 (적이 할 수 있는 것 — 아군과 같은 효과 엔진)'),
         kitBox,
+        h('h3', {}, '패턴 (이 순서대로 예고하고 반복)'),
+        h('p', { class: 'muted small' }, '대상 규칙은 적 1명을 노리는 행동에만 쓰여요. 도발한 아군이 있으면 그쪽으로 바뀌어요.'),
+        pattern.el,
+        h('h3', {}, '보스: 페이즈 / 광폭화'),
+        phaseBox,
+        enrageBox,
         h('h3', {}, '패시브'),
         passBox,
         issuesBox,

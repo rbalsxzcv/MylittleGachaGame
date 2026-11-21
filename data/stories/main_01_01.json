@@ -96,7 +96,7 @@
             },
             {
               "text": "사기 의뢰서를 먼저 확인한다.",
-              "goto": "s4"
+              "goto": "b0"
             }
           ]
         }
@@ -132,7 +132,40 @@
           "speaker": "narrator",
           "text": "단장은 피 묻은 외투 안쪽 주머니에서 붉은 밀랍으로 봉인된 의뢰서를 꺼냈다."
         }
-      ],
+      ]
+    },
+    {
+      "id": "b0",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "그때, 시체 사이로 흔들리는 횃불 몇 개가 다가왔다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "죽은 자의 주머니를 털러 온 약탈꾼들이었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "“어이, 거기. 그 유품은 우리 회사 비품이거든? 반납해.”",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "battle",
+      "type": "battle",
+      "stageId": "st_01_01",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "color": "#33264f"
+      },
       "next": "s4"
     },
     {

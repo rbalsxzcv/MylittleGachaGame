@@ -76,7 +76,7 @@ export function packTab(root) {
           { class: 'row wrap' },
           h('label', { class: 'bf-param' }, h('span', {}, '이름'), input(c, 'name')),
           h('label', { class: 'bf-param' }, h('span', {}, 'id'), input(c, 'id', { class: 'small-input' })),
-          h('label', { class: 'bf-param' }, h('span', {}, '희귀도'), sel(c, 'rarity', [['SSR', 'SSR'], ['SR', 'SR'], ['R', 'R']])),
+          h('label', { class: 'bf-param' }, h('span', {}, '희귀도'), sel(c, 'rarity', [5, 4, 3, 2, 1].map((r) => [String(r), `${r}★`]))),
           h('label', { class: 'bf-param grow' }, h('span', {}, '칭호'), input(c, 'title')),
           h('label', { class: 'inline' }, h('input', { type: 'checkbox', checked: c.pullable, onchange: (e) => (c.pullable = e.target.checked) }), '뽑기 동료'),
           remove(p.characters, i),

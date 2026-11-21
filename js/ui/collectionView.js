@@ -6,12 +6,11 @@ import { charCard, charArt, rarityBadge, starRow } from './charCard.js';
 import { isOwned, isMarkedNew, markSeen, sortCharacters, ownedCount } from '../systems/collection.js';
 import { formatKST } from '../core/time.js';
 import { charPower } from '../systems/progression.js';
+import { formatBig } from '../config.js';
 
 const FILTERS = [
   { id: 'all', label: '전체' },
-  { id: 'SSR', label: 'SSR' },
-  { id: 'SR', label: 'SR' },
-  { id: 'R', label: 'R' },
+  ...[5, 4, 3, 2, 1].map((r) => ({ id: `r${r}`, label: `${r}★`, rarity: r })),
   { id: 'owned', label: '보유' },
 ];
 
@@ -54,7 +53,7 @@ export function collectionScreen(ctx) {
         const list = sortCharacters(characters).filter((c) => {
           if (filter === 'all') return true;
           if (filter === 'owned') return isOwned(ctx.save, c.id);
-          return c.rarity === filter;
+          return `r${c.rarity}` === filter;
         });
 
         grid.replaceChildren(
@@ -63,7 +62,8 @@ export function collectionScreen(ctx) {
             const isNew = isMarkedNew(ctx.save, c.id);
             return charCard(c, {
               owned: !!entry,
-              stars: entry?.breakthrough ?? 0,
+              breakthrough: entry?.breakthrough ?? 0,
+              essence: entry ? entry.essence : null,
               badge: isNew ? 'NEW' : null,
               badgeClass: 'badge-new',
               onClick: () => openDetail(c),
@@ -103,7 +103,7 @@ export function collectionScreen(ctx) {
                 h('dt', {}, '레벨'),
                 h('dd', {}, `Lv.${entry.level} · 돌파 ${entry.breakthrough} · 정수 ${entry.essence}`),
                 h('dt', {}, '전투력'),
-                h('dd', {}, charPower(c, entry, ctx.data.balance).toLocaleString('ko-KR')),
+                h('dd', {}, formatBig(charPower(c, entry, ctx.data.balance))),
                 h('dt', {}, '획득 횟수'),
                 h('dd', {}, `${entry.count}회`),
                 h('dt', {}, '처음 만난 날'),

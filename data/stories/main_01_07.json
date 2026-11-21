@@ -172,6 +172,16 @@
           "name": "단장"
         }
       ]
+    },
+    {
+      "id": "battle",
+      "type": "battle",
+      "stageId": "st_01_07",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "color": "#2b1f3a"
+      }
     }
   ]
 }

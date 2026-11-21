@@ -22,7 +22,7 @@ LIST_FILES = {
     "notices": "notices.json",
     "mail": "mail.json",
     "enemies": "enemies.json",
-    "stages": "stages.json",
+    "stages": "stages/index.json",  # 모험 챕터 목록 → stages/<챕터>.json (read_list/write_list가 합쳐서 다룸)
     "props": "props.json",  # 소품 그림 목록 (개발 도구 전용 — 배포하지 않음, 그림만 상점 등에서 참조)
 }
 ASSET_DIRS = ("chars", "banners", "bg", "ui", "enemies", "props")
@@ -63,9 +63,16 @@ def _ensure_extras():
         write_json(ws_data(BALANCE_FILE), read_json(config.PUBLIC_DATA / BALANCE_FILE, None) or {})
     if not ws_data(SHOP_FILE).exists():
         write_json(ws_data(SHOP_FILE), read_json(config.PUBLIC_DATA / SHOP_FILE, None) or empty_shop())
-    for key in ("enemies", "stages", "props"):
+    for key in ("enemies", "props"):
         if not ws_data(LIST_FILES[key]).exists():
             write_json(ws_data(LIST_FILES[key]), read_json(config.PUBLIC_DATA / LIST_FILES[key], None) or [])
+    # 스테이지: 작업 공간에 챕터 파일도 예전 stages.json도 없으면 공개 데이터에서 복사
+    if not ws_data("stages/index.json").exists() and not ws_data("stages.json").exists():
+        pub = config.PUBLIC_DATA / "stages"
+        if (pub / "index.json").exists():
+            shutil.copytree(pub, ws_data("stages"), dirs_exist_ok=True)
+        else:
+            write_json(ws_data("stages.json"), read_json(config.PUBLIC_DATA / "stages.json", None) or [])
 
 
 def read_ui():
@@ -169,12 +176,95 @@ def write_json(path, obj):
 
 
 def read_list(key):
+    if key == "stages":
+        return read_stages()
     data = read_json(ws_data(LIST_FILES[key]), [])
     return data if isinstance(data, list) else []
 
 
 def write_list(key, items):
+    if key == "stages":
+        return write_stages(items)
     write_json(ws_data(LIST_FILES[key]), items)
+
+
+# ── 모험 스테이지: 챕터 파일 (data/stages/index.json + data/stages/<챕터>.json) ──
+# 개발 도구 안에서는 모든 챕터의 스테이지를 한 목록으로 다루고, 항목마다 chapter 필드를 붙임
+CHAPTER_RE = re.compile(r"^[A-Za-z0-9_-]{1,32}$")
+_STAGE_ARC = re.compile(r"^st_(\d+)_")
+
+
+def chapter_of(stage):
+    """스테이지의 챕터 id (없으면 id의 st_NN_ → chNN, 그래도 없으면 ch01)"""
+    ch = stage.get("chapter") if isinstance(stage, dict) else None
+    if isinstance(ch, str) and CHAPTER_RE.match(ch):
+        return ch
+    m = _STAGE_ARC.match(str((stage or {}).get("id") or ""))
+    return f"ch{int(m.group(1)):02d}" if m else "ch01"
+
+
+def _read_stage_chapters(folder):
+    """폴더(작업 공간 또는 공개 data/stages) → (챕터 id 순서, {챕터: 제목}, 스테이지 목록)"""
+    idx = read_json(folder / "index.json", None)
+    if not isinstance(idx, list):
+        return None
+    order, titles, items = [], {}, []
+    for ch in idx:
+        ch = ch if isinstance(ch, str) else (ch or {}).get("id")
+        if not isinstance(ch, str) or not CHAPTER_RE.match(ch):
+            continue
+        data = read_json(folder / f"{ch}.json", {}) or {}
+        order.append(ch)
+        titles[ch] = data.get("title") or ch
+        for st in data.get("stages") or []:
+            if isinstance(st, dict):
+                items.append({**st, "chapter": ch})
+    return order, titles, items
+
+
+def read_stages():
+    got = _read_stage_chapters(ws_data("stages"))
+    if got is not None:
+        return got[2]
+    legacy = read_json(ws_data("stages.json"), [])  # 예전 한 파일 형식
+    return [{**st, "chapter": chapter_of(st)} for st in legacy if isinstance(st, dict)] if isinstance(legacy, list) else []
+
+
+def stage_chapter_titles():
+    got = _read_stage_chapters(ws_data("stages"))
+    return got[1] if got else {}
+
+
+def split_stages(items, titles=None, order=None):
+    """한 목록 → (index.json 내용, {챕터: 파일 내용}). 챕터 순서는 기존 순서 → 새 챕터는 이름순"""
+    titles = titles or {}
+    groups = {}
+    for st in items:
+        if not isinstance(st, dict):
+            continue
+        ch = chapter_of(st)
+        groups.setdefault(ch, []).append({k: v for k, v in st.items() if k != "chapter"})
+    ids = [c for c in (order or []) if c in groups] + sorted(c for c in groups if c not in (order or []))
+    arc_titles = {}
+    for s in read_list("storyIndex"):
+        if isinstance(s, dict) and s.get("arc") and s.get("arcTitle"):
+            arc_titles.setdefault(f"ch{int(s['arc']):02d}", s["arcTitle"])
+    files = {ch: {"chapter": ch, "title": titles.get(ch) or arc_titles.get(ch) or f"챕터 {ch}", "stages": groups[ch]} for ch in ids}
+    return ids, files
+
+
+def write_stages(items):
+    got = _read_stage_chapters(ws_data("stages"))
+    order, titles = (got[0], got[1]) if got else ([], {})
+    ids, files = split_stages(items, titles, order)
+    for ch, payload in files.items():
+        write_json(ws_data(f"stages/{ch}.json"), payload)
+    write_json(ws_data("stages/index.json"), ids)
+    # 비게 된 챕터 파일 / 예전 stages.json은 휴지통으로
+    for p in ws_data("stages").glob("*.json"):
+        if p.name != "index.json" and p.stem not in files:
+            move_to_trash(p)
+    move_to_trash(ws_data("stages.json"))
 
 
 def load_all():

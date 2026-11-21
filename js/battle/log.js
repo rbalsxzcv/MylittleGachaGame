@@ -1,6 +1,6 @@
 // 전투 이벤트 → 전투 기록 문장 (한국어). 화면 없이도 쓸 수 있는 순수 함수
 const ACTION_LABEL = { basic: '기본 공격', skill: '스킬', ultimate: '궁극기' };
-const STAT_LABEL = { atk: '공격력', def: '방어력', critRate: '치명타 확률', critDmg: '치명타 피해', dmgDealt: '주는 피해', dmgTaken: '받는 피해' };
+const STAT_LABEL = { atk: '공격력', def: '방어력', spd: '속도', critRate: '치명타 확률', critDmg: '치명타 피해', dmgDealt: '주는 피해', dmgTaken: '받는 피해' };
 const n = (v) => Number(v).toLocaleString('ko-KR');
 const signed = (v) => `${v > 0 ? '+' : ''}${v}`;
 
@@ -17,7 +17,7 @@ export function eventText(ev, nameOf) {
     case 'wave':
       return { kind: 'wave', text: `웨이브 ${ev.wave}/${ev.total}` };
     case 'action':
-      return { kind: 'action', text: `${nameOf(ev.uid)} · ${ACTION_LABEL[ev.action]} 「${ev.name}」` };
+      return { kind: ev.action === 'ultimate' ? 'ultimate' : 'action', text: `${nameOf(ev.uid)} · ${ACTION_LABEL[ev.action] || '행동'} 「${ev.name}」` };
     case 'damage':
       if (ev.dot) return { kind: 'damage', text: `${tgt()} 지속 피해 ${n(ev.amount)}` };
       return {
@@ -32,8 +32,18 @@ export function eventText(ev, nameOf) {
       return { kind: ev.kind, text: `→ ${tgt()} ${STAT_LABEL[ev.stat] || ev.stat} ${signed(ev.value)}% (${ev.turns}턴)` };
     case 'energy':
       return ev.n ? { kind: 'buff', text: `→ ${tgt()} 기력 ${signed(ev.n)}` } : null;
-    case 'cooldown':
-      return ev.n ? { kind: 'buff', text: `→ ${tgt()} 스킬 대기 −${ev.n}` } : null;
+    case 'sp':
+      return ev.src ? null : { kind: 'buff', text: `SP ${signed(ev.delta)} (${ev.sp})` };
+    case 'av':
+      return { kind: ev.pct < 0 ? 'buff' : 'debuff', text: `→ ${tgt()} 행동 ${Math.abs(ev.pct)}% ${ev.pct < 0 ? '당김' : '밀림'}` };
+    case 'interrupt':
+      return { kind: ev.ok ? 'buff' : 'muted', text: ev.ok ? `→ ${tgt()}의 큰 공격을 끊었다!` : `→ ${tgt()} 차단 (끊을 큰 공격 없음)` };
+    case 'stagger':
+      return { kind: 'buff', text: `${nameOf(ev.uid)} 흐트러짐 — 「${ev.name}」 실패` };
+    case 'phase':
+      return { kind: 'wave', text: `${nameOf(ev.uid)} — ${ev.name}` };
+    case 'enrage':
+      return { kind: 'debuff', text: `${nameOf(ev.uid)} 광폭화!` };
     case 'dot':
       return { kind: 'debuff', text: `→ ${tgt()}에게 지속 피해 (${ev.turns}턴, 턴마다 ${n(ev.dmg)})` };
     case 'cleanse':

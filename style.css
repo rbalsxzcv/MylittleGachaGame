@@ -19,9 +19,16 @@
   --ok: #5fe0a5;
 
   /* 희귀도 색 */
-  --r: #8fa3b8;
-  --sr: #a970ff;
-  --ssr: #ffc23d;
+  /* 희귀도 색: 1★ 회색 / 2★ 초록 / 3★ 파랑 / 4★ 보라 / 5★ 금 */
+  --rar-1: #9aa3ad;
+  --rar-2: #5fc77a;
+  --rar-3: #4f9dff;
+  --rar-4: #a970ff;
+  --rar-5: #ffc23d;
+  /* 예전 이름 (기존 규칙 호환) */
+  --r: var(--rar-3);
+  --sr: var(--rar-4);
+  --ssr: var(--rar-5);
 
   /* 글래스(반투명) 갈색 — 홈 메뉴 / HUD */
   --glass-bg: rgba(46, 30, 20, 0.48);
@@ -37,9 +44,11 @@
   --font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "Segoe UI", sans-serif;
 }
 
-.rar-R { --rc: var(--r); }
-.rar-SR { --rc: var(--sr); }
-.rar-SSR { --rc: var(--ssr); }
+.rar-1 { --rc: var(--rar-1); }
+.rar-2 { --rc: var(--rar-2); }
+.rar-3 { --rc: var(--rar-3); }
+.rar-4 { --rc: var(--rar-4); }
+.rar-5 { --rc: var(--rar-5); }
 
 /* ── 기본 ── */
 *, *::before, *::after { box-sizing: border-box; }
@@ -322,7 +331,7 @@ textarea { font-family: ui-monospace, Consolas, monospace; user-select: text; -w
   color: #1c130d;
   background: var(--rc);
 }
-.rar-SSR .rarity-badge, .rarity-badge.rar-SSR { background: linear-gradient(135deg, #fff1b8, var(--ssr) 50%, #ff9d2e); }
+.rar-5 .rarity-badge, .rarity-badge.rar-5 { background: linear-gradient(135deg, #fff1b8, var(--ssr) 50%, #ff9d2e); }
 
 .stars { color: rgba(255, 255, 255, 0.22); letter-spacing: -1px; font-size: 16px; }
 .star.on { color: #ffd84d; text-shadow: 0 0 6px rgba(255, 200, 60, 0.7); }
@@ -343,8 +352,8 @@ textarea { font-family: ui-monospace, Consolas, monospace; user-select: text; -w
 }
 button.ccard { transition: transform 0.12s; }
 button.ccard:active { transform: scale(0.97); }
-.ccard.rar-SSR { box-shadow: 0 0 18px rgba(255, 194, 61, 0.45); }
-.ccard.rar-SR { box-shadow: 0 0 12px rgba(169, 112, 255, 0.35); }
+.ccard.rar-5 { box-shadow: 0 0 18px rgba(255, 194, 61, 0.45); }
+.ccard.rar-4 { box-shadow: 0 0 12px rgba(169, 112, 255, 0.35); }
 .ccard.is-locked { border-color: color-mix(in srgb, var(--rc) 40%, #4a3a2c 60%); box-shadow: none; }
 .ccard-art { flex: 1; min-height: 0; }
 .ccard-plate {
@@ -791,8 +800,8 @@ button.ccard:active { transform: scale(0.97); }
     linear-gradient(160deg, #4a2f1c, #1a120c);
   box-shadow: 0 0 16px color-mix(in srgb, var(--rc) 50%, transparent);
 }
-.flip.rar-SSR .flip-back { animation: ssrPulse 1.2s ease-in-out infinite; }
-.flip.rar-SR .flip-back { box-shadow: 0 0 22px color-mix(in srgb, var(--sr) 70%, transparent); }
+.flip.rar-5 .flip-back { animation: ssrPulse 1.2s ease-in-out infinite; }
+.flip.rar-4 .flip-back { box-shadow: 0 0 22px color-mix(in srgb, var(--sr) 70%, transparent); }
 @keyframes ssrPulse {
   0%, 100% { box-shadow: 0 0 18px rgba(255, 194, 61, 0.6); }
   50% { box-shadow: 0 0 40px rgba(255, 194, 61, 1), 0 0 80px rgba(255, 157, 46, 0.6); }
@@ -1943,3 +1952,62 @@ button.ccard:active { transform: scale(0.97); }
 @media (prefers-reduced-motion: reduce) {
   .shop-card, .shop-card *, .shop-card::after, .paid-sheet *, .pay-sheet *, .shop-cat-hot { animation: none !important; transition: none !important; }
 }
+
+/* ── 가챠 연출 레이어 (Phaser, js/fx/phaserHost.js) ── */
+#fx-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: #07040f;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#fx-layer[hidden] { display: none; }
+#fx-layer canvas { display: block; }
+
+/* ── 뽑기 결과 격자 (정적) ── */
+.reveal-content[hidden] { display: none; }
+.reveal-card { position: relative; }
+.reveal-card .ccard { width: 100%; height: 100%; }
+.reveal-card.is-top .ccard {
+  box-shadow: 0 0 0 3px var(--rc), 0 0 28px 4px color-mix(in srgb, var(--rc) 75%, transparent);
+}
+.reveal-summary { position: absolute; left: 0; right: 0; bottom: 92px; text-align: center; font-weight: 800; font-size: 18px; color: var(--text-dim, #d8cbb8); }
+.reveal-grid.is-ten + .reveal-summary { bottom: 84px; }
+
+.reveal-grid.is-ten { top: 80px; grid-auto-rows: 248px; }
+.setting-toggle { display: flex; align-items: center; gap: 10px; padding: 8px 2px; font-weight: 700; cursor: pointer; }
+.setting-toggle input { width: 22px; height: 22px; accent-color: var(--rar-5); }
+.reveal-content .reveal-title { left: 40px; right: auto; top: 26px; text-align: left; font-size: 26px; }
+.battle-loading { position: absolute; inset: 0; display: grid; place-items: center; font-size: 22px; font-weight: 800; color: var(--muted); }
+
+/* ── 카드: 희귀도 별 / 돌파 배지 / 정수 ── */
+.rstars { color: var(--rc, #ffd84d); letter-spacing: -1px; font-size: 15px; text-shadow: 0 0 6px color-mix(in srgb, var(--rc, #ffd84d) 60%, transparent); }
+.ccard-bt, .ccard-ess { position: absolute; right: 6px; padding: 1px 7px; border-radius: 999px; font-size: 12px; font-weight: 800; color: #fff; background: rgba(0, 0, 0, 0.62); border: 1px solid color-mix(in srgb, var(--rc) 70%, transparent); }
+.ccard-bt { top: 34px; }
+.ccard-ess { top: 58px; color: #ffe8a8; }
+.bd-pickup .rstars { display: none; }
+
+/* ── 모험 (js/ui/adventureView.js) ── */
+.adv-top { position: absolute; left: 32px; right: 32px; top: 84px; display: grid; gap: 10px; }
+.adv-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.adv-title { margin: 0; font-size: 24px; font-weight: 900; }
+.adv-team { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 14px; background: var(--glass-bg, rgba(0, 0, 0, 0.35)); border: 1px solid var(--line); }
+.adv-team b { font-size: 20px; color: var(--rar-5); }
+.adv-scroll { position: absolute; left: 32px; right: 32px; top: 170px; bottom: 20px; overflow-y: auto; padding-right: 6px; }
+.adv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.adv-card { position: relative; display: grid; gap: 4px; align-content: start; min-height: 150px; padding: 14px 16px; text-align: left; border-radius: 16px; border: 1px solid var(--line); background: linear-gradient(160deg, rgba(58, 38, 24, 0.92), rgba(28, 19, 13, 0.92)); color: inherit; font: inherit; cursor: pointer; }
+.adv-card:hover:not(.is-locked) { border-color: var(--rar-5); }
+.adv-card.is-open { border-color: color-mix(in srgb, var(--rar-5) 70%, transparent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--rar-5) 35%, transparent); }
+.adv-card.is-locked { opacity: 0.5; cursor: not-allowed; }
+.adv-no { font-size: 13px; font-weight: 900; color: var(--rar-5); letter-spacing: 1px; }
+.adv-name { font-size: 18px; font-weight: 900; }
+.adv-meta { display: flex; gap: 10px; align-items: baseline; margin-top: 4px; }
+.adv-power { font-weight: 800; font-size: 14px; }
+.adv-power.is-weak { color: #ff8a9a; }
+.adv-state { font-size: 14px; font-weight: 800; color: var(--muted); }
+.adv-state.is-open { color: #ffe08a; }
+.adv-state.is-done { color: #8be3a8; }
+.adv-reward { display: flex; gap: 4px; align-items: center; font-size: 12.5px; color: #ffe8a8; }
+.adv-reward svg, .adv-reward .gem-icon { width: 14px; height: 14px; }
