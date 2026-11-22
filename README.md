@@ -30,21 +30,21 @@ python -m http.server 8000
 | 명령 | 설명 |
 |---|---|
 | `__tg.simulate(100000)` | 10만 번 뽑기 시뮬레이션 (세이브 영향 없음) |
-| `__tg.simulate(100000, 'pickup_starfest')` | 특정 배너 기준. 픽업 비율은 약 66%(50% + 확정)면 정상이에요 |
+| `__tg.simulate(100000, 'banner_0003')` | 특정 배너 기준. 픽업 비율은 약 66%(50% + 확정)면 정상이에요 |
 | `__tg.addGems(10000)` | 테스트용 보석 추가 |
 | `__tg.addTickets(10000)` | 테스트용 티켓 추가 |
 | `__tg.addGold(1000000)` / `__tg.addScrolls(10)` | 테스트용 골드 / 모집 증서 추가 |
-| `__tg.sim('st_main_02_1', 200)` | 지금 편성으로 스테이지 자동 전투 200판 (세이브 영향 없음) |
+| `__tg.sim('stage_0004', 200)` | 지금 편성으로 스테이지 자동 전투 200판 (세이브 영향 없음) |
 | `__tg.battleTest()` | 전투 엔진 자체 검사 (공식, 결정론, HP 범위) |
 | `__tg.replay()` | 마지막 전투의 시드와 행동 기록 (같은 시드 + 행동 = 같은 결과) |
 
 주소 뒤에 다음 옵션을 붙이면 미리보기를 할 수 있어요(localhost 전용).
 - `?preview=1`: 실제 세이브와 분리된 미리보기 세이브를 써요.
 - `&now=2026-12-07T00:00:00%2B09:00`: 그 시각으로 시간을 옮겨요.
-- `&story=main_01` 또는 `&banner=<id>`: 해당 스토리나 배너를 바로 열어요.
+- `&story=story_0001` 또는 `&banner=<id>`: 해당 스토리나 배너를 바로 열어요.
 - `&ownAll=1`: (preview=1일 때) 모든 캐릭터를 가진 상태로 시작해요.
 - `&screen=adventure` (growth, team, collection, gacha …): 그 화면을 바로 열어요.
-- `&battle=st_01_12`: 그 스테이지 전투를 바로 시작해요 (보상 없음, 편성이 비면 전투력 상위 5명).
+- `&battle=stage_0012`: 그 스테이지 전투를 바로 시작해요 (보상 없음, 편성이 비면 전투력 상위 5명).
 
 **테스트**: 같은 서버에서 http://localhost:8000/tests/index.html 을 열면 전부 실행돼요 (Node가 있으면 `node tests/run.js`). 가챠 연출만 확인하려면 http://localhost:8000/dev/fx-test.html.
 
@@ -115,10 +115,11 @@ python -m http.server 8000
 
 ### `data/characters.json`
 ```json
-[{ "id": "ssr_lumi", "name": "루미", "rarity": 5, "title": "별을 엮는 무녀",
-   "description": "소개문", "image": "assets/chars/ssr_lumi.png", "addedAt": "2026-11-15T00:00:00+09:00" }]
+[{ "id": "char_0007", "name": "루미", "rarity": 5, "title": "별을 엮는 무녀",
+   "description": "소개문", "image": "assets/chars/char_0007.png", "addedAt": "2026-11-15T00:00:00+09:00" }]
 ```
-- `id`는 영문, 숫자, `_`, `-`만 써요. 세이브가 id로 기록되니 **바꾸지 마세요**.
+- **id는 개발 도구가 자동으로 정해요** (규칙: `<종류>_<4자리 번호>` — `char_0001`, `enemy_0001`, `stage_0001`, `story_0001`, `banner_0001`, `notice_0001`, `mail_0001`, `shop_0001`, `prop_0001`, `bg_0001`). 번호는 늘기만 하고 삭제해도 다시 쓰지 않아요 (`dev/ids.json`). 세이브가 id로 기록되니 손으로 만들거나 바꾸지 마세요 — 배포 검사가 규칙에 맞지 않는 id를 막아요.
+- 예전 id를 바꿨을 때는 `data/id_aliases.json`(종류 → {예전 id: 새 id})이 남아서, 게임이 예전 세이브/세이브 코드를 새 id로 옮겨요. 지우지 마세요.
 - `image`는 배경이 투명한 PNG(긴 변 512px)예요. 비어 있거나 파일이 없으면 희귀도 색 카드로 대신 표시돼요.
 - `addedAt`(공개 시각) 전에는 뽑기와 도감에 나오지 않아요.
 - `"pullable": false`면 스토리 전용 인물이에요 (뽑기, 로테이션, 도감에 안 나오고 스토리에서만 화자로 나옴).
@@ -150,7 +151,7 @@ python -m http.server 8000
 
 ### `data/enemies.json` / `data/stages/` / `data/balance.json`
 ```json
-[{ "id": "slime_king", "name": "왕 슬라임", "image": "assets/enemies/slime_king.png", "boss": true,
+[{ "id": "enemy_0007", "name": "왕 슬라임", "image": "assets/enemies/enemy_0007.png", "boss": true,
    "stats": { "atk": 80, "def": 30, "hp": 1500, "spd": 102 },
    "actions": { "bite": { "name": "물기", "targeting": "enemy_single", "icon": "attack", "effects": [ ... ] },
                 "quake": { "name": "대지 진동", "targeting": "enemy_all", "icon": "aoe", "big": true, "effects": [ ... ] } },
@@ -166,8 +167,8 @@ python -m http.server 8000
 모험 스테이지는 챕터 파일로 나뉘어요: `data/stages/index.json`(`["ch01", ...]`) + `data/stages/ch01.json`
 ```json
 { "chapter": "ch01", "title": "챕터 1: 청구서는 피로 쓴다",
-  "stages": [{ "id": "st_01_04", "name": "암시장 뒷골목 소탕", "storyId": "main_01_04", "recommendedPower": 4050,
-               "waves": [[{ "enemyId": "en_scavenger", "level": 4 }], [{ "enemyId": "en_plague_hound" }]],
+  "stages": [{ "id": "stage_0004", "name": "암시장 뒷골목 소탕", "storyId": "story_0004", "recommendedPower": 4050,
+               "waves": [[{ "enemyId": "enemy_0001", "level": 4 }], [{ "enemyId": "enemy_0002" }]],
                "roundLimit": 20, "rewards": { "tickets": 55, "gems": 0, "gold": 550 }, "firstClearRewards": { "tickets": 190, "gems": 50, "gold": 1900 } }] }
 ```
 - **스테이지 1개 = 메인 스토리 1개(`storyId`) + 그 스토리 안의 전투 장면 1개**. 메인 스토리마다 전투 장면이 정확히 하나 있어야 해요 (배포 검사가 확인).
@@ -177,11 +178,11 @@ python -m http.server 8000
 
 ### `data/banners.json`
 ```json
-[{ "id": "pickup_starfest", "title": "별빛 축제 픽업", "type": "pickup",
-   "pickupIds": ["ssr_lumi", "sr_ayeon"],
+[{ "id": "banner_0004", "title": "별빛 축제 픽업", "type": "pickup",
+   "pickupIds": ["char_0007", "char_0006"],
    "startAt": "2026-11-15T00:00:00+09:00", "endAt": "2026-12-07T00:00:00+09:00",
-   "bannerImage": "assets/banners/pickup_starfest.jpg", "description": "설명",
-   "relatedStoryId": "event_starfest" }]
+   "bannerImage": "assets/banners/banner_0004.jpg", "description": "설명",
+   "relatedStoryId": "story_0013" }]
 ```
 - `type`은 `standard`(상시) 또는 `pickup`(픽업)이에요.
 - **자동 로테이션 픽업**: `pickupIds` 대신 `"rotation": { "rarity": 5, "count": 2, "days": 7, "anchor": "2026-11-16T00:00:00+09:00" }`.
@@ -192,7 +193,7 @@ python -m http.server 8000
 
 ### `data/stories/index.json` + `data/stories/<id>.json`
 ```json
-[{ "id": "main_02", "kind": "main", "chapter": 2, "title": "골목길의 길잡이", "summary": "한 줄 소개",
+[{ "id": "story_0002", "kind": "main", "chapter": 2, "title": "골목길의 길잡이", "summary": "한 줄 소개",
    "characterId": null,
    "unlock": [{ "type": "prevChapter" }],
    "reward": { "gems": 50 } }]
@@ -200,12 +201,12 @@ python -m http.server 8000
 - `kind`는 `main` / `character` / `event` 중 하나예요. 캐릭터 스토리는 `characterId`가 필요해요.
 - `unlock`에는 조건을 여러 개 넣을 수 있고, 모두 만족해야 열려요.
   - `{ "type": "prevChapter" }`: 같은 묶음의 이전 장을 읽어야 해요.
-  - `{ "type": "ownsCharacter", "characterId": "ssr_lumi" }`: 그 캐릭터를 보유해야 해요.
+  - `{ "type": "ownsCharacter", "characterId": "char_0007" }`: 그 캐릭터를 보유해야 해요.
   - `{ "type": "period", "startAt": "...", "endAt": "..." }`: 기간 한정이에요. 시작 전에는 목록에서 숨겨지고, 끝난 뒤에는 이미 읽은 사람만 다시 볼 수 있어요.
 
-본문(`stories/main_02.json`):
+본문(`stories/story_0002.json`):
 ```json
-{ "id": "main_02", "title": "골목길의 길잡이",
+{ "id": "story_0002", "title": "골목길의 길잡이",
   "scenes": [
     { "id": "s1", "background": { "type": "color", "value": "#3a2f5c" },
       "lines": [
@@ -214,35 +215,35 @@ python -m http.server 8000
         { "speaker": "r_mina", "text": "어떻게 할까?",
           "choices": [{ "text": "솔직하게 말한다", "goto": "honest" }, { "text": "괜찮은 척한다", "goto": "pretend" }] }
       ] },
-    { "id": "honest", "background": { "type": "image", "value": "assets/bg/alley.jpg" }, "next": "merge", "lines": [ ... ] }
+    { "id": "honest", "background": { "type": "image", "value": "assets/bg/bg_0002.jpg" }, "next": "merge", "lines": [ ... ] }
   ] }
 ```
 - `speaker`에는 캐릭터 id 또는 `"narrator"`를 써요.
 - `name`으로 표시 이름을 바꿀 수 있어요(예: `"???"`). `side`는 `left` 또는 `right`예요.
 - 장면은 순서대로 진행돼요. `next`로 다른 장면에 합류하거나 `"end"`로 끝낼 수 있어요.
 - 선택지의 `goto`에는 장면 id나 `"end"`를 써요.
-- 전투 장면: `{ "id": "b1", "type": "battle", "stageId": "st_main_02_1", "next": "merge" }`. 이겨야 다음 장면으로 가요. 건너뛰기(S)는 다음 선택지나 아직 깨지 않은 전투에서 멈춰요.
+- 전투 장면: `{ "id": "b1", "type": "battle", "stageId": "st_story_0002_1", "next": "merge" }`. 이겨야 다음 장면으로 가요. 건너뛰기(S)는 다음 선택지나 아직 깨지 않은 전투에서 멈춰요.
 
 ### `data/notices.json` / `data/mail.json` / `data/version.json`
 ```json
-[{ "id": "notice_welcome", "title": "제목", "body": "내용", "date": "2026-11-15T00:00:00+09:00", "popup": true }]
+[{ "id": "notice_0001", "title": "제목", "body": "내용", "date": "2026-11-15T00:00:00+09:00", "popup": true }]
 ```
 ```json
-[{ "id": "mail_launch", "title": "오픈 기념 선물", "body": "내용", "rewards": { "gems": 1000, "tickets": 100 },
+[{ "id": "mail_0001", "title": "오픈 기념 선물", "body": "내용", "rewards": { "gems": 1000, "tickets": 100 },
    "startAt": "2026-11-15T00:00:00+09:00", "endAt": "2027-01-01T00:00:00+09:00" }]
 ```
 ```json
 { "contentVersion": 1, "patchNotes": [{ "version": 1, "date": "2026-11-15T00:00:00+09:00", "notes": ["변경 사항"] }] }
 ```
 - 공지는 `date`부터 보여요. `popup: true`면 게임 시작 시 팝업으로 떠요("다시 보지 않기" 가능).
-- 우편은 id 기준으로 한 번만 받을 수 있어요. 공개한 뒤에는 id를 바꾸지 마세요.
+- 우편은 id 기준으로 한 번만 받을 수 있어요 (id는 자동, 바뀌지 않음).
 - `contentVersion`이 올라가면 플레이어에게 "업데이트 내역" 팝업이 떠요. 개발 도구의 배포 탭이 자동으로 올려줘요.
 
 ### `data/shop.json` (상점 상품)
 ```json
-{ "gold": [{ "id": "gold_ticket_bundle", "name": "티켓 꾸러미", "desc": "레벨업 티켓 100장", "icon": "ticket",
+{ "gold": [{ "id": "shop_0002", "name": "티켓 꾸러미", "desc": "레벨업 티켓 100장", "icon": "ticket",
              "cost": { "gold": 3000 }, "rewards": { "tickets": 100 }, "limit": { "per": "day", "count": 5 } }],
-  "cash": [{ "id": "cash_gems_1980", "category": "gems", "name": "보석 1,980개", "priceKRW": 33000,
+  "cash": [{ "id": "shop_0020", "category": "gems", "name": "보석 1,980개", "priceKRW": 33000,
              "rewards": { "gems": 1980 }, "firstBonus": { "gems": 1980 }, "tier": "rare", "badges": ["BEST"] }],
   "vip": [10000, 30000, 50000] }
 ```
@@ -251,7 +252,7 @@ python -m http.server 8000
 - 캐시 상품: `category`(`featured` 추천 · `package` 패키지 · `growth` 성장 · `gems` 보석 · `pass` 월정액), `tier`(`normal` · `rare` · `legend` · `truck` 큰 카드), `badges`(리본, 최대 3개), `value`("1500%" 도장), `originalKRW`(취소선 정가), `firstBonus`(상품별 첫 구매 보너스), `requires.stagesCleared`(해금 조건), `pass`(`days`, `dailyGems`, `maxDays`).
 - `icon`: `gem` · `ticket` · `gold` · `scroll` · `gift` · `chest` · `cart` · `crown` · `moon` · `sprout`. `ui.json` icons에 `shop_<icon>` 그림을 넣으면 CSS 메달 대신 그림으로 보여요.
 - `image`(선택): 상품 전용 그림 (`assets/props/<id>.png` 같은 투명 PNG). 있으면 가장 먼저 쓰고, 없거나 못 불러오면 `shop_<icon>` → CSS 메달 순서로 보여요.
-- 세이브는 상품 id로 구매 횟수를 기록해요. 공개한 뒤에는 id를 바꾸지 마세요.
+- 세이브는 상품 id로 구매 횟수를 기록해요 (id는 자동, 바뀌지 않음).
 
 ### `data/ui.json` (화면 디자인 에셋)
 ```json

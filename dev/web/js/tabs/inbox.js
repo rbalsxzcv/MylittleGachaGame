@@ -1,6 +1,6 @@
 // 공지 · 우편 탭: 만들기 / 고치기 / 지우기
-import { h, toast, confirmBox, dateField, slugOk, fmt, nowIso } from '../ui.js';
-import { tryApi } from '../api.js';
+import { h, toast, confirmBox, dateField, fmt, nowIso, idBadge } from '../ui.js';
+import { tryApi, newId } from '../api.js';
 import { state, saveList } from '../state.js';
 import { openPreview } from '../preview.js';
 
@@ -10,7 +10,7 @@ export function inboxTab(root, { select } = {}) {
   root.replaceChildren(h('div', { class: 'two-col even' }, noticeCol, mailCol));
 
   // 공통: 목록 + 편집 폼
-  function section(host, { key, title, blank, fields, summary }) {
+  function section(host, { key, kind, title, blank, fields, summary }) {
     let editing = null;
     const list = h('div', { class: 'item-list' });
     const form = h('div');
@@ -28,19 +28,23 @@ export function inboxTab(root, { select } = {}) {
       const v = structuredClone(it || blank());
       editing = v;
       renderList();
-      const id = h('input', { value: v.id, disabled: !isNew, placeholder: '영문 id' });
+      // id는 자동 (notice_0001 / mail_0001 …), 처음 저장할 때 발급
+      const id = h('div', {}, idBadge(v.id));
       const built = fields(v);
       const save = async () => {
-        const data = { ...built.get(), id: id.value.trim() };
-        if (!slugOk(data.id)) return toast('id를 영문/숫자/_/-로 정해 주세요', 'error');
-        if (!data.title?.trim()) return toast('제목을 입력해 주세요', 'error');
-        if (isNew && state.data[key].some((x) => x.id === data.id)) return toast('이미 있는 id예요', 'error');
+        if (!built.get().title?.trim()) return toast('제목을 입력해 주세요', 'error');
+        if (!v.id) {
+          const nid = await tryApi(() => newId(kind));
+          if (!nid) return;
+          v.id = nid;
+          id.replaceChildren(idBadge(v.id));
+        }
+        const data = { ...built.get(), id: v.id };
         const items = state.data[key].filter((x) => x.id !== data.id);
         const pos = state.data[key].findIndex((x) => x.id === data.id);
         pos >= 0 ? items.splice(pos, 0, data) : items.push(data);
         if ((await tryApi(() => saveList(key, items))) === null) return;
         editing = data;
-        id.disabled = true;
         renderList();
         toast('저장했어요 (작업 공간)', 'success');
       };
@@ -55,7 +59,7 @@ export function inboxTab(root, { select } = {}) {
         h(
           'div',
           { class: 'card inner' },
-          h('label', { class: 'field' }, 'id', id),
+          h('div', { class: 'field' }, 'id (자동)', id),
           built.el,
           h('div', { class: 'row' }, h('button', { class: 'btn primary', onclick: save }, '저장'), h('button', { class: 'btn', onclick: () => openPreview() }, '게임 미리보기'), !isNew && h('button', { class: 'btn danger-outline', onclick: remove }, '삭제')),
         ),
@@ -69,8 +73,9 @@ export function inboxTab(root, { select } = {}) {
 
   const notices = section(noticeCol, {
     key: 'notices',
+    kind: 'notice',
     title: '공지',
-    blank: () => ({ id: `notice_${Date.now().toString(36)}`, title: '', body: '', date: nowIso(), popup: false }),
+    blank: () => ({ id: '', title: '', body: '', date: nowIso(), popup: false }),
     summary: (n) => `${fmt(n.date)}${n.popup ? ' · 시작 팝업' : ''}`,
     fields: (v) => {
       const title = h('input', { value: v.title });
@@ -86,8 +91,9 @@ export function inboxTab(root, { select } = {}) {
 
   const mail = section(mailCol, {
     key: 'mail',
+    kind: 'mail',
     title: '우편 (선물)',
-    blank: () => ({ id: `mail_${Date.now().toString(36)}`, title: '', body: '', rewards: { gems: 300 }, startAt: nowIso(), endAt: null }),
+    blank: () => ({ id: '', title: '', body: '', rewards: { gems: 300 }, startAt: nowIso(), endAt: null }),
     summary: (m) => `보석 ${m.rewards?.gems ?? 0}${m.rewards?.tickets ? ` · 티켓 ${m.rewards.tickets}` : ''}${m.rewards?.gold ? ` · 골드 ${m.rewards.gold}` : ''}${m.rewards?.scrolls ? ` · 증서 ${m.rewards.scrolls}` : ''} · ${fmt(m.startAt)} ~ ${fmt(m.endAt)}`,
     fields: (v) => {
       const title = h('input', { value: v.title });
@@ -99,7 +105,7 @@ export function inboxTab(root, { select } = {}) {
       const start = dateField('받기 시작', v.startAt);
       const end = dateField('받기 마감', v.endAt);
       return {
-        el: h('div', {}, h('label', { class: 'field' }, '제목', title), h('label', { class: 'field' }, '내용', body), h('div', { class: 'grid2' }, h('label', { class: 'field' }, '보상 보석', gems), h('label', { class: 'field' }, '보상 티켓 (레벨업 재료)', tickets)), h('div', { class: 'grid2' }, h('label', { class: 'field' }, '보상 골드', gold), h('label', { class: 'field' }, '보상 모집 증서', scrolls)), h('div', { class: 'grid2' }, start.el, end.el), h('p', { class: 'muted small' }, '한 사람이 한 번만 받을 수 있어요 (id 기준). 이미 공개한 우편의 id를 바꾸면 다시 받을 수 있게 되니 주의!')),
+        el: h('div', {}, h('label', { class: 'field' }, '제목', title), h('label', { class: 'field' }, '내용', body), h('div', { class: 'grid2' }, h('label', { class: 'field' }, '보상 보석', gems), h('label', { class: 'field' }, '보상 티켓 (레벨업 재료)', tickets)), h('div', { class: 'grid2' }, h('label', { class: 'field' }, '보상 골드', gold), h('label', { class: 'field' }, '보상 모집 증서', scrolls)), h('div', { class: 'grid2' }, start.el, end.el), h('p', { class: 'muted small' }, '한 사람이 한 번만 받을 수 있어요 (id 기준, id는 자동이라 바뀌지 않아요). 같은 선물을 다시 주려면 새 우편을 만들어 주세요.')),
         get: () => {
           const rewards = { gems: Math.max(0, parseInt(gems.value, 10) || 0) };
           const t = Math.max(0, parseInt(tickets.value, 10) || 0);

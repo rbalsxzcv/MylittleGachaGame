@@ -1,17 +1,17 @@
 [
   {
-    "id": "standard",
+    "id": "banner_0001",
     "title": "상시 모집",
     "type": "standard",
     "pickupIds": [],
     "startAt": null,
     "endAt": null,
-    "bannerImage": "assets/banners/standard.jpg",
+    "bannerImage": "assets/banners/banner_0001.jpg",
     "description": "모든 동료가 등장하는 상시 모집이에요.\n70회 안에 5★가 나오지 않으면 70번째는 5★ 확정!",
     "relatedStoryId": null
   },
   {
-    "id": "pickup_rotation",
+    "id": "banner_0002",
     "title": "5★ 로테이션 픽업",
     "type": "pickup",
     "rotation": {
@@ -22,20 +22,20 @@
     },
     "startAt": null,
     "endAt": null,
-    "bannerImage": "assets/banners/pickup_rotation.jpg",
+    "bannerImage": "assets/banners/banner_0002.jpg",
     "description": "일주일마다 5★ 동료 2명이 차례로 픽업돼요.\n5★가 나오면 50% 확률로 픽업 동료, 놓치면 다음 5★는 픽업 확정!",
     "relatedStoryId": null
   },
   {
-    "id": "pickup_1",
+    "id": "banner_0003",
     "title": "빛바랜 맹세",
     "type": "pickup",
     "pickupIds": [
-      "ssr_valeria"
+      "char_0002"
     ],
     "startAt": null,
     "endAt": null,
-    "bannerImage": "assets/banners/pickup_1.jpg",
+    "bannerImage": "assets/banners/banner_0003.jpg",
     "description": "",
     "relatedStoryId": null
   }

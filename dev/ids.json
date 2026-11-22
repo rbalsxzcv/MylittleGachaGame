@@ -1,0 +1,15 @@
+{
+  "next": {
+    "char": 11,
+    "enemy": 7,
+    "stage": 13,
+    "story": 13,
+    "banner": 4,
+    "notice": 1,
+    "mail": 2,
+    "shop": 24,
+    "bg": 6,
+    "prop": 1
+  },
+  "deleted": {}
+}

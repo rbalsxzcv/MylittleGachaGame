@@ -168,5 +168,11 @@ export const raritySelect = (value) => {
   s.value = String(rarOf(value));
   return s;
 };
-/** 새 캐릭터 id 앞부분 (dev/tinydev/rarity.py ID_PREFIX와 같음) */
-export const RARITY_ID_PREFIX = { 1: 'c1_', 2: 'c2_', 3: 'r_', 4: 'sr_', 5: 'ssr_' };
+
+
+// ── id: 개발자가 정하지 않음 (서버가 <종류>_<4자리>로 발급, dev/ids.json) ──
+/** 읽기 전용 id 표시. id가 없으면 '저장하면 자동으로 정해져요' */
+export function idBadge(id, hint = '저장하면 자동으로 정해져요') {
+  return h('code', { class: ['id-badge', !id && 'is-pending'], title: id ? '자동으로 정해진 id (바꿀 수 없어요)' : hint }, id || hint);
+}
+

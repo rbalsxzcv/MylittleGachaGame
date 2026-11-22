@@ -1,7 +1,7 @@
 {
   "gold": [
     {
-      "id": "gold_free_gift",
+      "id": "shop_0001",
       "name": "오늘의 무료 선물",
       "desc": "상인 조합이 매일 챙겨 주는 작은 꾸러미",
       "icon": "gift",
@@ -21,7 +21,7 @@
       ]
     },
     {
-      "id": "gold_ticket_bundle",
+      "id": "shop_0002",
       "name": "티켓 꾸러미",
       "desc": "레벨업 티켓 100장",
       "icon": "ticket",
@@ -37,7 +37,7 @@
       }
     },
     {
-      "id": "gold_ticket_chest",
+      "id": "shop_0003",
       "name": "티켓 상자",
       "desc": "레벨업 티켓 1,000장을 한 번에",
       "icon": "chest",
@@ -56,7 +56,7 @@
       ]
     },
     {
-      "id": "gold_scroll",
+      "id": "shop_0004",
       "name": "모집 증서",
       "desc": "1장으로 뽑기 1회",
       "icon": "scroll",
@@ -72,7 +72,7 @@
       }
     },
     {
-      "id": "gold_gem_pouch",
+      "id": "shop_0005",
       "name": "보석 주머니",
       "desc": "보석 50개",
       "icon": "gem",
@@ -88,7 +88,7 @@
       }
     },
     {
-      "id": "gold_exchange",
+      "id": "shop_0006",
       "name": "골드 환전",
       "desc": "보석 100개를 골드 20,000으로 바꿔요",
       "icon": "gold",
@@ -106,7 +106,7 @@
   ],
   "cash": [
     {
-      "id": "cash_first_purchase",
+      "id": "shop_0007",
       "category": "featured",
       "name": "첫 결제 기념 패키지",
       "desc": "단 한 번! 모험의 시작을 화려하게",
@@ -130,7 +130,7 @@
       "originalKRW": 33000
     },
     {
-      "id": "cash_daily_deal",
+      "id": "shop_0008",
       "category": "featured",
       "name": "오늘의 특가 꾸러미",
       "desc": "매일 자정에 다시 열려요",
@@ -152,7 +152,7 @@
       "value": "500%"
     },
     {
-      "id": "cash_weekly_deal",
+      "id": "shop_0009",
       "category": "featured",
       "name": "떠돌이 행상인 주간 특가",
       "desc": "이번 주에만 들르는 행상인의 보따리",
@@ -174,7 +174,7 @@
       "value": "700%"
     },
     {
-      "id": "cash_starter",
+      "id": "shop_0010",
       "category": "package",
       "name": "모험가 입문 패키지",
       "desc": "동료 모집과 성장을 한 번에 시작",
@@ -197,7 +197,7 @@
       "value": "1000%"
     },
     {
-      "id": "cash_merc_supply",
+      "id": "shop_0011",
       "category": "package",
       "name": "용병단 보급 상자",
       "desc": "용병단 한 달 치 보급품",
@@ -220,7 +220,7 @@
       "value": "800%"
     },
     {
-      "id": "cash_truck_wagon",
+      "id": "shop_0012",
       "category": "package",
       "name": "황금 마차 트럭",
       "desc": "보석과 증서를 마차 한가득 실어 왔어요",
@@ -245,7 +245,7 @@
       "originalKRW": 3960000
     },
     {
-      "id": "cash_truck_royal",
+      "id": "shop_0013",
       "category": "package",
       "name": "왕실 보물 행렬 트럭",
       "desc": "왕실 금고를 통째로 옮기는 행렬",
@@ -270,7 +270,7 @@
       "originalKRW": 16500000
     },
     {
-      "id": "cash_growth_1",
+      "id": "shop_0014",
       "category": "growth",
       "name": "성장 지원 I",
       "desc": "첫 전투를 이겨 낸 모험가에게",
@@ -292,7 +292,7 @@
       "value": "900%"
     },
     {
-      "id": "cash_growth_2",
+      "id": "shop_0015",
       "category": "growth",
       "name": "성장 지원 II",
       "desc": "뒷골목에서 이름이 알려지기 시작했다면",
@@ -315,7 +315,7 @@
       "value": "1000%"
     },
     {
-      "id": "cash_growth_3",
+      "id": "shop_0016",
       "category": "growth",
       "name": "성장 지원 III",
       "desc": "전장을 휩쓰는 용병단장을 위한 지원",
@@ -338,7 +338,7 @@
       "value": "1200%"
     },
     {
-      "id": "cash_gems_60",
+      "id": "shop_0017",
       "category": "gems",
       "name": "보석 60개",
       "desc": "",
@@ -353,7 +353,7 @@
       }
     },
     {
-      "id": "cash_gems_330",
+      "id": "shop_0018",
       "category": "gems",
       "name": "보석 330개",
       "desc": "",
@@ -368,7 +368,7 @@
       }
     },
     {
-      "id": "cash_gems_680",
+      "id": "shop_0019",
       "category": "gems",
       "name": "보석 680개",
       "desc": "",
@@ -383,7 +383,7 @@
       }
     },
     {
-      "id": "cash_gems_1980",
+      "id": "shop_0020",
       "category": "gems",
       "name": "보석 1,980개",
       "desc": "",
@@ -401,7 +401,7 @@
       ]
     },
     {
-      "id": "cash_gems_3280",
+      "id": "shop_0021",
       "category": "gems",
       "name": "보석 3,280개",
       "desc": "",
@@ -416,7 +416,7 @@
       }
     },
     {
-      "id": "cash_gems_6480",
+      "id": "shop_0022",
       "category": "gems",
       "name": "보석 6,480개",
       "desc": "",
@@ -434,7 +434,7 @@
       ]
     },
     {
-      "id": "cash_monthly_blessing",
+      "id": "shop_0023",
       "category": "pass",
       "name": "월간 축복",
       "desc": "즉시 보석 300 + 30일 동안 매일 보석 100 (접속하면 자동으로 받아요)",

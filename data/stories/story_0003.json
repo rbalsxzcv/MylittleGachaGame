@@ -1,12 +1,12 @@
 {
-  "id": "main_01_03",
+  "id": "story_0003",
   "title": "환불은 피로 받는다",
   "scenes": [
     {
       "id": "s1",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -15,7 +15,7 @@
           "text": "서릿발 같은 칼날이 순식간에 단장의 목젖 바로 앞을 파고들었다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "“환불 불가. 규정상 선금은 계약 파기 시 위약금으로 귀속.”"
         },
         {
@@ -33,7 +33,7 @@
           "name": "단장"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "“원수 갚는 일엔 흥미 없어. 피 냄새 나고, 세탁비만 깨져.”"
         },
         {
@@ -57,7 +57,7 @@
       "id": "s2",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#2a2152"
       },
       "lines": [
@@ -71,7 +71,7 @@
           "name": "단장"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "“……세 배?”"
         },
         {
@@ -89,7 +89,7 @@
       "id": "s3",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#33264f"
       },
       "lines": [
@@ -98,7 +98,7 @@
           "text": "단장이 뻔뻔하게 손을 뻗어 시논의 헝클어진 머리통을 벅벅 문질렀다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "“……힉?! 뭐, 뭐 하는 짓이야?!”"
         },
         {
@@ -111,7 +111,7 @@
           "name": "단장"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "“……손 치워. 목 자른다. 그리고…… 세 배, 진짜지?”"
         }
       ],
@@ -121,7 +121,7 @@
       "id": "s4",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#24304a"
       },
       "lines": [
@@ -135,7 +135,7 @@
           "name": "단장"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "“정보상 바란…… 그 박쥐 영감이 사기 의뢰를 물어다 준 건가.”"
         },
         {
@@ -144,7 +144,7 @@
           "name": "단장"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "“……약관 제4조. 부당 중개 및 수수료 편취는 사형.”"
         },
         {
@@ -162,7 +162,7 @@
       "id": "s5",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_slum_black_market.jpg",
+        "value": "assets/bg/bg_0003.jpg",
         "color": "#2b1f3a"
       },
       "lines": [
@@ -171,7 +171,7 @@
           "text": "주점을 빠져나온 두 사람은 음침한 연기가 자욱한 암시장으로 들어섰다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "“바란의 은신처는 3번 구역 폐창고 지하. 하지만 경비가 많아.”"
         },
         {
@@ -189,7 +189,7 @@
           "name": "단장"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "“……사기꾼. 닥치고 뒤나 봐.”"
         }
       ]
@@ -197,10 +197,10 @@
     {
       "id": "battle",
       "type": "battle",
-      "stageId": "st_01_03",
+      "stageId": "stage_0003",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_slum_black_market.jpg",
+        "value": "assets/bg/bg_0003.jpg",
         "color": "#2b1f3a"
       }
     }

@@ -70,6 +70,17 @@ export function resolveBanner(banner, characters, t = now()) {
 }
 
 /**
+ * 픽업 대상 중 지금 뽑을 수 있는 캐릭터만 남김. 하나도 없으면 null (= 배너 숨김)
+ * 캐릭터가 삭제/은퇴/아직 공개 전이면 픽업 배너가 '픽업 없는 픽업'(상시처럼 뽑히는데 픽업 천장/확정을 씀)으로 남지 않게
+ */
+function withLivePickups(banner, characters) {
+  if (banner.type !== 'pickup' || !characters.length) return banner;
+  const live = new Set(characters.filter(isPullable).map((c) => c.id));
+  const pickupIds = (banner.pickupIds || []).filter((id) => live.has(id));
+  return pickupIds.length ? { ...banner, pickupIds } : null;
+}
+
+/**
  * 지금 진행 중인 배너 목록 (픽업 먼저, 곧 끝나는 순)
  * 진행 중인 상시 배너가 없으면 기본 상시 배너를 맨 뒤에 붙여서 뽑기는 항상 가능
  */
@@ -77,7 +88,9 @@ export function activeBanners(banners, characters = [], t = now()) {
   const list = banners
     .filter((b) => isBannerActive(b, t))
     .map((b) => resolveBanner(b, characters, t))
-    .filter((b) => b && isBannerActive(b, t));
+    .filter((b) => b && isBannerActive(b, t))
+    .map((b) => withLivePickups(b, characters))
+    .filter(Boolean);
   list.sort((a, b) => {
     if (a.type !== b.type) return a.type === 'pickup' ? -1 : 1;
     const ae = a.endAt ? Date.parse(a.endAt) : Infinity;

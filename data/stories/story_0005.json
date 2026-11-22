@@ -1,12 +1,12 @@
 {
-  "id": "main_01_05",
+  "id": "story_0005",
   "title": "가성비 인재 채용",
   "scenes": [
     {
       "id": "b0",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -19,7 +19,7 @@
           "text": "창을 든 경비와 사나운 경비견이 길을 막아섰다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "……경비 둘, 개 한 마리. 처리 후 진입."
         }
       ]
@@ -27,10 +27,10 @@
     {
       "id": "battle",
       "type": "battle",
-      "stageId": "st_01_05",
+      "stageId": "stage_0005",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#1b1440"
       }
     },
@@ -38,7 +38,7 @@
       "id": "s1",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -52,11 +52,11 @@
           "name": "단장"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "……도주 경로 차단 완료. 바바루아, 탁자 밑에 숨었음."
         },
         {
-          "speaker": "npc_broker_baran",
+          "speaker": "char_0004",
           "text": "히익?! 너, 너 살아서 거길 빠져나왔다고?!"
         },
         {
@@ -74,7 +74,7 @@
       "id": "s2",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#2a2152"
       },
       "lines": [
@@ -84,15 +84,15 @@
           "name": "단장"
         },
         {
-          "speaker": "npc_broker_baran",
+          "speaker": "char_0004",
           "text": "몰라! 나도 그냥 수수료 몇 닢 떼먹는 중간 중개인이라고!"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "단검 끝에 독 바르는 중. 혓바닥을 자르면 손가락으로 불까?"
         },
         {
-          "speaker": "npc_broker_baran",
+          "speaker": "char_0004",
           "text": "끄악! 헨드릭 남작이야! 헨드릭 남작이 입막음하라고 시켰어!"
         },
         {
@@ -116,7 +116,7 @@
       "id": "s3_a",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#33264f"
       },
       "lines": [
@@ -126,11 +126,11 @@
           "name": "단장"
         },
         {
-          "speaker": "npc_broker_baran",
+          "speaker": "char_0004",
           "text": "내 칩! 내 피 같은 판돈인데에엑!"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "……정당한 채권 회수 집행. 이의 제기 시 늑골 골절형."
         },
         {
@@ -144,7 +144,7 @@
       "id": "s3_b",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#24304a"
       },
       "lines": [
@@ -153,7 +153,7 @@
           "text": "퍽! 단장의 묵직한 주먹이 바바루아의 안면에 정확히 박혔다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "수면 처리 완료. 품속에서 은화 주머니 자연 낙하 확인."
         },
         {
@@ -168,12 +168,12 @@
       "id": "s4",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#2b1f3a"
       },
       "lines": [
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "아야! 뼈 부러진다고! 딴 놈한테 사기당한 돈을 왜 나한테 털어!"
         },
         {
@@ -182,7 +182,7 @@
           "name": "사채업자"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "……표적 신원 확인. 전직 밀렵꾼 가릭. 잔여 부채 은화 석 닢."
         },
         {
@@ -195,7 +195,7 @@
           "text": "단장이 방금 뜯어낸 은화 석 닢을 사채업자의 면상에 던졌다."
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "어, 엉? 대리 변제? 형님, 아니 은인님! 저를 구원하러 오셨군요!"
         }
       ]
@@ -204,7 +204,7 @@
       "id": "s5",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_slum_black_market.jpg",
+        "value": "assets/bg/bg_0003.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -214,15 +214,15 @@
           "name": "단장"
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "네? 잠깐, 남작 모가지를 따러 가자고요?! 그건 자살행위인데!"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "탈주 시 위약금은 목숨. 볼트 낭비 시 급여에서 차감."
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "아니 적어도 화살값은 단장이 대줘야 일할 맛이 날 것 아닙니까!"
         },
         {

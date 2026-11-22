@@ -196,6 +196,42 @@ def list_assets():
     return jsonify([f"assets/{sub}/{f}" for f in files])
 
 
+# ─────────────────────────────────────────────────────────
+# id 자동 발급 (개발자는 id를 정하지 않음 — 규칙: <종류>_<4자리>, store.next_id)
+# ─────────────────────────────────────────────────────────
+@app.post("/api/ids/new")
+def ids_new():
+    """새 오브젝트 id 발급 (저장 직전에 부름). kind: char|enemy|stage|story|banner|notice|mail|shop|prop|bg"""
+    kind = (body() or {}).get("kind")
+    if kind not in store.ID_KINDS:
+        raise ValueError("알 수 없는 id 종류예요")
+    return jsonify(id=store.next_id(kind))
+
+
+@app.get("/api/ids/next")
+def ids_next():
+    """다음에 발급될 id 미리보기 (발급하지 않음)"""
+    kind = request.args.get("kind")
+    if kind not in store.ID_KINDS:
+        raise ValueError("알 수 없는 id 종류예요")
+    return jsonify(id=store.peek_next_id(kind))
+
+
+def _check_new_ids(kind, before_ids, items, label):
+    """저장하려는 목록에 새로 생긴 id는 반드시 발급받은 자동 id (손으로 만든 id / 바꾼 id 막기)"""
+    for it in items:
+        iid = it.get("id")
+        if iid not in before_ids and not store.issued(kind, iid):
+            raise ValueError(f"{label}: '{iid}'는 발급받은 id가 아니에요. id는 자동으로 정해져요 (새로 만들기 → 저장)")
+
+
+def _remember_removed(kind, before_ids, items):
+    """목록에서 빠진 id는 삭제 기록에 (같은 번호가 다시 발급되지 않음)"""
+    now_ids = {it.get("id") for it in items}
+    for iid in before_ids - now_ids:
+        store.remember_deleted(kind, iid)
+
+
 def _check_list(items, label):
     if not isinstance(items, list):
         raise ValueError(f"{label}: 목록이 아니에요")
@@ -215,11 +251,15 @@ def save_list(key):
     if key not in ("banners", "notices", "mail", "storyIndex", "enemies", "stages", "props"):
         abort(404)
     items = _check_list(request.get_json(silent=True), key)
+    kind = store.KIND_OF_LIST[key]
+    before = {x.get("id") for x in store.read_list(key) if isinstance(x, dict)}
+    _check_new_ids(kind, before, items, key)
     if key == "enemies":
         errors = [i for e in items for i in kit.battle_issues(e, enemy=True) if i["level"] == "error"]
         if errors:
             return jsonify(error="전투 데이터에 오류가 있어요", issues=errors), 400
     store.write_list(key, items)
+    _remember_removed(kind, before, items)
     return jsonify(ok=True, count=len(items))
 
 
@@ -257,7 +297,12 @@ def shop_put():
     _v.check_shop(r, data, store.asset_exists_ws)
     if r.errors:
         return jsonify(error="상점 데이터에 오류가 있어요", issues=r.errors), 400
+    old = store.read_shop()
+    before = {it.get("id") for tab in ("gold", "cash") for it in old.get(tab) or [] if isinstance(it, dict)}
+    items = [it for tab in ("gold", "cash") for it in data.get(tab) or [] if isinstance(it, dict)]
+    _check_new_ids("shop", before, items, "상점")
     store.write_shop(data)
+    _remember_removed("shop", before, items)
     return jsonify(ok=True, issues=r.items)
 
 
@@ -269,8 +314,15 @@ def asset_upload():
     if sub not in ("enemies", "props"):
         raise ValueError("이 폴더에는 올릴 수 없어요")
     name = data.get("name")
-    if not store.valid_id(name):
-        raise ValueError("파일 이름은 영문/숫자/_/- 로 지어 주세요")
+    if sub == "enemies":
+        if name not in {e.get("id") for e in store.read_list("enemies")}:
+            raise ValueError("적을 먼저 저장해 주세요 (그림 파일 이름 = 적 id)")
+    else:
+        props = {p.get("id") for p in store.read_list("props")}
+        if not name:
+            name = store.next_id("prop")
+        elif name not in props and not store.issued("prop", name):
+            raise ValueError(f"'{name}'는 발급받은 소품 id가 아니에요")
     raw = str(data.get("data") or "")
     if "," in raw:
         raw = raw.split(",", 1)[1]
@@ -296,7 +348,7 @@ def asset_upload():
     img.save(dest, "PNG")
     if sub == "props":
         batch.upsert_prop(name, label=text(data, "label", 60) or None, image=rel)
-    return jsonify(path=rel)
+    return jsonify(path=rel, id=name)
 
 
 # ─────────────────────────────────────────────────────────
@@ -419,17 +471,21 @@ def char_approve():
         raise ValueError("캐릭터 작업이 아니에요")
     src = jobs.result_path(job, data.get("attempt"))
     c = data.get("character") or {}
-    cid = c.get("id")
-    if not store.valid_id(cid):
-        raise ValueError("캐릭터 id는 영문/숫자/_/- 로 1~64자여야 해요 (예: ssr_lumi)")
     rarity = rarity_mod.normalize(c.get("rarity"))
     if rarity is None:
         raise ValueError("희귀도(1~5★)를 골라 주세요")
     chars = store.read_list("characters")
+    ids = {x.get("id") for x in chars}
+    # id는 개발자가 정하지 않음: 그림 교체면 그 캐릭터, 이 작업을 이미 승인했으면 그때 만든 캐릭터, 아니면 새로 발급
+    prev = ((job.get("approved") or {}).get("path") or "")
+    prev_id = prev[len("assets/chars/"):-len(".png")] if prev.startswith("assets/chars/") and prev.endswith(".png") else None
+    if job["input"].get("charId") in ids:
+        cid = job["input"]["charId"]
+    elif prev_id in ids:
+        cid = prev_id
+    else:
+        cid = store.next_id("char")
     existing = next((x for x in chars if x.get("id") == cid), None)
-    replacing = job["input"].get("charId") == cid
-    if existing and not replacing and not data.get("overwrite"):
-        raise ValueError(f"id '{cid}'는 이미 있어요. 다른 id를 쓰거나 '기존 캐릭터 그림 교체'로 진행해 주세요")
 
     rel = f"assets/chars/{cid}.png"
     dest = config.WORKSPACE / rel
@@ -446,10 +502,9 @@ def char_approve():
         "image": rel,
         "addedAt": added or (existing or {}).get("addedAt") or now_iso(),
     }
-    # 그림 교체: 전투 데이터(능력치/스킬/돌파)는 그대로 둠
-    for k in ("stats", "kit", "breakthroughs"):
-        if existing and k in existing:
-            entry[k] = existing[k]
+    # 그림 교체/다시 승인: 다른 정보(전투 데이터, 외형 키워드, 설정 메모 …)는 그대로 둠
+    if existing:
+        entry = {**existing, **entry}
     if existing:
         chars[chars.index(existing)] = entry
     else:
@@ -610,6 +665,7 @@ def char_delete(cid):
         raise FileNotFoundError("캐릭터가 없어요")
     chars.remove(target)
     store.write_list("characters", chars)
+    store.remember_deleted("characters", cid, target.get("name") or "")  # 같은 id를 다시 쓰지 못하게
     if target.get("image") and store.asset_exists_ws(target["image"]):
         store.move_to_trash(config.WORKSPACE / target["image"])
     return jsonify(ok=True)
@@ -633,8 +689,10 @@ def _banner_input(data):
 
 def _bg_input(data):
     name = data.get("bgName")
-    if not store.valid_id(name):
-        raise ValueError("배경 이름은 영문/숫자/_/- 로 지어 주세요 (예: night_library)")
+    if not name:
+        name = store.next_id("bg")  # 새 배경 → 자동 id (파일 이름 = id)
+    elif name not in bible.load()["backgrounds"] and not store.issued("bg", name):
+        raise ValueError(f"'{name}'는 발급받은 배경 id가 아니에요 (id는 자동으로 정해져요)")
     # 장면 설명은 'scene'으로 받음 ('prompt'는 개발자가 확인/수정한 그림 프롬프트와 겹치므로). 예전 요청은 'prompt'
     key = "scene" if "scene" in data else "prompt"
     return {"bgName": name, "prompt": text(data, key, 1000, required=True, label="장면 설명")}
@@ -658,8 +716,10 @@ def _enemy_input(data):
 
 def _prop_input(data):
     pid = data.get("propId")
-    if not store.valid_id(pid):
-        raise ValueError("소품 id는 영문/숫자/_/- 로 지어 주세요 (예: shop_gold_pouch)")
+    if not pid:
+        pid = store.next_id("prop")  # 새 소품 → 자동 id
+    elif pid not in {p.get("id") for p in store.read_list("props")} and not store.issued("prop", pid):
+        raise ValueError(f"'{pid}'는 발급받은 소품 id가 아니에요 (id는 자동으로 정해져요)")
     # 물건 설명은 'description'으로 받음 ('prompt'는 개발자가 확인/수정한 그림 프롬프트)
     return {"propId": pid, "label": text(data, "label", 60) or pid, "prompt": text(data, "description", 1000), "extra": text(data, "extra", 1000)}
 
@@ -795,6 +855,9 @@ def story_put(sid):
     if not isinstance(data.get("scenes"), list):
         raise ValueError("scenes 목록이 필요해요")
     data["id"] = sid
+    exists = any(s.get("id") == sid for s in store.read_list("storyIndex")) or store.story_path(sid).exists()
+    if not exists and not store.issued("story", sid):
+        raise ValueError(f"'{sid}'는 발급받은 스토리 id가 아니에요 (id는 자동으로 정해져요)")
     store.write_story(sid, data)
     return jsonify(ok=True)
 
@@ -907,6 +970,8 @@ def story_bible_chapter_put(sid):
 @app.put("/api/story-bible/backgrounds/<name>")
 def story_bible_background_put(name):
     """스토리 배경 등록/수정 (이름 · 그림 설명) → 스토리 AI와 일괄 생성이 사용"""
+    if name not in bible.load()["backgrounds"] and not store.issued("bg", name):
+        raise ValueError(f"'{name}'는 발급받은 배경 id가 아니에요")
     data = body()
     bible.set_background(name, text(data, "label", 60) or name, text(data, "prompt", 1000))
     return jsonify(bible.load()["backgrounds"].get(name))

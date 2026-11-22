@@ -1,8 +1,8 @@
 [
   {
-    "id": "en_scavenger",
+    "id": "enemy_0001",
     "name": "시체 약탈꾼",
-    "image": "assets/enemies/en_scavenger.png",
+    "image": "assets/enemies/enemy_0001.png",
     "boss": false,
     "stats": {
       "atk": 60,
@@ -36,9 +36,9 @@
     "passives": []
   },
   {
-    "id": "en_plague_hound",
+    "id": "enemy_0002",
     "name": "역병 사냥개",
-    "image": "assets/enemies/en_plague_hound.png",
+    "image": "assets/enemies/enemy_0002.png",
     "boss": false,
     "stats": {
       "atk": 60,
@@ -103,9 +103,9 @@
     "passives": []
   },
   {
-    "id": "en_deserter_spear",
+    "id": "enemy_0003",
     "name": "탈영병 창병",
-    "image": "assets/enemies/en_deserter_spear.png",
+    "image": "assets/enemies/enemy_0003.png",
     "boss": false,
     "stats": {
       "atk": 60,
@@ -140,9 +140,9 @@
     "passives": []
   },
   {
-    "id": "en_manor_guard",
+    "id": "enemy_0004",
     "name": "남작 근위대 중장병",
-    "image": "assets/enemies/en_manor_guard.png",
+    "image": "assets/enemies/enemy_0004.png",
     "boss": false,
     "stats": {
       "atk": 64,
@@ -200,9 +200,9 @@
     "passives": []
   },
   {
-    "id": "en_boss_baron_hendrik",
+    "id": "enemy_0005",
     "name": "탐욕의 헨드릭 남작",
-    "image": "assets/enemies/en_boss_baron_hendrik.png",
+    "image": "assets/enemies/enemy_0005.png",
     "boss": true,
     "stats": {
       "atk": 86,
@@ -349,7 +349,7 @@
     ]
   },
   {
-    "id": "en_cult_hunter",
+    "id": "enemy_0006",
     "name": "광휘교단 이단 사냥꾼",
     "image": "",
     "boss": false,

@@ -3,8 +3,6 @@
 RARITIES = (1, 2, 3, 4, 5)
 MAX_RARITY = 5
 LEGACY = {"R": 3, "SR": 4, "SSR": 5}
-# 새 캐릭터 id 앞부분 (예전 규칙과 맞춤: r_ / sr_ / ssr_)
-ID_PREFIX = {1: "c1_", 2: "c2_", 3: "r_", 4: "sr_", 5: "ssr_"}
 
 
 def normalize(value):

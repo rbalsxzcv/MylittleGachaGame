@@ -21,7 +21,7 @@ ROLES = ("minion", "elite", "boss")
 STYLES = ("physical", "dot", "heal", "tank", "debuff")
 ROLE_LABEL = {"minion": "잡몹", "elite": "정예", "boss": "보스"}
 STYLE_LABEL = {"physical": "물리", "dot": "지속 피해", "heal": "치유", "tank": "방어", "debuff": "약화"}
-from .rarity import ID_PREFIX, normalize as norm_rarity  # 희귀도 1–5
+from .rarity import normalize as norm_rarity  # 희귀도 1–5
 SLUG = re.compile(r"[^a-z0-9_]+")
 
 _lock = threading.Lock()
@@ -39,12 +39,49 @@ def slug(value, prefix="", fallback="x"):
     return s[:64]
 
 
-def story_id(arc, n):
-    return f"main_{arc:02d}_{n:02d}"
+def assign_ids(plan, arc):
+    """구성안의 임시 id(AI가 지은 이름)를 진짜 자동 id(<종류>_<4자리>)로 바꿈 → (plan, idMap)
+    - 이미 있는 캐릭터/적/배경을 가리키면 그대로
+    - 같은 챕터 팩을 다시(이어서) 만들 때는 팩 기록의 idMap을 다시 써서 같은 id → 중복 생성 없음
+    - 장마다 스토리 id / 스테이지 id도 여기서 정함 (chapters[].storyId / stageId)
+    """
+    pack = bible.load()["packs"].get(str(arc)) or {}
+    id_map = dict(pack.get("idMap") or {})
+    ex = {
+        "char": {c["id"] for c in store.read_list("characters")},
+        "enemy": {e["id"] for e in store.read_list("enemies")},
+        "bg": set(bible.load()["backgrounds"]),
+    }
 
+    def real(kind, temp):
+        if temp in ex[kind] and store.is_auto_id(kind, temp):
+            return temp
+        key = f"{kind}:{temp}"
+        if key not in id_map:
+            id_map[key] = store.next_id(kind)
+        return id_map[key]
 
-def stage_id(arc, n):
-    return f"st_{arc:02d}_{n:02d}"
+    chars = {c["id"]: real("char", c["id"]) for c in plan["characters"]}
+    enemies = {e["id"]: real("enemy", e["id"]) for e in plan["enemies"]}
+    bgs = {b["name"]: real("bg", b["name"]) for b in plan["backgrounds"]}
+    for c in plan["characters"]:
+        c["id"] = chars[c["id"]]
+    for e in plan["enemies"]:
+        e["id"] = enemies[e["id"]]
+    for b in plan["backgrounds"]:
+        b["name"] = bgs[b["name"]]
+    for c in plan["chapters"]:
+        c["characters"] = [chars.get(x, x) for x in c.get("characters") or []]
+        if c.get("battle"):
+            c["battle"]["waves"] = [[enemies.get(x, x) for x in w] for w in c["battle"]["waves"]]
+        for kind, field in (("story", "storyId"), ("stage", "stageId")):
+            key = f"{kind}:{c['n']}"
+            if store.is_auto_id(kind, c.get(field)):
+                id_map.setdefault(key, c[field])
+            elif key not in id_map:
+                id_map[key] = store.next_id(kind)
+            c[field] = id_map[key]
+    return plan, id_map
 
 
 def next_arc():
@@ -194,7 +231,7 @@ def clean_plan(raw, arc):
         return out
 
     # 캐릭터
-    chars, char_map, taken = [], {}, set(ex_chars)
+    chars, char_map, taken = [], {}, set(ex_chars) | store.deleted_ids("characters")  # 삭제했던 id는 다시 쓰지 않음
     for c in raw.get("characters") or []:
         if not isinstance(c, dict) or not str(c.get("name") or "").strip():
             continue
@@ -205,8 +242,7 @@ def clean_plan(raw, arc):
         rarity = norm_rarity(c.get("rarity")) or 3
         if not pullable:
             rarity = 3
-        prefix = ID_PREFIX[rarity] if pullable else "npc_"
-        cid = unique(slug(c.get("id"), prefix), taken)
+        cid = unique(slug(c.get("id") or c.get("name"), "", "char"), taken)  # 임시 이름 — 진짜 id는 팩을 만들 때 (assign_ids)
         char_map[str(c.get("id"))] = cid
         chars.append(
             {
@@ -401,7 +437,7 @@ def _power(enemy, level, balance):
     return int(w["atk"] * atk + w["def"] * df + w["hp"] * hp + w["spd"] * s.get("spd", 100) + w["critRate"] * s.get("critRate", 0.05) + w["critDmg"] * s.get("critDmg", 0.5))
 
 
-def stage_entry(arc, n, battle, enemies_by_id, roles, balance):
+def stage_entry(arc, n, battle, enemies_by_id, roles, balance, sid=None, story=None):
     """장 번호에 맞춘 레벨: 챕터 시작 레벨 + (장 − 1), 정예 +1, 보스 +3"""
     base = 1 + (arc - 1) * ARC_SIZE + (n - 1)
     role_bonus = {"minion": 0, "elite": 1, "boss": 3}
@@ -415,10 +451,10 @@ def stage_entry(arc, n, battle, enemies_by_id, roles, balance):
     strongest = max((sum(_power(enemies_by_id[e["enemyId"]], e["level"], balance) for e in w if e["enemyId"] in enemies_by_id) for w in waves), default=0)
     has_boss = any(enemies_by_id.get(e["enemyId"], {}).get("boss") for w in waves for e in w)
     return {
-        "id": stage_id(arc, n),
+        "id": sid,
         "name": battle["name"],
         "chapter": f"ch{arc:02d}",
-        "storyId": story_id(arc, n),
+        "storyId": story,
         "recommendedPower": int(round(strongest * 1.2 / 100.0) * 100),
         "waves": waves,
         "roundLimit": 25 if has_boss else 20,
@@ -454,6 +490,7 @@ def start(plan, options):
     if arc < 1:
         raise ValueError("챕터 번호가 올바르지 않아요")
     clean, warnings = normalize_edited(plan, arc)
+    clean, id_map = assign_ids(clean, arc)
     steps = [
         {"key": "characters", "label": f"캐릭터 {len(clean['characters'])}명 (그림 없이)"},
         {"key": "enemies", "label": f"적 {len(clean['enemies'])}종"},
@@ -470,7 +507,7 @@ def start(plan, options):
             raise ValueError("이미 챕터 팩을 만드는 중이에요")
         _cancel.clear()
         _state = {"id": f"pack-{stamp()}-{secrets.token_hex(2)}", "arc": arc, "running": True, "startedAt": now_iso(), "finishedAt": None, "steps": steps, "warnings": warnings, "stopReason": None, "options": options}
-    bible.set_pack(arc, {"plan": clean, "updatedAt": now_iso(), "status": "building"})
+    bible.set_pack(arc, {"plan": clean, "idMap": id_map, "updatedAt": now_iso(), "status": "building"})
     threading.Thread(target=_run, args=(_state, clean, options), daemon=True, name="tinydev-pack").start()
     return snapshot()
 
@@ -522,7 +559,11 @@ def normalize_edited(plan, arc):
             battle = default_battle(n, enemies)
             if battle:
                 warnings.append(f"{n}장에 전투가 없어서 기본 전투를 넣었어요")
-        chapters.append({"n": n, "title": str(c.get("title") or f"{n}장")[:40], "outline": str(c.get("outline") or "")[:1200], "characters": [x for x in c.get("characters") or [] if x in known_chars], "battle": battle})
+        ch_entry = {"n": n, "title": str(c.get("title") or f"{n}장")[:40], "outline": str(c.get("outline") or "")[:1200], "characters": [x for x in c.get("characters") or [] if x in known_chars], "battle": battle}
+        for field, kind in (("storyId", "story"), ("stageId", "stage")):
+            if store.is_auto_id(kind, c.get(field)):
+                ch_entry[field] = c[field]  # 이미 만든 팩 → 같은 id 유지
+        chapters.append(ch_entry)
     return {"arc": arc, "title": str(plan.get("title") or f"챕터 {arc}")[:40], "summary": str(plan.get("summary") or "")[:200], "outline": plan.get("outline", ""), "characters": chars, "backgrounds": bgs, "enemies": enemies, "chapters": chapters}, warnings
 
 
@@ -579,7 +620,7 @@ def _run(st, plan, options):
         made = 0
         for c in plan["chapters"]:
             if c["battle"]:
-                made += _upsert(stages, stage_entry(arc, c["n"], c["battle"], by_id, roles, balance))
+                made += _upsert(stages, stage_entry(arc, c["n"], c["battle"], by_id, roles, balance, c["stageId"], c["storyId"]))
         store.write_list("stages", stages)
         _step(st, "stages", status="done", note=f"새로 {made}개")
 
@@ -591,7 +632,7 @@ def _run(st, plan, options):
 
         # 5) 12장 대본: 차례대로 (앞 장이 저장돼야 다음 장이 그 요약/대본을 읽음)
         index = store.read_list("storyIndex")
-        mine = {story_id(arc, c["n"]) for c in plan["chapters"]}
+        mine = {c["storyId"] for c in plan["chapters"]}
         base = max([int(s.get("chapter") or 0) for s in index if s.get("kind") == "main" and s.get("id") not in mine] + [0])
         stage_names = {s["id"]: s.get("name") for s in store.read_list("stages")}
         pack_ctx = {"arc": arc, "title": plan["title"], "summary": plan["summary"], "chapters": plan["chapters"]}
@@ -600,14 +641,14 @@ def _run(st, plan, options):
             if _cancel.is_set():
                 stop = "cancelled"
                 break
-            sid = story_id(arc, c["n"])
+            sid = c["storyId"]
             index = store.read_list("storyIndex")
             if any(s.get("id") == sid for s in index) and store.read_story(sid) and not options.get("overwrite"):
                 _step(st, key, status="skipped", note="이미 있어서 건너뜀")
                 continue
             _step(st, key, status="running")
             chapter_no = base + c["n"]
-            req = {"id": stage_id(arc, c["n"]), "name": stage_names.get(stage_id(arc, c["n"]), c["battle"]["name"])} if c["battle"] else None
+            req = {"id": c["stageId"], "name": stage_names.get(c["stageId"], c["battle"]["name"])} if c["battle"] else None
             try:
                 draft, warns, _ctx = api.draft_chapter(
                     {"id": sid, "kind": "main", "chapter": chapter_no, "title": c["title"]},
@@ -655,4 +696,5 @@ def _run(st, plan, options):
             st["running"] = False
             st["finishedAt"] = now_iso()
             st["stopReason"] = stop
-        bible.set_pack(arc, {"plan": plan, "updatedAt": now_iso(), "status": "done" if not stop else stop})
+        old = bible.load()["packs"].get(str(arc)) or {}
+        bible.set_pack(arc, {"plan": plan, "idMap": old.get("idMap") or {}, "updatedAt": now_iso(), "status": "done" if not stop else stop})

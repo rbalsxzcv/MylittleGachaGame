@@ -7,8 +7,15 @@
 - 주석/화면 문구는 한국어. 빌드 단계 없음. Phaser는 `js/vendor/phaser.min.js`(3.90.0)를 `js/fx/phaserHost.js`가 처음 필요할 때 `<script>`로 불러옴.
 - **조정 수치는 `data/balance.json`에만.** 코드는 `js/config.js`의 `loadConfig()` 결과(보통 `ctx.data.balance`)를 인자로 받아서 씀. 다른 파일에 숫자를 직접 쓰지 않음.
 - 데이터를 고치면 **`data/`와 `dev/workspace/data/` 둘 다** (작업 공간이 배포 원본, `dev/tinydev/publish.py`가 data/로 복사). 보통은 개발 도구로.
-- id(캐릭터/스테이지/스토리/배너/적)는 **바꾸거나 지우지 않음**. 은퇴는 `retired: true`.
+- **id는 자동 발급**: `<종류>_<4자리>` (char / enemy / stage / story / banner / notice / mail / shop / prop / bg). 개발 도구 서버가 `store.next_id(kind)`로 발급(`POST /api/ids/new`),
+  화면은 보기만. 번호는 늘기만 하고 재사용 없음 (`dev/ids.json`: next 카운터 + deleted). 서버는 발급 안 한/바뀐 id 저장을 거부(`_check_new_ids`), 배포 검사는 규칙 밖 id를 오류.
+  챕터 팩은 구성안의 임시 이름 → 만들 때 `pack.assign_ids`(팩 기록의 idMap으로 이어서 만들어도 같은 id).
+- id는 **바꾸지 않음**. 정말 바꿔야 하면 `data/id_aliases.json`(종류 → {예전: 새})에 남김 → 게임이 세이브를 옮김(`js/core/aliases.js remapSaveIds`, `save.migrate` 처음에 매번). 2026-11-22에 예전 id 전부를 이 규칙으로 바꿨음(별칭 파일 = 그 표, 지우지 않음). 은퇴는 `retired: true`.
 - 세이브에 데이터에 없는 id가 있어도 지우지 않음 (무시만).
+- **캐릭터 삭제** (보통은 은퇴 `retired`가 먼저): 개발 도구 삭제 → 참조(배너 픽업, 스토리 대상/해금/대사)가 남아 있으면 배포 검사 오류.
+  배포하면 공개 그림도 삭제(공개 데이터가 쓰던 그림 중 더는 안 쓰는 것). 삭제한 id는 `dev/ids.json`(deleted)에 남고 다시 쓸 수 없음
+  (세이브 기록이 새 캐릭터에 붙기 때문 — 승인 API, 챕터 팩, 배포 검사가 막음). 게임은 지워진 캐릭터를 도감/대표/NEW/편성/전투력/전투/뽑기/픽업/스토리 해금 어디에서도 쓰지 않음
+  — 픽업이 전부 사라진 픽업 배너는 숨김, 지워진 캐릭터의 캐릭터 스토리·"보유 시 해금" 스토리도 숨김. `tests/deletion.test.js`.
 - 순수 로직(가챠, 육성, 전투 엔진, 세이브 정리, 모험 규칙)은 DOM/Date/Math.random을 쓰지 않음 → 시드 난수(`createRng`)로 테스트.
 - 새 효과: `js/battle/effects/<이름>.js` + `effects/index.js` 한 줄 + `vocab.json` 한 항목 + `tests/effects.test.js` 테스트. (개발 도구 폼/검사/AI 초안은 vocab을 읽어서 자동으로 따라옴)
 - 아래 스키마/공식/규칙이 바뀌면 이 파일도 같이 고침. 전투 결과가 바뀌는 변경은 **회귀 스냅샷 차이를 확인하고** 커밋.
@@ -17,11 +24,11 @@
 - 브라우저: 게임 폴더를 로컬 서버로 열고(`python -m http.server`) `tests/index.html` → 자동 실행. `?filter=gacha`로 일부만.
   개발 도구에서는 `http://127.0.0.1:5050/preview/tests/index.html` (작업 공간 데이터로 실행, 스냅샷 갱신 버튼이 파일로 저장).
 - Node(설치했다면): `node tests/run.js [이름 일부] [--update]` (`npm test`). `--update` = 회귀 스냅샷 갱신.
-- 파일: `config` / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀).
+- 파일: `config` / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀) / `deletion`(캐릭터 삭제 정리) / `aliases`(id 별칭으로 세이브 옮기기 + 지금 id가 규칙대로인지).
 - 새 테스트 파일은 `tests/all.js`에 한 줄. 러너 `tests/lib/runner.js`, 실제 데이터 로더 `tests/lib/gameData.js`, 전투 픽스처 `js/battle/testkit.js`, 샘플 `tests/fixtures/`.
 - **회귀 스냅샷** `tests/snapshots/stages.json`: 모든 스테이지 × 기준 팀(`tests/fixtures/teams.js`) × 시드 1~3 자동 전투 (`승패 라운드 피해/…`). 다르면 실패 + 바뀐 줄 목록 → 의도한 변경이면 갱신.
 - 연출 확인: `dev/fx-test.html` (정적 서버) 또는 개발 도구 `/fx-test` — 희귀도 조합 강제, 2배속, 모션 줄이기, `?auto=5&fake=1` 자동 실행.
-- 게임 미리보기 주소 옵션 (localhost만): `?preview=1` (분리된 세이브, 재화 넉넉히), `&ownAll=1`, `?screen=adventure|growth|team|collection|gacha`, `?battle=<스테이지id>`, `?banner=<id>`, `?story=<id>`, `?now=<ISO 시각>`.
+- 게임 미리보기 주소 옵션 (localhost만): `?preview=1` (분리된 세이브, 재화 넉넉히), `&ownAll=1`, `?screen=adventure|growth|team|collection|gacha`, `?battle=stage_0004`, `?banner=<id>`, `?story=<id>`, `?now=<ISO 시각>`.
 - 콘솔: `__tg.simulate(100000[, 배너])`, `__tg.sim(스테이지, N)`, `__tg.battleTest()`.
 
 ## 스키마
@@ -139,5 +146,5 @@ settings { fxSpeed: 1|2, fxSkip, battleSpeed: 1|2, battleAuto }
 - 1★/2★ 캐릭터가 아직 없음 → 그 확률은 3★로 대체됨.
 - 실제 캐릭터에 kit/돌파 능력이 아직 없음 (모두 기본 스킬) → 개발 도구 AI 초안으로 채우기.
 - 지금 스테이지는 Lv.1 팀으로도 거의 다 이김 (밸런스 탭/스냅샷으로 조정).
-- `en_cult_hunter`(1-7 적)는 그림이 없음 → 일괄 생성/에셋 탭에서 뽑기.
+- `enemy_0006`(광휘교단 이단 사냥꾼, 1-7 적) 그림은 작업 공간에만 있음 → 배포하면 공개됨.
 - 1-1/1-2/1-3/1-5/1-7 스토리의 전투 장면과 도입 대사(b0)는 초안 — 스토리 탭에서 다듬기.

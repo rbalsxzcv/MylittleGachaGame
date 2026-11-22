@@ -2,8 +2,8 @@
 // - 상품 추가 · 수정 · 복제 · 순서 변경 · 삭제, VIP 단계
 // - 상품 그림: 새로 그리기(소품 생성 → assets/props) 또는 기존 그림에서 고르기
 // 고친 내용은 "저장"을 눌러야 작업 공간에 저장되고, 배포 탭에서 배포해야 게임에 반영돼요.
-import { h, toast, modal, confirmBox, slugOk, wsImage } from '../ui.js';
-import { api, tryApi } from '../api.js';
+import { h, toast, modal, confirmBox, wsImage, idBadge } from '../ui.js';
+import { api, tryApi, newId } from '../api.js';
 import { state, reloadData } from '../state.js';
 import { openPreview } from '../preview.js';
 import { issueList } from '../battleForm.js';
@@ -68,8 +68,10 @@ function priceSummary(tab, it) {
   return [c.gold > 0 && `골드 ${comma(c.gold)}`, c.gems > 0 && `보석 ${comma(c.gems)}`].filter(Boolean).join(' + ');
 }
 
+// 새 상품은 임시 id(new_…)로 편집하다가 저장할 때 자동 id(shop_0001 …)를 받아요
+const isTempId = (id) => String(id).startsWith('new_');
 function blankItem(tab, category) {
-  const id = `${tab}_${Date.now().toString(36)}`;
+  const id = `new_${tab}_${Date.now().toString(36)}`;
   const base = { id, name: '', desc: '', icon: 'chest', rewards: { gems: 100 }, limit: { per: 'day', count: 1 } };
   return tab === 'gold' ? { ...base, cost: { gold: 1000 } } : { ...base, category, tier: 'normal', priceKRW: 1200 };
 }
@@ -202,25 +204,11 @@ export function shopTab(root, { select: selectId } = {}) {
     const numIn = (value, set, attrs = {}) => h('input', { type: 'number', min: 0, value: value ?? 0, oninput: on((el) => set(num(el.value))), ...attrs });
 
     // 기본 정보
-    const idLocked = savedIds.has(it.id);
-    const idIn = h('input', {
-      value: it.id,
-      disabled: idLocked,
-      title: idLocked ? '저장된 상품의 id를 바꾸면 플레이어의 구매 기록이 끊겨요' : '',
-      onchange: (e) => {
-        const v = e.target.value.trim();
-        if (!slugOk(v)) return toast('id를 영문/숫자/_/-로 정해 주세요', 'error'), (e.target.value = it.id);
-        if ([...shop.gold, ...shop.cash].some((x) => x !== it && x.id === v)) return toast('이미 있는 id예요', 'error'), (e.target.value = it.id);
-        it.id = v;
-        selected.id = v;
-        markDirty();
-        renderList();
-      },
-    });
+    const idIn = idBadge(isTempId(it.id) ? '' : it.id);
     const basics = h(
       'div',
       {},
-      h('div', { class: 'grid2' }, h('label', { class: 'field' }, `id${idLocked ? ' (저장됨 — 바꾸지 않기)' : ''}`, idIn), h('label', { class: 'field' }, '이름 (40자)', h('input', { value: it.name, maxlength: 40, oninput: on((el) => (it.name = el.value)) }))),
+      h('div', { class: 'grid2' }, h('div', { class: 'field' }, 'id (자동)', idIn), h('label', { class: 'field' }, '이름 (40자)', h('input', { value: it.name, maxlength: 40, oninput: on((el) => (it.name = el.value)) }))),
       h('label', { class: 'field' }, '설명 (200자)', h('input', { value: it.desc || '', maxlength: 200, oninput: on((el) => (it.desc = el.value)) })),
       h(
         'div',
@@ -431,7 +419,7 @@ export function shopTab(root, { select: selectId } = {}) {
   // ── 상품 그림 ──
   function drawNew(it, setImage) {
     const parts = [it.name, it.desc, ICON_HINT[it.icon], rewardSummary(it.rewards) && `구성품: ${rewardSummary(it.rewards)}`].filter(Boolean);
-    openPropGenerator({ id: `shop_${it.id}`, label: it.name || it.id, prompt: `상점 상품 그림. ${parts.join('. ')}`, title: `상품 그림 새로 그리기 — ${it.name || it.id}` }, (path) => setImage(path));
+    openPropGenerator({ label: it.name || '상품 그림', prompt: `상점 상품 그림. ${parts.join('. ')}`, title: `상품 그림 새로 그리기 — ${it.name || it.id}` }, (path) => setImage(path));
   }
 
   async function pickExisting(it, setImage) {
@@ -502,6 +490,14 @@ export function shopTab(root, { select: selectId } = {}) {
       if (c.gold > 0) it.cost.gold = c.gold;
       if (c.gems > 0) it.cost.gems = c.gems;
       if (!it.cost.gold && !it.cost.gems) it.cost.gold = 0;
+    }
+    // 새 상품(임시 id) → 자동 id 발급
+    for (const it of [...shop.gold, ...shop.cash]) {
+      if (!isTempId(it.id)) continue;
+      const nid = await tryApi(() => newId('shop'));
+      if (!nid) return;
+      if (selected?.id === it.id) selected.id = nid;
+      it.id = nid;
     }
     try {
       const r = await api.put('/api/shop', shop);

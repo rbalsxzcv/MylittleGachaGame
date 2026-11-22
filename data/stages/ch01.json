@@ -3,18 +3,18 @@
   "title": "챕터 1: 청구서는 피로 쓴다",
   "stages": [
     {
-      "id": "st_01_01",
+      "id": "stage_0001",
       "name": "시체밭의 약탈꾼",
-      "storyId": "main_01_01",
+      "storyId": "story_0001",
       "recommendedPower": 3500,
       "waves": [
         [
           {
-            "enemyId": "en_scavenger",
+            "enemyId": "enemy_0001",
             "level": 1
           },
           {
-            "enemyId": "en_scavenger",
+            "enemyId": "enemy_0001",
             "level": 1
           }
         ]
@@ -32,18 +32,18 @@
       }
     },
     {
-      "id": "st_01_02",
+      "id": "stage_0002",
       "name": "썩은 주점의 텃세",
-      "storyId": "main_01_02",
+      "storyId": "story_0002",
       "recommendedPower": 3700,
       "waves": [
         [
           {
-            "enemyId": "en_scavenger",
+            "enemyId": "enemy_0001",
             "level": 2
           },
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 2
           }
         ]
@@ -61,28 +61,28 @@
       }
     },
     {
-      "id": "st_01_03",
+      "id": "stage_0003",
       "name": "암시장 3번 구역 불한당",
-      "storyId": "main_01_03",
+      "storyId": "story_0003",
       "recommendedPower": 3900,
       "waves": [
         [
           {
-            "enemyId": "en_scavenger",
+            "enemyId": "enemy_0001",
             "level": 3
           },
           {
-            "enemyId": "en_scavenger",
+            "enemyId": "enemy_0001",
             "level": 3
           }
         ],
         [
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 3
           },
           {
-            "enemyId": "en_scavenger",
+            "enemyId": "enemy_0001",
             "level": 3
           }
         ]
@@ -100,32 +100,32 @@
       }
     },
     {
-      "id": "st_01_04",
+      "id": "stage_0004",
       "name": "암시장 뒷골목 소탕",
-      "storyId": "main_01_04",
+      "storyId": "story_0004",
       "recommendedPower": 4050,
       "waves": [
         [
           {
-            "enemyId": "en_scavenger",
+            "enemyId": "enemy_0001",
             "level": 4
           },
           {
-            "enemyId": "en_scavenger",
+            "enemyId": "enemy_0001",
             "level": 4
           }
         ],
         [
           {
-            "enemyId": "en_scavenger",
+            "enemyId": "enemy_0001",
             "level": 4
           },
           {
-            "enemyId": "en_scavenger",
+            "enemyId": "enemy_0001",
             "level": 4
           },
           {
-            "enemyId": "en_plague_hound",
+            "enemyId": "enemy_0002",
             "level": 4
           }
         ]
@@ -143,32 +143,32 @@
       }
     },
     {
-      "id": "st_01_05",
+      "id": "stage_0005",
       "name": "정보상 은신처 돌입",
-      "storyId": "main_01_05",
+      "storyId": "story_0005",
       "recommendedPower": 4050,
       "waves": [
         [
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 4
           },
           {
-            "enemyId": "en_plague_hound",
+            "enemyId": "enemy_0002",
             "level": 4
           }
         ],
         [
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 4
           },
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 4
           },
           {
-            "enemyId": "en_plague_hound",
+            "enemyId": "enemy_0002",
             "level": 4
           }
         ]
@@ -186,32 +186,32 @@
       }
     },
     {
-      "id": "st_01_06",
+      "id": "stage_0006",
       "name": "비포장도로 매복전",
-      "storyId": "main_01_06",
+      "storyId": "story_0006",
       "recommendedPower": 4400,
       "waves": [
         [
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 6
           },
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 6
           }
         ],
         [
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 6
           },
           {
-            "enemyId": "en_plague_hound",
+            "enemyId": "enemy_0002",
             "level": 6
           },
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 6
           }
         ]
@@ -229,32 +229,32 @@
       }
     },
     {
-      "id": "st_01_07",
+      "id": "stage_0007",
       "name": "이단 사냥꾼 퇴치",
-      "storyId": "main_01_07",
+      "storyId": "story_0007",
       "recommendedPower": 4400,
       "waves": [
         [
           {
-            "enemyId": "en_cult_hunter",
+            "enemyId": "enemy_0006",
             "level": 6
           },
           {
-            "enemyId": "en_cult_hunter",
+            "enemyId": "enemy_0006",
             "level": 6
           }
         ],
         [
           {
-            "enemyId": "en_cult_hunter",
+            "enemyId": "enemy_0006",
             "level": 6
           },
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 6
           },
           {
-            "enemyId": "en_cult_hunter",
+            "enemyId": "enemy_0006",
             "level": 6
           }
         ]
@@ -272,32 +272,32 @@
       }
     },
     {
-      "id": "st_01_08",
+      "id": "stage_0008",
       "name": "피 묻은 구출 계약",
-      "storyId": "main_01_08",
+      "storyId": "story_0008",
       "recommendedPower": 4900,
       "waves": [
         [
           {
-            "enemyId": "en_scavenger",
+            "enemyId": "enemy_0001",
             "level": 8
           },
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 8
           }
         ],
         [
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 8
           },
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 8
           },
           {
-            "enemyId": "en_manor_guard",
+            "enemyId": "enemy_0004",
             "level": 9
           }
         ]
@@ -315,36 +315,36 @@
       }
     },
     {
-      "id": "st_01_09",
+      "id": "stage_0009",
       "name": "폐묘지의 맹수들",
-      "storyId": "main_01_09",
+      "storyId": "story_0009",
       "recommendedPower": 5100,
       "waves": [
         [
           {
-            "enemyId": "en_plague_hound",
+            "enemyId": "enemy_0002",
             "level": 9
           },
           {
-            "enemyId": "en_plague_hound",
+            "enemyId": "enemy_0002",
             "level": 9
           },
           {
-            "enemyId": "en_plague_hound",
+            "enemyId": "enemy_0002",
             "level": 9
           }
         ],
         [
           {
-            "enemyId": "en_plague_hound",
+            "enemyId": "enemy_0002",
             "level": 9
           },
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 9
           },
           {
-            "enemyId": "en_manor_guard",
+            "enemyId": "enemy_0004",
             "level": 10
           }
         ]
@@ -362,32 +362,32 @@
       }
     },
     {
-      "id": "st_01_10",
+      "id": "stage_0010",
       "name": "저택 후문 돌파",
-      "storyId": "main_01_10",
+      "storyId": "story_0010",
       "recommendedPower": 5300,
       "waves": [
         [
           {
-            "enemyId": "en_manor_guard",
+            "enemyId": "enemy_0004",
             "level": 11
           },
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 10
           }
         ],
         [
           {
-            "enemyId": "en_manor_guard",
+            "enemyId": "enemy_0004",
             "level": 11
           },
           {
-            "enemyId": "en_manor_guard",
+            "enemyId": "enemy_0004",
             "level": 11
           },
           {
-            "enemyId": "en_plague_hound",
+            "enemyId": "enemy_0002",
             "level": 10
           }
         ]
@@ -405,32 +405,32 @@
       }
     },
     {
-      "id": "st_01_11",
+      "id": "stage_0011",
       "name": "연회장 진압 작전",
-      "storyId": "main_01_11",
+      "storyId": "story_0011",
       "recommendedPower": 5450,
       "waves": [
         [
           {
-            "enemyId": "en_manor_guard",
+            "enemyId": "enemy_0004",
             "level": 12
           },
           {
-            "enemyId": "en_manor_guard",
+            "enemyId": "enemy_0004",
             "level": 12
           }
         ],
         [
           {
-            "enemyId": "en_manor_guard",
+            "enemyId": "enemy_0004",
             "level": 12
           },
           {
-            "enemyId": "en_deserter_spear",
+            "enemyId": "enemy_0003",
             "level": 11
           },
           {
-            "enemyId": "en_manor_guard",
+            "enemyId": "enemy_0004",
             "level": 12
           }
         ]
@@ -448,18 +448,18 @@
       }
     },
     {
-      "id": "st_01_12",
+      "id": "stage_0012",
       "name": "영주 추심 결전",
-      "storyId": "main_01_12",
+      "storyId": "story_0012",
       "recommendedPower": 6000,
       "waves": [
         [
           {
-            "enemyId": "en_manor_guard",
+            "enemyId": "enemy_0004",
             "level": 13
           },
           {
-            "enemyId": "en_boss_baron_hendrik",
+            "enemyId": "enemy_0005",
             "level": 15
           }
         ]

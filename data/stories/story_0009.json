@@ -1,12 +1,12 @@
 {
-  "id": "main_01_09",
+  "id": "story_0009",
   "title": "묘지를 넘는 발걸음",
   "scenes": [
     {
       "id": "s1",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_misty_graveyard.jpg",
+        "value": "assets/bg/bg_0004.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -15,15 +15,15 @@
           "text": "음산한 녹색 안개가 깨진 비석과 파헤쳐진 무덤 사이를 무겁게 짓눌렀다."
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "으, 썩은 살점 썩는 냄새…… 비위 상해서 아침에 먹은 귀리죽 올라오겠네."
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "귀리죽이라도 먹었으면 양반이지. 난 며칠째 솔잎 씹으며 버텼다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "정숙. 묘지 바닥에 파헤쳐진 뼈. 최근에 뭔가가 갉아먹은 흔적."
         },
         {
@@ -32,7 +32,7 @@
           "name": "단장"
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "들짐승치고는 발자국이 황소만 한데요?! 단장, 우리 길 잘못 든 거 아냐?"
         }
       ],
@@ -42,7 +42,7 @@
       "id": "s2",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_misty_graveyard.jpg",
+        "value": "assets/bg/bg_0004.jpg",
         "color": "#2a2152"
       },
       "lines": [
@@ -51,7 +51,7 @@
           "text": "크르르르…… 안갯속에서 시뻘건 안광을 번뜩이는 역병 사냥개들이 솟아났다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "부패한 사냥개 여섯 마리. 침에서 독성 악취 감지. 물리면 산재 처리 요망."
         },
         {
@@ -60,7 +60,7 @@
           "name": "단장"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "시끄럽다. 아까 약속한 삼시 세끼 고기 스튜, 거짓말 아니겠지?"
         },
         {
@@ -69,7 +69,7 @@
           "name": "단장"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "좋아. 수습 기간 첫 업무는 저 똥개놈들 도축이다!"
         },
         {
@@ -92,14 +92,14 @@
     {
       "id": "b1",
       "type": "battle",
-      "stageId": "st_01_09",
+      "stageId": "stage_0009",
       "next": "s3"
     },
     {
       "id": "s3",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_misty_graveyard.jpg",
+        "value": "assets/bg/bg_0004.jpg",
         "color": "#24304a"
       },
       "lines": [
@@ -108,15 +108,15 @@
           "text": "콰아앙! 발레리아의 흉포한 대검질 한 방에 사냥개 두 마리가 피분수를 뿜었다."
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "하아…… 뼛속까지 썩어 문드러진 놈들이 감히 누구 앞을 가로막아?!"
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "히익?! 저 여편네 칼질 한 번에 멧돼지만 한 개가 반 토막 났잖아!"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "전방 적성 개체 전원 침묵. 대검 절단면 깔끔함. 가성비 극상."
         },
         {
@@ -125,7 +125,7 @@
           "name": "단장"
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "아이고, 지독한 인간…… 알았어요, 펜치 가져올 테니까 내 몫도 떼줘요!"
         }
       ],
@@ -135,7 +135,7 @@
       "id": "s4",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_misty_graveyard.jpg",
+        "value": "assets/bg/bg_0004.jpg",
         "color": "#2b1f3a"
       },
       "lines": [
@@ -144,11 +144,11 @@
           "text": "피비린내 나는 개 시체들을 뒤로하자, 묘지 끝자락 너머로 저택의 석벽이 드러났다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "목표 건물 시야 확보. 저택 서쪽 식자재 반입용 철문 발견."
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "정문은 사병들이 바글거리더니, 뒷문은 쥐새끼 한 마리 안 보이는군."
         },
         {
@@ -157,7 +157,7 @@
           "name": "단장"
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "남의 집 문짝 따는 거야 내 전공이지만…… 안쪽에 경비병 있으면 어쩝니까?"
         },
         {

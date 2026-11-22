@@ -1,12 +1,12 @@
 {
-  "id": "main_01_04",
+  "id": "story_0004",
   "title": "암시장의 잡음 청소",
   "scenes": [
     {
       "id": "s1",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_slum_black_market.jpg",
+        "value": "assets/bg/bg_0003.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -24,7 +24,7 @@
           "name": "약탈꾼 두목"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "……목표 외 잡음 발생. 처리할까?"
         },
         {
@@ -38,7 +38,7 @@
           "name": "약탈꾼 두목"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "약관 제12조. 성희롱 및 불법 인신매매 미수는 즉결 처분."
         },
         {
@@ -62,7 +62,7 @@
       "id": "s2_a",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_slum_black_market.jpg",
+        "value": "assets/bg/bg_0003.jpg",
         "color": "#2a2152"
       },
       "lines": [
@@ -76,7 +76,7 @@
           "text": "단장이 묵직한 검자루를 거칠게 휘둘러 선두의 턱주가리를 으스러뜨렸다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "……단장 치고는 꽤 빠른 기습. 지원 개시."
         }
       ],
@@ -86,12 +86,12 @@
       "id": "s2_b",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_slum_black_market.jpg",
+        "value": "assets/bg/bg_0003.jpg",
         "color": "#33264f"
       },
       "lines": [
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "성과급 지급 약속 접수 완료. 청소 시작."
         },
         {
@@ -109,14 +109,14 @@
     {
       "id": "b1",
       "type": "battle",
-      "stageId": "st_01_04",
+      "stageId": "stage_0004",
       "next": "s3"
     },
     {
       "id": "s3",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_slum_black_market.jpg",
+        "value": "assets/bg/bg_0003.jpg",
         "color": "#2b1f3a"
       },
       "lines": [
@@ -125,7 +125,7 @@
           "text": "골목 바닥에 너부러진 불한당들이 피거품을 물며 끙끙 앓았다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "작업 종료. 소요 시간 2분 14초. 단검 날 두 개 손상."
         },
         {
@@ -138,7 +138,7 @@
           "text": "단장은 능숙하게 두목의 품을 털어 찌그러진 은화 석 닢을 챙겼다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "……은화 세 닢. 이 정도면 오늘 저녁 호밀빵에 베이컨 추가 가능?"
         },
         {
@@ -152,7 +152,7 @@
       "id": "s4",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_slum_black_market.jpg",
+        "value": "assets/bg/bg_0003.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -165,7 +165,7 @@
           "text": "문 너머로 시끌벅적한 주사위 굴리는 소리와 고함이 흘러나왔다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "바란의 은신처 입구. 안쪽은 사설 노름판으로 위장 중."
         },
         {

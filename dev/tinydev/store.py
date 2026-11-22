@@ -8,6 +8,7 @@ import os
 import re
 import shutil
 import tempfile
+import threading
 from pathlib import Path
 
 from . import config
@@ -329,3 +330,113 @@ def asset_exists_ws(rel_path):
     if not isinstance(rel_path, str) or not rel_path.startswith("assets/") or ".." in rel_path:
         return False
     return (config.WORKSPACE / rel_path).is_file()
+
+
+# ── id 자동 발급 (dev/ids.json, git에 올라감 — 작업 공간을 초기화해도 남음) ──
+# 규칙: <종류>_<4자리 번호> (예: char_0001). 종류마다 번호는 1씩 늘기만 하고 다시 쓰지 않아요 (삭제해도).
+# 개발자는 id를 정하지 않아요 — 새로 만들 때 서버가 next_id()로 발급.
+# 플레이어 세이브는 id로 기록되므로, 예전 id를 바꿀 때는 data/id_aliases.json(예전 → 새 id)을 남겨서 게임이 세이브를 옮겨요.
+ID_KINDS = {
+    # 종류: (접두사, 목록 키 또는 None)
+    "char": ("char", "characters"),
+    "enemy": ("enemy", "enemies"),
+    "stage": ("stage", "stages"),
+    "story": ("story", "storyIndex"),
+    "banner": ("banner", "banners"),
+    "notice": ("notice", "notices"),
+    "mail": ("mail", "mail"),
+    "shop": ("shop", None),  # 상점 상품 (골드/캐시 공용 번호)
+    "prop": ("prop", "props"),
+    "bg": ("bg", None),  # 스토리 배경 그림 (설정집 backgrounds 키 = 파일 이름)
+}
+KIND_OF_LIST = {v[1]: k for k, v in ID_KINDS.items() if v[1]}
+AUTO_ID_RE = re.compile(r"^([a-z]+)_(\d{4,})$")
+IDS_FILE = config.DEV / "ids.json"
+_ids_lock = threading.Lock()
+
+
+def is_auto_id(kind, value):
+    """이 종류의 자동 id 형식인지 (char_0001 …)"""
+    m = AUTO_ID_RE.match(str(value or ""))
+    return bool(m) and m.group(1) == ID_KINDS[kind][0]
+
+
+def _id_number(kind, value):
+    m = AUTO_ID_RE.match(str(value or ""))
+    return int(m.group(2)) if m and m.group(1) == ID_KINDS[kind][0] else 0
+
+
+def _read_ids():
+    data = read_json(IDS_FILE, {}) or {}
+    if not isinstance(data, dict):
+        data = {}
+    data.setdefault("next", {})
+    data.setdefault("deleted", {})
+    return data
+
+
+def _existing_ids(kind):
+    """작업 공간에 지금 있는 이 종류의 id들"""
+    if kind == "shop":
+        shop = read_shop()
+        return {it.get("id") for tab in ("gold", "cash") for it in shop.get(tab) or [] if isinstance(it, dict)}
+    if kind == "bg":
+        from . import bible  # 순환 import 방지
+
+        return set(bible.load().get("backgrounds") or {}) | {p.stem for p in ws_assets("bg").glob("*.*")}
+    return {x.get("id") for x in read_list(ID_KINDS[kind][1]) if isinstance(x, dict)}
+
+
+def peek_next_id(kind):
+    """다음에 발급될 id (발급하지는 않음 — 화면 안내용)"""
+    data = _read_ids()
+    used = [_id_number(kind, x) for x in _existing_ids(kind) | set(data["deleted"].get(kind, []))]
+    n = max([int(data["next"].get(kind, 1))] + [u + 1 for u in used])
+    return f"{ID_KINDS[kind][0]}_{n:04d}"
+
+
+def next_id(kind):
+    """새 id 발급 (번호는 늘기만 함 → 중복/재사용 없음)"""
+    if kind not in ID_KINDS:
+        raise ValueError(f"알 수 없는 id 종류: {kind}")
+    with _ids_lock:
+        data = _read_ids()
+        new = peek_next_id(kind)
+        data["next"][kind] = _id_number(kind, new) + 1
+        write_json(IDS_FILE, data)
+        return new
+
+
+def issued(kind, value):
+    """이 id가 자동 형식이고 이미 발급된 번호인지 (손으로 만든 id 막기)"""
+    data = _read_ids()
+    return is_auto_id(kind, value) and _id_number(kind, value) < int(data["next"].get(kind, 1))
+
+
+def deleted_ids(kind="char"):
+    kind = KIND_OF_LIST.get(kind, kind)  # 예전 호출 "characters"도 받음
+    return set(_read_ids()["deleted"].get(kind, []))
+
+
+def remember_deleted(kind, item_id, name=""):
+    """삭제한 id 기록 (형식이 맞으면 번호가 다시 발급되지 않고, 배포 검사가 같은 id 재사용을 막음)"""
+    kind = KIND_OF_LIST.get(kind, kind)
+    with _ids_lock:
+        data = _read_ids()
+        items = data["deleted"].setdefault(kind, [])
+        if item_id not in items:
+            items.append(item_id)
+        write_json(IDS_FILE, data)
+
+
+# ── id 별칭 (data/id_aliases.json: 종류 → {예전 id: 새 id}) — 배포돼서 게임이 세이브를 옮길 때 씀 ──
+ALIASES_FILE = "id_aliases.json"
+
+
+def read_aliases():
+    data = read_json(ws_data(ALIASES_FILE), {}) or {}
+    return data if isinstance(data, dict) else {}
+
+
+def write_aliases(data):
+    write_json(ws_data(ALIASES_FILE), data)

@@ -1,92 +1,92 @@
 [
   {
-    "id": "sr_1",
+    "id": "char_0001",
     "name": "시논",
     "rarity": 4,
     "title": "웃지않는 소녀",
     "description": "어릴 적 모든 것을 잃고 거친 거리에서 살아남아 용병단으로 흘러들어온 과묵한 도적 소녀입니다.\n웃는 법을 잊어 늘 차가운 무표정을 짓고 있지만, 머리를 쓰다듬어 주면 뺨을 붉히며 어쩔 줄 몰라 하는 귀여운 반전이 있습니다.",
-    "image": "assets/chars/sr_1.png",
+    "image": "assets/chars/char_0001.png",
     "addedAt": "2026-11-19T22:23:00+09:00"
   },
   {
-    "id": "ssr_valeria",
+    "id": "char_0002",
     "name": "발레리아",
     "rarity": 5,
     "title": "파문당한 성기사",
     "description": "교단에서 파문당한 뒤 하루 벌어 하루 먹고사는 떠돌이 기사. 입은 험하지만 묵직한 대검 한 방만큼은 확실한 밥값을 증명합니다.",
-    "image": "assets/chars/ssr_valeria.png",
+    "image": "assets/chars/char_0002.png",
     "addedAt": "2026-11-19T23:22:00+09:00"
   },
   {
-    "id": "r_garrick",
+    "id": "char_0003",
     "name": "가린",
     "rarity": 3,
     "title": "빚쟁이 석궁잡이",
     "description": "노름빚에 쫓겨 다니는 전직 밀렵꾼 출신의 사수. 비겁하지만 목숨이 걸리면 귀신같은 사격 솜씨를 뽐냅니다.",
-    "image": "assets/chars/r_garrick.png",
+    "image": "assets/chars/char_0003.png",
     "addedAt": "2026-11-19T23:22:00+09:00"
   },
   {
-    "id": "npc_broker_baran",
+    "id": "char_0004",
     "name": "바바루아",
     "rarity": 3,
     "title": "시궁창 정보상",
     "description": "뒷골목과 암시장에서 의뢰를 중개하는 능구렁이 정보상입니다.",
-    "image": "assets/chars/npc_broker_baran.png",
+    "image": "assets/chars/char_0004.png",
     "addedAt": "2026-11-19T23:22:00+09:00"
   },
   {
-    "id": "npc_baron_hendrik",
+    "id": "char_0005",
     "name": "헨드릭 남작",
     "rarity": 3,
     "title": "피에 굶주린 영주",
     "description": "국경 지대를 다스리는 잔혹하고 탐욕스러운 영주입니다.",
-    "image": "assets/chars/npc_baron_hendrik.png",
+    "image": "assets/chars/char_0005.png",
     "addedAt": "2026-11-19T23:22:00+09:00"
   },
   {
-    "id": "sr_anne",
+    "id": "char_0006",
     "name": "안나",
     "rarity": 4,
     "title": "셰프",
     "description": "부모님의 정육점이 도적들에게 불타오른 뒤 홀로 남겨졌다. 평소에는 말수가 적고 조용하다. 앞치마를 매고 식칼을 휘두르는 순간은 여전히 이곳이 주방이고 자신이 요리중이라고 착각한다.",
-    "image": "assets/chars/sr_anne.png",
+    "image": "assets/chars/char_0006.png",
     "addedAt": "2026-11-21T22:41:00+09:00"
   },
   {
-    "id": "ssr_lumi",
+    "id": "char_0007",
     "name": "루미 아이올락",
     "rarity": 5,
     "title": "용병단의 어머니(?)",
     "description": "몰락 귀족 출신의 행정가, 자존심때문에 몰락하고도 품위를 지키려 한다. 용병단의 유일한 살림꾼이기에 제멋대로인 용병들에게도 '돈주는 사람', '용병단의 어머니'로 각인되어 있다. 본인도 투덜대지만 내심 싫어하지 않는 듯 하다.",
-    "image": "assets/chars/ssr_lumi.png",
+    "image": "assets/chars/char_0007.png",
     "addedAt": "2026-11-21T22:50:00+09:00"
   },
   {
-    "id": "ssr_irena",
+    "id": "char_0008",
     "name": "방탕한 이레나",
     "rarity": 5,
     "title": "악마랑 붙어먹는",
     "description": "마탑 출신의 마법사, 악마를 소환해 내기하다가 실패해 마탑 건물 절반이 파괴되고 '앞으로 이름앞에 수치스러운 칭호를 달 것'이라는 저주를 평생 짊어지게 되었다. 예측할 수 없는 흑마법을 사용한다.",
-    "image": "assets/chars/ssr_irena.png",
+    "image": "assets/chars/char_0008.png",
     "addedAt": "2026-11-21T23:02:00+09:00"
   },
   {
-    "id": "c1_janedoe",
+    "id": "char_0009",
     "name": "뜨내기 용병",
     "rarity": 1,
     "title": "뜨내기",
     "description": "어디에나 있는 뜨내기 용병, 양아치, 건달, 범죄자, 사생아, 누구나 무기를 들면 용병이 된다, 그리고 수틀리면 다시 양아치, 건달, 범죄자로 돌아간다.",
-    "image": "assets/chars/c1_janedoe.png",
+    "image": "assets/chars/char_0009.png",
     "addedAt": "2026-11-21T23:18:00+09:00"
   },
   {
-    "id": "ssr_sono",
+    "id": "char_0010",
     "name": "소노",
     "rarity": 5,
     "title": "",
     "description": "창녀다",
-    "image": "assets/chars/ssr_sono.png",
+    "image": "assets/chars/char_0010.png",
     "addedAt": "2026-11-22T20:50:00+09:00"
   }
 ]

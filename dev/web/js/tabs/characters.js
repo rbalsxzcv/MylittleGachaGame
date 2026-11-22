@@ -1,5 +1,5 @@
 // 캐릭터 탭: 생성 → 검토(원본/배경 제거) → 승인/거절/다시 생성, 소개문 AI 작성, 기존 캐릭터 수정/삭제
-import { h, toast, modal, confirmBox, busy, wsImage, slugOk, nowIso, isoToLocal, localToIso, rarOf, rarLabel, raritySelect, RARITY_ID_PREFIX } from '../ui.js';
+import { h, toast, modal, confirmBox, busy, wsImage, nowIso, isoToLocal, localToIso, rarOf, rarLabel, raritySelect, idBadge } from '../ui.js';
 import { api, tryApi } from '../api.js';
 import { state, reloadData } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
@@ -59,7 +59,6 @@ export function charactersTab(root) {
     const inp = job.input;
     const existing = inp.charId ? state.data.characters.find((c) => c.id === inp.charId) : null;
     const a = {
-      id: h('input', { value: existing?.id || '', placeholder: '영문 id 예: ssr_lumi', disabled: !!existing }),
       name: h('input', { value: existing?.name || inp.name }),
       rarity: raritySelect(existing?.rarity || inp.rarity),
       title: h('input', { value: existing?.title || inp.title }),
@@ -67,7 +66,6 @@ export function charactersTab(root) {
       feedback: h('input', { placeholder: '소개문 수정 요청 (예: 더 귀엽게, 존댓말로)' }),
       addedAt: h('input', { type: 'datetime-local', value: isoToLocal(existing?.addedAt || nowIso()) }),
     };
-    if (!existing) a.id.value = RARITY_ID_PREFIX[rarOf(inp.rarity)];
 
     const writeDesc = async (withFeedback) => {
       const r = await busy('소개문 쓰는 중…', () =>
@@ -93,7 +91,7 @@ export function charactersTab(root) {
       h(
         'div',
         { class: 'grid2' },
-        h('label', { class: 'field' }, 'id (파일 이름, 바꾸지 않기)', a.id),
+        h('div', { class: 'field' }, 'id', idBadge(existing?.id, '승인하면 자동으로 정해져요 (char_0001 …)')),
         h('label', { class: 'field' }, '이름', a.name),
         h('label', { class: 'field' }, '희귀도', a.rarity),
         h('label', { class: 'field' }, '칭호', a.title),
@@ -113,16 +111,12 @@ export function charactersTab(root) {
       approveLabel: existing ? '그림 교체 승인' : '승인 → 캐릭터 추가',
       approveExtra: extra,
       onApprove: async (n) => {
-        const id = a.id.value.trim();
-        if (!slugOk(id) || id.endsWith('_')) {
-          toast('id를 영문/숫자/_/-로 정해 주세요 (예: ssr_lumi)', 'error');
-          return false;
-        }
+        // id는 서버가 정함 (그림 교체면 그 캐릭터, 새 캐릭터면 새 id)
         const r = await tryApi(() =>
           api.post('/api/char/approve', {
             jobId: job.id,
             attempt: n,
-            character: { id, name: a.name.value, rarity: rarOf(a.rarity.value), title: a.title.value, description: a.description.value, addedAt: localToIso(a.addedAt.value) },
+            character: { name: a.name.value, rarity: rarOf(a.rarity.value), title: a.title.value, description: a.description.value, addedAt: localToIso(a.addedAt.value) },
           }),
         );
         if (!r) return false;
@@ -241,7 +235,8 @@ export function charactersTab(root) {
 
   async function deleteChar(c) {
     const refs = (await tryApi(() => api.get(`/api/characters/${c.id}/refs`))) || [];
-    const msg = refs.length ? `이 캐릭터를 쓰는 곳이 있어요:\n- ${refs.join('\n- ')}\n\n그래도 삭제하면 검사에서 오류가 나요.` : '그림 파일은 dev/trash로 옮겨져요.';
+    const after = `\n\n배포하면 공개 그림도 지워져요. 이 캐릭터를 가진 플레이어에게는 어디에도 보이지 않게 정리되고(세이브 기록은 보관), 같은 id(${c.id})는 다시 쓸 수 없어요. 그림 파일은 dev/trash로 옮겨져요.`;
+    const msg = (refs.length ? `이 캐릭터를 쓰는 곳이 있어요:\n- ${refs.join('\n- ')}\n\n그래도 삭제하면 검사에서 오류가 나서 고칠 때까지 배포할 수 없어요.` : '삭제할까요?') + after;
     if (!(await confirmBox(`「${c.name}」 삭제`, msg, { ok: '삭제', danger: true }))) return;
     const r = await tryApi(() => api.del(`/api/characters/${c.id}${refs.length ? '?force=1' : ''}`));
     if (r) {

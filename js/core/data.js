@@ -4,6 +4,7 @@
 
 import { cleanKit, cleanStats, cleanPassiveList, cleanEnemyBehavior } from '../battle/schema.js';
 import { loadConfig, normalizeRarity, RARITIES } from '../config.js';
+import { validateAliases } from './aliases.js';
 
 export { RARITIES, normalizeRarity };
 export const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
@@ -430,6 +431,8 @@ export async function loadGameData() {
     ['version', 'data/version.json', { contentVersion: 0, patchNotes: [] }, validateVersion],
     ['ui', 'data/ui.json', { backgrounds: {}, icons: {} }, validateUi],
     ['shop', 'data/shop.json', { gold: [], cash: [], vip: [] }, validateShop],
+    // 콘텐츠 id가 바뀌었을 때 예전 세이브를 옮기는 별칭 (없어도 됨)
+    ['aliases', 'data/id_aliases.json', {}, (j) => validateAliases(j, idOk)],
   ];
   const results = await Promise.all(files.map(([, path, fallback, validator]) => loadJson(path, fallback, validator)));
 

@@ -75,7 +75,7 @@ export function packTab(root) {
           'div',
           { class: 'row wrap' },
           h('label', { class: 'bf-param' }, h('span', {}, '이름'), input(c, 'name')),
-          h('label', { class: 'bf-param' }, h('span', {}, 'id'), input(c, 'id', { class: 'small-input' })),
+          h('label', { class: 'bf-param' }, h('span', {}, 'id (임시)'), h('code', { class: 'id-badge is-pending', title: '임시 이름 — 챕터 팩을 만들 때 자동 id(char_0001 …)로 바뀌어요' }, c.id)),
           h('label', { class: 'bf-param' }, h('span', {}, '희귀도'), sel(c, 'rarity', [5, 4, 3, 2, 1].map((r) => [String(r), `${r}★`]))),
           h('label', { class: 'bf-param grow' }, h('span', {}, '칭호'), input(c, 'title')),
           h('label', { class: 'inline' }, h('input', { type: 'checkbox', checked: c.pullable, onchange: (e) => (c.pullable = e.target.checked) }), '뽑기 동료'),
@@ -87,7 +87,7 @@ export function packTab(root) {
       ),
     );
     const bgs = p.backgrounds.map((b, i) =>
-      h('div', { class: 'row wrap pack-row' }, h('label', { class: 'bf-param' }, h('span', {}, '이름(영문)'), input(b, 'name', { class: 'small-input' })), h('label', { class: 'bf-param' }, h('span', {}, '장소'), input(b, 'label')), h('label', { class: 'bf-param grow' }, h('span', {}, '그림 설명'), input(b, 'prompt')), remove(p.backgrounds, i)),
+      h('div', { class: 'row wrap pack-row' }, h('label', { class: 'bf-param' }, h('span', {}, 'id (임시)'), h('code', { class: 'id-badge is-pending', title: '임시 이름 — 챕터 팩을 만들 때 자동 id(char_0001 …)로 바뀌어요' }, b.name)), h('label', { class: 'bf-param' }, h('span', {}, '장소'), input(b, 'label')), h('label', { class: 'bf-param grow' }, h('span', {}, '그림 설명'), input(b, 'prompt')), remove(p.backgrounds, i)),
     );
     const enemies = p.enemies.map((e, i) =>
       h(
@@ -97,7 +97,7 @@ export function packTab(root) {
           'div',
           { class: 'row wrap' },
           h('label', { class: 'bf-param' }, h('span', {}, '이름'), input(e, 'name')),
-          h('label', { class: 'bf-param' }, h('span', {}, 'id'), input(e, 'id', { class: 'small-input' })),
+          h('label', { class: 'bf-param' }, h('span', {}, 'id (임시)'), h('code', { class: 'id-badge is-pending', title: '임시 이름 — 챕터 팩을 만들 때 자동 id(char_0001 …)로 바뀌어요' }, e.id)),
           h('label', { class: 'bf-param' }, h('span', {}, '역할'), sel(e, 'role', ROLES)),
           h('label', { class: 'bf-param' }, h('span', {}, '스타일'), sel(e, 'style', STYLES)),
           h('label', { class: 'bf-param grow' }, h('span', {}, '설명'), input(e, 'description')),

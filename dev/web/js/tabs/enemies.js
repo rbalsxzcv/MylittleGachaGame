@@ -1,6 +1,6 @@
 // 적 탭: 목록 / 만들기 / 고치기 / 지우기 — 능력치, 행동(같은 효과 엔진) + 패턴(예고 순서) + 보스 페이즈/광폭화, 패시브, 그림
-import { h, toast, confirmBox, slugOk, wsImage } from '../ui.js';
-import { api, tryApi } from '../api.js';
+import { h, toast, confirmBox, wsImage, idBadge } from '../ui.js';
+import { api, tryApi, newId } from '../api.js';
 import { state, reloadData } from '../state.js';
 import { loadBattleKit, skillForm, passiveForm, statsForm, issueList, blankPassive, cleanEntity, effectList, newEffect } from '../battleForm.js';
 import { openEnemyGenerator } from './assets.js';
@@ -115,7 +115,7 @@ export function enemiesTab(root, { select } = {}) {
     };
     const issuesBox = h('div');
 
-    const id = h('input', { value: v.id, disabled: !isNew, placeholder: '영문 id 예: slime_star', oninput: (ev) => ((v.id = ev.target.value.trim()), mark()) });
+    const id = h('div', {}, idBadge(v.id));
     const name = h('input', { value: v.name, oninput: (ev) => ((v.name = ev.target.value), mark()) });
     const boss = h('input', { type: 'checkbox', checked: v.boss, onchange: (ev) => ((v.boss = ev.target.checked), mark()) });
     const imgSel = h('select', { onchange: (ev) => ((v.image = ev.target.value), mark(), renderImg()) }, h('option', { value: '' }, '(그림 없음 — 기본 카드)'), images.map((p) => h('option', { value: p }, p.replace('assets/enemies/', ''))));
@@ -129,7 +129,7 @@ export function enemiesTab(root, { select } = {}) {
       onchange: async (ev) => {
         const file = ev.target.files?.[0];
         if (!file) return;
-        if (!slugOk(v.id)) return toast('먼저 id를 정해 주세요 (그림 파일 이름이 돼요)', 'error');
+        if (editing.isNew || !state.data.enemies.some((x) => x.id === v.id)) return toast('먼저 적을 저장해 주세요 (그림 파일 이름 = 자동 id)', 'error');
         const data = await new Promise((res) => {
           const r = new FileReader();
           r.onload = () => res(r.result);
@@ -280,9 +280,13 @@ export function enemiesTab(root, { select } = {}) {
     renderPassives();
 
     async function save() {
-      if (!slugOk(v.id)) return toast('id를 영문/숫자/_/-로 정해 주세요', 'error');
       if (!v.name.trim()) return toast('이름을 입력해 주세요', 'error');
-      if (isNew && state.data.enemies.some((x) => x.id === v.id)) return toast('이미 있는 id예요', 'error');
+      if (!v.id) {
+        const nid = await tryApi(() => newId('enemy')); // id는 자동 (enemy_0001 …)
+        if (!nid) return;
+        v.id = nid;
+        id.replaceChildren(idBadge(v.id));
+      }
       const item = structuredClone(v);
       if (!item.image) delete item.image;
       if (!item.boss) delete item.boss;
@@ -301,7 +305,6 @@ export function enemiesTab(root, { select } = {}) {
       await reloadData();
       dirty = false;
       editing.isNew = false;
-      id.disabled = true;
       const chk = await tryApi(() => api.post('/api/battle/check', { ...item, enemy: true }));
       issuesBox.replaceChildren(h('h3', {}, '저장했어요'), issueList(chk?.issues));
       renderList();
@@ -325,7 +328,7 @@ export function enemiesTab(root, { select } = {}) {
         'section',
         { class: 'card' },
         h('h2', {}, isNew ? '새 적' : `적 편집 — ${v.id}`),
-        h('div', { class: 'row', style: { gap: '16px', alignItems: 'flex-start' } }, imgBox, h('div', { class: 'grow' }, h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (바꾸지 않기)', id), h('label', { class: 'field' }, '이름', name)), h('label', { class: 'inline' }, boss, '보스 (카드가 크게 표시)'), h('label', { class: 'field' }, '그림 (assets/enemies) — 올리기 또는 AI로 그리기', h('div', { class: 'row wrap' }, imgSel, upload, drawAi)))),
+        h('div', { class: 'row', style: { gap: '16px', alignItems: 'flex-start' } }, imgBox, h('div', { class: 'grow' }, h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (자동)', id), h('label', { class: 'field' }, '이름', name)), h('label', { class: 'inline' }, boss, '보스 (카드가 크게 표시)'), h('label', { class: 'field' }, '그림 (assets/enemies) — 올리기 또는 AI로 그리기', h('div', { class: 'row wrap' }, imgSel, upload, drawAi)))),
         power,
         h('h3', {}, '기본 능력치 (Lv.1, 레벨에 따라 성장)'),
         statsForm(v.stats, { ...balance.stats.byRarity[3], critRate: balance.stats.critRate, critDmg: balance.stats.critDmg }, { onChange: mark }),

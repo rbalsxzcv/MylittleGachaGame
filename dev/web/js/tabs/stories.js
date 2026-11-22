@@ -1,6 +1,6 @@
 // 스토리 탭: 종류별 목록/순서 변경, 장면·대사 편집(화자, 선택지 분기), AI 초안, 배경 그림 생성, 게임 뷰어로 미리보기
-import { h, toast, modal, confirmBox, promptBox, busy, dateField, slugOk, fmt } from '../ui.js';
-import { api, tryApi } from '../api.js';
+import { h, toast, modal, confirmBox, promptBox, busy, dateField, slugOk, fmt, idBadge } from '../ui.js';
+import { api, tryApi, newId } from '../api.js';
 import { state, saveList, reloadData } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
 import { openPreview } from '../preview.js';
@@ -136,10 +136,10 @@ export function storiesTab(root, { select } = {}) {
     const chapters = state.data.storyIndex.filter((s) => s.kind === kind).map((s) => s.chapter);
     const unlock = kind === 'main' ? [{ type: 'prevChapter' }] : kind === 'event' ? [{ type: 'period', startAt: null, endAt: null }] : [];
     const nextCh = (Math.max(0, ...chapters) || 0) + 1;
-    const suggest = kind === 'main' ? `main_${String(nextCh).padStart(2, '0')}` : '';
     current = {
       isNew: true,
-      meta: { id: state.data.storyIndex.some((s) => s.id === suggest) ? '' : suggest, kind, chapter: nextCh, title: '', summary: '', characterId: null, unlock, reward: { gems: kind === 'event' ? 100 : 50 } },
+      // id는 자동 (story_0001 …) — 처음 저장할 때 발급
+      meta: { id: '', kind, chapter: nextCh, title: '', summary: '', characterId: null, unlock, reward: { gems: kind === 'event' ? 100 : 50 } },
       body: { id: '', title: '', scenes: [{ id: 's1', background: { type: 'color', value: '#1b1440' }, lines: [{ speaker: 'narrator', text: '' }] }] },
     };
     pendingBible = null;
@@ -152,7 +152,7 @@ export function storiesTab(root, { select } = {}) {
   function renderEditor() {
     const m = current.meta;
     const mark = () => (dirty = true);
-    const id = h('input', { value: m.id, placeholder: '예: main_04', disabled: !current.isNew, oninput: (e) => ((m.id = e.target.value.trim()), mark()) });
+    const id = idBadge(m.id);
     const title = h('input', { value: m.title, oninput: (e) => ((m.title = e.target.value), mark()) });
     const summary = h('input', { value: m.summary || '', oninput: (e) => ((m.summary = e.target.value), mark()) });
     const kindSel = h('select', { onchange: (e) => ((m.kind = e.target.value), mark(), renderEditor()) }, KINDS.map(([k, l]) => h('option', { value: k }, l)));
@@ -167,7 +167,7 @@ export function storiesTab(root, { select } = {}) {
         'section',
         { class: 'card' },
         h('h2', {}, current.isNew ? '새 스토리' : `스토리 편집 — ${m.id}`),
-        h('div', { class: 'grid3' }, h('label', { class: 'field' }, 'id (파일 이름)', id), h('label', { class: 'field' }, '종류', kindSel), h('label', { class: 'field' }, '장 번호', chapter)),
+        h('div', { class: 'grid3' }, h('div', { class: 'field' }, 'id (자동)', id), h('label', { class: 'field' }, '종류', kindSel), h('label', { class: 'field' }, '장 번호', chapter)),
         h('label', { class: 'field' }, '제목', title),
         h('label', { class: 'field' }, '한 줄 소개', summary),
         h('div', { class: 'grid2' }, m.kind === 'character' && h('label', { class: 'field' }, '대상 캐릭터', charSel), h('label', { class: 'field' }, '첫 읽기 보상 (보석)', gems)),
@@ -442,16 +442,16 @@ export function storiesTab(root, { select } = {}) {
   }
 
   /** 장면 id를 바꾸면 그 장면을 가리키던 next/선택지도 함께 바꿈 */
-  function renameScene(sc, newId) {
-    if (!slugOk(newId) || current.body.scenes.some((s) => s !== sc && s.id === newId)) {
+  function renameScene(sc, sceneId) {
+    if (!slugOk(sceneId) || current.body.scenes.some((s) => s !== sc && s.id === sceneId)) {
       toast('장면 id는 영문/숫자/_/-이고 중복되면 안 돼요', 'error');
       return;
     }
     const old = sc.id;
-    sc.id = newId;
+    sc.id = sceneId;
     for (const s of current.body.scenes) {
-      if (s.next === old) s.next = newId;
-      for (const ln of s.lines || []) for (const c of ln.choices || []) if (c.goto === old) c.goto = newId;
+      if (s.next === old) s.next = sceneId;
+      for (const ln of s.lines || []) for (const c of ln.choices || []) if (c.goto === old) c.goto = sceneId;
     }
   }
 
@@ -461,13 +461,12 @@ export function storiesTab(root, { select } = {}) {
 
   /** 배경 그림 생성 (배경 제거 없음) → 승인하면 이 장면 배경으로 */
   function genBackground(sc) {
-    const name = h('input', { placeholder: '파일 이름 (영문) 예: night_library' });
+    const name = idBadge('', '뽑으면 자동으로 정해져요 (bg_0001 …)');
     const prompt = h('textarea', { rows: 3, placeholder: '장면 설명 예: 밤의 오래된 도서관, 높은 책장, 창밖 달빛' });
     const area = h('div');
     const bgInput = () => {
-      if (!slugOk(name.value.trim())) return toast('파일 이름은 영문/숫자/_/-로 지어 주세요', 'error'), null;
       if (!prompt.value.trim()) return toast('장면 설명을 입력해 주세요', 'error'), null;
-      return { bgName: name.value.trim(), scene: prompt.value };
+      return { bgName: '', scene: prompt.value };
     };
     const go = async (gen) => {
       const input = bgInput();
@@ -497,7 +496,7 @@ export function storiesTab(root, { select } = {}) {
         'div',
         {},
         h('p', { class: 'muted small' }, '공통 스타일: dev/style_bg.txt (인물 없이 풍경만)'),
-        h('div', { class: 'grid2' }, h('label', { class: 'field' }, '파일 이름', name), h('label', { class: 'field' }, '장면 설명 (한국어 OK)', prompt)),
+        h('div', { class: 'grid2' }, h('div', { class: 'field' }, 'id (파일 이름, 자동)', name), h('label', { class: 'field' }, '장면 설명 (한국어 OK)', prompt)),
         promptStep({ kind: 'bg', getInput: bgInput, generate: go, generateLabel: '그림 뽑기' }).el,
         area,
       ),
@@ -648,8 +647,6 @@ export function storiesTab(root, { select } = {}) {
   // ── 저장 / 삭제 / 미리보기 ──
   async function save() {
     const m = current.meta;
-    if (!slugOk(m.id)) return toast('id를 영문/숫자/_/-로 정해 주세요', 'error'), false;
-    if (current.isNew && state.data.storyIndex.some((s) => s.id === m.id)) return toast('이미 있는 id예요', 'error'), false;
     if (!m.title.trim()) return toast('제목을 입력해 주세요', 'error'), false;
     if (m.kind === 'character' && !m.characterId) return toast('대상 캐릭터를 골라 주세요', 'error'), false;
     if (m.kind !== 'character') delete m.characterId;
@@ -670,6 +667,11 @@ export function storiesTab(root, { select } = {}) {
         if (!ln.side) delete ln.side;
         if (ln.choices && !ln.choices.length) delete ln.choices;
       }
+    }
+    if (!m.id) {
+      const nid = await tryApi(() => newId('story')); // id는 자동 (story_0001 …)
+      if (!nid) return false;
+      m.id = nid;
     }
     const body = { id: m.id, title: m.title, scenes: current.body.scenes };
     const ok1 = await tryApi(() => api.put(`/api/stories/${m.id}`, body));

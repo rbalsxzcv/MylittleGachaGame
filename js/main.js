@@ -81,7 +81,8 @@ async function boot() {
   }
 
   // 세이브 옮기기/불러오기에 필요한 정보 (v1 중복 → 정수/티켓 환산)
-  const saveEnv = { rarityOf: (id) => data.allCharMap.get(id)?.rarity, balance: data.balance };
+  // aliases: 콘텐츠 id가 바뀌었으면 예전 세이브/세이브 코드의 id를 새 id로 (data/id_aliases.json)
+  const saveEnv = { rarityOf: (id) => data.allCharMap.get(id)?.rarity, balance: data.balance, aliases: data.aliases };
   const { save, isNew, corrupted, migrated } = loadSave(saveEnv);
   if (isNew && opts.preview) {
     save.gems = 100000;

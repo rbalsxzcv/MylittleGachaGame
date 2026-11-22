@@ -25,6 +25,8 @@ export function storyState(story, { save, index, charMap }, t = now()) {
   let visible = true;
   let ended = false;
   const read = isRead(save, story.id);
+  // 지워진 캐릭터의 캐릭터 스토리는 목록에서 숨김 (없었던 것처럼)
+  if (story.characterId && !charMap.has(story.characterId)) visible = false;
 
   for (const cond of story.unlock) {
     if (cond.type === 'prevChapter') {
@@ -33,7 +35,9 @@ export function storyState(story, { save, index, charMap }, t = now()) {
       const prev = i > 0 ? group[i - 1] : null;
       if (prev && !isRead(save, prev.id)) reasons.push(`이전 장 「${prev.title}」을(를) 먼저 읽어 주세요`);
     } else if (cond.type === 'ownsCharacter') {
-      if (!isOwned(save, cond.characterId)) {
+      // 데이터에서 지워진 캐릭터는 세이브에 기록이 남아 있어도 '보유'로 치지 않음 (그 스토리는 숨김)
+      if (!charMap.has(cond.characterId)) visible = false;
+      if (!isOwned(save, cond.characterId) || !charMap.has(cond.characterId)) {
         const name = charMap.get(cond.characterId)?.name ?? cond.characterId;
         reasons.push(`${name} 보유 시 해금`);
       }

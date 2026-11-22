@@ -91,6 +91,30 @@ def _public_json(rel):
         return "__broken__"
 
 
+def _public_content():
+    """지금 공개된 데이터(data/)를 _referenced_assets가 읽는 모양으로"""
+    def lst(rel):
+        data = _public_json(rel)
+        return [x for x in data if isinstance(x, dict)] if isinstance(data, list) else []
+
+    index = lst(PUBLIC_FILE["storyIndex"])
+    stories = {}
+    for s in index:
+        body = _public_json(f"data/stories/{s.get('id')}.json")
+        if isinstance(body, dict):
+            stories[s.get("id")] = body
+    ui = _public_json(f"data/{store.UI_FILE}")
+    shop = _public_json(f"data/{store.SHOP_FILE}")
+    return {
+        "characters": lst(PUBLIC_FILE["characters"]),
+        "banners": lst(PUBLIC_FILE["banners"]),
+        "enemies": lst(PUBLIC_FILE["enemies"]),
+        "stories": stories,
+        "ui": ui if isinstance(ui, dict) else {},
+        "shop": shop if isinstance(shop, dict) else {},
+    }
+
+
 def _referenced_assets(content):
     paths = set()
     for c in content["characters"]:
@@ -159,6 +183,10 @@ def plan(cutoff=None):
     targets[f"data/{store.UI_FILE}"] = ("json", out["ui"])
     targets[f"data/{store.BALANCE_FILE}"] = ("json", out["balance"])
     targets[f"data/{store.SHOP_FILE}"] = ("json", out["shop"])
+    # 콘텐츠 id 별칭 (예전 id → 새 id) — 게임이 예전 세이브를 옮길 때 씀. 계속 남겨 둠
+    aliases = store.read_aliases()
+    if aliases or (config.PUBLIC_DATA / store.ALIASES_FILE).exists():
+        targets[f"data/{store.ALIASES_FILE}"] = ("json", aliases)
     for rel in sorted(_referenced_assets(out)):
         if store.asset_exists_ws(rel):
             targets[rel] = ("asset", config.WORKSPACE / rel)
@@ -188,6 +216,11 @@ def plan(cutoff=None):
             rel = f"data/stories/{p.name}"
             if p.name != "index.json" and rel not in targets:
                 changes.append({"file": rel, "status": "removed"})
+    # 지금 공개 데이터가 쓰던 그림 중 새 데이터에서 아무도 안 쓰는 것 (삭제한 캐릭터/적/배너 그림) → 공개 폴더에서 삭제
+    # (공개 데이터가 원래 쓰지 않던 파일 — 아이콘, 글꼴 등 — 은 건드리지 않음)
+    for rel in sorted(_referenced_assets(_public_content()) - _referenced_assets(out)):
+        if (config.ROOT / rel).is_file() and rel not in targets:
+            changes.append({"file": rel, "status": "removed"})
 
     version = _public_json("data/version.json")
     current = version.get("contentVersion", 0) if isinstance(version, dict) else 0

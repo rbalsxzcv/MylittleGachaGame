@@ -1,12 +1,12 @@
 {
-  "id": "main_01_12",
+  "id": "story_0012",
   "title": "최종 정산서 발행",
   "scenes": [
     {
       "id": "s1",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_baron_manor_hall.jpg",
+        "value": "assets/bg/bg_0005.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -15,19 +15,19 @@
           "text": "집무실 문을 박차고 들어서자 역겨운 피비린내와 보랏빛 안개가 쏟아져 나왔다."
         },
         {
-          "speaker": "npc_baron_hendrik",
+          "speaker": "char_0005",
           "text": "쿨럭! 빌어먹을 용병 버러지들이 기어이 여기까지……! 내 피를 바쳐서라도 네놈들을 찢어발기겠다!"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "남작의 눈과 귀에서 검은 피 유출 확인. 자해형 저주 주술. 목숨을 깎아먹는 저급 마법."
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "으악! 저 땡중 같은 영감탱이 얼굴이 괴물처럼 뒤틀리는데요?! 단장, 저거 산재 보험 됩니까?"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "교단의 금기를 건드린 잡종 놈이. 내 대검이 저 추악한 혓바닥을 뽑아버리고 싶어 근질거린다."
         },
         {
@@ -56,16 +56,16 @@
       "id": "s2_a",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_baron_manor_hall.jpg",
+        "value": "assets/bg/bg_0005.jpg",
         "color": "#2a2152"
       },
       "lines": [
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "하하하! 내 대검의 무게로 죗값을 달아주마! 엎드려라, 돼지 놈아!"
         },
         {
-          "speaker": "npc_baron_hendrik",
+          "speaker": "char_0005",
           "text": "크아아악! 어둠의 힘이여, 이 버러지들의 내장을 태워라아아!"
         },
         {
@@ -79,20 +79,20 @@
       "id": "s2_b",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_baron_manor_hall.jpg",
+        "value": "assets/bg/bg_0005.jpg",
         "color": "#33264f"
       },
       "lines": [
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "특제 철갑 볼트 장전 완료! 미수금 갚기 싫으면 눈알 딱 대고 계쇼!"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "그림자 잠행. 심장 관통 준비. 죽기 전 계약 해지 서명 불가피."
         },
         {
-          "speaker": "npc_baron_hendrik",
+          "speaker": "char_0005",
           "text": "감히 천한 용병 놈들이 귀족의 목숨값을 논해?! 전부 뼛가루로 만들어주마!"
         }
       ],
@@ -101,14 +101,14 @@
     {
       "id": "b1",
       "type": "battle",
-      "stageId": "st_01_12",
+      "stageId": "stage_0012",
       "next": "s3"
     },
     {
       "id": "s3",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_baron_manor_hall.jpg",
+        "value": "assets/bg/bg_0005.jpg",
         "color": "#2b1f3a"
       },
       "lines": [
@@ -117,7 +117,7 @@
           "text": "콰아앙! 단장의 부츠가 마법의 여파로 널브러진 남작의 턱주가리를 사정없이 짓밟았다."
         },
         {
-          "speaker": "npc_baron_hendrik",
+          "speaker": "char_0005",
           "text": "커헉…… 끄으윽…… 살, 살려…… 금화는 얼마든지……!"
         },
         {
@@ -126,15 +126,15 @@
           "name": "단장"
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "어이쿠, 영감님 입안에 번쩍거리는 금니가 두 개나 있네! 펜치 가져올게요, 단장!"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "금고 열쇠 확보. 남작 품속에서 피 묻은 서류 다수 발견. 장물 감정 중."
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "기척이 끊겼군. 허풍만 요란했던 겁쟁이 귀족 놈다운 비참한 최후다."
         }
       ],
@@ -144,7 +144,7 @@
       "id": "s4",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_baron_manor_hall.jpg",
+        "value": "assets/bg/bg_0005.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -158,19 +158,19 @@
           "name": "단장"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "……잠깐. 그 봉인은 설마…… 광휘교단 본청의 문장?!"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "내용 분석. 피난민과 패잔병 300명을 교단 대주교에게 '산 제물'로 납품했다는 영수증."
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "뭐, 뭐라고요?! 신성한 교단 대주교 어르신이 사람을 고기처럼 사들였다고?!"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "위선자 놈들……! 명예와 신앙을 씨부리더니 뒤로는 이런 흉악한 인신매매를 벌이고 있었나?!"
         },
         {
@@ -179,7 +179,7 @@
           "name": "단장"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "만 닢…… 평생 고급 고기 스튜를 먹고도 남을 거액."
         },
         {

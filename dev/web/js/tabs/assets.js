@@ -2,7 +2,7 @@
 // - 모든 그림은 "AI로 프롬프트 쓰기" 또는 "직접 쓰기"로 프롬프트를 정한 뒤 ComfyUI로 그려요 (promptStep)
 // - 승인하면 작업 공간에 저장: 배경 assets/bg/<이름>.jpg (+ 설정집 배경 목록), 적 assets/enemies/<id>.png (+ enemies.json),
 //   소품 assets/props/<id>.png (+ props.json — 개발 도구 전용 목록. 그림은 상점 상품 등에서 골라 써요)
-import { h, toast, modal, confirmBox, slugOk, wsImage } from '../ui.js';
+import { h, toast, modal, confirmBox, wsImage, idBadge } from '../ui.js';
 import { api, tryApi } from '../api.js';
 import { state, reloadData, saveList } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
@@ -94,14 +94,15 @@ export function openEnemyGenerator(enemy, onDone) {
  * @param {(path:string)=>void} [onDone]
  */
 export function openPropGenerator(init = {}, onDone) {
-  const id = h('input', { value: init.id || '', placeholder: '영문 id 예: gold_pouch (파일 이름이 돼요)', disabled: !!init.lockId });
+  // id는 자동 (prop_0001 …): 새 소품은 뽑거나 올릴 때 서버가 정해요. 다시 뽑기는 그 소품 id 그대로
+  const pid = init.lockId ? init.id : '';
+  const id = idBadge(pid, '뽑거나 올리면 자동으로 정해져요');
   const label = h('input', { value: init.label || '', placeholder: '이름 예: 금화 주머니' });
   const prompt = h('textarea', { rows: 3, placeholder: '어떤 물건인지 (한국어 OK) 예: 금화가 넘칠 듯 담긴 낡은 가죽 주머니, 놋쇠 장식' }, init.prompt || '');
   const extra = h('input', { placeholder: '추가 요청 (선택) 예: 더 화려하게, 따뜻한 빛' });
   const input = () => {
-    const pid = id.value.trim();
-    if (!slugOk(pid)) return toast('소품 id를 영문/숫자/_/-로 정해 주세요', 'error'), null;
-    return { propId: pid, label: label.value.trim() || pid, description: prompt.value.trim(), extra: extra.value.trim() };
+    if (!label.value.trim() && !prompt.value.trim()) return toast('이름이나 물건 설명을 적어 주세요', 'error'), null;
+    return { propId: pid, label: label.value.trim() || '소품', description: prompt.value.trim(), extra: extra.value.trim() };
   };
   const upload = h('input', {
     type: 'file',
@@ -122,11 +123,11 @@ export function openPropGenerator(init = {}, onDone) {
     kind: 'prop',
     title: init.title || (init.id ? `소품 그림 — ${init.label || init.id}` : '새 소품 그림'),
     note: '공통 스타일: dev/style_icon.txt · 흰 배경으로 그린 뒤 배경을 지워 투명 PNG(긴 변 384px)로 assets/props/<id>.png 에 저장해요.',
-    fields: [h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id', id), h('label', { class: 'field' }, '이름', label)), h('label', { class: 'field' }, '물건 설명', prompt), h('label', { class: 'field' }, '추가 요청', extra)],
+    fields: [h('div', { class: 'grid2' }, h('div', { class: 'field' }, 'id (자동)', id), h('label', { class: 'field' }, '이름', label)), h('label', { class: 'field' }, '물건 설명', prompt), h('label', { class: 'field' }, '추가 요청', extra)],
     getInput: input,
     endpoint: '/api/prop/generate',
     approveLabel: '승인 → 소품으로 저장',
-    extra: h('div', { class: 'card inner' }, h('b', {}, '또는 그림 파일 올리기 '), upload, h('span', { class: 'muted small' }, ' (투명 PNG 권장, 위 id로 저장)')),
+    extra: h('div', { class: 'card inner' }, h('b', {}, '또는 그림 파일 올리기 '), upload, h('span', { class: 'muted small' }, ' (투명 PNG 권장, 자동 id로 저장)')),
     onApproved: async (path) => {
       await reloadData();
       onDone?.(path);
@@ -139,25 +140,26 @@ export function openPropGenerator(init = {}, onDone) {
  * @param {{name?:string, label?:string, prompt?:string}} init
  */
 function openBgGenerator(init = {}, onDone) {
-  const name = h('input', { value: init.name || '', disabled: !!init.name, placeholder: '영문 이름 예: night_harbor (파일 이름이 돼요)' });
+  // id(= 파일 이름)는 자동 (bg_0001 …): 새 배경은 뽑을 때 서버가 정해요. 다시 뽑기는 그 배경 그대로
+  const name = idBadge(init.name || '', '뽑으면 자동으로 정해져요');
   const label = h('input', { value: init.label || '', placeholder: '장소 이름 예: 밤의 항구' });
   const prompt = h('textarea', { rows: 3, placeholder: '장면 설명 (한국어 OK) 예: 비 내리는 밤의 낡은 항구, 젖은 나무 부두, 흔들리는 등불' }, init.prompt || '');
   const getInput = () => {
-    const n = name.value.trim();
-    if (!slugOk(n)) return toast('배경 이름을 영문/숫자/_/-로 정해 주세요', 'error'), null;
     if (!prompt.value.trim()) return toast('장면 설명을 적어 주세요', 'error'), null;
-    return { bgName: n, scene: prompt.value.trim(), label: label.value.trim() || n };
+    return { bgName: init.name || '', scene: prompt.value.trim(), label: label.value.trim() || '배경' };
   };
   openAssetGenerator({
     kind: 'bg',
     title: init.name ? `배경 그림 — ${init.label || init.name}` : '새 스토리 배경',
     note: '공통 스타일: dev/style_bg.txt (인물 없이 풍경만) · 1280×720 JPG로 assets/bg/<이름>.jpg 에 저장하고 설정집 배경 목록에 등록해요.',
-    fields: [h('div', { class: 'grid2' }, h('label', { class: 'field' }, '파일 이름', name), h('label', { class: 'field' }, '장소 이름', label)), h('label', { class: 'field' }, '장면 설명', prompt)],
+    fields: [h('div', { class: 'grid2' }, h('div', { class: 'field' }, 'id (파일 이름, 자동)', name), h('label', { class: 'field' }, '장소 이름', label)), h('label', { class: 'field' }, '장면 설명', prompt)],
     getInput,
     endpoint: '/api/bg/generate',
     approveLabel: '승인 → 배경으로 저장',
     onApproved: async (path, input) => {
-      await tryApi(() => api.put(`/api/story-bible/backgrounds/${input.bgName}`, { label: input.label, prompt: input.scene }));
+      // 서버가 정한 id = 저장된 파일 이름 (assets/bg/<id>.jpg)
+      const bgId = path.split('/').pop().replace(/\.[a-z]+$/i, '');
+      await tryApi(() => api.put(`/api/story-bible/backgrounds/${bgId}`, { label: input.label, prompt: input.scene }));
       onDone?.(path);
     },
   });

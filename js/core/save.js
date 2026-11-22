@@ -4,6 +4,7 @@
 
 import { ID_PATTERN } from './data.js';
 import { overflowTickets } from '../config.js';
+import { remapSaveIds } from './aliases.js';
 import { kstDateKey, nowKstIso, now } from './time.js';
 
 const BASE_SAVE_KEY = 'tinygacha_save_v2';
@@ -185,10 +186,12 @@ export const MIGRATIONS = [
 
 /**
  * 옛 세이브(JSON)를 최신 버전으로. v가 없거나 이상하면 1로 봄. 최신보다 높으면 그대로
+ * 먼저 콘텐츠 id 별칭(env.aliases = data/id_aliases.json)으로 예전 id를 새 id로 옮김 (버전과 상관없이 매번, 몇 번 해도 같음)
+ * @param {{rarityOf?:Function, balance?:object, aliases?:object}} env
  * @returns {{raw:object, applied:number[], report:{tickets:number, essence:number}}}
  */
 export function migrate(raw, env) {
-  let cur = raw && typeof raw === 'object' ? raw : {};
+  let cur = raw && typeof raw === 'object' ? remapSaveIds(raw, env?.aliases) : {};
   let v = Number.isInteger(cur.v) && cur.v >= 1 ? cur.v : 1;
   const applied = [];
   const report = { tickets: 0, essence: 0 };

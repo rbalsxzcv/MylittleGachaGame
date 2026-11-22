@@ -6,7 +6,7 @@ error가 하나라도 있으면 배포할 수 없습니다.
 import re
 
 from . import kit, rarity
-from .store import valid_id
+from .store import valid_id, deleted_ids, is_auto_id, ID_KINDS
 from .timeutil import parse
 
 STORY_KINDS = ("main", "character", "event")
@@ -43,8 +43,13 @@ def _check_date(r, where, field, value, required=False):
     return d
 
 
+# 목록 이름 → 자동 id 종류 (id 규칙 <종류>_<4자리> 검사)
+LABEL_KIND = {"characters": "char", "enemies": "enemy", "stages": "stage", "stories/index": "story", "banners": "banner", "notices": "notice", "mail": "mail", "shop.gold": "shop", "shop.cash": "shop"}
+
+
 def _check_ids(r, label, items):
-    """목록 공통: 배열인지, 각 항목에 올바른 id가 있고 중복이 없는지"""
+    """목록 공통: 배열인지, 각 항목에 올바른 id가 있고 중복이 없는지, id가 자동 규칙(<종류>_<4자리>)인지"""
+    kind = LABEL_KIND.get(label)
     if not isinstance(items, list):
         r.error(label, "목록(배열)이 아니에요")
         return []
@@ -58,6 +63,8 @@ def _check_ids(r, label, items):
         if not valid_id(it.get("id")):
             r.error(where, f"id가 올바르지 않아요: {it.get('id')!r} (영문/숫자/_/-만)")
             continue
+        if kind and not is_auto_id(kind, it["id"]):
+            r.error(f"{label}/{it['id']}", f"id 규칙이 아니에요 → '{ID_KINDS[kind][0]}_0001' 형식 (id는 개발 도구가 자동으로 정해요)")
         if it["id"] in seen:
             r.error(f"{label}/{it['id']}", "id가 중복돼요")
             continue
@@ -201,8 +208,11 @@ def validate(content, asset_exists, held=None):
     chars = _check_ids(r, "characters", content.get("characters"))
     char_ids = {c["id"] for c in chars}
     released_at = {}
+    gone = deleted_ids("characters")
     for c in chars:
         where = f"characters/{c['id']}"
+        if c["id"] in gone:
+            r.error(where, "예전에 삭제한 캐릭터의 id예요. 그 캐릭터를 가졌던 플레이어 세이브에 기록이 남아 있어서 새 캐릭터에 그대로 붙어요 → 다른 id로 바꿔 주세요 (dev/deleted_ids.json)")
         if not str(c.get("name") or "").strip():
             r.error(where, "이름(name)이 비어 있어요")
         if rarity.normalize(c.get("rarity")) is None:

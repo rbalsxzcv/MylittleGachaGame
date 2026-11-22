@@ -1,6 +1,6 @@
 // 회귀 스냅샷용 기준 팀 (실제 캐릭터 id — id는 바뀌지 않음). 팀을 바꾸면 스냅샷도 다시 만들어야 해요
 const five = (level, breakthrough) =>
-  ['ssr_valeria', 'sr_1', 'r_garrick', 'npc_broker_baran', 'npc_baron_hendrik'].map((charId) => ({ charId, level, breakthrough }));
+  ['char_0002', 'char_0001', 'char_0003', 'char_0004', 'char_0005'].map((charId) => ({ charId, level, breakthrough }));
 
 export const REFERENCE_TEAMS = [
   { name: 'Lv1', members: five(1, 0) },

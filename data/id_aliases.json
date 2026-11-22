@@ -1,0 +1,84 @@
+{
+  "characters": {
+    "sr_1": "char_0001",
+    "ssr_valeria": "char_0002",
+    "r_garrick": "char_0003",
+    "npc_broker_baran": "char_0004",
+    "npc_baron_hendrik": "char_0005",
+    "sr_anne": "char_0006",
+    "ssr_lumi": "char_0007",
+    "ssr_irena": "char_0008",
+    "c1_janedoe": "char_0009",
+    "ssr_sono": "char_0010"
+  },
+  "enemies": {
+    "en_scavenger": "enemy_0001",
+    "en_plague_hound": "enemy_0002",
+    "en_deserter_spear": "enemy_0003",
+    "en_manor_guard": "enemy_0004",
+    "en_boss_baron_hendrik": "enemy_0005",
+    "en_cult_hunter": "enemy_0006"
+  },
+  "stages": {
+    "st_01_01": "stage_0001",
+    "st_01_02": "stage_0002",
+    "st_01_03": "stage_0003",
+    "st_01_04": "stage_0004",
+    "st_01_05": "stage_0005",
+    "st_01_06": "stage_0006",
+    "st_01_07": "stage_0007",
+    "st_01_08": "stage_0008",
+    "st_01_09": "stage_0009",
+    "st_01_10": "stage_0010",
+    "st_01_11": "stage_0011",
+    "st_01_12": "stage_0012"
+  },
+  "stories": {
+    "main_01_01": "story_0001",
+    "main_01_02": "story_0002",
+    "main_01_03": "story_0003",
+    "main_01_04": "story_0004",
+    "main_01_05": "story_0005",
+    "main_01_06": "story_0006",
+    "main_01_07": "story_0007",
+    "main_01_08": "story_0008",
+    "main_01_09": "story_0009",
+    "main_01_10": "story_0010",
+    "main_01_11": "story_0011",
+    "main_01_12": "story_0012"
+  },
+  "banners": {
+    "standard": "banner_0001",
+    "pickup_rotation": "banner_0002",
+    "pickup_1": "banner_0003"
+  },
+  "notices": {},
+  "mail": {
+    "mail_mwp45sw1": "mail_0001"
+  },
+  "shop": {
+    "gold_free_gift": "shop_0001",
+    "gold_ticket_bundle": "shop_0002",
+    "gold_ticket_chest": "shop_0003",
+    "gold_scroll": "shop_0004",
+    "gold_gem_pouch": "shop_0005",
+    "gold_exchange": "shop_0006",
+    "cash_first_purchase": "shop_0007",
+    "cash_daily_deal": "shop_0008",
+    "cash_weekly_deal": "shop_0009",
+    "cash_starter": "shop_0010",
+    "cash_merc_supply": "shop_0011",
+    "cash_truck_wagon": "shop_0012",
+    "cash_truck_royal": "shop_0013",
+    "cash_growth_1": "shop_0014",
+    "cash_growth_2": "shop_0015",
+    "cash_growth_3": "shop_0016",
+    "cash_gems_60": "shop_0017",
+    "cash_gems_330": "shop_0018",
+    "cash_gems_680": "shop_0019",
+    "cash_gems_1980": "shop_0020",
+    "cash_gems_3280": "shop_0021",
+    "cash_gems_6480": "shop_0022",
+    "cash_monthly_blessing": "shop_0023"
+  }
+}

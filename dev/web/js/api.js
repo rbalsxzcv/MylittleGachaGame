@@ -43,3 +43,10 @@ export async function tryApi(fn) {
     return null;
   }
 }
+
+/** 새 오브젝트 id 발급 (kind: char|enemy|stage|story|banner|notice|mail|shop|prop|bg) — 저장 직전에 부름 */
+export async function newId(kind) {
+  const r = await api.post('/api/ids/new', { kind });
+  return r.id;
+}
+

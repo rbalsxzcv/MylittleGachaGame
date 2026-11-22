@@ -1,12 +1,12 @@
 {
-  "id": "main_01_02",
+  "id": "story_0002",
   "title": "식어빠진 스튜와 무표정",
   "scenes": [
     {
       "id": "s1",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_slum_black_market.jpg",
+        "value": "assets/bg/bg_0003.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -46,7 +46,7 @@
       "id": "s2",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#2a2152"
       },
       "lines": [
@@ -68,7 +68,7 @@
           "name": "단장"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "“…….”"
         },
         {
@@ -81,7 +81,7 @@
       "id": "b0",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#2a2152"
       },
       "lines": [
@@ -104,10 +104,10 @@
     {
       "id": "battle",
       "type": "battle",
-      "stageId": "st_01_02",
+      "stageId": "stage_0002",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#2a2152"
       }
     },
@@ -115,12 +115,12 @@
       "id": "s3",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#33264f"
       },
       "lines": [
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "“……유령인가.”"
         },
         {
@@ -144,7 +144,7 @@
       "id": "s4",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_backstreet_tavern.jpg",
+        "value": "assets/bg/bg_0002.jpg",
         "color": "#24304a"
       },
       "lines": [
@@ -158,7 +158,7 @@
           "name": "단장"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "“고기 없어. 쥐고기 힘줄만 세 토막.”"
         },
         {
@@ -171,7 +171,7 @@
           "text": "‘전원 몰살’이라는 끔찍한 단어를 그는 ‘퇴사’로 태연하게 갈음했다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "“……매복이었군. 그래서 여길 찾아온 건가.”"
         },
         {

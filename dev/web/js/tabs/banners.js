@@ -1,6 +1,6 @@
 // 배너 탭: 픽업 캐릭터 고르기, 기간(KST), 키 아트 생성(승인/거절/다시 생성), 관련 스토리, 게임 화면 미리보기
-import { h, toast, confirmBox, busy, dateField, wsImage, slugOk, fmt, nowIso, rarOf, rarLabel, raritySelect } from '../ui.js';
-import { api, tryApi } from '../api.js';
+import { h, toast, confirmBox, busy, dateField, wsImage, fmt, nowIso, rarOf, rarLabel, raritySelect, idBadge } from '../ui.js';
+import { api, tryApi, newId } from '../api.js';
 import { state, saveList, reloadData } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
 import { openPreview } from '../preview.js';
@@ -52,7 +52,16 @@ export function bannersTab(root, { select } = {}) {
     selectedId = v.id || null;
     renderList();
 
-    const id = h('input', { value: v.id, placeholder: '예: pickup_lumi_2612', disabled: !isNew });
+    // id는 자동 (banner_0001 …): 처음 저장하거나 그림을 뽑을 때 발급
+    let bid = v.id || '';
+    const id = h('div', {}, idBadge(bid));
+    const ensureId = async () => {
+      if (!bid) {
+        bid = (await tryApi(() => newId('banner'))) || '';
+        id.replaceChildren(idBadge(bid));
+      }
+      return bid;
+    };
     const title = h('input', { value: v.title });
     const type = h('select', {}, h('option', { value: 'pickup' }, '픽업'), h('option', { value: 'standard' }, '상시'));
     type.value = v.type;
@@ -121,11 +130,11 @@ export function bannersTab(root, { select } = {}) {
     // 키 아트 생성
     const extra = h('input', { placeholder: '추가 연출 (예: 밤하늘 축제 등불, 따뜻한 분위기)' });
     const jobArea = h('div');
-    const bannerInput = () => (collect(false) ? { bannerId: id.value.trim(), title: title.value, description: desc.value, pickupIds: [...picked], extra: extra.value } : null);
+    const bannerInput = () => (collect(false) ? { bannerId: bid || 'banner_new', title: title.value, description: desc.value, pickupIds: [...picked], extra: extra.value } : null);
     const artStep = promptStep({ kind: 'banner', getInput: bannerInput, generateLabel: '그림 뽑기', generate: (gen) => genArt(gen) });
     async function genArt(gen) {
+      if (!bannerInput() || !(await ensureId())) return;
       const input = bannerInput();
-      if (!input) return;
       const job = await tryApi(() => api.post('/api/banner/generate', { ...input, ...gen }));
       if (!job) return;
       const panel = jobPanel(job, {
@@ -147,7 +156,7 @@ export function bannersTab(root, { select } = {}) {
 
     function collect(strict = true) {
       const data = {
-        id: id.value.trim(),
+        id: bid,
         title: title.value.trim(),
         type: type.value,
         pickupIds: type.value === 'pickup' && !rotOn.checked ? [...picked] : [],
@@ -158,16 +167,15 @@ export function bannersTab(root, { select } = {}) {
         description: desc.value,
         relatedStoryId: related.value || null,
       };
-      if (!slugOk(data.id)) return toast('id를 영문/숫자/_/-로 정해 주세요', 'error'), null;
       if (strict && !data.title) return toast('제목을 입력해 주세요', 'error'), null;
-      if (isNew && state.data.banners.some((x) => x.id === data.id) && data.id !== selectedId) return toast('이미 있는 id예요', 'error'), null;
       if (data.startAt && data.endAt && Date.parse(data.startAt) >= Date.parse(data.endAt)) return toast('시작이 종료보다 늦어요', 'error'), null;
       return data;
     }
 
     async function save(quiet = false) {
+      if (!collect()) return false;
+      if (!(await ensureId())) return false;
       const data = collect();
-      if (!data) return false;
       const items = state.data.banners.filter((x) => x.id !== data.id);
       const idx = state.data.banners.findIndex((x) => x.id === data.id);
       idx >= 0 ? items.splice(idx, 0, data) : items.push(data);
@@ -176,7 +184,6 @@ export function bannersTab(root, { select } = {}) {
       selectedId = data.id;
       renderList();
       if (!quiet) toast('배너를 저장했어요 (작업 공간)', 'success');
-      if (isNew) id.disabled = true;
       return true;
     }
 
@@ -193,7 +200,7 @@ export function bannersTab(root, { select } = {}) {
       // 아직 시작 전이면 시작 1분 뒤로 시간 이동해서 미리보기
       const s = start.get();
       const now = s && Date.parse(s) > Date.now() ? new Date(Date.parse(s) + 60000).toISOString() : null;
-      openPreview({ banner: id.value.trim(), now });
+      openPreview({ banner: bid, now });
     }
 
     editor.replaceChildren(
@@ -201,7 +208,7 @@ export function bannersTab(root, { select } = {}) {
         'section',
         { class: 'card' },
         h('h2', {}, isNew ? '새 배너' : `배너 편집 — ${v.id}`),
-        h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (바꾸지 않기)', id), h('label', { class: 'field' }, '종류', type)),
+        h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (자동)', id), h('label', { class: 'field' }, '종류', type)),
         h('label', { class: 'field' }, '제목', title),
         h('div', { class: 'grid2' }, start.el, end.el),
         rotWrap,

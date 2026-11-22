@@ -1,12 +1,12 @@
 {
-  "id": "main_01_01",
+  "id": "story_0001",
   "title": "산 자는 장부를 적는다",
   "scenes": [
     {
       "id": "s1",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -51,7 +51,7 @@
       "id": "s2",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#2a2152"
       },
       "lines": [
@@ -106,7 +106,7 @@
       "id": "s3",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#33264f"
       },
       "lines": [
@@ -138,7 +138,7 @@
       "id": "b0",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#33264f"
       },
       "lines": [
@@ -160,10 +160,10 @@
     {
       "id": "battle",
       "type": "battle",
-      "stageId": "st_01_01",
+      "stageId": "stage_0001",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#33264f"
       },
       "next": "s4"
@@ -172,7 +172,7 @@
       "id": "s4",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#24304a"
       },
       "lines": [

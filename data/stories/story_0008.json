@@ -1,12 +1,12 @@
 {
-  "id": "main_01_08",
+  "id": "story_0008",
   "title": "식대 포함 정규직 계약",
   "scenes": [
     {
       "id": "s1",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -20,15 +20,15 @@
           "name": "교단 사냥꾼"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "목표 둘째 척추 절단 완료. 잡것 아니고 정당한 청구서 배달원."
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "야, 볼트 한 발에 은화 세 닢짜리다! 빗나가면 단장 밥그릇에서 깐다!"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "……뭐야? 네놈들은 또 어떤 구더기 같은 도적 떼냐?!"
         },
         {
@@ -56,14 +56,14 @@
     {
       "id": "b1",
       "type": "battle",
-      "stageId": "st_01_08",
+      "stageId": "stage_0008",
       "next": "s2"
     },
     {
       "id": "s2",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#33264f"
       },
       "lines": [
@@ -72,19 +72,19 @@
           "text": "푹. 시논이 마지막 남은 사냥꾼의 숨통을 끊으며 단검을 털어냈다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "청소 끝. 주머니 수색 결과 은화 열두 닢, 묵주 세 개 확보."
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "히히, 묵주는 암시장에 녹여 팔면 쇠값이라도 쏠쏠하겠네!"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "쿨럭! 하…… 교단 개새끼들을 털어먹는 날파리들이라니. 웃기는군."
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "볼일 끝났으면 꺼져라. 쓰러진 기사 목을 벨 셈이라면 대검 맛을……."
         },
         {
@@ -107,20 +107,20 @@
       "id": "s3",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#24304a"
       },
       "lines": [
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "……뭐? 계약서? 난 파문당했어도 용병 나부랭이로 전락할 생각 없다!"
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "어이쿠, 저 덩치에 자존심만 살았네. 지금 놔두면 과다출혈로 객사요!"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "사망 시 시체 처리 비용 발생. 살아있을 때 노예 계약 추천."
         },
         {
@@ -134,15 +134,15 @@
           "name": "단장"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "……스튜에 고기가 진짜 들어간다고? 건더기 없는 소금물 말고?"
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "거기에 걸려 넘어간다고?! 기사 긍지는 어디로 팔아먹었냐!"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "배고파 뒤지면 긍지가 밥 멕여주냐! 줘 봐, 어디다 찍으면 돼?!"
         }
       ]
@@ -151,7 +151,7 @@
       "id": "s4",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_misty_graveyard.jpg",
+        "value": "assets/bg/bg_0004.jpg",
         "color": "#2b1f3a"
       },
       "lines": [
@@ -165,15 +165,15 @@
           "name": "단장"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "사기꾼 냄새가 풀풀 풍기지만…… 대검 휘두를 힘만 나면 상관없다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "전방 방어선 든든함. 이제 화살받이 안 해도 됨. 만족."
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "그런데 단장, 저택 정문은 사병들이 쫙 깔렸는데 어쩔 겁니까?"
         },
         {

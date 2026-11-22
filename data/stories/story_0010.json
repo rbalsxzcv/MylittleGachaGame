@@ -1,12 +1,12 @@
 {
-  "id": "main_01_10",
+  "id": "story_0010",
   "title": "저택 뒷문 따기",
   "scenes": [
     {
       "id": "s1",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_misty_graveyard.jpg",
+        "value": "assets/bg/bg_0004.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -15,15 +15,15 @@
           "text": "묵직한 녹슨 철문 앞, 차가운 밤공기 속에 쇳소리가 낮게 울렸다."
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "쳇, 겉보기엔 허름한 식자재 문인데 자물쇠는 최고급 강철이네."
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "시간 낭비할 것 없다. 내가 대검으로 문짝째 베어 넘기지."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "소음 유발 금지. 경비병 몰려오면 노동 강도 세 배 증가."
         },
         {
@@ -32,7 +32,7 @@
           "name": "단장"
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "으악, 제 밥줄 건드리지 마쇼! 딱 핀 하나만 제끼면…… 찰칵! 됐다!"
         }
       ]
@@ -54,7 +54,7 @@
           "name": "남작 근위병"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "매복 병력 다수 확인. 은신 침투 실패, 강제 정면 돌파로 전환."
         },
         {
@@ -63,7 +63,7 @@
           "name": "단장"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "갑옷 때깔 고운 놈들이군. 저놈들 투구부터 찌그러뜨려 주마!"
         },
         {
@@ -86,7 +86,7 @@
     {
       "id": "b1",
       "type": "battle",
-      "stageId": "st_01_10",
+      "stageId": "stage_0010",
       "next": "s3"
     },
     {
@@ -101,15 +101,15 @@
           "text": "피비린내 나는 비명과 함께 근위대의 방어선이 처참하게 붕괴했다."
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "하하핫! 고작 이 정도 솜씨로 근위대 완장을 차고 있었단 말이냐?!"
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "헉, 헉…… 쏜 볼트만 열 발이 넘네. 단장, 탄약값 영수증 꼭 챙겨요!"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "시체 전원 호흡 정지. 망토 안주머니 수색 중. 은화 주머니 회수."
         },
         {
@@ -118,11 +118,11 @@
           "name": "단장"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "저 복도 끝 화려한 문 너머에서 음악 소리와 비명 소리가 섞여 들린다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "본관 연회장 방향. 목표 인물 헨드릭 남작 접근 확인."
         },
         {

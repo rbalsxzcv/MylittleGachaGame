@@ -98,6 +98,8 @@ button.plain { all: unset; cursor: pointer; display: block; }
 .top .chip.ok { background: #1f6b4a; color: #d9ffe9; }
 .top .chip.warn { background: #6b4e12; color: #ffe9b8; }
 .top .chip.error { background: #7a2034; color: #ffdbe3; }
+.id-badge { display: inline-block; padding: 6px 10px; border-radius: 8px; background: #f1eef9; color: #4b3a78; font: 600 13px ui-monospace, Consolas, monospace; user-select: all; }
+.id-badge.is-pending { background: #f6f6f6; color: #888; font-family: inherit; font-weight: 400; user-select: none; }
 .chip.r-1 { background: #eef0f2; color: #5f6873; }
 .chip.r-2 { background: #e2f6e7; color: #2f7d45; }
 .chip.r-3 { background: #e3efff; color: #2a64b8; }

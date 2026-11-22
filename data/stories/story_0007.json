@@ -1,12 +1,12 @@
 {
-  "id": "main_01_07",
+  "id": "story_0007",
   "title": "파문 기사의 불량 재고",
   "scenes": [
     {
       "id": "s1",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -15,11 +15,11 @@
           "text": "피비린내 찌든 수풀을 헤치자 처참한 혈투가 펼쳐졌다."
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "히익! 저 덩치 좀 봐! 사람을 반으로 접어놨는데요?!"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "……광휘교단 이단 사냥꾼 여덟. 중앙에 고립된 표적 하나."
         },
         {
@@ -33,7 +33,7 @@
           "name": "교단 사냥꾼"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "지랄 염병도 정성이다, 교단 개새끼들아! 덤벼!"
         }
       ]
@@ -42,7 +42,7 @@
       "id": "s2",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#2a2152"
       },
       "lines": [
@@ -51,11 +51,11 @@
           "text": "콰아앙! 거대한 대검이 허공을 가르며 사냥꾼을 날려버렸다."
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "세상에, 저런 괴물이 왜 저기서 혼자 쥐어터지고 있대요?"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "복부 자상 둘. 다리 힘 풀림. 출혈 과다로 3분 내 사망각."
         },
         {
@@ -84,7 +84,7 @@
       "id": "s3_a",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#33264f"
       },
       "lines": [
@@ -94,11 +94,11 @@
           "name": "단장"
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "또 사람 주워요?! 내 식판 소시지 지분 줄어들겠네!"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "……식비 추가 지출 예상. 하지만 생존율은 상승."
         },
         {
@@ -112,7 +112,7 @@
       "id": "s3_b",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#24304a"
       },
       "lines": [
@@ -122,11 +122,11 @@
           "name": "단장"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "공감. 목숨값 횡재 가능. 배후 타격 각도 완벽함."
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "에라, 모르겠다! 사냥꾼들 털어서 볼트 값이나 벌죠!"
         },
         {
@@ -140,7 +140,7 @@
       "id": "s4",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#2b1f3a"
       },
       "lines": [
@@ -154,7 +154,7 @@
           "name": "교단 사냥꾼"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "큭…… 빌어먹을 교황청 샌님들…… 여기까지인가……."
         },
         {
@@ -163,7 +163,7 @@
           "name": "단장"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "기습 진입. 목덜미 목표 셋, 확보."
         },
         {
@@ -176,10 +176,10 @@
     {
       "id": "battle",
       "type": "battle",
-      "stageId": "st_01_07",
+      "stageId": "stage_0007",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_ruined_battlefield.jpg",
+        "value": "assets/bg/bg_0001.jpg",
         "color": "#2b1f3a"
       }
     }

@@ -1,12 +1,12 @@
 {
-  "id": "main_01_11",
+  "id": "story_0011",
   "title": "채권 추심단의 방문",
   "scenes": [
     {
       "id": "s1",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_baron_manor_hall.jpg",
+        "value": "assets/bg/bg_0005.jpg",
         "color": "#1b1440"
       },
       "lines": [
@@ -20,23 +20,23 @@
           "name": "단장"
         },
         {
-          "speaker": "npc_baron_hendrik",
+          "speaker": "char_0005",
           "text": "히익?! 네놈들, 진흙탕에서 진작에 뒈졌어야 할 버러지들이?!"
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "우와, 식탁에 은접시 깔린 것 좀 봐! 단장, 저거 다 챙겨도 됩니까?"
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "식기 순도 80% 이상. 장물 거래 시 은화 40닢 상당."
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "고기 냄새 풍기며 한가롭게 주안상을 벌이고 있었군. 뻔뻔한 돼지 놈."
         },
         {
-          "speaker": "npc_baron_hendrik",
+          "speaker": "char_0005",
           "text": "친위대! 뭐 하고 있느냐! 당장 저 미치광이 도적놈들의 사지를 찢어라!"
         },
         {
@@ -65,12 +65,12 @@
       "id": "s2_a",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_baron_manor_hall.jpg",
+        "value": "assets/bg/bg_0005.jpg",
         "color": "#2a2152"
       },
       "lines": [
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "오케이, 내 특등사수 실력 보시라! 팅!"
         },
         {
@@ -78,7 +78,7 @@
           "text": "날카로운 볼트가 쇠사슬을 끊자 거대한 유리 샹들리에가 내리꽂혔다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "적군 셋 깔림. 시야 혼란 발생. 기습 개시."
         }
       ],
@@ -88,12 +88,12 @@
       "id": "s2_b",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_baron_manor_hall.jpg",
+        "value": "assets/bg/bg_0005.jpg",
         "color": "#33264f"
       },
       "lines": [
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "하하하! 밥상머리 교육을 다시 시켜주마!"
         },
         {
@@ -111,14 +111,14 @@
     {
       "id": "b1",
       "type": "battle",
-      "stageId": "st_01_11",
+      "stageId": "stage_0011",
       "next": "s3"
     },
     {
       "id": "s3",
       "background": {
         "type": "image",
-        "value": "assets/bg/a01_baron_manor_hall.jpg",
+        "value": "assets/bg/bg_0005.jpg",
         "color": "#2b1f3a"
       },
       "lines": [
@@ -127,15 +127,15 @@
           "text": "붉은 카페트 위에 진짜 피가 웅덩이를 이루며 친위대가 쓰러져 나갔다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "친위대 섬멸 완료. 은단도 두 자루 노획. 품삯 충당."
         },
         {
-          "speaker": "r_garrick",
+          "speaker": "char_0003",
           "text": "헤헤, 은촛대랑 와인잔은 내 품속에 쏙! 오늘은 잔칫날이다!"
         },
         {
-          "speaker": "ssr_valeria",
+          "speaker": "char_0002",
           "text": "흥, 고급 갑옷만 입었지 뼈마디는 두부처럼 물러터진 놈들이었군."
         },
         {
@@ -144,7 +144,7 @@
           "name": "단장"
         },
         {
-          "speaker": "npc_baron_hendrik",
+          "speaker": "char_0005",
           "text": "이, 이런 천박한 쥐새끼들이 감히 귀족의 피를……! 용서 못 해!"
         },
         {
@@ -152,7 +152,7 @@
           "text": "남작의 손에 쥐인 검은 부적에서 역겨운 보랏빛 연기가 피어올랐다."
         },
         {
-          "speaker": "sr_1",
+          "speaker": "char_0001",
           "text": "단장, 불길한 주술 반응. 접근 시 피부 괴사 위험."
         },
         {
