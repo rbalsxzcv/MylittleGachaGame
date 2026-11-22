@@ -1,6 +1,11 @@
 {
-  "contentVersion": 7,
+  "contentVersion": 8,
   "patchNotes": [
+    {
+      "version": 8,
+      "date": "2026-11-22T21:03:14+09:00",
+      "notes": []
+    },
     {
       "version": 7,
       "date": "2026-11-22T20:50:55+09:00",
