@@ -1,0 +1,162 @@
+{
+  "id": "story_0015",
+  "title": "우유 값은 선불이다",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0002.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "발길질에 부서진 주점 문틈짝으로 시큼한 맥주 냄새와 담배 연기가 쏟아졌다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "콜록, 공기 한번 죽여주네. 쥐새끼 썩은 물로 청소라도 했나?",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "주점 구석 어두컴컴한 테이블, 익숙한 가죽 후드를 뒤집어쓴 소녀가 보였다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "용병단 전멸당하는 동안 명당자리에서 느긋하게 목을 축이고 계셨다?",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 시체 썩는 냄새가 문밖까지 풍겨서 이미 죽은 줄 알았는데."
+        },
+        {
+          "speaker": "narrator",
+          "text": "네가 던진 연막탄 연기 마시고 질식사할 뻔한 거 겨우 살아왔지.",
+          "name": "단장"
+        }
+      ],
+      "next": "s2"
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0002.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "단장은 시논의 맞은편 의자를 거칠게 빼서 털썩 주저앉았다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "난 계약서에 명시된 업무만 해. 화살받이는 내 직무 범위를 벗어났어."
+        },
+        {
+          "speaker": "narrator",
+          "text": "도주 위약금 은화 스무 닢. 네 잔에 담긴 저 희멀건 건 뭐냐? 설마 우유냐?",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "상한 독주에 산양유 탄 거. 위장에 구멍 나면 산재 처리 안 해주잖아."
+        },
+        {
+          "speaker": "narrator",
+          "text": "건강 엄청 챙기시네. 당장 일어나라, 남작 새끼 털러 가야 하니까.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "싫어. 전멸한 용병단은 계약 무효야. 난 이제 무직 백수 도적이야."
+        },
+        {
+          "speaker": "narrator",
+          "text": "쾅! 거친 파열음과 함께 주점의 반쯤 박살 난 문짝이 완전히 뜯겨 나갔다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "골목에 피칠갑을 하고 기어들어 온 놈이 누구냐! 가진 거 다 내놔!",
+          "name": "시체 약탈꾼 두목"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장 손님이야? 술맛 떨어지게 정말 피곤하게 사네."
+        },
+        {
+          "speaker": "narrator",
+          "text": "청소비로 동화 몇 닢은 건지겠군. 대가리 쪼개는 놈이 챙기는 거다!",
+          "name": "단장"
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0015",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0002.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "부서진 테이블과 술병 파편 위로 약탈꾼들의 시체가 널브러졌다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……치사하게 의자로 정수리를 찍어버리다니. 잔인한 아저씨."
+        },
+        {
+          "speaker": "narrator",
+          "text": "목에 비수 세 개 꽂아놓고 네가 할 소리냐? 이놈 주머니나 털어 봐.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "시논은 무표정하게 시체의 장화를 벗겨내더니 은화 서너 닢을 낚아챘다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "은화 넷, 녹슨 단도 하나. 압류된 내 계약금 일부로 칠게."
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장이 피 묻은 손을 툭툭 털며 시논의 머리칼을 거칠게 쓰다듬었다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……흣, 머리 만지지 마. 피 묻잖아…… 바보 단장."
+        },
+        {
+          "speaker": "narrator",
+          "text": "시논은 뺨을 살짝 붉히며 후드를 깊게 눌러썼다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "손장난은 끝났고. 우리한테 그 사기 의뢰 물어다 준 개새끼 잡으러 가자.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "시궁창 정보상 바바루아? 걔라면 지금쯤 장부 태우고 튈 준비 중일 텐데."
+        },
+        {
+          "speaker": "narrator",
+          "text": "다리몽둥이를 부러뜨려서라도 남작 놈 목줄 잡을 지도를 토해내게 해야지.",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,191 @@
+{
+  "id": "story_0017",
+  "title": "성수 대신 독주",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0004.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "축축한 까마귀 울음소리와 썩은 풀 냄새가 진동하는 폐허 묘지."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "비석 뒤에 웬 거대한 고철 덩어리가 쓰러져 있어. 술 냄새 진동하네."
+        },
+        {
+          "speaker": "narrator",
+          "text": "저게 바로 대검 하나로 기병대 목을 썰어대던 성기사님의 고귀한 몰골이지.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "우읍…… 대가리 깨지겠네…… 성수 더 가져와, 알코올 90도짜리로……."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "아직도 살아서 숨은 쉬네. 어떻게 깨울래, 단장?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "숙취엔 역시 충격 요법이 직효약이지.",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "철모를 발로 걷어찬다.",
+              "goto": "s2_1"
+            },
+            {
+              "text": "독주 냄새를 코앞에 살살 피운다.",
+              "goto": "s2_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0004.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "깡-! 묵직한 쇳소리와 함께 발레리아의 투구가 비석에 처박혔다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "어떤 개자식이 신성한 숙면을 방해…… 커헉, 단장?! 너 무덤에서 기어 나왔냐?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "죽기엔 떼먹힌 삯이 너무 많아서 말이지. 일어나라, 일거리 생겼다.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "뇌진탕 걸린 얼굴이네. 그래도 고기방패로는 손색없어 보여."
+        }
+      ],
+      "next": "s3"
+    },
+    {
+      "id": "s2_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0004.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "char_0002",
+          "text": "하읍…… 이 묵직하고 역겨운 도수의 향기는…… 남부 독주?!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "발레리아가 좀비처럼 상체를 튕기며 눈을 까뒤집고 일어났다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "어라, 귀신인가? 단장 놈이 지옥 밑바닥에서 술 배달을 왔네?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "지옥에 술 배달은 셀프다. 남작 저택 털어서 창고째로 마시러 가자.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "개코가 따로 없네. 술병 흔드니까 바로 일어나는 것 좀 봐."
+        }
+      ],
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0004.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "char_0002",
+          "text": "남작 저택을 턴다고? 크큭, 미친 소리지만 공짜 술이라면 대검 들 가치는 있지."
+        },
+        {
+          "speaker": "narrator",
+          "text": "찾았다, 타락한 파문자 발레리아! 그리고 시궁창의 용병 쥐새끼들까지!",
+          "name": "이단 심문관"
+        },
+        {
+          "speaker": "narrator",
+          "text": "안개 속에서 하얀 로브를 두른 광휘교단 사냥꾼 대여섯 명이 철퇴를 뽑아 들었다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "아오, 지독한 박쥐 놈들. 술 깨기도 전에 잔소리 폭격부터 날리러 오셨네."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "저놈들 갑옷 흉갑이랑 십자가, 꽤 순도 높은 은박인데? 팔면 돈 되겠어."
+        },
+        {
+          "speaker": "narrator",
+          "text": "아침부터 알아서 장례비를 걸어 들어오시네. 십자가부터 뜯어내고 모가지 썰어라!",
+          "name": "단장"
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0017",
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0004.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "char_0002",
+          "text": "크하하! 성수 대신 피바가지나 뒤집어써라, 위선자 놈들아!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "은 십자가 셋, 주머니 털어서 나온 백은화 일곱 닢. 발레리아 술값은 벌었네."
+        },
+        {
+          "speaker": "narrator",
+          "text": "어때, 발레리아? 남작 저택 정문에서 화살 좀 튕겨내 주면 몫을 넉넉히 쳐주지.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "화살받이 계약치곤 짭짤하네. 가자, 단장. 근데 뒤에서 쏠 원거리 놈은 있냐?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "암시장에 도박 빚으로 팔려 가기 직전인 석궁수 놈이 하나 있지.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "가린 말하는 거지? 그 인간, 손목 잘리기 전에 건져내러 가야겠네."
+        }
+      ]
+    }
+  ]
+}

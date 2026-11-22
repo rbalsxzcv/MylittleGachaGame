@@ -20,7 +20,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1.0,
+            "mult": 1,
             "stat": "atk",
             "hits": 1
           }
@@ -123,7 +123,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1.0,
+            "mult": 1,
             "stat": "atk",
             "hits": 1
           }
@@ -160,7 +160,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1.0,
+            "mult": 1,
             "stat": "atk",
             "hits": 1
           }
@@ -220,7 +220,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1.0,
+            "mult": 1,
             "stat": "atk",
             "hits": 1
           }
@@ -351,7 +351,7 @@
   {
     "id": "enemy_0006",
     "name": "광휘교단 이단 사냥꾼",
-    "image": "",
+    "image": "assets/enemies/enemy_0006.png",
     "boss": false,
     "stats": {
       "atk": 66,
@@ -369,7 +369,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1.0,
+            "mult": 1,
             "stat": "atk",
             "hits": 1
           }
@@ -408,5 +408,360 @@
       }
     ],
     "passives": []
+  },
+  {
+    "id": "enemy_0007",
+    "name": "숙부파 사설 경비병",
+    "image": "",
+    "boss": false,
+    "stats": {
+      "atk": 60,
+      "def": 18,
+      "hp": 400,
+      "spd": 100,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "actions": {
+      "basic": {
+        "name": "몽둥이 후려치기",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.0,
+            "stat": "atk",
+            "hits": 1
+          }
+        ],
+        "icon": "attack"
+      }
+    },
+    "pattern": [
+      {
+        "action": "basic"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "enemy_0008",
+    "name": "이웃 영지 정규 방패병",
+    "image": "",
+    "boss": false,
+    "stats": {
+      "atk": 51,
+      "def": 23,
+      "hp": 520,
+      "spd": 88,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "actions": {
+      "basic": {
+        "name": "방패 밀치기",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.0,
+            "stat": "atk",
+            "hits": 1
+          }
+        ],
+        "icon": "attack"
+      },
+      "skill": {
+        "name": "방진 구축",
+        "description": "",
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "shield",
+            "mult": 0.15,
+            "stat": "hp",
+            "turns": 2
+          },
+          {
+            "type": "taunt",
+            "turns": 1
+          }
+        ],
+        "icon": "buff"
+      }
+    },
+    "pattern": [
+      {
+        "action": "skill"
+      },
+      {
+        "action": "basic"
+      },
+      {
+        "action": "basic"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "enemy_0009",
+    "name": "약탈 부대 방화범",
+    "image": "",
+    "boss": false,
+    "stats": {
+      "atk": 75,
+      "def": 23,
+      "hp": 712,
+      "spd": 104,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "actions": {
+      "basic": {
+        "name": "횃불 지지기",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.8,
+            "stat": "atk",
+            "hits": 1
+          },
+          {
+            "type": "dot",
+            "mult": 0.2,
+            "turns": 2,
+            "chance": 50
+          }
+        ],
+        "icon": "attack"
+      },
+      "skill": {
+        "name": "기름병 투척",
+        "description": "",
+        "targeting": "enemy_all",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.4,
+            "stat": "atk",
+            "hits": 1
+          },
+          {
+            "type": "dot",
+            "mult": 0.25,
+            "turns": 2
+          }
+        ],
+        "icon": "aoe"
+      }
+    },
+    "pattern": [
+      {
+        "action": "basic"
+      },
+      {
+        "action": "basic"
+      },
+      {
+        "action": "skill"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "enemy_0010",
+    "name": "강철송곳니 용병대장",
+    "image": "",
+    "boss": false,
+    "stats": {
+      "atk": 71,
+      "def": 26,
+      "hp": 750,
+      "spd": 102,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "actions": {
+      "basic": {
+        "name": "도끼 가르기",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.0,
+            "stat": "atk",
+            "hits": 1
+          }
+        ],
+        "icon": "attack"
+      },
+      "skill": {
+        "name": "도살자의 포효",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.6,
+            "stat": "atk",
+            "hits": 1
+          },
+          {
+            "type": "debuff",
+            "stat": "def",
+            "pct": 20,
+            "turns": 2
+          }
+        ],
+        "icon": "attack"
+      }
+    },
+    "pattern": [
+      {
+        "action": "basic"
+      },
+      {
+        "action": "basic"
+      },
+      {
+        "action": "skill"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "enemy_0011",
+    "charId": "char_0013",
+    "name": "발도르프 버스튼",
+    "image": "",
+    "boss": true,
+    "stats": {
+      "atk": 90,
+      "def": 36,
+      "hp": 2000,
+      "spd": 102,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "actions": {
+      "basic": {
+        "name": "황금칼 휘두르기",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.0,
+            "stat": "atk",
+            "hits": 1
+          }
+        ],
+        "icon": "attack"
+      },
+      "skill": {
+        "name": "사설 용병 긴급 호출",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.6,
+            "stat": "atk",
+            "hits": 1
+          }
+        ],
+        "icon": "attack"
+      },
+      "ultimate": {
+        "name": "혈세를 삼킨 광기",
+        "description": "",
+        "targeting": "enemy_all",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.2,
+            "stat": "atk",
+            "hits": 1
+          }
+        ],
+        "icon": "aoe",
+        "big": true
+      }
+    },
+    "pattern": [
+      {
+        "action": "basic"
+      },
+      {
+        "action": "skill"
+      },
+      {
+        "action": "basic"
+      },
+      {
+        "action": "ultimate"
+      }
+    ],
+    "phases": [
+      {
+        "hpBelow": 50,
+        "name": "발도르프 버스튼의 분노",
+        "pattern": [
+          {
+            "action": "skill"
+          },
+          {
+            "action": "ultimate"
+          },
+          {
+            "action": "basic"
+          }
+        ],
+        "enterEffects": [
+          {
+            "type": "buff",
+            "stat": "atk",
+            "pct": 20,
+            "turns": 3
+          }
+        ]
+      }
+    ],
+    "enrage": {
+      "round": 15,
+      "effects": [
+        {
+          "type": "buff",
+          "stat": "atk",
+          "pct": 50,
+          "turns": 20
+        }
+      ]
+    },
+    "passives": [
+      {
+        "name": "분노",
+        "description": "HP가 절반 아래면 공격력이 올라요.",
+        "trigger": "onHpBelow",
+        "pct": 50,
+        "limit": 1,
+        "targeting": "self",
+        "conditions": [],
+        "effects": [
+          {
+            "type": "buff",
+            "stat": "atk",
+            "pct": 30,
+            "turns": 3
+          }
+        ],
+        "modifiers": []
+      }
+    ]
   }
 ]

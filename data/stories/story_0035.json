@@ -1,0 +1,209 @@
+{
+  "id": "story_0035",
+  "title": "알현실의 경매장",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0014.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "콰아앙-! 웅장한 알현실의 흑단목 문이 박살 나며 먼지가 일었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "문짝 값은 영주님 승계 기념 청구서에 달아둬라, 루미!",
+          "name": "발레리아"
+        },
+        {
+          "speaker": "char_0013",
+          "text": "히익?! 너, 너희들…… 바르도는 어쩌고 어떻게 여기까지?!"
+        },
+        {
+          "speaker": "char_0012",
+          "text": "반역자 발도르프! 가문의 은혜를 저버린 죗값을 치러라!"
+        },
+        {
+          "speaker": "char_0011",
+          "text": "삼촌. 바닥에 팽개쳐진 그 금괴 궤짝들은 다 뭐죠?"
+        },
+        {
+          "speaker": "char_0013",
+          "text": "큭…… 레일라, 이 불효막심한 년! 피붙이의 등에 칼을 꽂다니!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "……단장. 저 뚱보 주머니, 묵직해. 금화 냄새나.",
+          "name": "시논"
+        }
+      ],
+      "next": "s2"
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0014.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "char_0013",
+          "text": "잠깐! 거기 용병 대장! 저 계집이 얼마를 준다고 했지?"
+        },
+        {
+          "speaker": "char_0013",
+          "text": "금화 세 자루다! 저 계집 목을 치면 지금 당장 주마!"
+        },
+        {
+          "speaker": "char_0011",
+          "text": "다, 단장님……? 우리 계약서 썼잖아요! 위약금 10배예요!"
+        },
+        {
+          "speaker": "char_0012",
+          "text": "단장 공! 설마 저따위 비열한 뇌물에 흔들리는 건 아니겠지요?!"
+        },
+        {
+          "speaker": "char_0004",
+          "text": "아이고, 영감님. 우리 단장 계산법을 아직 모르시네."
+        },
+        {
+          "speaker": "narrator",
+          "text": "어쩔래, 단장? 삼촌 말대로 갈아탈까? 아니면 원안대로 갈까?",
+          "name": "발레리아",
+          "choices": [
+            {
+              "text": "네놈을 썰면 그 세 자루도 우리 건데 뭐 하러 협상을 해?",
+              "goto": "s3_1"
+            },
+            {
+              "text": "입찰 시작가가 너무 낮잖아. 죽여서 잔돈까지 털어라.",
+              "goto": "s3_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0014.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "char_0013",
+          "text": "뭐, 뭐라고?! 이 무식한 칼잡이 놈이 셈도 못 하냐?!"
+        },
+        {
+          "speaker": "char_0011",
+          "text": "후훗, 역시 믿음직스럽네요. 영지도 드리고 저 돈도 털죠!"
+        },
+        {
+          "speaker": "char_0012",
+          "text": "동기는 불순하지만…… 결론은 정의롭군요. 검을 듭니다!"
+        }
+      ],
+      "next": "s4"
+    },
+    {
+      "id": "s3_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0014.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "단장 말 맞아. 시체 뒤지면 금목걸이도 공짜야.",
+          "name": "시논"
+        },
+        {
+          "speaker": "char_0013",
+          "text": "이, 이런 천하의 날강도 같은 도적 떼 놈들이……!"
+        },
+        {
+          "speaker": "char_0004",
+          "text": "날강도가 아니라 건실한 채권추심업자랍니다, 나리."
+        }
+      ],
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0014.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "char_0013",
+          "text": "친위대! 뭐 하고 있느냐! 저 미천한 도륙꾼 놈들을 찢어 죽여라!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "영주님을 지켜라! 반역자들에게 철퇴를 내려라!",
+          "name": "친위대장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "마지막 야근이다! 대가리 깨고 보너스 타러 가자!",
+          "name": "발레리아"
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0035",
+      "next": "s5"
+    },
+    {
+      "id": "s5",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0014.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "붉은 융단이 친위대의 피로 젖어 들며 바닥에 시체가 즐비했다."
+        },
+        {
+          "speaker": "char_0012",
+          "text": "하아, 하아…… 친위대 전원 무력화 완료했습니다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……단장. 뚱보, 옥좌 뒤에 숨어서 부들부들 떨어.",
+          "name": "시논"
+        },
+        {
+          "speaker": "char_0013",
+          "text": "오, 오지 마……! 다가오지 마라, 이 괴물 놈들아……!"
+        },
+        {
+          "speaker": "char_0011",
+          "text": "삼촌, 이제 끝이에요. 순순히 옥좌에서 내려오세요."
+        },
+        {
+          "speaker": "char_0013",
+          "text": "끝이라고? 크, 크하하…… 아니, 난 이렇게 죽지 않아!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "발도르프가 품속에서 보라색 안개가 피어오르는 기괴한 유리병을 꺼내 들었다."
+        }
+      ]
+    }
+  ]
+}

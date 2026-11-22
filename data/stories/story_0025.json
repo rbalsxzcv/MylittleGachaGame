@@ -1,0 +1,180 @@
+{
+  "id": "story_0025",
+  "title": "국경선의 살인 청구서",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0010.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "축축한 안개가 자욱한 숲길. 나뭇가지 사이로 까마귀 울음소리가 음산하게 울려 퍼졌다."
+        },
+        {
+          "speaker": "char_0007",
+          "text": "남작 목을 베자마자 제국 현상금 수배지가 붙다니! 단장님 목값이 은화 삼백 닢이랍니다!"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "하, 귀족 놈 모가지 하나 땄다고 온 사방에서 파리 떼처럼 들끓네. 술 마실 시간도 안 주고."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "앞쪽 나무 뒤. 넷…… 아니, 대여섯. 무기 쥐고 숨어 있어. 살기, 숨길 생각도 없네."
+        },
+        {
+          "speaker": "char_0007",
+          "text": "국경 수비대 놈들 탈영해서 노상강도질하던 무리예요. 우리 수배지 보고 눈이 돌아간 거죠!"
+        }
+      ],
+      "next": "s2"
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0010.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "크하하! 쥐새끼처럼 숨어들 줄 알았지! 저놈 대가리가 바로 은화 삼백 닢짜리다!",
+          "name": "탈영병 두목"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "단장, 저 자식 목소리 너무 커. 귀 아파. 그냥 찔러버릴까?"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "대검 휘두르기엔 안개가 눅눅해서 영 폼이 안 나는데. 수당으로 위스키 한 병 얹어주냐?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 허리춤의 도검을 스르릉 뽑아 들며 냉소를 흘렸다.",
+          "choices": [
+            {
+              "text": "목값 벌러 왔다가 장례비 뜯기게 생겼군.",
+              "goto": "s2_1"
+            },
+            {
+              "text": "은화 삼백 닢을 노렸으면 목숨 세 개는 걸었어야지.",
+              "goto": "s2_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0010.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "char_0007",
+          "text": "맞는 말씀! 시체 매장비에 청소비까지 탈탈 털어서 청구할 테니까요!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "지갑에 든 푼돈까지 전부 우리 거야."
+        }
+      ],
+      "next": "s3"
+    },
+    {
+      "id": "s2_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0010.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "char_0002",
+          "text": "크하하! 그렇지! 목숨 세 개짜리 고깃덩어리들, 대검으로 단숨에 갈라주마!"
+        },
+        {
+          "speaker": "char_0007",
+          "text": "갑옷 부수지 말고 벗겨서 팔 수 있게 급소만 노리세요!"
+        }
+      ],
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0010.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "혓바닥이 길구나, 버러지 놈들! 쳐죽여서 자루에 대가리만 쑤셔 담아라!",
+          "name": "탈영병 두목"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "눈 깜빡이지 마. 목덜미부터 벨 테니까."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "국경 통과세는 니들 피로 대신 계산한다!"
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0025",
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0010.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "퍽! 쓰러진 탈영병 두목의 가슴팍에서 피가 뿜어져 나와 눅눅한 흙바닥을 적셨다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "하아, 뼈마디가 뻣뻣해서 썰어내는 맛도 없네. 쇳조각이나 좀 뒤져봐라."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "두목 품에서 가죽 주머니 발견. 은화 열두 닢, 그리고…… 구겨진 통행증."
+        },
+        {
+          "speaker": "char_0007",
+          "text": "어머나, 위조 통행증 값 굳었네요! 국경 경비대 직인이 찍힌 정품이에요!"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "죽으러 와서 통행료까지 상납하고 가네. 아주 모범적인 납세자들이야."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "안개 걷히고 있어. 저 언덕만 넘으면 버스튼 영지 국경 검문소야."
+        },
+        {
+          "speaker": "char_0007",
+          "text": "일단 부둣가 주점으로 숨어들어서 꼴사나운 피비린내부터 씻어내죠. 새로운 일거리도 찾아야 하고요!"
+        }
+      ]
+    }
+  ]
+}

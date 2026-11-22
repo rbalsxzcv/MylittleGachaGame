@@ -1,0 +1,127 @@
+{
+  "id": "story_0014",
+  "title": "도망친 년을 찾아서",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "진흙탕을 벗어나 들어선 빈민가 골목은 오물과 썩은 생선 냄새로 진동했다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "화살 비가 쏟아지자마자 연막탄 까고 튀어? 발은 더럽게 빠르지, 빌어먹을 암살자 년.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단원들 고기방패 되는 동안 혼자 살겠다고 내빼? 탈주 위약금이 은화 스무 닢이다.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "어디 보자…… 술집 간판이 저기쯤일 텐데, 길이 왜 이따위로 꼬였어.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "어두컴컴한 골목 모퉁이를 돌자, 피비린내를 맡은 거친 숨소리가 골목길을 메웠다."
+        }
+      ],
+      "next": "s2"
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "남작 가문의 찢어진 문장을 두른 사내들이 사나운 사냥개 세 마리를 끌고 길목을 막아섰다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "멈춰라, 피투성이 형씨. 여길 지나려면 통행세 은화 세 닢은 내고 가셔야지?",
+          "name": "남작령 탈영병"
+        },
+        {
+          "speaker": "narrator",
+          "text": "남작네 마크 달고 탈영해서 삥뜯기라니. 영주님 체면이 말이 아니시네.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "입만 살았군. 우리 사냥개들이 사흘을 굶었는데, 네놈 간식거리로 던져줘?",
+          "name": "남작령 탈영병"
+        },
+        {
+          "speaker": "narrator",
+          "text": "개 사료값도 없는 거지새끼들이 누굴 털어? 마침 부츠 닦을 걸레가 부족했는데 잘됐다.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "저 새끼 숨통 끊어! 가죽 갑옷은 벗겨서 내다 팔아라!",
+          "name": "남작령 탈영병"
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0014",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "피투성이가 된 탈영병들의 시체 위로 사냥개 대가리가 둔탁한 소리를 내며 나뒹굴었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "퉤. 개새끼나 주인 놈이나 뼈다귀밖에 없어서 칼날만 상했잖아.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 시체의 품을 발로 툭툭 차더니 품속에서 짤랑거리는 주머니를 낚아챘다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "녹슨 동화 열두 닢? 통행세는 개뿔, 이걸로 붕대 한 롤이나 사겠냐?",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "피 묻은 장검을 털어내자, 골목 끝자락의 삐걱거리는 주점 나무 간판이 눈에 들어왔다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "저기서 태평하게 술이나 축내고 있겠지. 시논 그 기지배, 오늘 머리채 좀 잡혀보자.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 썩은 맥주 냄새가 뿜어져 나오는 낡은 주점의 문을 거칠게 걷어찼다."
+        }
+      ]
+    }
+  ]
+}

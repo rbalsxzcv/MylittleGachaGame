@@ -1,0 +1,122 @@
+{
+  "id": "story_0013",
+  "title": "진흙탕 퇴직금",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0001.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "썩은 내 진동하는 진흙탕 속에서 피투성이 손 하나가 불쑥 솟아올랐다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "퉤, 퉤! 빌어먹을…… 흙탕물에 내장 썩는 맛이 다 나네.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 깔려 있던 단원들의 싸늘한 시신을 밀어내며 천천히 몸을 일으켰다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "잔당 소탕이라더니, 대기 타던 놈들이 죄다 남작네 정규 중장병? 장난하나.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "헨드릭 남작 그 대머리 영감탱이…… 고기방패로 쓰고 청소까지 원스톱으로 끝내시겠다?",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "중개인 바바루아 놈도 한패지. 내 손에 걸리면 기름 솥에 튀겨버린다.",
+          "name": "단장"
+        }
+      ],
+      "next": "s2"
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0001.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "저벅거리는 발소리와 함께 불한당 몇 놈이 시체들의 주머니를 뒤지며 다가왔다."
+        },
+        {
+          "speaker": "char_0009",
+          "text": "어이쿠, 여긴 아직 숨이 붙어 있는 송장이 하나 기어 나왔네?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "장례지도사 아니면 꺼져라. 남의 퇴직금 중간 정산할 기분 아니니까.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0009",
+          "text": "야, 저 가죽 부츠 상태 좋은데? 죽기 전에 곱게 벗어두고 가라, 형씨!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "새로 맞춘 지 사흘도 안 됐다. 가져가려면 목숨 값부터 내놔.",
+          "name": "단장"
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0013",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0001.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "철퍼덕. 뜨내기 용병의 목이 진흙탕 위로 굴러떨어졌다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "어디 보자…… 꼴랑 동화 일곱 닢? 시체 털러 온 놈들이 주머니가 더 가벼워.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 피 묻은 장검을 털어 칼집에 꽂아 넣고 허리를 폈다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "남작한테 뜯어낼 원금이 은화 백 자루, 위자료에 장례비, 내 부츠 세탁비까지……",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "그러려면 일손이 필요하지. 싸움 터지자마자 제일 먼저 짼 그 년부터 잡는다.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "시논, 그 계집애는 지금쯤 뒷골목 썩은 주점에서 맥주나 빨고 있겠지.",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}

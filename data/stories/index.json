@@ -1,12 +1,12 @@
 [
   {
-    "id": "story_0001",
+    "id": "story_0013",
     "kind": "main",
     "chapter": 1,
     "arc": 1,
-    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
-    "title": "산 자는 장부를 적는다",
-    "summary": "시체밭에서 눈을 뜬 단장은 손익계산서를 두드린다.",
+    "arcTitle": "피 묻은 금화와 해고 통보",
+    "title": "진흙탕 퇴직금",
+    "summary": "함정에 빠져 몰살당한 용병단. 단장 홀로 진흙탕에서 기어 나온다.",
     "unlock": [
       {
         "type": "prevChapter"
@@ -17,13 +17,13 @@
     }
   },
   {
-    "id": "story_0002",
+    "id": "story_0014",
     "kind": "main",
     "chapter": 2,
     "arc": 1,
-    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
-    "title": "식어빠진 스튜와 무표정",
-    "summary": "선금을 들고 잠수한 암살자를 찾아 썩은 주점으로 향한다.",
+    "arcTitle": "피 묻은 금화와 해고 통보",
+    "title": "도망친 년을 찾아서",
+    "summary": "도망친 암살자를 쫓던 단장은 길목을 막아선 탈영병들과 마주친다.",
     "unlock": [
       {
         "type": "prevChapter"
@@ -34,13 +34,13 @@
     }
   },
   {
-    "id": "story_0003",
+    "id": "story_0015",
     "kind": "main",
     "chapter": 3,
     "arc": 1,
-    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
-    "title": "환불은 피로 받는다",
-    "summary": "칼끝이 오가는 살벌한 환불 협상과 새 계약 체결",
+    "arcTitle": "피 묻은 금화와 해고 통보",
+    "title": "우유 값은 선불이다",
+    "summary": "도망친 암살자를 찾아 썩은 술집에 들어선 단장.",
     "unlock": [
       {
         "type": "prevChapter"
@@ -51,13 +51,13 @@
     }
   },
   {
-    "id": "story_0004",
+    "id": "story_0016",
     "kind": "main",
     "chapter": 4,
     "arc": 1,
-    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
-    "title": "암시장의 잡음 청소",
-    "summary": "암시장 골목을 막아선 시체 약탈꾼들을 무력으로 교정한다.",
+    "arcTitle": "피 묻은 금화와 해고 통보",
+    "title": "중개인은 털어야 제맛",
+    "summary": "사기 의뢰를 물어온 중개인의 멱살을 잡고 본전을 뽑아낸다.",
     "unlock": [
       {
         "type": "prevChapter"
@@ -68,13 +68,13 @@
     }
   },
   {
-    "id": "story_0005",
+    "id": "story_0017",
     "kind": "main",
     "chapter": 5,
     "arc": 1,
-    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
-    "title": "가성비 인재 채용",
-    "summary": "정보상을 족쳐 흑막을 캐내고, 헐값에 석궁수를 영입한다.",
+    "arcTitle": "피 묻은 금화와 해고 통보",
+    "title": "성수 대신 독주",
+    "summary": "폐허 묘지에서 숙취에 절은 파문 성기사를 건져 올린다.",
     "unlock": [
       {
         "type": "prevChapter"
@@ -85,13 +85,13 @@
     }
   },
   {
-    "id": "story_0006",
+    "id": "story_0018",
     "kind": "main",
     "chapter": 6,
     "arc": 1,
-    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
-    "title": "남작의 입막음 부대",
-    "summary": "영지로 향하는 길목, 매복한 탈영병들과 마주친다.",
+    "arcTitle": "피 묻은 금화와 해고 통보",
+    "title": "원거리 화력 지원(빚쟁이)",
+    "summary": "암시장에서 빚에 팔려 가던 석궁수 가린을 구출한다.",
     "unlock": [
       {
         "type": "prevChapter"
@@ -102,13 +102,13 @@
     }
   },
   {
-    "id": "story_0007",
+    "id": "story_0019",
     "kind": "main",
     "chapter": 7,
     "arc": 1,
-    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
-    "title": "파문 기사의 불량 재고",
-    "summary": "교단 사냥꾼에 포위된 파문 기사를 발견한다.",
+    "arcTitle": "피 묻은 금화와 해고 통보",
+    "title": "스튜에 고기가 빠지면 반란이다",
+    "summary": "굶주린 단원들의 파업을 막기 위해 군량 수송대를 습격한다.",
     "unlock": [
       {
         "type": "prevChapter"
@@ -119,13 +119,13 @@
     }
   },
   {
-    "id": "story_0008",
+    "id": "story_0020",
     "kind": "main",
     "chapter": 8,
     "arc": 1,
-    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
-    "title": "식대 포함 정규직 계약",
-    "summary": "죽어가는 파문 기사를 헐값에 채용하기 위한 난입",
+    "arcTitle": "피 묻은 금화와 해고 통보",
+    "title": "교수대의 통행세",
+    "summary": "교수대 교차로의 술판과 피비린내 나는 통행세 정산",
     "unlock": [
       {
         "type": "prevChapter"
@@ -136,13 +136,13 @@
     }
   },
   {
-    "id": "story_0009",
+    "id": "story_0021",
     "kind": "main",
     "chapter": 9,
     "arc": 1,
-    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
-    "title": "묘지를 넘는 발걸음",
-    "summary": "남작 저택으로 향하는 안개 낀 폐허 묘지에서 굶주린 역병 사냥개 무리와 마주친다.",
+    "arcTitle": "피 묻은 금화와 해고 통보",
+    "title": "어머니의 회계 장부",
+    "summary": "감시탑에서 재회한 살림꾼의 피 튀기는 영수증 청구.",
     "unlock": [
       {
         "type": "prevChapter"
@@ -153,13 +153,13 @@
     }
   },
   {
-    "id": "story_0010",
+    "id": "story_0022",
     "kind": "main",
     "chapter": 10,
     "arc": 1,
-    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
-    "title": "저택 뒷문 따기",
-    "summary": "남작 저택 뒷문을 뚫고 정예 근위대와 격돌한다.",
+    "arcTitle": "피 묻은 금화와 해고 통보",
+    "title": "와인 저장고의 환영 인사",
+    "summary": "남작 저택 지하 창고로 침투해 매복병들을 쓸어버린다.",
     "unlock": [
       {
         "type": "prevChapter"
@@ -170,13 +170,13 @@
     }
   },
   {
-    "id": "story_0011",
+    "id": "story_0023",
     "kind": "main",
     "chapter": 11,
     "arc": 1,
-    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
-    "title": "채권 추심단의 방문",
-    "summary": "연회장을 피바다로 물들이며 남작의 친위대를 도륙한다.",
+    "arcTitle": "피 묻은 금화와 해고 통보",
+    "title": "연회장 무단 입장",
+    "summary": "호화 연회장을 피로 물들이며 남작의 금고실로 진격한다.",
     "unlock": [
       {
         "type": "prevChapter"
@@ -187,13 +187,217 @@
     }
   },
   {
-    "id": "story_0012",
+    "id": "story_0024",
     "kind": "main",
     "chapter": 12,
     "arc": 1,
-    "arcTitle": "챕터 1: 청구서는 피로 쓴다",
-    "title": "최종 정산서 발행",
-    "summary": "배신자 남작의 목을 꺾고 밀린 빚을 강제 추심한다.",
+    "arcTitle": "피 묻은 금화와 해고 통보",
+    "title": "정산 완료, 그리고 새로운 청구서",
+    "summary": "금고실의 남작을 처단하고 체불된 피값을 정산한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 100
+    }
+  },
+  {
+    "id": "story_0025",
+    "kind": "main",
+    "chapter": 13,
+    "arc": 2,
+    "arcTitle": "가성비 좋은 상속 전쟁",
+    "title": "국경선의 살인 청구서",
+    "summary": "현상수배범이 된 용병단이 국경을 넘기 위해 칼을 뽑는다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0026",
+    "kind": "main",
+    "chapter": 14,
+    "arc": 2,
+    "arcTitle": "가성비 좋은 상속 전쟁",
+    "title": "술값 대신 영지를 드립니다",
+    "summary": "부둣가 주점에서 영주 딸의 파격적인 피의 계약 제안",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0027",
+    "kind": "main",
+    "chapter": 15,
+    "arc": 2,
+    "arcTitle": "가성비 좋은 상속 전쟁",
+    "title": "계약서에 피는 기본 옵션",
+    "summary": "암살자들의 습격 속에서 체결된 위약금 10배의 피 묻은 용병 계약.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0028",
+    "kind": "main",
+    "chapter": 16,
+    "arc": 2,
+    "arcTitle": "가성비 좋은 상속 전쟁",
+    "title": "척후병을 갈아 넣는 법",
+    "summary": "성채로 가는 샛길을 뚫기 위해 적 척후병을 족쳐라.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0029",
+    "kind": "main",
+    "chapter": 17,
+    "arc": 2,
+    "arcTitle": "가성비 좋은 상속 전쟁",
+    "title": "불타는 보리밭과 연체이자",
+    "summary": "불타는 곡창지대에서 식비 사수를 위한 도륙이 시작된다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0030",
+    "kind": "main",
+    "chapter": 18,
+    "arc": 2,
+    "arcTitle": "가성비 좋은 상속 전쟁",
+    "title": "인질 구출의 시간당 단가",
+    "summary": "불타는 곡물창고 앞, 목숨값 영수증을 끊는 용병단.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0031",
+    "kind": "main",
+    "chapter": 19,
+    "arc": 2,
+    "arcTitle": "가성비 좋은 상속 전쟁",
+    "title": "정규군의 방패를 깨는 도끼",
+    "summary": "퇴로를 막아선 정규군 철벽 방패병 부대와 격돌한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0032",
+    "kind": "main",
+    "chapter": 20,
+    "arc": 2,
+    "arcTitle": "가성비 좋은 상속 전쟁",
+    "title": "참호 속의 진흙탕 야근",
+    "summary": "장대비 쏟아지는 참호에서 벌어지는 진흙투성이 도륙전.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0033",
+    "kind": "main",
+    "chapter": 21,
+    "arc": 2,
+    "arcTitle": "가성비 좋은 상속 전쟁",
+    "title": "성문은 부수라고 있는 것",
+    "summary": "닫힌 외성문 앞에 군용 기름통을 붓고 길을 뚫는다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0034",
+    "kind": "main",
+    "chapter": 22,
+    "arc": 2,
+    "arcTitle": "가성비 좋은 상속 전쟁",
+    "title": "송곳니를 뽑는 방법",
+    "summary": "안마당을 막아선 적 대장과의 무자비한 집단 난투극",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0035",
+    "kind": "main",
+    "chapter": 23,
+    "arc": 2,
+    "arcTitle": "가성비 좋은 상속 전쟁",
+    "title": "알현실의 경매장",
+    "summary": "알현실을 박살 내고 숨은 숙부의 목을 죈다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0036",
+    "kind": "main",
+    "chapter": 24,
+    "arc": 2,
+    "arcTitle": "가성비 좋은 상속 전쟁",
+    "title": "영주 취임식과 제국의 서신",
+    "summary": "반역자의 발악을 꺾고 피 묻은 성공 보수를 챙겨라.",
     "unlock": [
       {
         "type": "prevChapter"

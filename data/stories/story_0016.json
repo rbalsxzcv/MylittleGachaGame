@@ -1,0 +1,201 @@
+{
+  "id": "story_0016",
+  "title": "중개인은 털어야 제맛",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "썩은 야채와 쥐 시체 냄새가 진동하는 빈민가 암시장 골목."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "저 낡은 잡화점 지하실이야. 굴뚝으로 연기가 나는 걸 보니 장부 태우는 중이네."
+        },
+        {
+          "speaker": "narrator",
+          "text": "사기 쳐서 번 돈으로 장작불 따스하게 피우셨구먼. 가서 인사나 건네볼까?",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "어이, 꼴뚜기 같은 놈들아. 여기부턴 통행료 은화 닷 닢…… 커억?!",
+          "name": "골목 경호원"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "시끄러워. 칼침 맞고 장례비나 아끼는 게 이득일걸."
+        },
+        {
+          "speaker": "narrator",
+          "text": "야근 수당은 이놈들 허리춤 털어서 챙겨라, 시논!",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0016",
+      "next": "s2"
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "피 칠갑이 된 지하실 문이 굉음과 함께 박살 나며 안쪽으로 나뒹굴었다."
+        },
+        {
+          "speaker": "char_0004",
+          "text": "히익?! 누, 누구야! 내 경호원들은 어쩌고…… 다, 단장?!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "그 친구들은 방금 영구 퇴직 처리됐다. 넌 짐 싸느라 바빴나 보네?",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0004",
+          "text": "사, 살아있었어? 남작 사병들이 몰살시켰다고 했는데…… 아니, 난 몰랐어!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "발뺌하는 혓바닥부터 뽑아버릴까, 단장? 혓바닥 하나당 은화 깎아줘."
+        },
+        {
+          "speaker": "narrator",
+          "text": "목숨줄 붙어있을 때 성의 표시나 똑바로 해라, 바바루아.",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "바바루아의 귓불에 차가운 단검 날을 비빈다.",
+              "goto": "s3_1"
+            },
+            {
+              "text": "챙겨둔 금화 주머니를 발로 차서 뺏는다.",
+              "goto": "s3_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "char_0004",
+          "text": "따, 따가워! 귀 잘려! 살려줘! 다 불게, 제발 찌르지만 마!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "날이 무뎌서 톱질하듯 썰어야 하거든. 어디 남작 놈 목줄 잡을 것부터 꺼내봐.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "지혈 안 해주면 과다출혈로 5분 안에 죽어. 시간은 금이야, 아저씨."
+        }
+      ],
+      "next": "s4"
+    },
+    {
+      "id": "s3_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "char_0004",
+          "text": "내 피 같은 비자금이……! 아, 아니야, 다 가져! 목숨만 살려줘!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "이건 우리 단원들 장례식 뼛가루 보관비고. 진짜 본전은 따로 있잖아?",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "돈 냄새 기가 막히게 맡네. 역시 악덕 고용주 단장 다워."
+        }
+      ],
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "바바루아는 사시나무 떨듯 떨며 비밀 금고에서 양피지 뭉치를 꺼내 바쳤다."
+        },
+        {
+          "speaker": "char_0004",
+          "text": "여, 여기! 남작 저택 경비 순찰표랑 비밀 출입구 지도야! 진짜 전부라고!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……비밀 통로가 지하 와인저장고랑 이어져 있네. 침투하기 딱 좋아."
+        },
+        {
+          "speaker": "narrator",
+          "text": "좋아, 물건은 훌륭하네. 이제 네 목숨값 청구서에 서명하자.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0004",
+          "text": "모, 목숨값? 방금 지도 줬잖아! 왜 또 종이를 들이밀어?!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "오늘부터 우리 용병단 전속 무보수 정보상이다. 도망치면 사지절단 계약이야.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0004",
+          "text": "이건 노예 계약이잖아……! 흑흑, 쥐새끼 굴에 호랑이가 기어들어 왔어……."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "울면 입에 진흙 쑤셔 넣는다. 근데 단장, 정문 쪽은 경비병이 너무 빽빽해."
+        },
+        {
+          "speaker": "narrator",
+          "text": "그러니까 앞에서 도끼질 막아줄 튼튼한 고기방패가 필요하지.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "묘지에서 술 퍼먹고 뻗어있는 그 미친 여기사 말하는 거지?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "발레리아 그년만큼 칼침 잘 튕겨내는 방패도 드물지. 주워 담으러 가자.",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}

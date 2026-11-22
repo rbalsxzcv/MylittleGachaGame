@@ -1,0 +1,182 @@
+{
+  "id": "story_0023",
+  "title": "연회장 무단 입장",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0005.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "쾅! 육중한 참나무 문짝이 부서지며 피투성이 불청객들이 들이닥쳤다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "히익?! 뭐야, 피비린내 나는 시정잡배 놈들은?!",
+          "name": "살찐 귀족"
+        },
+        {
+          "speaker": "char_0008",
+          "text": "우와, 칠면조 구이에 송로버섯? 지하 와인보다 안주가 끝내주네!"
+        },
+        {
+          "speaker": "char_0003",
+          "text": "은식기다, 순은식기! 단장, 저 접시 하나면 내 빚의 반을 갚겠어!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "단장. 근위병들이 돼지 같은 귀족들을 방패 삼아 진형을 짜고 있어."
+        },
+        {
+          "speaker": "narrator",
+          "text": "파티 분위기 훈훈하네. 자, 우리도 잔칫상에 숟가락 좀 얹어볼까?",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "귀족들 목걸이부터 뜯고 깡통들을 도륙해라.",
+              "goto": "s2_1"
+            },
+            {
+              "text": "식기 상하지 않게 얌전히 모가지관절만 쑤셔라.",
+              "goto": "s2_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0005.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "char_0003",
+          "text": "역시 우리 단장님! 자본주의의 미덕을 아신다니까!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "알았어. 금줄 감긴 목부터 정확히 벨게."
+        },
+        {
+          "speaker": "char_0008",
+          "text": "화염 마법으로 보석만 남기고 태워줄까? 코피 나니까 수당 더 줘!"
+        }
+      ],
+      "next": "s3"
+    },
+    {
+      "id": "s2_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0005.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "char_0001",
+          "text": "좁은 틈 쑤시기는 내 전문이야. 순식간에 끝낼게."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "접시 깨지면 단장 월급에서 깔 거니까 다들 살살 쳐!"
+        },
+        {
+          "speaker": "char_0008",
+          "text": "술병에 피 튀면 맛 버리는데. 저 깡통들 대가리에 저주나 걸어야지."
+        }
+      ],
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0005.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "천한 용병 놈들이 어디서 주둥이를 놀려! 남작님을 위해 몰살해라!",
+          "name": "근위대 지휘관"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "단장, 적 열둘. 가운데 지휘관은 투구 바이저가 열려 있어."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "헤헤, 저놈 콧구멍에 볼트 박아주면 연회비 면제해 주냐?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "우릴 고기방패로 쓴 대가가 얼마나 비싼지 똑똑히 가르쳐주자고. 썰어!",
+          "name": "단장"
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0023",
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0005.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "하얀 식탁보 위로 잘려 나간 사지와 검붉은 피가 흥건하게 번져나갔다."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "크하하! 은촛대랑 보석반지만 긁어모아도 가마니 하나는 채우겠네!"
+        },
+        {
+          "speaker": "char_0008",
+          "text": "콜록, 쿨럭…… 아으, 악마 저주 좀 썼더니 코피 터졌잖아. 와인 줘!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "단장. 구석에 떨고 있는 귀족 녀석 멱살 잡았어. 불게 할까?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "사, 살려주시오! 헨드릭 남작은 안쪽 금고실로 도망쳤소! 금화 챙기러!",
+          "name": "사시나무 귀족"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "역시. 제 목숨줄보다 금화 보따리가 더 소중한 놈답네."
+        },
+        {
+          "speaker": "narrator",
+          "text": "착하지. 금고까지 도망쳐줘서 고맙네, 우리가 들고 가기 편하게 말이야.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0003",
+          "text": "단장, 저기 굳게 닫힌 강철 철문이 금고실인가 봐. 열쇠는 어딨지?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "용병한테 열쇠가 왜 필요해? 문짝 채로 부수고 밀린 피값 받으러 간다.",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}

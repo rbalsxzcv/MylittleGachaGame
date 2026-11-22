@@ -1,0 +1,199 @@
+{
+  "id": "story_0018",
+  "title": "원거리 화력 지원(빚쟁이)",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "썩은 생선 내장과 피비린내가 뒤엉킨 암시장 뒷골목."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "저기 모퉁이에 밧줄로 꽁꽁 묶여 있는 놈, 가린 맞네."
+        },
+        {
+          "speaker": "narrator",
+          "text": "꼴좋다. 활 쏠 줄 아는 손으로 주사위나 굴리더니 꼴이 저게 뭐야.",
+          "name": "발레리아"
+        },
+        {
+          "speaker": "char_0003",
+          "text": "아이고 형님들! 딱 한 판만 더 돌리면 본전 찾는다니까요?!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "닥쳐라, 사기꾼 새끼야. 넌 오늘 남부 노예선으로 직행이다.",
+          "name": "탈영병 사채업자"
+        },
+        {
+          "speaker": "narrator",
+          "text": "손목 잘리기 직전인데도 주사위 타령이라니. 정신머리가 아주 훌륭해.",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "사채업자 뒤통수에 돌멩이를 던진다.",
+              "goto": "s2_1"
+            },
+            {
+              "text": "가린의 목값을 얼마인지 물어본다.",
+              "goto": "s2_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "퍽! 단장이 던진 벽돌 조각이 사채업자의 뒤통수를 정확히 후려쳤다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "커억?! 어떤 벼락 맞을 새끼가 뒤통수에 돌을 던져?!",
+          "name": "탈영병 사채업자"
+        },
+        {
+          "speaker": "char_0003",
+          "text": "어? 단장님?! 지옥에서 귀신이 채권 추심하러 왔네?!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "귀신 아니야. 빚쟁이 수거하러 온 진짜 악마지."
+        }
+      ],
+      "next": "s3"
+    },
+    {
+      "id": "s2_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "어이, 그 쓸모없는 석궁잡이 찌꺼기 목값이 얼마냐?",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "금화 서른 닢이다. 돈 없으면 꺼져, 거지 용병 놈들아!",
+          "name": "탈영병 사채업자"
+        },
+        {
+          "speaker": "narrator",
+          "text": "금화 서른 닢? 대가리를 쪼개면 공짜인데 왜 돈을 내지?",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "크하하! 단장 놈 계산법 하나는 여전히 마음에 쏙 드네!",
+          "name": "발레리아"
+        }
+      ],
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "이 거지 패거리 새끼들이 감히 누굴 상대로 행패야? 싹 다 쳐 죽여!",
+          "name": "탈영병 사채업자"
+        },
+        {
+          "speaker": "char_0003",
+          "text": "단장님! 제 가방에 든 개량 석궁부터 좀 건져줘요! 그거 비싼 거란 말입니다!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "시끄러워. 화살값은 네 일당에서 깔 테니까 입 닥치고 엎드려 있어."
+        },
+        {
+          "speaker": "narrator",
+          "text": "야근 시작이다. 저놈들 주머니에 든 판돈까지 모조리 압류해!",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0018",
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "피투성이가 된 사채업자들의 시체가 암시장 하수구에 처박혔다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "사기 주사위 두 개, 납 박힌 은화 열두 닢 노획. 짭짤하네."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "흐흑, 살았다! 역시 우리 단장님밖에 없어! 충성을 다하겠습……!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "스윽. 단장이 피 묻은 가죽 양피지 한 장을 가린의 코앞에 펼쳤다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "감동은 지문 찍고 해라. 원금 금화 서른 닢에 구조 수수료, 연체 이자 500%다.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0003",
+          "text": "잠깐만요?! 방금 저놈들 사채보다 이자가 열 배는 더 악랄하잖아요?!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "손가락 잘리고 노예선 탈래, 종신 계약서에 도장 찍고 술 빨래?",
+          "name": "발레리아"
+        },
+        {
+          "speaker": "char_0003",
+          "text": "이 악덕 고리대금 용병단 놈들……! 젠장, 찍을게요, 찍는다고요!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "꼬르륵…… 단장, 계약은 좋은데 배고파. 오늘 한 끼도 못 먹었어."
+        },
+        {
+          "speaker": "narrator",
+          "text": "때마침 남작 저택으로 가는 군량 수송 마차가 지나간다더군. 밥 먹으러 가자.",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}

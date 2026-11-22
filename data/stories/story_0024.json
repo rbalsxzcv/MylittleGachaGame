@@ -1,0 +1,195 @@
+{
+  "id": "story_0024",
+  "title": "정산 완료, 그리고 새로운 청구서",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0005.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "쿠쾅! 발레리아의 육중한 대검이 금고실 철문을 우그러뜨리며 뜯어냈다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "하, 문짝 두께 보소. 이 정도 쇳덩이면 술이 몇 통이야?"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "안쪽에 셋. 남작 놈, 금화 자루를 끌어안고 떨고 있어."
+        },
+        {
+          "speaker": "narrator",
+          "text": "히익?! 너, 너희 놈들 분명 그 진흙탕에서 다 뒈졌을 텐데?!",
+          "name": "헨드릭 남작"
+        },
+        {
+          "speaker": "narrator",
+          "text": "지옥 문턱까지 갔다가 영수증 청구하러 기어 왔다, 남작 나으리.",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "이자까지 쳐서 네놈 목숨값으로 받겠다.",
+              "goto": "s2_1"
+            },
+            {
+              "text": "금화 자루 내려놓고 목 얌전히 대라.",
+              "goto": "s2_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0005.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "char_0007",
+          "text": "옳은 말씀! 원금에 연체 이자, 정신적 피해 보상까지 청구합니다!"
+        },
+        {
+          "speaker": "char_0004",
+          "text": "흐흐, 헨드릭 나으리. 장삿바닥에선 외상값 떼먹는 게 제일 죄질이 나쁘답니다?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "닥쳐라, 천한 버러지 놈들! 근위대! 저 흉도 놈들의 사지를 찢어라!",
+          "name": "헨드릭 남작"
+        }
+      ],
+      "next": "s3"
+    },
+    {
+      "id": "s2_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0005.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "char_0001",
+          "text": "목을 깔끔하게 베어야 옷에 튄 피를 덜 닦아내."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "금화에 피 묻으면 씻어내기 귀찮으니까 자루는 이리 넘겨라!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "개수작 마라! 근위대! 내 금화를 지켜라! 한 놈도 살려두지 마!",
+          "name": "헨드릭 남작"
+        }
+      ],
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0005.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "금고 안쪽에 버티고 서 있던 중무장 정예병들이 장검을 뽑아 들었다."
+        },
+        {
+          "speaker": "char_0007",
+          "text": "단장님! 금고 안의 금괴에 흠집 안 나게 대가리 위주로 깨부수세요!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "남작 목덜미는 내가 노릴게. 빈틈 생기면 바로 찌른다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "야근 수당 챙길 시간이다. 싹 다 쓸어버려!",
+          "name": "단장"
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0024",
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0005.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "철푸덕! 헨드릭 남작의 육중한 몸뚱이가 금화 더미 위로 쓰러졌다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "퉤, 귀족 놈 피는 와인 냄새라도 날 줄 알았더니 비리기만 하네."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "숨 끊어졌어. 목덜미에 동맥 정확히 끊었으니까."
+        },
+        {
+          "speaker": "char_0007",
+          "text": "자자, 감상은 나중에! 금화 자루부터 가마니에 쓸어 담으세요!"
+        },
+        {
+          "speaker": "char_0004",
+          "text": "어이쿠, 단장 나으리. 이 뚱땡이 품속에서 아주 묘한 게 나왔는데요?"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0005.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "바바루아가 남작의 품에서 피 묻은 양피지 서신을 꺼내 펼쳤다."
+        },
+        {
+          "speaker": "char_0004",
+          "text": "붉은 밀랍 인장에 까마귀 문양…… 이거 제국 고위 귀족 놈들 인장입니다."
+        },
+        {
+          "speaker": "char_0007",
+          "text": "어디 봐요. '용병단을 미끼로 패잔병을 유인해 정리하고, 입막음할 것'……?"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "남작은 그냥 하수인이었단 뜻이네."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "뭐야, 그럼 우릴 고기방패로 던진 진짜 흑막이 따로 있단 소리야?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "제국 놈들이건 누구건 상관없지. 우리 단원들 목숨값 떼먹은 놈은 지구 끝까지 털러 간다.",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "id": "story_0032",
+  "title": "참호 속의 진흙탕 야근",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0013.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "장대비가 진흙탕을 때리며 시야를 사정없이 가로막았다."
+        },
+        {
+          "speaker": "char_0014",
+          "text": "히익! 저기 목책 뒤에 발도르프 군 궁병들이 쫙 깔렸습니다!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "빗물 때문에 발이 푹푹 꺼져. 신발 버렸어. 세탁비 청구할래."
+        },
+        {
+          "speaker": "char_0006",
+          "text": "주방도 아닌데 바닥이 온통 개판이네. 위생 점수 마이너스야."
+        },
+        {
+          "speaker": "char_0014",
+          "text": "지금 세탁비가 문제예요?! 저 참호 건너다간 고슴도치 된다고요!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "침입자들이다! 쏴라! 진흙 구덩이에 전부 묻어버려!",
+          "name": "참호병 지휘관"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "단장, 진흙 묻는 거 딱 질색인데. 어떻게 할 거야?",
+          "choices": [
+            {
+              "text": "야근 수당 얹어줄 테니 포복으로 기어가서 목 따!",
+              "goto": "s2_1"
+            },
+            {
+              "text": "재료 손질 시간이다. 안나, 식칼 들고 돌격해!",
+              "goto": "s2_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0013.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "char_0001",
+          "text": "수당 두 배. 약속 어기면 단장 침대에 진흙 쏟을 거야."
+        },
+        {
+          "speaker": "narrator",
+          "text": "시논이 빗물 고인 웅덩이 속으로 미끄러지듯 몸을 숨겼다."
+        },
+        {
+          "speaker": "char_0006",
+          "text": "진흙탕에 처박힌 고기들이 제일 질겨. 핏물부터 빼야겠어."
+        },
+        {
+          "speaker": "char_0014",
+          "text": "아니, 저 미친 사람들은 왜 화살 속으로 기어 들어가는 건데?!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "빗속을 뚫고 쏟아지는 화살을 피해 용병단이 참호 속으로 쇄도했다."
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "s2_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0013.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "char_0006",
+          "text": "오늘의 특선 메뉴는 진흙 범벅 참호병 스튜. 칼 갈아뒀어."
+        },
+        {
+          "speaker": "narrator",
+          "text": "안나가 서늘하게 번뜩이는 육포용 식칼을 거꾸로 쥐었다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "시끄러워. 튀는 피는 다 피할 거야. 단장 뒤에 바짝 붙어."
+        },
+        {
+          "speaker": "char_0014",
+          "text": "엄마 보고 싶다…… 일당 두 닢에 이런 지옥을 구르다니!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "목책 너머에서 쏟아지는 적들의 비명을 향해 칼날이 번뜩였다."
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0032",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0013.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "철벅! 단장의 검이 마지막 참호병의 숨통을 단숨에 끊어놓았다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "끝. 망토에 피랑 진흙 다 튀었잖아. 단장, 세탁비 장부에 적어."
+        },
+        {
+          "speaker": "char_0006",
+          "text": "참호 바닥에 구더기보다 시체가 더 많네. 조리실 청소 끝."
+        },
+        {
+          "speaker": "char_0014",
+          "text": "허억, 허억…… 사람을 무슨 무 뽑듯이 썰어제끼네. 괴물들이야……."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "휴고, 헛소리할 시간에 시체 품이나 뒤져. 은화 한 닢이라도 찾아."
+        },
+        {
+          "speaker": "char_0014",
+          "text": "네, 넵! 즉시 털겠습니다! 제발 칼은 치워주세요!"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0013.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "피비린내 나는 참호 너머로 버스튼 성채의 거대한 외성문이 드러났다."
+        },
+        {
+          "speaker": "char_0014",
+          "text": "저, 저기 외성문 굳게 닫혔습니다! 위에서 기름 쏟으면 우린 전멸이에요!"
+        },
+        {
+          "speaker": "char_0006",
+          "text": "기름? 마침 군량 마차에서 챙겨온 군용 기름통이 세 통 남았는데."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "문짝 통째로 태워버리자. 비 맞으면서 문 두드릴 생각 없어."
+        },
+        {
+          "speaker": "narrator",
+          "text": "강철송곳니 용병대 전원 전투 준비! 저 미친놈들을 성문 밑에 묻어라!",
+          "name": "성벽 위 경비대장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "굳게 닫힌 외성문 위로 발도르프의 최정예 용병들이 살기 어린 칼을 뽑아 들었다."
+        }
+      ]
+    }
+  ]
+}

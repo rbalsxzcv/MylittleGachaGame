@@ -38,5 +38,19 @@
     "bannerImage": "assets/banners/banner_0003.jpg",
     "description": "",
     "relatedStoryId": null
+  },
+  {
+    "id": "banner_0004",
+    "title": "아니? 내가 너희를 사서 뽑는거야!",
+    "type": "pickup",
+    "pickupIds": [
+      "char_0011",
+      "char_0012"
+    ],
+    "startAt": null,
+    "endAt": null,
+    "bannerImage": "assets/banners/banner_0004.jpg",
+    "description": "",
+    "relatedStoryId": null
   }
 ]

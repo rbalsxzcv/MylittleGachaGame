@@ -1,0 +1,197 @@
+{
+  "id": "story_0031",
+  "title": "정규군의 방패를 깨는 도끼",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0012.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "char_0003",
+          "text": "퉤! 쇠뇌 화살이 튕겨 나갔잖아! 저 쇳덩이들 뭐야?!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "전원 방진 유지! 한 놈도 살려 보내지 마라!",
+          "name": "중장 방패병 지휘관"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "이웃 영지 정규군 놈들인가. 방패 크기가 관짝만 하군."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "내 일당에서 화살값 까인다는데, 저러면 쏠 맛 안 나지!"
+        },
+        {
+          "speaker": "char_0008",
+          "text": "하아암…… 시끄러워 죽겠네. 낮잠 좀 자려 했더니."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "마법사 녀석, 술 덜 깼냐? 저 관짝들 좀 치워봐라!"
+        },
+        {
+          "speaker": "char_0008",
+          "text": "공짜로는 손가락 하나 안 움직여. 내 시급 얼마인지 알지?",
+          "choices": [
+            {
+              "text": "수당 쳐줄 테니 저 고철 방패들 싹 녹여버려!",
+              "goto": "s2_1"
+            },
+            {
+              "text": "산재 처리 확약할 테니 저주 한 방 갈겨라!",
+              "goto": "s2_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0012.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "char_0008",
+          "text": "좋아, 추가 수당 약속했다? 계약 위반하면 단장 목 딸 거야."
+        },
+        {
+          "speaker": "narrator",
+          "text": "이레나가 기괴한 주문을 외우자 손끝에서 검붉은 안개가 피어올랐다."
+        },
+        {
+          "speaker": "char_0008",
+          "text": "크윽…… 젠장, 코피 터지네. 쇳덩이나 썩어 문드러져라!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "으, 으악?! 방패가 썩어 내린다! 손에 쇠독이 올라와!",
+          "name": "중장 방패병"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "철벽에 구멍 뚫렸다! 고기 썰 시간이다, 빚쟁이!"
+        },
+        {
+          "speaker": "char_0003",
+          "text": "화살값 낭비는 끝이다! 틈새로 눈알만 골라 쏴주마!"
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "s2_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0012.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "char_0008",
+          "text": "산재 보장이라니 눈물 나네. 마탑에서도 안 해주던 건데."
+        },
+        {
+          "speaker": "narrator",
+          "text": "이레나가 불길한 저주를 읊조리자 핏방울이 주르륵 흘러내렸다."
+        },
+        {
+          "speaker": "char_0008",
+          "text": "수명 깎아 먹는 야근은 질색인데…… 부식되어 무너져라!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "괴물 요술이다! 방패가 부스러기처럼 깨져 나간다!",
+          "name": "중장 방패병"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "껍데기 벗겨졌으면 알맹이를 썰어야지! 대검 간다!"
+        },
+        {
+          "speaker": "char_0003",
+          "text": "크하하! 깡통 뚜껑 열렸으니 석궁 맛 좀 봐라!"
+        }
+      ],
+      "next": "b1"
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0031",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0012.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "콰득! 발레리아의 묵직한 대검이 적의 투구를 쪼개버렸다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "후우…… 정규군이라더니 맷집만 질기고 별거 없네."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "야, 얘네 은화 주머니 두둑한데? 정규군은 역시 복지가 좋아."
+        },
+        {
+          "speaker": "char_0008",
+          "text": "콜록, 콜록! 피 묻은 소매나 빨아줘. 마력 쓰니까 목탄 맛 나."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "코피나 닦아라, 마법사. 징글징글하게 쏟아지네."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "방패 녹여줘서 고맙긴 한데, 다음엔 내 쪽으로 안 튀게 해라."
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0012.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "투둑, 투두둑. 먹구름이 끼더니 차가운 빗방울이 떨어지기 시작했다."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "아오, 비까지 쏟아지네! 활줄 젖으면 사거리 줄어드는데!"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "저 앞을 봐라. 버스튼 성채 외곽에 참호와 목책을 파놨군."
+        },
+        {
+          "speaker": "char_0008",
+          "text": "진흙탕에 발 빠지면 야근 수당 따따블로 청구할 줄 알아."
+        },
+        {
+          "speaker": "narrator",
+          "text": "빗속에 잠긴 참호 너머로 적들의 살벌한 경계 태세가 드러나고 있었다."
+        }
+      ]
+    }
+  ]
+}

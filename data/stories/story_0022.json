@@ -1,0 +1,194 @@
+{
+  "id": "story_0022",
+  "title": "와인 저장고의 환영 인사",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0008.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "축축한 흙벽을 뚫고 나오자 묵직한 포도주 향이 코를 찔렀다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "콜록, 쿨럭! 쥐새끼 구멍 같지만 통로는 확실했죠?",
+          "name": "바바루아"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "크하, 냄새 죽이네! 족히 수십 년은 묵은 특급 빈티지야!"
+        },
+        {
+          "speaker": "char_0007",
+          "text": "술 냄새 맡고 침 흘리지 마, 발레리아! 오크통 하나가 금화 몇 닢인 줄 알아?"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "단장. 와인 냄새 말고 다른 냄새도 나. 쇠비린내랑 기름 냄새."
+        },
+        {
+          "speaker": "narrator",
+          "text": "와인창고에 쇠비린내라니, 손님맞이용 환영단이 숨어있나 보군.",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "오크통 깨지게 조심하면서 목을 따자.",
+              "goto": "s2_1"
+            },
+            {
+              "text": "남작 놈 아끼는 술부터 몽땅 작살내라.",
+              "goto": "s2_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0008.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "char_0007",
+          "text": "그래, 그래야 내 단장이지! 상품 가치 떨어지면 너한테 청구할 뻔했다!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "술통 뒤쪽에 넷, 천장 들보 위에 셋. 전부 판금 갑옷이야."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "통 안 깨지게 관절 사이만 쑤시란 소리군. 성가시지만 해보지!"
+        }
+      ],
+      "next": "s3"
+    },
+    {
+      "id": "s2_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0008.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "char_0007",
+          "text": "야, 미쳤어?! 저게 다 우리 미수금 정산할 환금성 자산인데?!"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "단장 말이 백번 맞아! 남의 술통 부수는 게 세상에서 제일 짜릿하거든!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "그만 떠들어. 저쪽에서 먼저 칼 뽑았어."
+        }
+      ],
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0008.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "거대한 술통 그늘 속에서 번쩍이는 강철 갑주들이 모습을 드러냈다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "쥐새끼들이 감히 남작님의 와인창고까지 기어들다니! 전부 쳐죽여라!",
+          "name": "남작령 근위대장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "히익! 중장병들이 매복해 있었습니다요! 살려줘요!",
+          "name": "바바루아"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "대가리에 든 거 없는 깡통 녀석들! 술맛 떨어지게 어디서 꽥꽥대?!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "목덜미 틈새, 찌르기 딱 좋아. 단장, 일 시작할게."
+        },
+        {
+          "speaker": "narrator",
+          "text": "밀린 야근 수당 챙길 시간이다. 깡통들 뚜껑 따고 피로 와인 숙성시키자!",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0022",
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0008.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "깨진 오크통에서 쏟아진 적포도주와 근위병들의 검붉은 피가 뒤엉켜 바닥을 흥건히 적셨다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "푸하! 대검에 묻은 게 술인지 피인지 모르겠네! 맛이라도 볼까?"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "더러워, 발레리아. 저놈들 갑옷 틈새에서 땀 냄새까지 섞였어."
+        },
+        {
+          "speaker": "char_0007",
+          "text": "아이고, 내 금화 통들이 절반이나 터졌잖아! 이 웬수들아!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "남은 오크통은 나중에 바바루아 시켜서 마차로 빼돌리면 되잖아. 안 그래, 바바루아?",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "네, 넵! 뼈가 부러져도 등에 짊어지고 나르겠습니다요…….",
+          "name": "바바루아"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "단장, 위쪽 나선계단에서 음악 소리 들려. 류트랑 나팔 소리."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "지하에서 피비린내가 진동하는데 위에서는 파티질이라 이거지? 넉살도 좋아."
+        },
+        {
+          "speaker": "char_0007",
+          "text": "기름진 고기 냄새도 나네. 우리 몫의 잔칫상도 차려져 있을까?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "초대장 없는 불청객이 제일 신나게 노는 법이지. 연회장 문짝 걷어차러 가자.",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}
