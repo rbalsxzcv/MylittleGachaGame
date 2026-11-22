@@ -3,10 +3,10 @@
 // 잘못된 항목은 건너뛰고(콘솔 경고) 나머지는 그대로 사용합니다.
 
 import { cleanKit, cleanStats, cleanPassiveList, cleanEnemyBehavior } from '../battle/schema.js';
-import { loadConfig, normalizeRarity, RARITIES } from '../config.js';
+import { loadConfig, normalizeRarity, normalizeGrade, isNpc, NPC, RARITIES } from '../config.js';
 import { validateAliases } from './aliases.js';
 
-export { RARITIES, normalizeRarity };
+export { RARITIES, normalizeRarity, normalizeGrade, isNpc, NPC };
 export const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 export const STORY_KINDS = ['main', 'character', 'event'];
 
@@ -87,7 +87,8 @@ const warnData = (msg) => console.warn(`[data] ${msg}`);
 export const ROLES = ['attacker', 'defender', 'support', 'healer'];
 const colorOrNull = (v) => (typeof v === 'string' && /^#[0-9a-f]{3,8}$/i.test(v) ? v : null);
 
-// 필수: id, name, rarity(1–5, 예전 'R'/'SR'/'SSR'은 3/4/5로 읽음)
+// 필수: id, name, rarity(등급: 1–5 또는 'npc'. 예전 'R'/'SR'/'SSR'은 3/4/5, 예전 pullable: false는 'npc'로 읽음)
+// NPC 등급 = 뽑기/도감/육성/편성에 안 나옴 (스토리 화자, 적 연결용). pullable은 등급에서 계산 (NPC가 아니면 true)
 // 표시(선택): nameEn, role, cutout, themeColor, quote — 가챠 컷인/전투 초상에 씀
 // 전투(선택): stats, kit {basic, skill, ultimate}, breakthroughs[5] — 없으면 희귀도 기본값 / 기본 스킬
 // retired: true = 은퇴 (뽑기에서 빠지지만 보유/도감은 유지. id는 절대 지우지 않음)
@@ -95,8 +96,9 @@ export function validateCharacters(json, vocab) {
   return cleanList(asList(json, 'characters'), 'characters', (raw) => {
     const name = str(raw.name).trim();
     if (!name) throw new Error('name 없음');
-    const rarity = normalizeRarity(raw.rarity);
-    if (!rarity) throw new Error('rarity는 1~5 중 하나여야 함');
+    // 예전 데이터: pullable: false(스토리 전용 인물) = NPC 등급
+    const rarity = raw.pullable === false ? NPC : normalizeGrade(raw.rarity);
+    if (!rarity) throw new Error("rarity는 1~5 또는 'npc'여야 함");
     const where = `characters/${raw.id}`;
     return {
       id: raw.id,
@@ -111,7 +113,7 @@ export function validateCharacters(json, vocab) {
       themeColor: colorOrNull(raw.themeColor),
       quote: str(raw.quote, '', 120).trim(),
       addedAt: str(raw.addedAt).trim(),
-      pullable: raw.pullable !== false, // false = 스토리 전용 인물 (뽑기/도감에 안 나옴)
+      pullable: rarity !== NPC, // NPC 등급이면 false (뽑기/도감/육성/편성에 안 나옴)
       retired: raw.retired === true,
       stats: cleanStats(raw.stats),
       kit: vocab ? cleanKit(raw.kit, vocab, warnData, `${where}.kit`) : null,
@@ -121,7 +123,8 @@ export function validateCharacters(json, vocab) {
 }
 
 // ── enemies.json ──────────────────────────────────────────
-// { id, name, image, boss, stats, actions{}, pattern[], phases[], enrage, passives[] } — 패시브는 항상 켜짐
+// { id, name, image, boss, charId?, stats, actions{}, pattern[], phases[], enrage, passives[] } — 패시브는 항상 켜짐
+// charId: 이 적이 어떤 NPC 캐릭터인지 (선택). 적 그림이 없으면 그 캐릭터 그림을 씀 (linkEnemyNpcs)
 // 예전 { kit } 형식도 읽음 (actions + 기본 패턴으로 바뀜). 자세한 형식은 battle/schema.js cleanEnemyBehavior
 export function validateEnemies(json, vocab) {
   return cleanList(asList(json, 'enemies'), 'enemies', (raw) => {
@@ -133,10 +136,37 @@ export function validateEnemies(json, vocab) {
       name,
       image: str(raw.image).trim(),
       boss: raw.boss === true,
+      charId: idOk(raw.charId) ? raw.charId : null,
       stats: cleanStats(raw.stats),
       ...cleanEnemyBehavior(raw, vocab, warnData, where),
       passives: cleanPassiveList(raw.passives, vocab, warnData, `${where}.passives`, 8),
     };
+  });
+}
+
+/**
+ * 게임에서 쓰는 캐릭터 나누기 (순수 — main.js와 테스트가 같이 씀)
+ * - characters / charMap: 플레이어 캐릭터 (NPC 아님 + 공개 시각이 지남) → 뽑기, 도감, 육성, 편성, 전투력, NEW, 대표
+ * - npcs: NPC 등급 / allCharMap: 전부 (스토리 화자, 적 연결 — 공개 전 캐릭터도 이름은 보여야 하므로)
+ * 등급을 NPC로 바꾸면 세이브의 보유 기록은 남지만 어디에서도 쓰이지 않고, 다시 1–5로 바꾸면 그대로 돌아옴
+ * @param {Array} all validateCharacters 결과
+ * @param {(c:object)=>boolean} [released] 공개됐는지 (기본: 모두)
+ */
+export function splitCharacters(all, released = () => true) {
+  const characters = all.filter((c) => !isNpc(c) && released(c));
+  return {
+    characters,
+    charMap: new Map(characters.map((c) => [c.id, c])),
+    npcs: all.filter(isNpc),
+    allCharMap: new Map(all.map((c) => [c.id, c])),
+  };
+}
+
+/** 적 ↔ NPC 연결: 적 그림이 비어 있으면 연결된 캐릭터 그림을 씀 (원본은 바꾸지 않고 새 목록) */
+export function linkEnemyNpcs(enemies, allCharMap) {
+  return enemies.map((e) => {
+    const c = e.charId ? allCharMap.get(e.charId) : null;
+    return c && !e.image && c.image ? { ...e, image: c.image } : e;
   });
 }
 

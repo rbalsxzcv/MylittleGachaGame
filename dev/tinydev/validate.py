@@ -207,6 +207,7 @@ def validate(content, asset_exists, held=None):
     # ── 캐릭터 ──
     chars = _check_ids(r, "characters", content.get("characters"))
     char_ids = {c["id"] for c in chars}
+    npc_ids = {c["id"] for c in chars if rarity.is_npc(c)}
     released_at = {}
     gone = deleted_ids("characters")
     for c in chars:
@@ -215,12 +216,15 @@ def validate(content, asset_exists, held=None):
             r.error(where, "예전에 삭제한 캐릭터의 id예요. 그 캐릭터를 가졌던 플레이어 세이브에 기록이 남아 있어서 새 캐릭터에 그대로 붙어요 → 다른 id로 바꿔 주세요 (dev/deleted_ids.json)")
         if not str(c.get("name") or "").strip():
             r.error(where, "이름(name)이 비어 있어요")
-        if rarity.normalize(c.get("rarity")) is None:
-            r.error(where, f"희귀도(rarity)는 1~5 중 하나여야 해요: {c.get('rarity')!r}")
-        elif not isinstance(c.get("rarity"), int):
-            r.warn(where, f"희귀도가 예전 형식이에요 ({c.get('rarity')!r} → {rarity.normalize(c.get('rarity'))}). 저장하면 숫자로 바뀌어요")
-        # 스토리 전용 인물(pullable: false)은 그림이 없어도 경고하지 않음
-        _check_asset(r, where, "image", c.get("image"), asset_exists, required=c.get("pullable") is not False)
+        grade = rarity.grade_of(c)
+        if grade is None:
+            r.error(where, f"등급(rarity)은 1~5 또는 'npc'여야 해요: {c.get('rarity')!r}")
+        elif "pullable" in c:
+            r.warn(where, f"pullable은 예전 방식이에요 → 등급 {rarity.label(grade)}로 읽어요 (캐릭터 탭에서 저장하면 정리돼요)")
+        elif not (isinstance(c.get("rarity"), int) or c.get("rarity") == rarity.NPC):
+            r.warn(where, f"등급이 예전 형식이에요 ({c.get('rarity')!r} → {rarity.label(grade)}). 저장하면 바뀌어요")
+        # NPC 등급은 그림이 없어도 경고하지 않음 (스토리에서 이름만 나와도 됨)
+        _check_asset(r, where, "image", c.get("image"), asset_exists, required=grade != rarity.NPC)
         released_at[c["id"]] = _check_date(r, where, "addedAt", c.get("addedAt"))
         if not c.get("addedAt"):
             r.warn(where, "addedAt(추가 시각)이 없어요")
@@ -234,7 +238,15 @@ def validate(content, asset_exists, held=None):
         where = f"enemies/{e['id']}"
         if not str(e.get("name") or "").strip():
             r.error(where, "이름(name)이 비어 있어요")
-        _check_asset(r, where, "image", e.get("image"), asset_exists)
+        link = e.get("charId")
+        if link:
+            if link not in char_ids:
+                r.error(where, f"연결된 NPC 캐릭터가 없어요: {link!r}")
+            elif link not in npc_ids:
+                r.warn(where, f"연결된 캐릭터 '{link}'가 NPC 등급이 아니에요 (뽑을 수 있는 캐릭터가 적으로도 나와요)")
+        # 그림이 없어도 연결된 NPC 그림이 있으면 그걸 씀
+        linked_image = next((c.get("image") for c in chars if c["id"] == link), "") if link else ""
+        _check_asset(r, where, "image", e.get("image") or linked_image, asset_exists)
         if vocab:
             kit.check_enemy_battle(r, where, e, vocab)
     stages = _check_ids(r, "stages", content.get("stages") or [])
@@ -323,7 +335,8 @@ def validate(content, asset_exists, held=None):
             if t == "prevChapter":
                 continue
             if t == "ownsCharacter":
-                char_ref(where, cond.get("characterId"), "해금 조건 캐릭터")
+                if char_ref(where, cond.get("characterId"), "해금 조건 캐릭터") and cond.get("characterId") in npc_ids:
+                    r.error(where, f"해금 조건 캐릭터 '{cond.get('characterId')}'는 NPC 등급이라 가질 수 없어요 (게임에서 이 스토리가 숨겨져요)")
             elif t == "period":
                 has_period = True
                 a = _check_date(r, where, "unlock.startAt", cond.get("startAt"))
@@ -437,7 +450,7 @@ def validate(content, asset_exists, held=None):
                 if not isinstance(v, int) or not lo <= v <= hi:
                     r.error(where, f"rotation.{key}는 {lo}~{hi} 정수여야 해요: {v!r}")
             _check_date(r, where, "rotation.anchor", rot.get("anchor"), required=True)
-            pool = [c for c in chars if rarity.normalize(c.get("rarity")) == rot_rarity and c.get("pullable") is not False and not c.get("retired")]
+            pool = [c for c in chars if rarity.grade_of(c) == rot_rarity and rarity.gachable(c)]
             if not pool:
                 r.warn(where, f"로테이션할 {rarity.label(rot_rarity)} 캐릭터가 없어요 (그동안 배너가 숨겨져요)")
             elif len(pool) < (rot.get("count") or 0):
@@ -450,6 +463,8 @@ def validate(content, asset_exists, held=None):
                 r.warn(where, "픽업 배너에 종료 시각이 없어요")
             for cid in ids:
                 if char_ref(where, cid, "픽업 캐릭터"):
+                    if cid in npc_ids:
+                        r.error(where, f"픽업 캐릭터 '{cid}'는 NPC 등급이라 뽑기에 안 나와요 → 픽업에서 빼거나 등급을 1~5로 바꿔 주세요")
                     rel = released_at.get(cid)
                     if rel and start and rel > start:
                         r.warn(where, f"픽업 캐릭터 '{cid}'의 공개 시각(addedAt)이 배너 시작보다 늦어요")

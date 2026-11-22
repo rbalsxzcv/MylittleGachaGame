@@ -1,5 +1,5 @@
 // 적 탭: 목록 / 만들기 / 고치기 / 지우기 — 능력치, 행동(같은 효과 엔진) + 패턴(예고 순서) + 보스 페이즈/광폭화, 패시브, 그림
-import { h, toast, confirmBox, wsImage, idBadge } from '../ui.js';
+import { h, toast, confirmBox, wsImage, idBadge, isNpc, rarLabel, gradeOf } from '../ui.js';
 import { api, tryApi, newId } from '../api.js';
 import { state, reloadData } from '../state.js';
 import { loadBattleKit, skillForm, passiveForm, statsForm, issueList, blankPassive, cleanEntity, effectList, newEffect } from '../battleForm.js';
@@ -121,7 +121,32 @@ export function enemiesTab(root, { select } = {}) {
     const imgSel = h('select', { onchange: (ev) => ((v.image = ev.target.value), mark(), renderImg()) }, h('option', { value: '' }, '(그림 없음 — 기본 카드)'), images.map((p) => h('option', { value: p }, p.replace('assets/enemies/', ''))));
     imgSel.value = v.image || '';
     const imgBox = h('div', { class: 'thumb big-thumb checker' });
-    const renderImg = () => imgBox.replaceChildren(v.image ? h('img', { src: wsImage(v.image), alt: '' }) : h('span', {}, '그림 없음'));
+    // NPC 연결: 이 적이 어떤 NPC 캐릭터 본인인지 (적 그림이 없으면 그 캐릭터 그림을 씀)
+    const linkedChar = () => (v.charId ? state.data.characters.find((c) => c.id === v.charId) : null);
+    const renderImg = () => {
+      const fallback = !v.image && linkedChar()?.image;
+      imgBox.replaceChildren(v.image ? h('img', { src: wsImage(v.image), alt: '' }) : fallback ? h('img', { src: wsImage(fallback), alt: '', title: '연결된 NPC 그림' }) : h('span', {}, '그림 없음'));
+    };
+    const npcOptions = state.data.characters.filter((c) => isNpc(c) || c.id === v.charId);
+    const npcSel = h(
+      'select',
+      {
+        onchange: (ev) => {
+          if (ev.target.value) v.charId = ev.target.value;
+          else delete v.charId;
+          const c = linkedChar();
+          if (c && !(v.name || '').trim()) {
+            v.name = c.name;
+            name.value = c.name;
+          }
+          mark();
+          renderImg();
+        },
+      },
+      h('option', { value: '' }, '(없음)'),
+      npcOptions.map((c) => h('option', { value: c.id }, `${c.name} (${rarLabel(gradeOf(c))}${isNpc(c) ? '' : ' — NPC 아님'})`)),
+    );
+    npcSel.value = v.charId || '';
     renderImg();
     const upload = h('input', {
       type: 'file',
@@ -328,7 +353,7 @@ export function enemiesTab(root, { select } = {}) {
         'section',
         { class: 'card' },
         h('h2', {}, isNew ? '새 적' : `적 편집 — ${v.id}`),
-        h('div', { class: 'row', style: { gap: '16px', alignItems: 'flex-start' } }, imgBox, h('div', { class: 'grow' }, h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (자동)', id), h('label', { class: 'field' }, '이름', name)), h('label', { class: 'inline' }, boss, '보스 (카드가 크게 표시)'), h('label', { class: 'field' }, '그림 (assets/enemies) — 올리기 또는 AI로 그리기', h('div', { class: 'row wrap' }, imgSel, upload, drawAi)))),
+        h('div', { class: 'row', style: { gap: '16px', alignItems: 'flex-start' } }, imgBox, h('div', { class: 'grow' }, h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (자동)', id), h('label', { class: 'field' }, '이름', name)), h('label', { class: 'inline' }, boss, '보스 (카드가 크게 표시)'), h('label', { class: 'field', title: 'NPC 등급 캐릭터가 적으로 싸울 때 연결. 적 그림이 없으면 그 캐릭터 그림을 써요' }, 'NPC 연결 (선택)', npcSel), h('label', { class: 'field' }, '그림 (assets/enemies) — 올리기 또는 AI로 그리기', h('div', { class: 'row wrap' }, imgSel, upload, drawAi)))),
         power,
         h('h3', {}, '기본 능력치 (Lv.1, 레벨에 따라 성장)'),
         statsForm(v.stats, { ...balance.stats.byRarity[3], critRate: balance.stats.critRate, critDmg: balance.stats.critDmg }, { onChange: mark }),

@@ -1,6 +1,6 @@
 // 게임 시작점: 데이터 로드 → 세이브 로드 → 출석 보상 → 홈 화면 → 시작 팝업
 import { initStage, toggleFullscreen } from './core/stage.js';
-import { loadGameData } from './core/data.js';
+import { loadGameData, splitCharacters, linkEnemyNpcs } from './core/data.js';
 import { loadSave, writeSave, clearSave, createNewSave, usePreviewSaveKey } from './core/save.js';
 import { emit } from './core/events.js';
 import { now, parseDate, setNowOverride, isTimeShifted, formatKST } from './core/time.js';
@@ -67,12 +67,15 @@ async function boot() {
   setTheme(data.ui); // 화면 에셋(배경/로고/아이콘) — 없으면 CSS 기본 디자인
   // 출시 시각(addedAt)이 아직 안 된 캐릭터는 게임에 나오지 않음 (픽업 데뷔용)
   const t = now();
-  data.allCharMap = new Map(data.characters.map((c) => [c.id, c]));
-  data.characters = data.characters.filter((c) => {
-    const at = parseDate(c.addedAt);
-    return !at || at <= t;
-  });
-  data.charMap = new Map(data.characters.map((c) => [c.id, c]));
+  // NPC 등급은 플레이어 캐릭터 목록에서 빠짐 (스토리 화자/적 연결용 allCharMap에는 있음)
+  Object.assign(
+    data,
+    splitCharacters(data.characters, (c) => {
+      const at = parseDate(c.addedAt);
+      return !at || at <= t;
+    }),
+  );
+  data.enemies = linkEnemyNpcs(data.enemies, data.allCharMap);
   data.enemyMap = new Map(data.enemies.map((e) => [e.id, e]));
   data.stageMap = new Map(data.stages.map((s) => [s.id, s]));
   if (data.vocab) {
@@ -91,7 +94,7 @@ async function boot() {
     save.scrolls = 100;
   }
   if (opts.ownAll) {
-    for (const c of data.characters) if (c.pullable && !save.owned[c.id]) save.owned[c.id] = { level: 1, essence: 0, breakthrough: 0, count: 1, firstAt: save.createdAt };
+    for (const c of data.characters) if (!save.owned[c.id]) save.owned[c.id] = { level: 1, essence: 0, breakthrough: 0, count: 1, firstAt: save.createdAt };
   }
   syncKnownIds(save, data.characters, isNew);
   const daily = isNew ? null : applyDailyLogin(save, { tickets: data.balance.daily.tickets, gold: data.balance.daily.gold });

@@ -2,7 +2,7 @@
 import { describe, it, expect } from './lib/runner.js';
 import { loadJson } from './lib/load.js';
 import { loadGameData } from './lib/gameData.js';
-import { RARITIES } from '../js/config.js';
+import { RARITIES, NPC } from '../js/config.js';
 import { createBattle } from '../js/battle/engine.js';
 import { buildPools, isPoolEmpty } from '../js/systems/gacha.js';
 import { adventureIssues } from '../js/systems/adventure.js';
@@ -10,12 +10,15 @@ import { adventureIssues } from '../js/systems/adventure.js';
 const d = await loadGameData({ stories: true });
 
 describe('data: 실제 데이터 파일', () => {
-  it('경고 없이 불러와지고 희귀도는 1–5 정수', async () => {
+  it("경고 없이 불러와지고 등급은 1–5 정수 또는 'npc' (예전 pullable 없음)", async () => {
     expect(d.warnings, d.warnings.join(' / ')).toEqual([]);
     expect(d.characters.length).toBeGreaterThanOrEqual(1);
-    for (const c of d.characters) expect(RARITIES.includes(c.rarity), `${c.id}: ${c.rarity}`).toBe(true);
+    for (const c of d.characters) expect(RARITIES.includes(c.rarity) || c.rarity === NPC, `${c.id}: ${c.rarity}`).toBe(true);
     const raw = await loadJson('data/characters.json');
-    for (const c of raw) expect(typeof c.rarity, `${c.id} 파일 안의 희귀도`).toBe('number');
+    for (const c of raw) {
+      expect(typeof c.rarity === 'number' || c.rarity === NPC, `${c.id} 파일 안의 등급: ${c.rarity}`).toBe(true);
+      expect('pullable' in c, `${c.id}: 예전 pullable 필드 (등급 npc로)`).toBe(false);
+    }
   });
   it('배너 로테이션 희귀도도 숫자, 상시 배너 풀이 비어 있지 않음', () => {
     for (const b of d.banners) if (b.rotation) expect(b.rotation.rarity).toBe(5);

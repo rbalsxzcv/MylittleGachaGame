@@ -23,10 +23,24 @@ export function normalizeRarity(value) {
   return Number.isInteger(n) && n >= 1 && n <= MAX_RARITY ? n : null;
 }
 
-/** 표시용: 5 → '★★★★★' */
-export const rarityStars = (r) => '★'.repeat(normalizeRarity(r) || 1);
-/** 표시용 짧은 이름: 5 → '5★' */
-export const rarityLabel = (r) => `${normalizeRarity(r) || 1}★`;
+// ── 등급 = 희귀도 1–5 + NPC ──────────────────────────────
+// NPC 등급: 뽑기/도감/육성/편성에 나오지 않음. 스토리 화자나 전투의 적(enemies.json의 charId로 연결)으로만 나옴.
+// 등급을 NPC ↔ 1–5로 바꾸면 가챠 풀은 데이터에서 매번 새로 만들어서 바로 따라감 (세이브 기록은 그대로 보관)
+export const NPC = 'npc';
+/** 캐릭터 등급 정리: 1–5 정수 또는 'npc' (대소문자 무관, 예전 'R'/'SR'/'SSR'도). 알 수 없으면 null */
+export function normalizeGrade(value) {
+  if (typeof value === 'string' && value.trim().toLowerCase() === NPC) return NPC;
+  return normalizeRarity(value);
+}
+/** NPC 등급 캐릭터인지 (예전 데이터의 pullable: false도 NPC) */
+export const isNpc = (c) => !!c && (c.rarity === NPC || c.pullable === false);
+/** 정렬용 숫자 (NPC = 0) */
+export const gradeRank = (r) => (r === NPC ? 0 : normalizeRarity(r) || 0);
+
+/** 표시용: 5 → '★★★★★' (NPC → '') */
+export const rarityStars = (r) => (r === NPC ? '' : '★'.repeat(normalizeRarity(r) || 1));
+/** 표시용 짧은 이름: 5 → '5★', NPC → 'NPC' */
+export const rarityLabel = (r) => (r === NPC ? 'NPC' : `${normalizeRarity(r) || 1}★`);
 
 // ── 큰 숫자 ───────────────────────────────────────────────
 /** 12,345 → '1.2만', 340,000,000 → '3.4억', 9,876 → '9,876' (소수 첫째 자리 내림, .0은 생략) */

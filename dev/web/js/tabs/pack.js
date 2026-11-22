@@ -1,7 +1,7 @@
 // 챕터 팩 탭: 챕터 개요 하나로 "챕터(12장) + 등장 캐릭터 + 배경 + 적 + 스테이지"를 한 번에
 // 1) 개요 → AI 구성안 (고치기 / 사유와 함께 다시 만들기)
 // 2) 팩 만들기: 서버가 차례대로 만들고 12장 대본을 씀 (진행 상황을 여기서 확인, 중간에 멈춰도 이어서 가능)
-import { h, toast, confirmBox, busy } from '../ui.js';
+import { h, toast, confirmBox, busy, NPC, rarLabel } from '../ui.js';
 import { api, tryApi } from '../api.js';
 import { state, reloadData } from '../state.js';
 
@@ -65,6 +65,16 @@ export function packTab(root) {
     };
     const remove = (list, i) => h('button', { class: 'btn tiny', onclick: () => (list.splice(i, 1), renderPlan()) }, '✕');
     const charName = (id) => p.characters.find((c) => c.id === id)?.name || state.data.characters.find((c) => c.id === id)?.name || id;
+    // 적 ↔ NPC 연결: 이 구성안의 NPC + 이미 있는 NPC
+    const npcChoices = () => [
+      ...p.characters.filter((c) => String(c.rarity) === NPC).map((c) => [c.id, `${c.name} (새 NPC)`]),
+      ...state.data.characters.filter((c) => c.rarity === NPC || c.pullable === false).map((c) => [c.id, `${c.name} (${rarLabel(NPC)})`]),
+    ];
+    const npcSel = (e) => {
+      const s = h('select', { onchange: (ev) => (e.charId = ev.target.value || null) }, h('option', { value: '' }, '(없음)'), npcChoices().map(([v, l]) => h('option', { value: v }, l)));
+      s.value = e.charId || '';
+      return s;
+    };
     const enemyName = (id) => p.enemies.find((e) => e.id === id)?.name || state.data.enemies.find((e) => e.id === id)?.name || id;
 
     const chars = p.characters.map((c, i) =>
@@ -76,9 +86,8 @@ export function packTab(root) {
           { class: 'row wrap' },
           h('label', { class: 'bf-param' }, h('span', {}, '이름'), input(c, 'name')),
           h('label', { class: 'bf-param' }, h('span', {}, 'id (임시)'), h('code', { class: 'id-badge is-pending', title: '임시 이름 — 챕터 팩을 만들 때 자동 id(char_0001 …)로 바뀌어요' }, c.id)),
-          h('label', { class: 'bf-param' }, h('span', {}, '희귀도'), sel(c, 'rarity', [5, 4, 3, 2, 1].map((r) => [String(r), `${r}★`]))),
+          h('label', { class: 'bf-param' }, h('span', {}, '등급'), sel(c, 'rarity', [...[5, 4, 3, 2, 1].map((r) => [String(r), `${r}★`]), [NPC, 'NPC (뽑기 제외)']])),
           h('label', { class: 'bf-param grow' }, h('span', {}, '칭호'), input(c, 'title')),
-          h('label', { class: 'inline' }, h('input', { type: 'checkbox', checked: c.pullable, onchange: (e) => (c.pullable = e.target.checked) }), '뽑기 동료'),
           remove(p.characters, i),
         ),
         h('label', { class: 'field' }, '외형 키워드 (그림 만들 때 씀)', area(c, 'keywords')),
@@ -100,6 +109,7 @@ export function packTab(root) {
           h('label', { class: 'bf-param' }, h('span', {}, 'id (임시)'), h('code', { class: 'id-badge is-pending', title: '임시 이름 — 챕터 팩을 만들 때 자동 id(char_0001 …)로 바뀌어요' }, e.id)),
           h('label', { class: 'bf-param' }, h('span', {}, '역할'), sel(e, 'role', ROLES)),
           h('label', { class: 'bf-param' }, h('span', {}, '스타일'), sel(e, 'style', STYLES)),
+          h('label', { class: 'bf-param', title: '이 적이 NPC 인물 본인이면 연결 (적 그림이 없으면 그 캐릭터 그림을 씀)' }, h('span', {}, 'NPC 연결'), npcSel(e)),
           h('label', { class: 'bf-param grow' }, h('span', {}, '설명'), input(e, 'description')),
           remove(p.enemies, i),
         ),

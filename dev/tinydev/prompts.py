@@ -18,14 +18,15 @@ _RARITY_HINT = {
     3: "neat outfit with a few details, natural confident pose",
     4: "detailed elegant outfit, a few accessories, light glow effects, confident pose",
     5: "very ornate legendary outfit, sparkling magical effects close to the body, dramatic dynamic pose",
+    rarity.NPC: "story character outfit that fits the role, grounded details, natural pose",
 }
 
 
 class _HintMap(dict):
-    """희귀도(1–5, 예전 'R'/'SR'/'SSR'도 됨) → 그림 프롬프트 힌트"""
+    """등급(1–5 / 'npc', 예전 'R'/'SR'/'SSR'도 됨) → 그림 프롬프트 힌트"""
 
     def get(self, key, default=""):
-        return _RARITY_HINT.get(rarity.normalize(key), default)
+        return _RARITY_HINT.get(rarity.normalize_grade(key), default)
 
 
 RARITY_HINT = _HintMap()
@@ -132,7 +133,7 @@ def brief(kind, inp, chars=(), theme="", slot=None):
             "Original full-body character standee for a casual mobile collection (gacha) game.",
             f"Name: {inp.get('name', '')}",
             f"Title / role: {inp.get('title', '')}",
-            f"Rarity: {rarity.label(inp.get('rarity', 3))} (1-5 stars) — {RARITY_HINT.get(inp.get('rarity'), '')}",
+            f"Rarity: {rarity.label(inp.get('rarity', 3))} (1-5 stars, NPC = story-only side character) — {RARITY_HINT.get(inp.get('rarity'), '')}",
             f"Appearance keywords (Korean ok): {inp.get('keywords') or '(none given — invent a fitting original look from the title and description)'}",
         ]
         if inp.get("lore"):
@@ -337,7 +338,7 @@ def describe(inp, examples):
 
 캐릭터
 - 이름: {inp.get('name', '')}
-- 희귀도: {rarity.label(inp.get('rarity', ''))}
+- 등급: {rarity.label(inp.get('rarity', ''))} (NPC = 뽑기에 안 나오는 스토리 인물)
 - 칭호: {inp.get('title', '')}
 - 외형 키워드: {inp.get('keywords', '')}
 - 설정 메모: {inp.get('lore', '')}

@@ -1,5 +1,5 @@
 // 일정 탭: 배너 / 이벤트 스토리 / 우편 / 캐릭터 공개 타임라인 + 겹침·공백 경고
-import { h, fmt } from '../ui.js';
+import { h, fmt, rarLabel, gradeOf, isNpc } from '../ui.js';
 import { state } from '../state.js';
 
 const DAY = 86400000;
@@ -24,8 +24,9 @@ export function scheduleTab(root) {
   }
   for (const m of d.mail) add('우편', { id: m.id, label: `${m.title} (보석 ${m.rewards?.gems ?? 0})`, start: t(m.startAt), end: t(m.endAt), link: `#inbox/${m.id}`, cls: 'mail' });
   for (const c of d.characters) {
+    if (isNpc(c)) continue; // NPC는 '공개'되는 캐릭터가 아님
     const at = t(c.addedAt);
-    if (!Number.isNaN(at) && at > now - 30 * DAY) add('캐릭터 공개', { id: c.id, label: `${c.name} (${c.rarity}★)`, start: at, end: NaN, point: true, link: '#characters', cls: 'char' });
+    if (!Number.isNaN(at) && at > now - 30 * DAY) add('캐릭터 공개', { id: c.id, label: `${c.name} (${rarLabel(gradeOf(c))})`, start: at, end: NaN, point: true, link: '#characters', cls: 'char' });
   }
   for (const n of d.notices) {
     const at = t(n.date);

@@ -3,7 +3,7 @@
 //    게임과 같은 전투 엔진(/preview/js/battle/)을 작업 공간 데이터로 돌림 → 같은 시드면 항상 같은 결과
 // 2) 전투력 표: 희귀도별 평균보다 크게 높은 캐릭터 경고
 // 3) balance.json 편집 (성장률, 레벨업 비용, 기력, 전투력 가중치, 기본 스킬…)
-import { h, toast } from '../ui.js';
+import { h, toast, isNpc } from '../ui.js';
 import { api, tryApi } from '../api.js';
 import { state, reloadData } from '../state.js';
 import { loadBattleKit, cleanEntity, skillForm, issueList } from '../battleForm.js';
@@ -36,7 +36,7 @@ export function balanceTab(root, { select } = {}) {
     }
 
     // ── 팀 / 스테이지 고르기 ──
-    const chars = state.data.characters;
+    const chars = state.data.characters.filter((c) => !isNpc(c)); // NPC 등급은 편성에 안 나옴
     const team =
       lastTeam ||
       chars

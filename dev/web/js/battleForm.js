@@ -35,7 +35,9 @@ export function cleanEntity(raw, { enemy = false } = {}) {
     out.passives = schema.cleanPassiveList(raw.passives, vocab, quiet, 'passives', 8);
   } else {
     out.kit = schema.cleanKit(raw.kit, vocab, quiet, raw.id || '?');
-    out.rarity = gameMods.data.normalizeRarity(raw.rarity) || 3; // 예전 'R'/'SR'/'SSR'도 1–5로
+    // 등급: 1–5 또는 'npc' (예전 'R'/'SR'/'SSR'은 3/4/5, pullable: false는 NPC) — 게임 data.js와 같음
+    out.rarity = raw.pullable === false ? 'npc' : gameMods.data.normalizeGrade(raw.rarity) || 3;
+    out.pullable = out.rarity !== 'npc';
     out.breakthroughs = schema.cleanPassiveList(raw.breakthroughs, vocab, quiet, 'breakthroughs', 5);
   }
   return out;

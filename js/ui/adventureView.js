@@ -88,7 +88,8 @@ export function adventureScreen(ctx) {
         go('story', { id: s.story.id });
       }
 
-      el.append(h('div', { class: 'adv-top' }, tabs, head), h('div', { class: 'adv-scroll' }, grid));
+      // 위(챕터 탭 — 2챕터부터 보임 — + 머리글) 아래로 목록이 이어지게 세로 배치
+      el.append(h('div', { class: 'adv-wrap' }, h('div', { class: 'adv-top' }, tabs, head), h('div', { class: 'adv-scroll' }, grid)));
       render();
       return {
         onKey(e) {

@@ -1,5 +1,5 @@
 // 배너 탭: 픽업 캐릭터 고르기, 기간(KST), 키 아트 생성(승인/거절/다시 생성), 관련 스토리, 게임 화면 미리보기
-import { h, toast, confirmBox, busy, dateField, wsImage, fmt, nowIso, rarOf, rarLabel, raritySelect, idBadge } from '../ui.js';
+import { h, toast, confirmBox, busy, dateField, wsImage, fmt, nowIso, rarOf, rarLabel, raritySelect, idBadge, gradeOf, isNpc } from '../ui.js';
 import { api, tryApi, newId } from '../api.js';
 import { state, saveList, reloadData } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
@@ -81,15 +81,19 @@ export function bannersTab(root, { select } = {}) {
     const pickGrid = h(
       'div',
       { class: 'pick-grid' },
-      state.data.characters.map((c) => {
-        const cb = h('input', { type: 'checkbox', checked: picked.has(c.id), onchange: (e) => (e.target.checked ? picked.add(c.id) : picked.delete(c.id)) });
-        return h('label', { class: `pick r-${rarOf(c.rarity)}` }, cb, h('div', { class: 'thumb checker' }, c.image ? h('img', { src: wsImage(c.image), onerror: (e) => e.target.remove() }) : ''), h('span', {}, `${c.name} (${rarLabel(c.rarity)})`));
-      }),
+      // NPC 등급은 뽑기에 안 나와서 픽업 후보에서 뺌 (이미 골라져 있으면 빼낼 수 있게 경고와 함께 보여 줌)
+      state.data.characters
+        .filter((c) => !isNpc(c) || picked.has(c.id))
+        .map((c) => {
+          const cb = h('input', { type: 'checkbox', checked: picked.has(c.id), onchange: (e) => (e.target.checked ? picked.add(c.id) : picked.delete(c.id)) });
+          const npc = isNpc(c);
+          return h('label', { class: ['pick', `r-${gradeOf(c)}`, npc && 'is-npc'], title: npc ? 'NPC 등급이라 뽑기에 안 나와요 → 픽업에서 빼 주세요' : '' }, cb, h('div', { class: 'thumb checker' }, c.image ? h('img', { src: wsImage(c.image), onerror: (e) => e.target.remove() }) : ''), h('span', {}, `${c.name} (${rarLabel(gradeOf(c))})${npc ? ' ⚠' : ''}`));
+        }),
     );
     // 자동 로테이션: 최고 등급 캐릭터 N명이 기간마다 돌아가며 픽업
     const rot = v.rotation || { rarity: 5, count: 2, days: 7, anchor: null };
     const rotOn = h('input', { type: 'checkbox', checked: !!v.rotation });
-    const rotRarity = raritySelect(rot.rarity);
+    const rotRarity = raritySelect(rot.rarity, { npc: false });
     const rotCount = h('input', { type: 'number', class: 'small-input', min: 1, max: 4, value: rot.count });
     const rotDays = h('input', { type: 'number', class: 'small-input', min: 1, max: 60, value: rot.days });
     const rotAnchor = dateField('로테이션 기준 시각 (이 시각부터 기간마다 교대)', rot.anchor || nowIso(), { allowEmpty: false });

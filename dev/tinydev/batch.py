@@ -10,7 +10,7 @@
 import secrets
 import threading
 
-from . import comfy, config, imaging, jobs, settings, store, uislots
+from . import comfy, config, imaging, jobs, rarity, settings, store, uislots
 from .genai import GenError
 from .timeutil import now_iso, stamp
 
@@ -31,7 +31,7 @@ def targets():
     """뽑을 수 있는 항목 전체 + 지금 그림이 있는지"""
     out = []
     for c in store.read_list("characters"):
-        out.append({"key": f"char:{c['id']}", "group": "char", "label": f"{c.get('name', c['id'])} ({c.get('rarity', '')})", "path": c.get("image") or "", "has": _exists(c.get("image"))})
+        out.append({"key": f"char:{c['id']}", "group": "char", "label": f"{c.get('name', c['id'])} ({rarity.label(rarity.grade_of(c))})", "path": c.get("image") or "", "has": _exists(c.get("image"))})
     for b in store.read_list("banners"):
         out.append({"key": f"banner:{b['id']}", "group": "banner", "label": b.get("title") or b["id"], "path": b.get("bannerImage") or "", "has": _exists(b.get("bannerImage"))})
     # 스토리 배경: 설정집(챕터 팩)에 등록된 배경 → assets/bg/<이름>.jpg
@@ -61,7 +61,7 @@ def _job_input(key, extra):
         look = jobs.char_look(ident) or c.get("keywords", "")
         return "char", {
             "name": c.get("name", ident),
-            "rarity": c.get("rarity", 3),
+            "rarity": rarity.grade_of(c) or 3,
             "title": c.get("title", ""),
             "keywords": look,  # 예전에 쓴 외형 → 없으면 메모해 둔 외형 키워드(챕터 팩) → 없으면 Gemini가 소개 문구로 정함
             "lore": c.get("lore") or c.get("description", ""),

@@ -2,6 +2,7 @@
 import { inPeriod, parseDate, formatPeriod, now, nowKstIso } from '../core/time.js';
 import { isOwned } from './collection.js';
 import { addGems } from './economy.js';
+import { isNpc } from '../config.js';
 
 export const KIND_LABELS = { main: '메인', character: '캐릭터', event: '이벤트' };
 
@@ -35,9 +36,10 @@ export function storyState(story, { save, index, charMap }, t = now()) {
       const prev = i > 0 ? group[i - 1] : null;
       if (prev && !isRead(save, prev.id)) reasons.push(`이전 장 「${prev.title}」을(를) 먼저 읽어 주세요`);
     } else if (cond.type === 'ownsCharacter') {
-      // 데이터에서 지워진 캐릭터는 세이브에 기록이 남아 있어도 '보유'로 치지 않음 (그 스토리는 숨김)
-      if (!charMap.has(cond.characterId)) visible = false;
-      if (!isOwned(save, cond.characterId) || !charMap.has(cond.characterId)) {
+      // 데이터에서 지워진 캐릭터 / NPC 등급은 세이브에 기록이 남아 있어도 '보유'로 치지 않음 (그 스토리는 숨김)
+      const target = charMap.get(cond.characterId);
+      if (!target || isNpc(target)) visible = false;
+      if (!isOwned(save, cond.characterId) || !target || isNpc(target)) {
         const name = charMap.get(cond.characterId)?.name ?? cond.characterId;
         reasons.push(`${name} 보유 시 해금`);
       }

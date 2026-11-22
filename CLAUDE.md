@@ -12,7 +12,10 @@
   챕터 팩은 구성안의 임시 이름 → 만들 때 `pack.assign_ids`(팩 기록의 idMap으로 이어서 만들어도 같은 id).
 - id는 **바꾸지 않음**. 정말 바꿔야 하면 `data/id_aliases.json`(종류 → {예전: 새})에 남김 → 게임이 세이브를 옮김(`js/core/aliases.js remapSaveIds`, `save.migrate` 처음에 매번). 2026-11-22에 예전 id 전부를 이 규칙으로 바꿨음(별칭 파일 = 그 표, 지우지 않음). 은퇴는 `retired: true`.
 - 세이브에 데이터에 없는 id가 있어도 지우지 않음 (무시만).
-- **캐릭터 삭제** (보통은 은퇴 `retired`가 먼저): 개발 도구 삭제 → 참조(배너 픽업, 스토리 대상/해금/대사)가 남아 있으면 배포 검사 오류.
+- **NPC 등급** (`rarity: "npc"`): 뽑기/도감/육성/편성/전투력/NEW/대표에 안 나오고 스토리 화자 · 적 연결(`enemies charId`)로만. 게임은 `data.splitCharacters`로
+  `characters`/`charMap`(플레이어 캐릭터) ↔ `npcs`/`allCharMap`(전부 — 스토리 화자)을 나눔. 가챠 풀은 매번 데이터에서 만들어서 등급 1–5 ↔ NPC 전환을 바로 따라가고,
+  가진 플레이어의 세이브 기록은 보관(되돌리면 그대로). 예전 `pullable: false` = NPC. 배포 검사: NPC 픽업/NPC "보유 시 해금" = 오류. `tests/npc.test.js`.
+- **캐릭터 삭제** (보통은 은퇴 `retired`가 먼저): 개발 도구 삭제 → 참조(배너 픽업, 스토리 대상/해금/대사, 적 NPC 연결)가 남아 있으면 배포 검사 오류.
   배포하면 공개 그림도 삭제(공개 데이터가 쓰던 그림 중 더는 안 쓰는 것). 삭제한 id는 `dev/ids.json`(deleted)에 남고 다시 쓸 수 없음
   (세이브 기록이 새 캐릭터에 붙기 때문 — 승인 API, 챕터 팩, 배포 검사가 막음). 게임은 지워진 캐릭터를 도감/대표/NEW/편성/전투력/전투/뽑기/픽업/스토리 해금 어디에서도 쓰지 않음
   — 픽업이 전부 사라진 픽업 배너는 숨김, 지워진 캐릭터의 캐릭터 스토리·"보유 시 해금" 스토리도 숨김. `tests/deletion.test.js`.
@@ -24,7 +27,7 @@
 - 브라우저: 게임 폴더를 로컬 서버로 열고(`python -m http.server`) `tests/index.html` → 자동 실행. `?filter=gacha`로 일부만.
   개발 도구에서는 `http://127.0.0.1:5050/preview/tests/index.html` (작업 공간 데이터로 실행, 스냅샷 갱신 버튼이 파일로 저장).
 - Node(설치했다면): `node tests/run.js [이름 일부] [--update]` (`npm test`). `--update` = 회귀 스냅샷 갱신.
-- 파일: `config` / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀) / `deletion`(캐릭터 삭제 정리) / `aliases`(id 별칭으로 세이브 옮기기 + 지금 id가 규칙대로인지).
+- 파일: `config` / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀) / `deletion`(캐릭터 삭제 정리) / `aliases`(id 별칭으로 세이브 옮기기 + 지금 id가 규칙대로인지) / `npc`(NPC 등급 ↔ 1–5 전환 시 가챠 풀/플레이어 화면/적 연결).
 - 새 테스트 파일은 `tests/all.js`에 한 줄. 러너 `tests/lib/runner.js`, 실제 데이터 로더 `tests/lib/gameData.js`, 전투 픽스처 `js/battle/testkit.js`, 샘플 `tests/fixtures/`.
 - **회귀 스냅샷** `tests/snapshots/stages.json`: 모든 스테이지 × 기준 팀(`tests/fixtures/teams.js`) × 시드 1~3 자동 전투 (`승패 라운드 피해/…`). 다르면 실패 + 바뀐 줄 목록 → 의도한 변경이면 갱신.
 - 연출 확인: `dev/fx-test.html` (정적 서버) 또는 개발 도구 `/fx-test` — 희귀도 조합 강제, 2배속, 모션 줄이기, `?auto=5&fake=1` 자동 실행.
@@ -50,8 +53,8 @@ defaultKit: { basic, skill, ultimate }                  // 스킬이 없는 캐�
 
 ### characters.json 항목
 ```
-id, name, rarity: 1–5 (예전 'R'/'SR'/'SSR' → 3/4/5로 읽음), title, description, image, addedAt,
-pullable (false = 스토리 전용), retired (true = 뽑기 제외, 보유 유지),
+id, name, rarity: 1–5 | "npc" (예전 'R'/'SR'/'SSR' → 3/4/5, 예전 pullable:false → "npc"), title, description, image, addedAt,
+retired (true = 뽑기 제외, 보유 유지),            // 게임 데이터의 pullable은 계산값 (= NPC 아님). 파일에는 쓰지 않음
 nameEn, role (attacker|defender|support|healer), cutout, themeColor, quote,   // 컷인/전투 초상용, 선택
 stats { atk, def, hp, spd, critRate, critDmg } (선택, 없으면 희귀도 기본값),
 kit { basic, skill, ultimate:{…, cost?} } (선택, 없으면 defaultKit), breakthroughs [패시브 × 5]
@@ -61,7 +64,7 @@ kit { basic, skill, ultimate:{…, cost?} } (선택, 없으면 defaultKit), brea
 
 ### enemies.json 항목
 ```
-id, name, image, boss, stats {…, spd},
+id, name, image, boss, charId? (NPC 캐릭터 연결 — 적 그림이 없으면 그 그림, data.linkEnemyNpcs), stats {…, spd},
 actions { <id>: Skill & { icon: attack|aoe|buff|heal|debuff, big?: true } },
 pattern [ { action, target?: random|lowest_hp|highest_atk|slot1..5 } ]       // 순서대로 예고 → 반복
 phases  [ { hpBelow: 1–99, name, pattern, enterEffects[] } ]                  // 보스: HP % 미만이면 교체
@@ -77,6 +80,8 @@ ch01.json:  { chapter: "ch01", title, stages: [ { id, name, storyId, recommended
               waves: [[{ enemyId, level? }]], roundLimit?, rewards{tickets,gems,gold,scrolls}, firstClearRewards, retired? } ] }
 ```
 - **스테이지 1개 = 메인 스토리 1개(storyId) = 그 스토리 안의 전투 장면 `{type:"battle", stageId}` 1개.** 메인 스토리마다 전투 장면은 정확히 1개. 선택지가 전투 장면을 건너뛰면 안 됨. (`js/systems/adventure.js adventureIssues`, `dev/tinydev/validate.py _check_adventure`, `tests/data.test.js`)
+- 챕터 제목: 스토리 목록의 `arcTitle`은 제목만 (게임이 "챕터 N · "을 붙임, `store.strip_chapter_prefix`), 챕터 파일 `title`은 "챕터 N: 제목" (`store.chapter_title` — "챕터 ch02" 같은 임시 제목은 없는 것으로 봄).
+- 스토리 파일 이름 = 안의 `id` = 목록 id (`data/stories/<id>.json`). 손으로 이름을 바꾸지 않음.
 - `level`이 없으면 `config.enemyLevelFor`: `max(1, round(1 + (추천 전투력 ÷ 5 − refPower) ÷ perLevel))`.
 - 개발 도구 안에서는 모든 챕터를 한 목록(항목마다 `chapter`)으로 다룸: `store.read_list("stages")` / `write_list("stages")`가 챕터 파일로 나눠 저장. 예전 `data/stages.json`도 읽음.
 
@@ -94,7 +99,8 @@ settings { fxSpeed: 1|2, fxSkip, battleSpeed: 1|2, battleAuto }
 ## 공식 / 규칙
 
 ### 가챠 (`js/systems/gacha.js`, 순수 · 시드)
-- 확률 1★ 40 / 2★ 30 / 3★ 20 / 4★ 8 / 5★ 2 %. 색 토큰 `--rar-1..5` (회색/초록/파랑/보라/금), 클래스 `.rar-1..5`.
+- 확률 1★ 40 / 2★ 30 / 3★ 20 / 4★ 8 / 5★ 2 %. 색 토큰 `--rar-1..5` (회색/초록/파랑/보라/금) + `--rar-npc`, 클래스 `.rar-1..5` / `.rar-npc`.
+- 풀(`buildPools`)/로테이션/픽업에서 NPC 등급 · 은퇴는 빠짐 (`config.isNpc`, `banners.isPullable`). 등급 도우미: `config.normalizeGrade / isNpc / gradeRank / rarityLabel`.
 - 천장: 배너 종류(상시/픽업)별 카운터, 5★ 없이 70번째 = 5★. 10연: 앞 9장에 4★+ 없으면 10번째는 4★/5★ (8:2).
 - 픽업: 5★일 때 확정이면 픽업, 아니면 50%, 놓치면 다음 5★ 확정. 빈 희귀도 → 가까운 낮은 희귀도 → 가까운 높은 희귀도.
 - 실제 5★ 비율은 천장/확정 때문에 약 3%. 지금 1·2★ 캐릭터가 없어서 그 몫은 3★로 대체됨 (가챠 시뮬로 확인).

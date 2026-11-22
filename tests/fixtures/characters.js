@@ -1,5 +1,5 @@
 // 테스트/시연용 샘플 캐릭터 — 실제 게임 데이터(data/characters.json)에는 넣지 않습니다.
-// 1★~5★ 각 2명 + 은퇴(retired) 1명 + 스토리 전용(pullable:false) 1명
+// 1★~5★ 각 2명 + 은퇴(retired) 1명 + NPC 등급 1명 + 예전 방식 스토리 전용(pullable:false = NPC) 1명
 
 const mk = (id, name, rarity, extra = {}) => ({ id, name, rarity, title: '', description: '', image: '', addedAt: '2026-01-01T00:00:00+09:00', pullable: true, retired: false, ...extra });
 
@@ -15,7 +15,8 @@ export const SAMPLE_CHARACTERS = [
   mk('fx_ssr_a', '성기사', 5, { nameEn: 'Paladin', themeColor: '#d9a441', quote: '밥값은 한다.' }),
   mk('fx_ssr_b', '대마법사', 5, { nameEn: 'Archmage', themeColor: '#6fb7ff', quote: '불꽃이여.' }),
   mk('fx_ssr_retired', '은퇴한 영웅', 5, { retired: true }),
-  mk('fx_npc', '마을 사람', 3, { pullable: false }),
+  mk('fx_npc', '마을 사람', 'npc', { pullable: false }),
+  mk('fx_npc_old', '예전 스토리 인물', 3, { pullable: false }),
 ];
 
 /** 희귀도별 id */

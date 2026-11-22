@@ -9,7 +9,7 @@ import json
 import shutil
 import subprocess
 
-from . import config, store, validate
+from . import config, rarity, store, validate
 from .timeutil import now_iso, parse
 
 LIST_KEYS = ("characters", "banners", "storyIndex", "notices", "mail", "enemies", "stages")
@@ -298,9 +298,18 @@ def draft_notes(out):
     pub = {k: public_list(k) for k in LIST_KEYS}
     for c in out["characters"]:
         if c["id"] not in pub["characters"]:
-            notes.append(f"새 캐릭터: {c.get('name')} ({c.get('rarity')})")
+            if not rarity.is_npc(c):  # NPC 등급은 패치노트에 '새 캐릭터'로 쓰지 않음
+                notes.append(f"새 캐릭터: {c.get('name')} ({rarity.label(c.get('rarity'))})")
             continue
         old = pub["characters"][c["id"]]
+        og, ng = rarity.grade_of(old), rarity.grade_of(c)
+        if og != ng:
+            if ng == rarity.NPC:
+                notes.append(f"{c.get('name')}: 뽑기에서 제외 (NPC)")
+            elif og == rarity.NPC:
+                notes.append(f"새 캐릭터: {c.get('name')} ({rarity.label(ng)})")
+            else:
+                notes.append(f"등급 변경: {c.get('name')} {rarity.label(og)} → {rarity.label(ng)}")
         if any(old.get(k) != c.get(k) for k in BATTLE_FIELDS):
             notes.append(f"전투 데이터 수정: {c.get('name')}")
         if any(old.get(k) != c.get(k) for k in set(old) | set(c) if k not in BATTLE_FIELDS):

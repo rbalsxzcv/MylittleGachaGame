@@ -10,7 +10,14 @@ import '../js/systems/shop.js'; // 상점 세이브 영역(registerSaveSlice) �
 const aliases = await loadJson('data/id_aliases.json');
 const data = await loadGameData({ stories: true });
 const balance = loadConfig({});
-const env = { rarityOf: (id) => data.charMap.get(id)?.rarity, balance, aliases };
+// 세이브 옮기기 검사용 별칭: 실제 별칭 + 스테이지/스토리 예시
+// (예전 1챕터를 새 1챕터로 바꾸면서 실제 별칭의 스테이지/스토리 줄은 정리됨 — 가리키던 콘텐츠가 없어서)
+const testAliases = {
+  ...aliases,
+  stages: { st_01_04: 'stage_0004', ...(aliases.stages || {}) },
+  stories: { main_01_01: 'story_0001', main_01_04: 'story_0004', ...(aliases.stories || {}) },
+};
+const env = { rarityOf: (id) => data.charMap.get(id)?.rarity, balance, aliases: testAliases };
 
 /** 예전 id로 가득한 v3 세이브 */
 function oldSave() {
@@ -63,7 +70,7 @@ describe('id 별칭: 세이브 옮기기', () => {
   });
   it('예전 id와 새 id 기록이 둘 다 있으면 합침 (성장한 쪽, 횟수는 더함)', () => {
     const raw = { owned: { ssr_valeria: { level: 30, breakthrough: 2, essence: 1, count: 4 }, char_0002: { level: 2, breakthrough: 0, essence: 3, count: 1 } }, stages: { st_01_04: { clears: 2, firstClaimed: true, bestRounds: 6 }, stage_0004: { clears: 1, firstClaimed: false, bestRounds: 4 } }, teams: { presets: [{ slots: ['ssr_valeria', 'char_0002', null, null, null] }] } };
-    const out = remapSaveIds(raw, aliases);
+    const out = remapSaveIds(raw, testAliases);
     expect(out.owned.char_0002).toEqual({ level: 30, breakthrough: 2, essence: 3, count: 5 });
     expect(out.stages.stage_0004).toEqual({ clears: 3, firstClaimed: true, bestRounds: 4 });
     expect(out.teams.presets[0].slots).toEqual(['char_0002', null, null, null, null]);
@@ -75,15 +82,14 @@ describe('id 별칭: 세이브 옮기기', () => {
 });
 
 describe('id 별칭: 데이터', () => {
-  it('별칭이 가리키는 새 id는 모두 지금 데이터에 있음', () => {
-    const have = {
-      characters: new Set(data.characters.map((c) => c.id)),
-      stages: new Set(data.stages.map((s) => s.id)),
-      stories: new Set(data.storyIndex.map((s) => s.id)),
-      banners: new Set(data.banners.map((b) => b.id)),
-      enemies: new Set(data.enemies.map((e) => e.id)),
-    };
-    for (const [kind, ids] of Object.entries(have)) for (const [from, to] of Object.entries(aliases[kind] || {})) expect(ids.has(to), `${kind}: ${from} → ${to}`).toBe(true);
+  // 새 id가 나중에 삭제됐을 수 있어서(예: 캐릭터 삭제, 챕터 교체) '지금 있는지'가 아니라 그 종류의 id 규칙인지를 봄
+  // (삭제한 id는 다시 발급되지 않으니 별칭이 엉뚱한 새 콘텐츠를 가리킬 일은 없음)
+  it('별칭이 가리키는 새 id는 그 종류의 자동 id 규칙 (<종류>_<4자리>)', () => {
+    const prefix = { characters: 'char', enemies: 'enemy', stages: 'stage', stories: 'story', banners: 'banner', notices: 'notice', mail: 'mail', shop: 'shop' };
+    for (const [kind, map] of Object.entries(aliases)) {
+      expect(kind in prefix, `모르는 별칭 종류: ${kind}`).toBe(true);
+      for (const [from, to] of Object.entries(map || {})) expect(new RegExp(`^${prefix[kind]}_\\d{4,}$`).test(to), `${kind}: ${from} → ${to}`).toBe(true);
+    }
   });
   it('지금 데이터의 id는 모두 자동 규칙 (<종류>_<4자리>)', () => {
     const rule = { characters: 'char', enemies: 'enemy', stages: 'stage', storyIndex: 'story', banners: 'banner' };

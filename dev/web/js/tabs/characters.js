@@ -1,5 +1,5 @@
 // 캐릭터 탭: 생성 → 검토(원본/배경 제거) → 승인/거절/다시 생성, 소개문 AI 작성, 기존 캐릭터 수정/삭제
-import { h, toast, modal, confirmBox, busy, wsImage, nowIso, isoToLocal, localToIso, rarOf, rarLabel, raritySelect, idBadge } from '../ui.js';
+import { h, toast, modal, confirmBox, busy, wsImage, nowIso, isoToLocal, localToIso, rarOf, rarLabel, raritySelect, idBadge, gradeOf, rarRank, NPC } from '../ui.js';
 import { api, tryApi } from '../api.js';
 import { state, reloadData } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
@@ -47,7 +47,7 @@ export function charactersTab(root) {
     replaceNote.textContent = c ? `「${c.name}」(${c.id})의 그림을 교체합니다. 승인하면 기존 그림을 덮어써요.` : '';
     if (c) {
       f.name.value = c.name;
-      f.rarity.value = String(rarOf(c.rarity));
+      f.rarity.value = String(gradeOf(c));
       f.title.value = c.title || '';
       f.lore.value = c.description || '';
       f.keywords.focus();
@@ -60,7 +60,7 @@ export function charactersTab(root) {
     const existing = inp.charId ? state.data.characters.find((c) => c.id === inp.charId) : null;
     const a = {
       name: h('input', { value: existing?.name || inp.name }),
-      rarity: raritySelect(existing?.rarity || inp.rarity),
+      rarity: raritySelect(existing ? gradeOf(existing) : inp.rarity),
       title: h('input', { value: existing?.title || inp.title }),
       description: h('textarea', { rows: 4 }, existing?.description || ''),
       feedback: h('input', { placeholder: '소개문 수정 요청 (예: 더 귀엽게, 존댓말로)' }),
@@ -93,7 +93,7 @@ export function charactersTab(root) {
         { class: 'grid2' },
         h('div', { class: 'field' }, 'id', idBadge(existing?.id, '승인하면 자동으로 정해져요 (char_0001 …)')),
         h('label', { class: 'field' }, '이름', a.name),
-        h('label', { class: 'field' }, '희귀도', a.rarity),
+        h('label', { class: 'field' }, '등급', a.rarity),
         h('label', { class: 'field' }, '칭호', a.title),
       ),
       h('label', { class: 'field' }, '소개문', a.description),
@@ -149,26 +149,30 @@ export function charactersTab(root) {
   const jobsBox = h('div', { class: 'jobs-box' });
 
   function renderList() {
-    const chars = [...state.data.characters].sort((x, y) => rarOf(y.rarity) - rarOf(x.rarity) || x.id.localeCompare(y.id));
+    const chars = [...state.data.characters].sort((x, y) => rarRank(gradeOf(y)) - rarRank(gradeOf(x)) || x.id.localeCompare(y.id));
     list.replaceChildren(
       ...chars.map((c) =>
         h(
           'div',
-          { class: `char-item r-${rarOf(c.rarity)}` },
+          { class: `char-item r-${gradeOf(c)}` },
           h('div', { class: 'thumb checker' }, c.image ? h('img', { src: wsImage(c.image), alt: '', onerror: (e) => e.target.remove() }) : h('span', {}, '그림 없음')),
           h(
             'div',
             { class: 'grow' },
             h('b', {}, `${c.name} `),
-            h('span', { class: `chip r-${rarOf(c.rarity)}` }, rarLabel(c.rarity)),
+            h('span', { class: `chip r-${gradeOf(c)}` }, rarLabel(gradeOf(c))),
             ' ',
-            c.kit ? h('span', { class: 'chip ok', title: `돌파 능력 ${(c.breakthroughs || []).length}개` }, `전투 ✓ 돌파 ${(c.breakthroughs || []).length}`) : h('span', { class: 'chip warn' }, '기본 스킬'),
+            gradeOf(c) === NPC
+              ? linkedEnemies(c).map((e) => h('a', { class: 'chip', href: `#enemies/${e.id}`, title: '이 NPC와 연결된 적' }, `적: ${e.name}`))
+              : c.kit
+                ? h('span', { class: 'chip ok', title: `돌파 능력 ${(c.breakthroughs || []).length}개` }, `전투 ✓ 돌파 ${(c.breakthroughs || []).length}`)
+                : h('span', { class: 'chip warn' }, '기본 스킬'),
             h('div', { class: 'muted small' }, `${c.id} · ${c.title || ''}`),
           ),
           h(
             'div',
             { class: 'col-buttons' },
-            h('button', { class: 'btn small', onclick: () => openCharBattleEditor(c, { onSaved: renderList }) }, '전투 데이터'),
+            gradeOf(c) !== NPC && h('button', { class: 'btn small', onclick: () => openCharBattleEditor(c, { onSaved: renderList }) }, '전투 데이터'),
             h('button', { class: 'btn small', onclick: () => editChar(c) }, '정보 수정'),
             h('button', { class: 'btn small', onclick: () => setReplacing(c) }, '그림 교체'),
             h('button', { class: 'btn small danger-outline', onclick: () => deleteChar(c) }, '삭제'),
@@ -193,10 +197,30 @@ export function charactersTab(root) {
     );
   }
 
+  /** 이 NPC와 연결된 적 (적 탭 'NPC 연결') */
+  const linkedEnemies = (c) => (state.data.enemies || []).filter((e) => e.charId === c.id);
+
+  /** 등급을 바꿀 때 확인: NPC ↔ 1–5 (가챠 풀/로테이션/도감에 들어가거나 빠짐) */
+  async function confirmGradeChange(c, next) {
+    const prev = gradeOf(c);
+    if (prev === next || (prev !== NPC && next !== NPC)) return true;
+    if (next === NPC) {
+      const pickups = (state.data.banners || []).filter((b) => (b.pickupIds || []).includes(c.id)).map((b) => `「${b.title}」`);
+      const msg =
+        `「${c.name}」을(를) NPC로 바꾸면 뽑기(상시/픽업/로테이션)와 도감·육성·편성에서 빠져요.\n` +
+        `이미 이 캐릭터를 가진 플레이어도 화면에서 볼 수 없게 돼요 (세이브 기록은 보관 → 다시 등급을 바꾸면 그대로 돌아와요).\n` +
+        `뽑기에서만 빼고 가진 사람은 계속 쓰게 하려면 NPC 대신 '은퇴'를 써 주세요.` +
+        (pickups.length ? `\n\n픽업 배너 ${pickups.join(', ')}에 들어 있어요 → 배포 전에 픽업에서 빼야 해요 (검사 오류).` : '');
+      return confirmBox('NPC로 바꾸기', msg, { ok: 'NPC로 바꾸기' });
+    }
+    const msg = `「${c.name}」이(가) ${rarLabel(next)} 캐릭터로 뽑기(상시/로테이션)와 도감에 들어가요.${c.image ? '' : '\n그림이 아직 없어요 → 배포 검사에서 경고가 나요.'}${c.kit ? '' : '\n전투 데이터가 없어서 기본 스킬을 써요.'}`;
+    return confirmBox('뽑기 캐릭터로 바꾸기', msg, { ok: '바꾸기' });
+  }
+
   async function editChar(c) {
     const e = {
       name: h('input', { value: c.name }),
-      rarity: raritySelect(c.rarity),
+      rarity: raritySelect(gradeOf(c)),
       title: h('input', { value: c.title || '' }),
       description: h('textarea', { rows: 5 }, c.description || ''),
       feedback: h('input', { placeholder: '수정 요청 (예: 더 짧게)' }),
@@ -213,7 +237,7 @@ export function charactersTab(root) {
       body: h(
         'div',
         {},
-        h('div', { class: 'grid2' }, h('label', { class: 'field' }, '이름', e.name), h('label', { class: 'field' }, '희귀도', e.rarity), h('label', { class: 'field' }, '칭호', e.title), h('label', { class: 'field' }, '공개 시각 (KST)', e.addedAt)),
+        h('div', { class: 'grid2' }, h('label', { class: 'field' }, '이름', e.name), h('label', { class: 'field' }, '등급', e.rarity), h('label', { class: 'field' }, '칭호', e.title), h('label', { class: 'field' }, '공개 시각 (KST)', e.addedAt)),
         h('label', { class: 'field' }, '소개문', e.description),
         h('div', { class: 'row' }, e.feedback, h('button', { class: 'btn small', onclick: rewrite }, 'AI로 다시 쓰기')),
       ),
@@ -223,6 +247,7 @@ export function charactersTab(root) {
       ],
     });
     if (ok !== 'save') return;
+    if (!(await confirmGradeChange(c, rarOf(e.rarity.value)))) return;
     const r = await tryApi(() =>
       api.put(`/api/characters/${c.id}`, { name: e.name.value, rarity: rarOf(e.rarity.value), title: e.title.value, description: e.description.value, addedAt: localToIso(e.addedAt.value) }),
     );
@@ -252,7 +277,8 @@ export function charactersTab(root) {
       { class: 'card' },
       h('h2', {}, '새 캐릭터 만들기'),
       replaceNote,
-      h('div', { class: 'grid2' }, h('label', { class: 'field' }, '이름', f.name), h('label', { class: 'field' }, '희귀도', f.rarity)),
+      h('div', { class: 'grid2' }, h('label', { class: 'field' }, '이름', f.name), h('label', { class: 'field' }, '등급', f.rarity)),
+      h('p', { class: 'muted small' }, 'NPC 등급: 뽑기/도감/육성/편성에 안 나오고 스토리 화자나 적(적 탭의 NPC 연결)으로만 나와요. 나중에 등급을 바꾸면 가챠 풀에 바로 들어가요/빠져요.'),
       h('label', { class: 'field' }, '칭호', f.title),
       h('label', { class: 'field' }, '외형 키워드 (그림에 반영)', f.keywords),
       h('label', { class: 'field' }, '설정 메모 (표정/포즈 참고, 소개문 재료)', f.lore),

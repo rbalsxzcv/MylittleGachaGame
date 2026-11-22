@@ -426,9 +426,9 @@ def recut_job(job_id):
 # 캐릭터
 # ─────────────────────────────────────────────────────────
 def _char_input(data):
-    rarity = rarity_mod.normalize(data.get("rarity"))
+    rarity = rarity_mod.normalize_grade(data.get("rarity"))
     if rarity is None:
-        raise ValueError("희귀도(1~5★)를 골라 주세요")
+        raise ValueError("등급(1~5★ 또는 NPC)을 골라 주세요")
     return {
         "name": text(data, "name", 40, required=True, label="이름"),
         "rarity": rarity,
@@ -450,7 +450,7 @@ def char_describe():
     data = body()
     inp = {
         "name": text(data, "name", 40, required=True, label="이름"),
-        "rarity": rarity_mod.normalize(data.get("rarity")) or "",
+        "rarity": rarity_mod.normalize_grade(data.get("rarity")) or "",
         "title": text(data, "title", 60),
         "keywords": text(data, "keywords", 1000),
         "lore": text(data, "lore", 2000),
@@ -471,9 +471,9 @@ def char_approve():
         raise ValueError("캐릭터 작업이 아니에요")
     src = jobs.result_path(job, data.get("attempt"))
     c = data.get("character") or {}
-    rarity = rarity_mod.normalize(c.get("rarity"))
+    rarity = rarity_mod.normalize_grade(c.get("rarity"))
     if rarity is None:
-        raise ValueError("희귀도(1~5★)를 골라 주세요")
+        raise ValueError("등급(1~5★ 또는 NPC)을 골라 주세요")
     chars = store.read_list("characters")
     ids = {x.get("id") for x in chars}
     # id는 개발자가 정하지 않음: 그림 교체면 그 캐릭터, 이 작업을 이미 승인했으면 그때 만든 캐릭터, 아니면 새로 발급
@@ -505,6 +505,7 @@ def char_approve():
     # 그림 교체/다시 승인: 다른 정보(전투 데이터, 외형 키워드, 설정 메모 …)는 그대로 둠
     if existing:
         entry = {**existing, **entry}
+    entry.pop("pullable", None)  # 예전 방식 (등급 NPC로 대체)
     if existing:
         chars[chars.index(existing)] = entry
     else:
@@ -517,6 +518,9 @@ def char_approve():
 def _char_refs(cid):
     """이 캐릭터를 쓰는 곳 (삭제 전 확인용)"""
     refs = []
+    for e in store.read_list("enemies"):
+        if e.get("charId") == cid:
+            refs.append(f"적 「{e.get('name')}」 NPC 연결")
     for b in store.read_list("banners"):
         if cid in (b.get("pickupIds") or []):
             refs.append(f"배너 「{b.get('title')}」 픽업")
@@ -543,9 +547,12 @@ def char_update(cid):
     if not existing:
         raise FileNotFoundError("캐릭터가 없어요")
     if "rarity" in data:
-        if rarity_mod.normalize(data["rarity"]) is None:
-            raise ValueError("희귀도는 1~5")
-        existing["rarity"] = rarity_mod.normalize(data["rarity"])
+        # 등급 바꾸기: 1–5 ↔ NPC. 가챠 풀/로테이션은 게임이 데이터에서 매번 새로 만들어서 따라감
+        grade = rarity_mod.normalize_grade(data["rarity"])
+        if grade is None:
+            raise ValueError("등급은 1~5 또는 NPC")
+        existing["rarity"] = grade
+        existing.pop("pullable", None)  # 예전 방식 (pullable: false = NPC) → 등급으로 정리
     for key, limit in (("name", 40), ("title", 60), ("description", 2000)):
         if key in data:
             existing[key] = text(data, key, limit, required=(key == "name"), label="이름")
@@ -626,6 +633,8 @@ def char_kit_draft():
     data = body()
     rarity = rarity_mod.normalize(data.get("rarity"))
     if rarity is None:
+        if rarity_mod.normalize_grade(data.get("rarity")) == rarity_mod.NPC:
+            raise ValueError("NPC 등급은 동료 스킬이 필요 없어요 (전투에 적으로 내보내려면 적 탭에서 이 NPC를 연결해 주세요)")
         raise ValueError("희귀도(1~5★)를 골라 주세요")
     cid = data.get("charId") if store.valid_id(data.get("charId")) else None
     inp = {

@@ -6,7 +6,7 @@
 //   지금 로테이션이 끝나는 시각이 그 배너의 endAt처럼 보여요(남은 시간 표시). 대상이 없으면 배너를 숨겨요.
 import { inPeriod, now, parseDate } from '../core/time.js';
 import { STANDARD_BANNER } from './gacha.js';
-import { normalizeRarity } from '../config.js';
+import { normalizeRarity, isNpc } from '../config.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -14,8 +14,8 @@ export function isBannerActive(banner, t = now()) {
   return inPeriod(banner.startAt, banner.endAt, t);
 }
 
-/** 뽑기에 나오는 캐릭터인지 (스토리 전용 인물은 pullable: false, 은퇴는 retired: true) */
-export const isPullable = (c) => c.pullable !== false && !c.retired;
+/** 뽑기에 나오는 캐릭터인지 (NPC 등급과 은퇴(retired: true)는 빠짐) */
+export const isPullable = (c) => !isNpc(c) && !c.retired;
 
 /** 로테이션 대상 순서 (공개 시각 → id) */
 export function rotationPool(characters, rarity) {

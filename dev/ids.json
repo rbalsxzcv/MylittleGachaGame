@@ -1,15 +1,48 @@
 {
   "next": {
-    "char": 11,
-    "enemy": 7,
-    "stage": 13,
-    "story": 13,
-    "banner": 4,
+    "char": 15,
+    "enemy": 12,
+    "stage": 37,
+    "story": 37,
+    "banner": 5,
     "notice": 1,
     "mail": 2,
     "shop": 24,
-    "bg": 6,
+    "bg": 15,
     "prop": 1
   },
-  "deleted": {}
+  "deleted": {
+    "char": [
+      "char_0005",
+      "char_0010"
+    ],
+    "stage": [
+      "stage_0001",
+      "stage_0002",
+      "stage_0003",
+      "stage_0004",
+      "stage_0005",
+      "stage_0006",
+      "stage_0007",
+      "stage_0008",
+      "stage_0009",
+      "stage_0010",
+      "stage_0011",
+      "stage_0012"
+    ],
+    "story": [
+      "story_0001",
+      "story_0002",
+      "story_0003",
+      "story_0004",
+      "story_0005",
+      "story_0006",
+      "story_0007",
+      "story_0008",
+      "story_0009",
+      "story_0010",
+      "story_0011",
+      "story_0012"
+    ]
+  }
 }

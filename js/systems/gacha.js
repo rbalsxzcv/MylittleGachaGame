@@ -10,7 +10,7 @@
 // - 중복 → 정수 변환은 collection.js가 처리 (여기는 누가 나왔는지만 정함)
 
 import { random, pickOne } from '../core/rng.js';
-import { RARITIES, MAX_RARITY } from '../config.js';
+import { RARITIES, MAX_RARITY, isNpc } from '../config.js';
 
 /** 기본(상시) 배너. banners.json에 진행 중인 상시 배너가 없을 때 사용 */
 export const STANDARD_BANNER = {
@@ -30,12 +30,12 @@ export const pityKeyOf = (banner) => (banner?.type === 'pickup' ? 'pickup' : 'st
 
 const emptyByRarity = () => Object.fromEntries(RARITIES.map((r) => [r, []]));
 
-/** 배너에 등장하는 캐릭터를 희귀도별로 나눔 (+ 픽업 목록). 스토리 전용(pullable false)·은퇴(retired)는 빠짐 */
+/** 배너에 등장하는 캐릭터를 희귀도별로 나눔 (+ 픽업 목록). NPC 등급·은퇴(retired)는 빠짐 — 매번 데이터에서 새로 만들어서 등급을 바꾸면 바로 따라감 */
 export function buildPools(characters, banner) {
   const pools = { ...emptyByRarity(), pickup: emptyByRarity() };
   const pickupIds = new Set(banner?.type === 'pickup' ? banner.pickupIds || [] : []);
   for (const c of characters) {
-    if (!pools[c.rarity] || c.pullable === false || c.retired) continue;
+    if (!pools[c.rarity] || isNpc(c) || c.retired) continue;
     pools[c.rarity].push(c);
     if (pickupIds.has(c.id)) pools.pickup[c.rarity].push(c);
   }

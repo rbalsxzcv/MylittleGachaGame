@@ -152,20 +152,33 @@ export function slugOk(id) {
   return /^[A-Za-z0-9_-]{1,64}$/.test(id || '');
 }
 
-// 희귀도 1–5 (높은 것부터). 예전 데이터의 'R'/'SR'/'SSR'은 3/4/5로 읽음 (게임 js/config.js와 같은 규칙)
+// 등급 = 희귀도 1–5 (높은 것부터) + NPC. 예전 데이터의 'R'/'SR'/'SSR'은 3/4/5, pullable: false는 NPC로 읽음
+// (게임 js/config.js normalizeGrade / isNpc와 같은 규칙)
+// NPC: 뽑기/도감/육성/편성에 안 나옴 → 스토리 화자, 적 연결(적 탭 'NPC 연결')용
 export const RARITIES = [5, 4, 3, 2, 1];
+export const NPC = 'npc';
 const LEGACY_RARITY = { R: 3, SR: 4, SSR: 5 };
+/** 등급 정리: 1–5 숫자 또는 'npc' (모르면 3) */
 export function rarOf(v) {
+  if (typeof v === 'string' && v.trim().toLowerCase() === NPC) return NPC;
   if (typeof v === 'string' && v in LEGACY_RARITY) return LEGACY_RARITY[v];
   const n = Number(v);
   return Number.isInteger(n) && n >= 1 && n <= 5 ? n : 3;
 }
-/** 표시용: 5 → '5★' */
-export const rarLabel = (v) => `${rarOf(v)}★`;
-/** 희귀도 고르기 select (값은 숫자 문자열 → 쓸 때 rarOf로) */
-export const raritySelect = (value) => {
-  const s = h('select', {}, RARITIES.map((r) => h('option', { value: String(r) }, `${r}★`)));
-  s.value = String(rarOf(value));
+/** 캐릭터 항목의 등급 (예전 pullable: false = NPC) */
+export const gradeOf = (c) => (c?.pullable === false ? NPC : rarOf(c?.rarity));
+export const isNpc = (c) => gradeOf(c) === NPC;
+/** 정렬용 숫자 (NPC = 0) */
+export const rarRank = (v) => (rarOf(v) === NPC ? 0 : rarOf(v));
+/** 표시용: 5 → '5★', 'npc' → 'NPC' */
+export const rarLabel = (v) => (rarOf(v) === NPC ? 'NPC' : `${rarOf(v)}★`);
+/** 등급 고르기 select (값은 '5'…'1' / 'npc' → 쓸 때 rarOf로). npc: false면 1–5만 (로테이션 배너 등) */
+export const raritySelect = (value, { npc = true } = {}) => {
+  const opts = RARITIES.map((r) => h('option', { value: String(r) }, `${r}★`));
+  if (npc) opts.push(h('option', { value: NPC }, 'NPC (뽑기 제외)'));
+  const s = h('select', {}, opts);
+  const v = rarOf(value);
+  s.value = String(v === NPC && !npc ? 3 : v);
   return s;
 };
 

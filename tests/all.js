@@ -9,3 +9,4 @@ import './battle.test.js';
 import './snapshot.test.js';
 import './deletion.test.js';
 import './aliases.test.js';
+import './npc.test.js';

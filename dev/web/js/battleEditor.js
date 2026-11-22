@@ -1,6 +1,6 @@
 // 캐릭터 전투 데이터 편집기 (모달): 능력치 / 기본·스킬·궁극기 / 돌파 1~5 / AI 초안
 // AI 초안: 설정 + 희귀도 → Gemini가 JSON 제안 → 검사 → 승인 / 거절+사유→다시 생성 / 수정 후 승인
-import { h, toast, modal, confirmBox, promptBox, busy } from './ui.js';
+import { h, toast, modal, confirmBox, promptBox, busy, rarLabel, gradeOf } from './ui.js';
 import { api, tryApi } from './api.js';
 import { state, reloadData } from './state.js';
 import { loadBattleKit, skillForm, passiveForm, statsForm, issueList, blankPassive, powerWarning, cleanEntity } from './battleForm.js';
@@ -48,11 +48,11 @@ export async function openCharBattleEditor(c, { onSaved } = {}) {
 
   function updateSummary() {
     const { ch } = cleaned();
-    const others = state.data.characters.map((x) => cleanEntity(x));
+    const others = state.data.characters.map((x) => cleanEntity(x)).filter((x) => x.rarity !== 'npc');
     const pw = powerWarning(kitMods, ch, {}, others, balance);
     summary.replaceChildren(
       ...[
-        h('span', { class: `chip r-${c.rarity}` }, `${c.rarity}★`),
+        h('span', { class: `chip r-${gradeOf(c)}` }, rarLabel(gradeOf(c))),
         h('b', {}, ` 전투력 ${pw.power.toLocaleString('ko-KR')}`),
         h('span', { class: 'muted small' }, ' (Lv.1 · 돌파 0 기준)'),
         pw.avg != null && h('span', { class: 'muted small' }, ` · 같은 희귀도 평균 ${pw.avg.toLocaleString('ko-KR')}`),

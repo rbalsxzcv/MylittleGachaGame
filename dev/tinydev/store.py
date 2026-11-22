@@ -236,6 +236,26 @@ def stage_chapter_titles():
     return got[1] if got else {}
 
 
+_CHAPTER_PREFIX = re.compile(r"^\s*챕터\s*\d+\s*[:：.·\-]?\s*")
+
+
+def strip_chapter_prefix(title):
+    """'챕터 2: 가성비 좋은 상속 전쟁' → '가성비 좋은 상속 전쟁' (게임이 '챕터 N'을 따로 붙여서 두 번 나오지 않게)"""
+    return _CHAPTER_PREFIX.sub("", str(title or "")).strip()
+
+
+def chapter_title(ch, given="", arc_title=""):
+    """챕터 파일 제목: 직접 정한 제목 → '챕터 N: <스토리 챕터 제목>' → '챕터 N'
+    ('챕터 ch02'처럼 자동으로 붙었던 임시 제목은 없는 것으로 봄)"""
+    m = re.fullmatch(r"ch(\d+)", ch or "")
+    label = f"챕터 {int(m.group(1))}" if m else f"챕터 {ch}"
+    given = str(given or "").strip()
+    if given and not re.fullmatch(r"(챕터\s*)?(ch\d+|\d+)", given):
+        return given
+    rest = strip_chapter_prefix(arc_title)
+    return f"{label}: {rest}" if rest else label
+
+
 def split_stages(items, titles=None, order=None):
     """한 목록 → (index.json 내용, {챕터: 파일 내용}). 챕터 순서는 기존 순서 → 새 챕터는 이름순"""
     titles = titles or {}
@@ -250,7 +270,7 @@ def split_stages(items, titles=None, order=None):
     for s in read_list("storyIndex"):
         if isinstance(s, dict) and s.get("arc") and s.get("arcTitle"):
             arc_titles.setdefault(f"ch{int(s['arc']):02d}", s["arcTitle"])
-    files = {ch: {"chapter": ch, "title": titles.get(ch) or arc_titles.get(ch) or f"챕터 {ch}", "stages": groups[ch]} for ch in ids}
+    files = {ch: {"chapter": ch, "title": chapter_title(ch, titles.get(ch), arc_titles.get(ch)), "stages": groups[ch]} for ch in ids}
     return ids, files
 
 

@@ -21,7 +21,8 @@ ROLES = ("minion", "elite", "boss")
 STYLES = ("physical", "dot", "heal", "tank", "debuff")
 ROLE_LABEL = {"minion": "잡몹", "elite": "정예", "boss": "보스"}
 STYLE_LABEL = {"physical": "물리", "dot": "지속 피해", "heal": "치유", "tank": "방어", "debuff": "약화"}
-from .rarity import normalize as norm_rarity  # 희귀도 1–5
+from .rarity import NPC, label as rarity_label, grade_of
+from .rarity import normalize_grade as norm_grade  # 등급 1–5 / 'npc'
 SLUG = re.compile(r"[^a-z0-9_]+")
 
 _lock = threading.Lock()
@@ -68,6 +69,8 @@ def assign_ids(plan, arc):
         c["id"] = chars[c["id"]]
     for e in plan["enemies"]:
         e["id"] = enemies[e["id"]]
+        if e.get("charId"):
+            e["charId"] = chars.get(e["charId"], e["charId"])  # 새 NPC면 진짜 id로
     for b in plan["backgrounds"]:
         b["name"] = bgs[b["name"]]
     for c in plan["chapters"]:
@@ -104,10 +107,10 @@ def _existing():
 
 
 PLAN_SCHEMA = """{
-  "title": "챕터 제목",
+  "title": "챕터 제목 ('챕터 N:' 없이 제목만)",
   "summary": "챕터 한 줄 소개 (스포일러 없이)",
   "characters": [
-    {"id": "ssr_haru", "name": "하루", "rarity": 5, "title": "칭호", "pullable": true,
+    {"id": "haru", "name": "하루", "rarity": 5, "title": "칭호",
      "keywords": "외형 키워드 (머리색, 눈색, 옷, 소품 — 그림 생성용)",
      "description": "도감에 보일 공개 소개 1~2문장 (스포일러 없이)",
      "lore": "작가용 설정 메모 (성격, 말투, 비밀, 이 챕터에서의 역할)"}
@@ -117,7 +120,8 @@ PLAN_SCHEMA = """{
   ],
   "enemies": [
     {"id": "en_sand_slime", "name": "모래 슬라임", "role": "minion", "style": "physical", "description": "어떤 적인지",
-     "keywords": "외형 키워드", "skills": {"basic": "기본 기술 이름", "skill": "스킬 이름", "ultimate": "보스만: 필살기 이름"}}
+     "keywords": "외형 키워드", "skills": {"basic": "기본 기술 이름", "skill": "스킬 이름", "ultimate": "보스만: 필살기 이름"},
+     "charId": null}
   ],
   "chapters": [
     {"n": 1, "title": "장 제목", "outline": "이 장에서 일어나는 일 2~4문장",
@@ -130,7 +134,7 @@ PLAN_SCHEMA = """{
 
 
 def plan_prompt(outline, arc, ex, feedback="", previous=None):
-    chars = "\n".join(f"- id: {c['id']} / {c.get('name')} ({c.get('rarity')}{', 스토리 전용' if c.get('pullable') is False else ''}) {c.get('title', '')}" for c in ex["chars"]) or "- (없음)"
+    chars = "\n".join(f"- id: {c['id']} / {c.get('name')} ({rarity_label(grade_of(c))}) {c.get('title', '')}" for c in ex["chars"]) or "- (없음)"
     enemies = "\n".join(f"- id: {e['id']} / {e.get('name')}" for e in ex["enemies"]) or "- (없음)"
     bgs = "\n".join(f"- {k}: {v.get('label')}" for k, v in ex["backgrounds"].items()) or "- (없음)"
     text = f"""당신은 모바일 수집형 RPG의 메인 스토리 기획자입니다. 아래 챕터 개요로 '챕터 팩' 구성안을 JSON으로 만들어 주세요.
@@ -160,11 +164,12 @@ def plan_prompt(outline, arc, ex, feedback="", previous=None):
 [규칙]
 - chapters는 정확히 12개 (n: 1~12). 각 장 개요는 사건 중심 2~4문장. 1장 도입 → 중반 전개/반전 → 11~12장 클라이맥스와 마무리, 마지막에 다음 챕터 떡밥.
 - characters: 이 챕터에 새로 나오는 인물만.
-  - 뽑을 수 있는 동료(pullable true)는 2~5명: rarity는 1~5 숫자(별 개수). 5 1~2명, 4 1~2명, 나머지 1~3. 동료로 어울리지 않는 인물(악역, 마을 사람, 수수께끼의 인물 등)은 pullable false, rarity는 3.
-  - id는 영문 소문자/숫자/_ (예: ssr_haru, npc_merchant). 이름은 한국어.
+  - 뽑을 수 있는 동료는 2~5명: rarity는 1~5 숫자(별 개수). 5 1~2명, 4 1~2명, 나머지 1~3. 동료로 어울리지 않는 인물(악역, 마을 사람, 수수께끼의 인물 등)은 rarity "npc" (뽑기에 안 나오고 스토리/적으로만 등장).
+  - id는 영문 소문자/숫자/_ 임시 이름 (예: haru, merchant — 진짜 id는 자동). 이름은 한국어.
   - keywords는 그림 생성용 외형(머리 모양/색, 눈 색, 옷, 소품, 체형). description은 공개용이라 스포일러 금지. lore는 작가용 메모라 비밀/역할을 자유롭게.
 - backgrounds: 4~8개. 여러 장에서 재사용될 장소 위주. name은 영문 소문자 slug. prompt는 사람 없는 배경 그림 설명.
 - enemies: 3~6종. role은 minion(잡몹) / elite(정예) / boss(보스, 마지막 장 전투에 반드시 등장). style은 physical / dot / heal / tank / debuff 중 하나.
+  - NPC 인물 본인이 적으로 싸우면 그 적의 charId에 그 캐릭터 id (새 캐릭터면 characters의 id, 이미 있는 캐릭터면 그 id). 아니면 null.
 - 전투(battle): 12장 모두 하나씩 (모험: 스테이지 1개 = 스토리 1장 + 전투 1개). 장의 사건에 어울리는 전투로. waves는 1~3개, 웨이브마다 적 1~5명(적 id 목록, 같은 적 반복 가능). 12장에는 boss가 나오는 전투.
 - 이전 챕터와 모순 없이, 세계관의 고유 명사와 설정을 지키기.
 
@@ -192,9 +197,9 @@ def mock_plan(outline, arc):
             "title": f"모의 챕터 {arc}",
             "summary": "[모의 모드] 새로운 여행이 시작된다",
             "characters": [
-                {"id": "ssr_mock_hero", "name": "모의 주인공", "rarity": 5, "title": "견습 여행자", "pullable": True, "keywords": "silver short hair, blue eyes, travel coat, satchel", "description": "길을 떠난 견습 여행자.", "lore": "[모의] 밝고 덤벙댐"},
-                {"id": "sr_mock_friend", "name": "모의 동료", "rarity": 4, "title": "길잡이", "pullable": True, "keywords": "brown ponytail, green eyes, scarf", "description": "길을 잘 아는 동료.", "lore": "[모의] 무뚝뚝하지만 다정"},
-                {"id": "npc_mock_guide", "name": "모의 안내인", "rarity": 3, "title": "마을 사람", "pullable": False, "keywords": "old man, beard, robe", "description": "마을의 안내인.", "lore": "[모의] 사실은 비밀이 있음"},
+                {"id": "ssr_mock_hero", "name": "모의 주인공", "rarity": 5, "title": "견습 여행자", "keywords": "silver short hair, blue eyes, travel coat, satchel", "description": "길을 떠난 견습 여행자.", "lore": "[모의] 밝고 덤벙댐"},
+                {"id": "sr_mock_friend", "name": "모의 동료", "rarity": 4, "title": "길잡이", "keywords": "brown ponytail, green eyes, scarf", "description": "길을 잘 아는 동료.", "lore": "[모의] 무뚝뚝하지만 다정"},
+                {"id": "npc_mock_guide", "name": "모의 안내인", "rarity": "npc", "title": "마을 사람", "keywords": "old man, beard, robe", "description": "마을의 안내인.", "lore": "[모의] 사실은 비밀이 있음"},
             ],
             "backgrounds": [
                 {"name": f"{p}village", "label": "고향 마을", "prompt": "quiet fantasy village at dawn, wooden houses, soft light"},
@@ -238,10 +243,8 @@ def clean_plan(raw, arc):
         if c.get("id") in ex_chars:
             char_map[c["id"]] = c["id"]  # 이미 있는 캐릭터 → 재사용
             continue
-        pullable = c.get("pullable") is not False
-        rarity = norm_rarity(c.get("rarity")) or 3
-        if not pullable:
-            rarity = 3
+        # 등급: 1–5 또는 'npc' (예전 형식 pullable: false도 NPC)
+        rarity = NPC if c.get("pullable") is False else (norm_grade(c.get("rarity")) or 3)
         cid = unique(slug(c.get("id") or c.get("name"), "", "char"), taken)  # 임시 이름 — 진짜 id는 팩을 만들 때 (assign_ids)
         char_map[str(c.get("id"))] = cid
         chars.append(
@@ -250,7 +253,6 @@ def clean_plan(raw, arc):
                 "name": str(c["name"]).strip()[:20],
                 "rarity": rarity,
                 "title": str(c.get("title") or "").strip()[:40],
-                "pullable": pullable,
                 "keywords": str(c.get("keywords") or "").strip()[:500],
                 "description": str(c.get("description") or "").strip()[:400],
                 "lore": str(c.get("lore") or "").strip()[:1500],
@@ -273,10 +275,16 @@ def clean_plan(raw, arc):
         eid = unique(slug(e.get("id"), "en_", "enemy"), e_taken)
         enemy_map[str(e.get("id"))] = eid
         skills = e.get("skills") if isinstance(e.get("skills"), dict) else {}
+        # NPC 연결: 구성안의 charId (새 캐릭터 임시 이름 / 이미 있는 캐릭터) → 없으면 이름이 같은 새 NPC
+        ename = str(e["name"]).strip()[:20]
+        link = (char_map.get(str(e.get("charId"))) or (e["charId"] if e.get("charId") in ex_chars else None)) if e.get("charId") else None
+        if not link:
+            link = next((c["id"] for c in chars if c["rarity"] == NPC and c["name"] == ename), None)
         enemies.append(
             {
                 "id": eid,
-                "name": str(e["name"]).strip()[:20],
+                "charId": link,
+                "name": ename,
                 "role": e.get("role") if e.get("role") in ROLES else "minion",
                 "style": e.get("style") if e.get("style") in STYLES else "physical",
                 "description": str(e.get("description") or "").strip()[:300],
@@ -326,7 +334,7 @@ def clean_plan(raw, arc):
             c["battle"] = default_battle(c["n"], enemies)
             if c["battle"]:
                 warnings.append(f"{c['n']}장에 전투가 없어서 기본 전투를 넣었어요 (모든 장에 전투 1개)")
-    plan = {"arc": arc, "title": str(raw.get("title") or f"챕터 {arc}").strip()[:40], "summary": str(raw.get("summary") or "").strip()[:200], "characters": chars, "backgrounds": bgs, "enemies": enemies, "chapters": chapters}
+    plan = {"arc": arc, "title": (store.strip_chapter_prefix(raw.get("title")) or f"챕터 {arc}")[:40], "summary": str(raw.get("summary") or "").strip()[:200], "characters": chars, "backgrounds": bgs, "enemies": enemies, "chapters": chapters}
     return plan, warnings
 
 
@@ -414,6 +422,7 @@ def enemy_entry(e):
         out["enrage"] = {"round": 15, "effects": [{"type": "buff", "stat": "atk", "pct": 50, "turns": 20}]}
     return {
         "id": e["id"],
+        **({"charId": e["charId"]} if e.get("charId") else {}),
         "name": e["name"],
         "image": "",
         "boss": role == "boss",
@@ -535,14 +544,17 @@ def normalize_edited(plan, arc):
     for c in ids_ok(plan.get("characters"), "캐릭터"):
         if not str(c.get("name") or "").strip():
             raise ValueError(f"캐릭터 {c['id']}의 이름이 비어 있어요")
-        pullable = c.get("pullable") is not False
-        chars.append({**c, "rarity": norm_rarity(c.get("rarity")) or 3, "pullable": pullable})
+        grade = NPC if c.get("pullable") is False else (norm_grade(c.get("rarity")) or 3)
+        chars.append({**{k: v for k, v in c.items() if k != "pullable"}, "rarity": grade})
     bgs = ids_ok(plan.get("backgrounds"), "배경")
     enemies = []
     for e in ids_ok(plan.get("enemies"), "적"):
         enemies.append({**e, "role": e.get("role") if e.get("role") in ROLES else "minion", "style": e.get("style") if e.get("style") in STYLES else "physical", "skills": e.get("skills") or {}})
     known_enemies = ex_enemies | {e["id"] for e in enemies}
     known_chars = ex_chars | {c["id"] for c in chars}
+    for e in enemies:
+        if e.get("charId") not in known_chars:
+            e["charId"] = None  # 모르는 캐릭터 연결은 버림
     chapters = []
     raw_ch = plan.get("chapters") or []
     if len(raw_ch) != ARC_SIZE:
@@ -564,7 +576,7 @@ def normalize_edited(plan, arc):
             if store.is_auto_id(kind, c.get(field)):
                 ch_entry[field] = c[field]  # 이미 만든 팩 → 같은 id 유지
         chapters.append(ch_entry)
-    return {"arc": arc, "title": str(plan.get("title") or f"챕터 {arc}")[:40], "summary": str(plan.get("summary") or "")[:200], "outline": plan.get("outline", ""), "characters": chars, "backgrounds": bgs, "enemies": enemies, "chapters": chapters}, warnings
+    return {"arc": arc, "title": (store.strip_chapter_prefix(plan.get("title")) or f"챕터 {arc}")[:40], "summary": str(plan.get("summary") or "")[:200], "outline": plan.get("outline", ""), "characters": chars, "backgrounds": bgs, "enemies": enemies, "chapters": chapters}, warnings
 
 
 def _step(st, key, **kw):
@@ -593,7 +605,7 @@ def _run(st, plan, options):
         chars = store.read_list("characters")
         made = 0
         for c in plan["characters"]:
-            entry = {"id": c["id"], "name": c["name"], "rarity": c["rarity"], "title": c["title"], "description": c["description"], "image": "", "addedAt": now_iso(), "pullable": c["pullable"], "keywords": c["keywords"], "lore": c["lore"], "arc": arc}
+            entry = {"id": c["id"], "name": c["name"], "rarity": c["rarity"], "title": c["title"], "description": c["description"], "image": "", "addedAt": now_iso(), "keywords": c["keywords"], "lore": c["lore"], "arc": arc}
             made += _upsert(chars, entry)
         store.write_list("characters", chars)
         _step(st, "characters", status="done", note=f"새로 {made}명 (이미 있던 {len(plan['characters']) - made}명은 그대로)")
@@ -663,7 +675,7 @@ def _run(st, plan, options):
                 stop = "error"
                 break
             store.write_story(sid, {"id": sid, "title": c["title"], "scenes": draft["scenes"]})
-            entry = {"id": sid, "kind": "main", "chapter": chapter_no, "arc": arc, "arcTitle": plan["title"], "title": c["title"], "summary": draft.get("summary", ""), "unlock": [{"type": "prevChapter"}], "reward": {"gems": 100 if c["n"] == len(plan["chapters"]) else 50}}
+            entry = {"id": sid, "kind": "main", "chapter": chapter_no, "arc": arc, "arcTitle": store.strip_chapter_prefix(plan["title"]), "title": c["title"], "summary": draft.get("summary", ""), "unlock": [{"type": "prevChapter"}], "reward": {"gems": 100 if c["n"] == len(plan["chapters"]) else 50}}
             index = [s for s in store.read_list("storyIndex") if s.get("id") != sid]
             index.append(entry)
             index.sort(key=lambda s: (s.get("kind") != "main", int(s.get("chapter") or 0)))

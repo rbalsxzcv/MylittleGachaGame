@@ -25,6 +25,7 @@
   --rar-3: #4f9dff;
   --rar-4: #a970ff;
   --rar-5: #ffc23d;
+  --rar-npc: #b59a7e; /* NPC 등급 (스토리 화자 / 적) */
   /* 예전 이름 (기존 규칙 호환) */
   --r: var(--rar-3);
   --sr: var(--rar-4);
@@ -49,6 +50,7 @@
 .rar-3 { --rc: var(--rar-3); }
 .rar-4 { --rc: var(--rar-4); }
 .rar-5 { --rc: var(--rar-5); }
+.rar-npc { --rc: var(--rar-npc); }
 
 /* ── 기본 ── */
 *, *::before, *::after { box-sizing: border-box; }
@@ -1990,12 +1992,13 @@ button.ccard:active { transform: scale(0.97); }
 .bd-pickup .rstars { display: none; }
 
 /* ── 모험 (js/ui/adventureView.js) ── */
-.adv-top { position: absolute; left: 32px; right: 32px; top: 84px; display: grid; gap: 10px; }
+.adv-wrap { position: absolute; left: 32px; right: 32px; top: 84px; bottom: 20px; display: flex; flex-direction: column; gap: 14px; }
+.adv-top { display: grid; gap: 10px; flex: none; }
 .adv-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
 .adv-title { margin: 0; font-size: 24px; font-weight: 900; }
 .adv-team { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 14px; background: var(--glass-bg, rgba(0, 0, 0, 0.35)); border: 1px solid var(--line); }
 .adv-team b { font-size: 20px; color: var(--rar-5); }
-.adv-scroll { position: absolute; left: 32px; right: 32px; top: 170px; bottom: 20px; overflow-y: auto; padding-right: 6px; }
+.adv-scroll { flex: 1; min-height: 0; overflow-y: auto; padding-right: 6px; }
 .adv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 .adv-card { position: relative; display: grid; gap: 4px; align-content: start; min-height: 150px; padding: 14px 16px; text-align: left; border-radius: 16px; border: 1px solid var(--line); background: linear-gradient(160deg, rgba(58, 38, 24, 0.92), rgba(28, 19, 13, 0.92)); color: inherit; font: inherit; cursor: pointer; }
 .adv-card:hover:not(.is-locked) { border-color: var(--rar-5); }
