@@ -79,5 +79,14 @@
     "description": "어디에나 있는 뜨내기 용병, 양아치, 건달, 범죄자, 사생아, 누구나 무기를 들면 용병이 된다, 그리고 수틀리면 다시 양아치, 건달, 범죄자로 돌아간다.",
     "image": "assets/chars/c1_janedoe.png",
     "addedAt": "2026-11-21T23:18:00+09:00"
+  },
+  {
+    "id": "ssr_sono",
+    "name": "소노",
+    "rarity": 5,
+    "title": "",
+    "description": "창녀다",
+    "image": "assets/chars/ssr_sono.png",
+    "addedAt": "2026-11-22T20:50:00+09:00"
   }
 ]
