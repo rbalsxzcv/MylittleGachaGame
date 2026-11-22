@@ -1,6 +1,13 @@
 {
-  "contentVersion": 10,
+  "contentVersion": 11,
   "patchNotes": [
+    {
+      "version": 11,
+      "date": "2026-11-23T01:04:14+09:00",
+      "notes": [
+        "모집 정보 수정: 아니? 우리가 너를 뽑는거야!"
+      ]
+    },
     {
       "version": 10,
       "date": "2026-11-23T01:02:46+09:00",

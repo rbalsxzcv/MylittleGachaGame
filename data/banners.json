@@ -41,7 +41,7 @@
   },
   {
     "id": "banner_0004",
-    "title": "아니? 내가 너희를 사서 뽑는거야!",
+    "title": "아니? 우리가 너를 뽑는거야!",
     "type": "pickup",
     "pickupIds": [
       "char_0011",
