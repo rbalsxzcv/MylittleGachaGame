@@ -1,6 +1,6 @@
 // 테스트용: 실제 게임 데이터(data/)를 게임과 같은 검사기로 불러오기 (브라우저/Node 공용)
 import { loadJson } from './load.js';
-import { validateCharacters, validateEnemies, validateStages, validateBanners, validateStoryIndex, validateStory } from '../../js/core/data.js';
+import { validateCharacters, validateEnemies, validateStages, validateBanners, validateStoryIndex, validateStory, validateMemories } from '../../js/core/data.js';
 import { loadConfig } from '../../js/config.js';
 
 /**
@@ -16,6 +16,7 @@ export async function loadGameData({ stories = false } = {}) {
     const balance = loadConfig(await loadJson('data/balance.json'), vocab, (m) => warnings.push(m));
     const characters = validateCharacters(await loadJson('data/characters.json'), vocab);
     const enemies = validateEnemies(await loadJson('data/enemies.json'), vocab);
+    const memories = validateMemories(await loadJson('data/memories.json'), vocab);
     const index = await loadJson('data/stages/index.json');
     const chapters = [];
     const stageList = [];
@@ -34,6 +35,8 @@ export async function loadGameData({ stories = false } = {}) {
       balance,
       characters,
       enemies,
+      memories,
+      memoryMap: new Map(memories.map((m) => [m.id, m])),
       stages: stageList,
       chapters,
       banners,

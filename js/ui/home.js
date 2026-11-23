@@ -71,8 +71,8 @@ export function homeScreen(ctx) {
           h(
             'div',
             { class: 'banner-card' },
-            bannerVisual(banner, charMap),
-            h('span', { class: ['banner-tag', banner.type === 'pickup' && 'is-pickup'] }, banner.type === 'pickup' ? '픽업' : '상시'),
+            bannerVisual(banner, charMap, ctx.data.memoryMap),
+            h('span', { class: ['banner-tag', banner.type === 'pickup' && 'is-pickup'] }, `${banner.category === 'memory' ? '추억 · ' : ''}${banner.type === 'pickup' ? '픽업' : '상시'}`),
             h(
               'div',
               { class: 'banner-info' },
@@ -156,10 +156,12 @@ export function homeScreen(ctx) {
  * @param {object} banner
  * @param {Map} [charMap] 픽업 캐릭터 그림을 그릴 때 사용
  */
-export function bannerVisual(banner, charMap) {
+export function bannerVisual(banner, charMap, memoryMap = null) {
   const wrap = h('div', { class: ['banner-visual', banner.type === 'pickup' && 'is-pickup'] });
+  // 추억 배너: 픽업 추억의 주인 캐릭터를 보여 줌
+  const ids = banner.category === 'memory' ? (banner.pickupIds || []).map((id) => memoryMap?.get(id)?.signatureOf).filter(Boolean) : banner.pickupIds || [];
   const featured = () => {
-    const chars = (banner.pickupIds || []).map((id) => charMap?.get(id)).filter(Boolean);
+    const chars = ids.map((id) => charMap?.get(id)).filter(Boolean);
     if (chars.length) wrap.append(h('div', { class: 'banner-featured' }, chars.map((c) => h('div', { class: `banner-featured-char rar-${c.rarity}` }, charArt(c)))));
   };
   if (banner.bannerImage) {

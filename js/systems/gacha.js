@@ -25,8 +25,35 @@ export const STANDARD_BANNER = {
   relatedStoryId: null,
 };
 
-/** 배너 종류별 천장/확정 저장 키 */
-export const pityKeyOf = (banner) => (banner?.type === 'pickup' ? 'pickup' : 'standard');
+/** 기본 추억 뽑기 배너 (진행 중인 추억 상시 배너가 없을 때, 추억 데이터가 있으면) */
+export const STANDARD_MEMORY_BANNER = {
+  id: 'memory_standard',
+  title: '추억 뽑기',
+  type: 'standard',
+  category: 'memory',
+  pickupIds: [],
+  startAt: null,
+  endAt: null,
+  description: '모든 추억 카드가 나오는 상시 뽑기예요.',
+  bannerImage: '',
+  relatedStoryId: null,
+};
+
+/** 추억 뽑기 배너인지 */
+export const isMemoryBanner = (banner) => banner?.category === 'memory';
+
+/** 배너 종류별 천장/확정 저장 키 (캐릭터 상시/픽업 · 추억 상시/픽업 따로) */
+export const pityKeyOf = (banner) => (isMemoryBanner(banner) ? (banner.type === 'pickup' ? 'memoryPickup' : 'memory') : banner?.type === 'pickup' ? 'pickup' : 'standard');
+
+/** 이 배너의 뽑기 규칙 (pullMany/rateTable의 cfg 모양) — 추억은 balance.memoryGacha (1·2★ 확률 0) */
+export function rulesFor(banner, balance) {
+  if (!isMemoryBanner(banner)) return balance;
+  const g = balance.memoryGacha;
+  return { ...balance, gacha: { ...g, rates: { 1: 0, 2: 0, ...g.rates } } };
+}
+
+/** 이 배너에서 나오는 것 (캐릭터 또는 추억) */
+export const poolSourceOf = (banner, data) => (isMemoryBanner(banner) ? data.memories || [] : data.characters);
 
 const emptyByRarity = () => Object.fromEntries(RARITIES.map((r) => [r, []]));
 

@@ -16,11 +16,11 @@ export function usePreviewSaveKey() {
   SAVE_KEY = `${BASE_SAVE_KEY}_preview`;
   V1_KEY = `${BASE_V1_KEY}_preview`;
 }
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 export const START_GEMS = 1000;
 // 첫 시작 골드. 골드가 생기기 전 세이브에도 한 번 지급 (레벨업에 골드가 필요해졌으므로)
 export const START_GOLD = 20000;
-const CODE_PREFIX = 'TG2:'; // 세이브 코드 접두사 (v2·v3 공통, 버전은 안의 v로 구분)
+const CODE_PREFIX = 'TG2:'; // 세이브 코드 접두사 (v2·v3·v4 공통, 버전은 안의 v로 구분)
 const V1_CODE_PREFIX = 'TG1:';
 const MAX_GEMS = 999_999_999;
 const MAX_LEVEL = 1_000_000; // 레벨 제한은 없지만 비정상 값 방지
@@ -66,8 +66,8 @@ export function createNewSave(t = now()) {
     knownIds: [], // 지금까지 데이터에서 본 캐릭터 id (NEW 판정용)
     newIds: [], // 새로 추가되어 아직 도감에서 확인하지 않은 id
     featuredId: null,
-    pity: { standard: 0, pickup: 0 }, // 배너 종류별 천장 카운트 (상시/픽업 따로)
-    guaranteed: { pickup: false }, // 픽업 50% 실패 → 다음 SSR은 픽업 확정
+    pity: { standard: 0, pickup: 0, memory: 0, memoryPickup: 0 }, // 배너 종류별 천장 카운트 (상시/픽업/추억 상시/추억 픽업 따로)
+    guaranteed: { pickup: false, memoryPickup: false }, // 픽업 50% 실패 → 다음 5★은 픽업 확정
     readStories: {}, // 스토리 id → 처음 다 읽은 시각
     claimedMail: [], // 받은 우편 id
     hiddenNotices: [], // "다시 보지 않기" 한 공지 id
@@ -77,11 +77,76 @@ export function createNewSave(t = now()) {
     gold: START_GOLD,
     scrolls: 0, // 모집 증서 (1장 = 뽑기 1회)
     teams: defaultTeams(),
-    stages: {}, // 스테이지 id → { clears, firstClaimed, bestRounds }
+    stages: {}, // 스테이지 id → { clears, firstClaimed, bestRounds, stars }
     settings: defaultSettings(),
+    ...defaultV4(),
   };
   for (const [name, def] of slices) save[name] = def.create();
   return save;
+}
+
+/**
+ * v4 필드: 추억 · 장비 · 장착
+ * memories: 추억 인스턴스 [{u, id, lv, r}] (u = 'm<번호>', 같은 추억도 여러 장 가질 수 있음 — 역할 기본 추억)
+ * memGranted: 역할 기본 추억을 이미 받은 캐릭터 id (한 번만)
+ * gear: 장비 조각 개수 {'<칸>.<티어>.<강화>': {n, lock}} — 같은 조각은 개수로 쌓음, 장착한 건 개수에서 빠짐
+ * equips: {캐릭터 id: {m: 추억 u | null, g: {hp|def|crit|atk: '<티어>.<강화>' | null}}}
+ * gearMat: 강화석 / memMat: 추억 재료
+ */
+export function defaultV4() {
+  return { memories: [], memSeq: 0, memMat: 0, memGranted: [], gear: {}, gearMat: 0, equips: {} };
+}
+
+const MEM_U = /^m\d{1,7}$/;
+const GEAR_KEY = /^(hp|def|crit|atk)\.\d{1,2}\.\d{1,2}$/;
+const GEAR_PIECE = /^\d{1,2}\.\d{1,2}$/;
+
+function cleanV4(raw, owned) {
+  const out = defaultV4();
+  const seen = new Set();
+  for (const m of Array.isArray(raw.memories) ? raw.memories.slice(0, MAX_IDS) : []) {
+    if (!m || !MEM_U.test(m.u) || seen.has(m.u) || !ID_PATTERN.test(m.id || '')) continue;
+    seen.add(m.u);
+    out.memories.push({ u: m.u, id: m.id, lv: int(m.lv, 1, 1000, 1), r: int(m.r, 1, 5, 1) });
+  }
+  const maxSeq = out.memories.reduce((a, m) => Math.max(a, Number(m.u.slice(1))), 0);
+  out.memSeq = Math.max(int(raw.memSeq, 0, 1e7, 0), maxSeq);
+  out.memMat = int(raw.memMat, 0, MAX_GEMS, 0);
+  out.memGranted = idList(raw.memGranted);
+  if (raw.gear && typeof raw.gear === 'object' && !Array.isArray(raw.gear)) {
+    for (const [k, v] of Object.entries(raw.gear).slice(0, 2000)) {
+      if (!GEAR_KEY.test(k) || !v || typeof v !== 'object') continue;
+      const n = int(v.n, 0, 99_999, 0);
+      if (n > 0 || v.lock === true) out.gear[k] = { n, lock: v.lock === true };
+    }
+  }
+  out.gearMat = int(raw.gearMat, 0, MAX_GEMS, 0);
+  if (raw.equips && typeof raw.equips === 'object' && !Array.isArray(raw.equips)) {
+    const usedMem = new Set();
+    for (const [cid, e] of Object.entries(raw.equips).slice(0, MAX_IDS)) {
+      if (!ID_PATTERN.test(cid) || !e || typeof e !== 'object' || !owned[cid]) continue;
+      // 추억 한 장은 한 명만 장착
+      const m = typeof e.m === 'string' && seen.has(e.m) && !usedMem.has(e.m) ? e.m : null;
+      if (m) usedMem.add(m);
+      const g = {};
+      for (const slot of ['hp', 'def', 'crit', 'atk']) g[slot] = typeof e.g?.[slot] === 'string' && GEAR_PIECE.test(e.g[slot]) ? e.g[slot] : null;
+      out.equips[cid] = { m, g };
+    }
+  }
+  return out;
+}
+
+/** v3 → v4: 추억 · 장비 · 장착 · 추억 뽑기 천장 · 스테이지 별점 자리 추가 (역할 기본 추억은 불러온 뒤 systems/memories가 지급) */
+export function migrateV3(raw) {
+  return {
+    raw: {
+      ...raw,
+      v: 4,
+      ...defaultV4(),
+      pity: { memory: 0, memoryPickup: 0, ...(raw?.pity || {}) },
+      guaranteed: { memoryPickup: false, ...(raw?.guaranteed || {}) },
+    },
+  };
 }
 
 /** 연출/전투 설정 (가챠 연출 속도·스킵, 전투 속도·AUTO) */
@@ -136,6 +201,7 @@ function cleanStages(raw) {
       clears: int(e.clears, 0, 1_000_000_000, 0),
       firstClaimed: e.firstClaimed === true,
       bestRounds: e.bestRounds == null ? null : int(e.bestRounds, 1, 100000, null),
+      stars: int(e.stars, 0, 3, 0),
     };
   }
   return out;
@@ -182,6 +248,7 @@ export function migrateV2(raw) {
 export const MIGRATIONS = [
   { from: 1, to: 2, run: migrateV1 },
   { from: 2, to: 3, run: migrateV2 },
+  { from: 3, to: 4, run: migrateV3 },
 ];
 
 /**
@@ -232,13 +299,13 @@ export function sanitize(raw) {
     }
   }
 
-  const pity = { standard: 0, pickup: 0 };
+  const pity = { standard: 0, pickup: 0, memory: 0, memoryPickup: 0 };
   if (raw.pity && typeof raw.pity === 'object') {
     for (const [key, val] of Object.entries(raw.pity)) {
       if (/^[a-z0-9_-]{1,32}$/i.test(key)) pity[key] = int(val, 0, 1000, 0);
     }
   }
-  const guaranteed = { pickup: false };
+  const guaranteed = { pickup: false, memoryPickup: false };
   if (raw.guaranteed && typeof raw.guaranteed === 'object') {
     for (const [key, val] of Object.entries(raw.guaranteed)) {
       if (/^[a-z0-9_-]{1,32}$/i.test(key)) guaranteed[key] = val === true;
@@ -273,6 +340,7 @@ export function sanitize(raw) {
     teams: cleanTeams(raw.teams),
     stages: cleanStages(raw.stages),
     settings: cleanSettings(raw.settings),
+    ...cleanV4(raw, owned),
   };
 
   for (const [name, def] of slices) {

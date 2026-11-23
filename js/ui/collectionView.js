@@ -5,7 +5,7 @@ import { toast } from './toast.js';
 import { charCard, charArt, rarityBadge, starRow } from './charCard.js';
 import { isOwned, isMarkedNew, markSeen, sortCharacters, ownedCount } from '../systems/collection.js';
 import { formatKST } from '../core/time.js';
-import { charPower } from '../systems/progression.js';
+import { ownedPower } from '../systems/teams.js';
 import { formatBig } from '../config.js';
 
 const FILTERS = [
@@ -103,7 +103,7 @@ export function collectionScreen(ctx) {
                 h('dt', {}, '레벨'),
                 h('dd', {}, `Lv.${entry.level} · 돌파 ${entry.breakthrough} · 정수 ${entry.essence}`),
                 h('dt', {}, '전투력'),
-                h('dd', {}, formatBig(charPower(c, entry, ctx.data.balance))),
+                h('dd', {}, formatBig(ownedPower(ctx, c))),
                 h('dt', {}, '획득 횟수'),
                 h('dd', {}, `${entry.count}회`),
                 h('dt', {}, '처음 만난 날'),

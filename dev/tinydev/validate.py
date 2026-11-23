@@ -44,7 +44,7 @@ def _check_date(r, where, field, value, required=False):
 
 
 # 목록 이름 → 자동 id 종류 (id 규칙 <종류>_<4자리> 검사)
-LABEL_KIND = {"characters": "char", "enemies": "enemy", "stages": "stage", "stories/index": "story", "banners": "banner", "notices": "notice", "mail": "mail", "shop.gold": "shop", "shop.cash": "shop"}
+LABEL_KIND = {"memories": "memory", "characters": "char", "enemies": "enemy", "stages": "stage", "stories/index": "story", "banners": "banner", "notices": "notice", "mail": "mail", "shop.gold": "shop", "shop.cash": "shop"}
 
 
 def _check_ids(r, label, items):
@@ -251,6 +251,7 @@ def validate(content, asset_exists, held=None):
         _check_asset(r, where, "image", e.get("image") or linked_image, asset_exists)
         if vocab:
             kit.check_enemy_battle(r, where, e, vocab)
+    _check_memories(r, content, chars, npc_ids, asset_exists, vocab)
     stages = _check_ids(r, "stages", content.get("stages") or [])
     stage_ids = {s["id"] for s in stages}
     for st in stages:
@@ -534,6 +535,70 @@ def validate(content, asset_exists, held=None):
         check_shop(r, content["shop"], asset_exists)
 
     return r
+
+
+MEMORY_KINDS = ("default", "generic", "signature")
+
+
+def _check_memories(r, content, chars, npc_ids, asset_exists, vocab):
+    """추억 카드: 3~5★, 부옵션 능력치, 패시브(일반 + 주인 보너스), 5★ 캐릭터마다 전용 추억 정확히 1장"""
+    mems = _check_ids(r, "memories", content.get("memories") or [])
+    char_by = {c["id"]: c for c in chars}
+    sig_of = {}
+    defaults = {}
+    for m in mems:
+        where = f"memories/{m['id']}"
+        if not str(m.get("name") or "").strip():
+            r.error(where, "이름(name)이 비어 있어요")
+        if m.get("rarity") not in (3, 4, 5):
+            r.error(where, f"추억 희귀도는 3~5여야 해요: {m.get('rarity')!r}")
+        kind = m.get("kind", "generic")
+        if kind not in MEMORY_KINDS:
+            r.error(where, f"kind는 {', '.join(MEMORY_KINDS)} 중 하나: {kind!r}")
+        if kind == "default":
+            if m.get("role") not in kit.CHAR_ROLES:
+                r.error(where, f"역할 기본 추억은 role이 필요해요 ({', '.join(kit.CHAR_ROLES)})")
+            elif m.get("role") in defaults:
+                r.error(where, f"역할 {m['role']}의 기본 추억이 둘이에요 ({defaults[m['role']]})")
+            else:
+                defaults[m["role"]] = m["id"]
+        for key in ("signatureOf", "featuredCharacterId"):
+            cid = m.get(key)
+            if cid and cid not in char_by:
+                r.error(where, f"{key}의 캐릭터가 없어요: {cid!r}")
+            elif cid and cid in npc_ids and key == "signatureOf":
+                r.error(where, f"NPC 등급 캐릭터({cid})는 전용 추억을 가질 수 없어요")
+        if kind == "signature":
+            cid = m.get("signatureOf")
+            if not cid:
+                r.error(where, "전용 추억은 signatureOf(주인 캐릭터 id)가 필요해요")
+            else:
+                if rarity.grade_of(char_by.get(cid, {})) != 5:
+                    r.warn(where, f"전용 추억의 주인({cid})이 5★가 아니에요")
+                sig_of.setdefault(cid, []).append(m["id"])
+        sec = (m.get("secondary") or {}).get("stat")
+        if sec not in kit.STAT_LIMITS:
+            r.error(where, f"부옵션(secondary.stat) 능력치를 알 수 없어요: {sec!r}")
+        passive = m.get("passive") or {}
+        if not isinstance(passive, dict) or not passive.get("generic"):
+            r.error(where, "passive.generic(누가 장착해도 켜지는 능력)이 필요해요")
+        elif vocab:
+            kit.check_passive(r, f"{where}.passive.generic", passive["generic"], vocab)
+            if passive.get("owner"):
+                kit.check_passive(r, f"{where}.passive.owner", passive["owner"], vocab)
+        for key in ("image", "thumb"):
+            if m.get(key):
+                _check_asset(r, where, key, m[key], asset_exists)
+        _check_date(r, where, "addedAt", m.get("addedAt"))
+    for cid, ids in sig_of.items():
+        if len(ids) > 1:
+            r.error(f"memories", f"{cid}의 전용 추억이 {len(ids)}장이에요 ({', '.join(ids)}) — 5★ 캐릭터마다 정확히 1장")
+    for c in chars:
+        if c["id"] not in npc_ids and rarity.grade_of(c) == 5 and not c.get("retired") and c["id"] not in sig_of and mems:
+            r.warn(f"characters/{c['id']}", "5★인데 전용 추억이 없어요 (추억 탭 → 전용 추억 만들기)")
+    for role in kit.CHAR_ROLES:
+        if mems and role not in defaults:
+            r.warn("memories", f"역할 {role}의 기본 추억(kind: default)이 없어요 — 새 캐릭터에게 지급할 추억이 없음")
 
 
 def _check_balance(r, bal):

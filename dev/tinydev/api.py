@@ -249,7 +249,7 @@ def _check_list(items, label):
 @app.put("/api/list/<key>")
 def save_list(key):
     """배너/공지/우편/스토리/적/스테이지/소품 목록 전체 저장 (적은 전투 데이터 오류가 있으면 거부)"""
-    if key not in ("banners", "notices", "mail", "storyIndex", "enemies", "stages", "props"):
+    if key not in ("banners", "notices", "mail", "storyIndex", "enemies", "stages", "props", "memories"):
         abort(404)
     items = _check_list(request.get_json(silent=True), key)
     kind = store.KIND_OF_LIST[key]

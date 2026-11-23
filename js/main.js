@@ -2,6 +2,7 @@
 import { initStage, toggleFullscreen } from './core/stage.js';
 import { loadGameData, splitCharacters, linkEnemyNpcs } from './core/data.js';
 import { loadSave, writeSave, clearSave, createNewSave, usePreviewSaveKey } from './core/save.js';
+import { ensureDefaultMemories } from './systems/memories.js';
 import { emit } from './core/events.js';
 import { now, parseDate, setNowOverride, isTimeShifted, formatKST } from './core/time.js';
 import { applyDailyLogin, addGems, addTickets, addGold, addScrolls, rewardText } from './systems/economy.js';
@@ -75,6 +76,12 @@ async function boot() {
       return !at || at <= t;
     }),
   );
+  // 추억도 공개 시각(addedAt) 전에는 안 나옴. memoryMap = 지금 쓸 수 있는 추억 전부 (은퇴 포함 — 이미 가진 건 계속 씀)
+  data.memories = data.memories.filter((m) => {
+    const at = parseDate(m.addedAt);
+    return !at || at <= t;
+  });
+  data.memoryMap = new Map(data.memories.map((m) => [m.id, m]));
   data.enemies = linkEnemyNpcs(data.enemies, data.allCharMap);
   data.enemyMap = new Map(data.enemies.map((e) => [e.id, e]));
   data.stageMap = new Map(data.stages.map((s) => [s.id, s]));
@@ -97,8 +104,20 @@ async function boot() {
     for (const c of data.characters) if (!save.owned[c.id]) save.owned[c.id] = { level: 1, essence: 0, breakthrough: 0, count: 1, firstAt: save.createdAt };
   }
   syncKnownIds(save, data.characters, isNew);
+  ensureDefaultMemories(save, data.characters, data.memories); // 가진 캐릭터마다 역할 기본 추억 1장 (v3 → v4 세이브 포함, 한 번만)
   const daily = isNew ? null : applyDailyLogin(save, { tickets: data.balance.daily.tickets, gold: data.balance.daily.gold });
   const passDaily = claimPassDaily(save); // 월정액: 오늘 몫 보석
+
+  // 저장 디바운스: 연속 변경(레벨업 연타, 반복 전투)은 마지막에 한 번만 localStorage에 씀
+  const SAVE_DEBOUNCE_MS = 500;
+  let writeTimer = null;
+  const scheduleWrite = () => {
+    clearTimeout(writeTimer);
+    writeTimer = setTimeout(() => ctx.flush(), SAVE_DEBOUNCE_MS);
+  };
+  const flushIfPending = () => writeTimer && ctx.flush();
+  document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flushIfPending());
+  window.addEventListener('pagehide', flushIfPending);
 
   // 모든 화면이 공유하는 게임 상태(ctx)
   const ctx = {
@@ -109,18 +128,27 @@ async function boot() {
     /** 마지막 전투 기록 (개발용 __tg.replay) */
     lastBattle: null,
     /** 지금 진행 중인 배너 */
-    activeBanners: () => activeBanners(data.banners, data.characters),
+    activeBanners: () => activeBanners(data.banners, data.characters, now(), data.memories),
 
-    /** 세이브 저장 + 변경 알림 */
+    /** 세이브 변경 알림 + 저장 예약 (500ms 모아서 한 번 — 화면을 떠나거나 숨기면 바로 저장) */
     commit() {
-      if (!writeSave(ctx.save)) toast('저장에 실패했어요. 브라우저 저장 공간을 확인해 주세요', { type: 'error' });
+      // 새로 얻은 캐릭터에게 역할 기본 추억 (뽑기/우편/상점 어디서 얻든 여기 한 곳)
+      ensureDefaultMemories(ctx.save, data.characters, data.memories);
+      scheduleWrite();
       emit('save:changed', ctx.save);
+    },
+    /** 지금 바로 저장 (세이브 교체/초기화처럼 꼭 남아야 할 때) */
+    flush() {
+      clearTimeout(writeTimer);
+      writeTimer = null;
+      if (!writeSave(ctx.save)) toast('저장에 실패했어요. 브라우저 저장 공간을 확인해 주세요', { type: 'error' });
     },
     /** 세이브 코드로 불러온 세이브로 교체 */
     replaceSave(newSave) {
       syncKnownIds(newSave, data.characters, false);
       ctx.save = newSave;
       ctx.commit();
+      ctx.flush();
     },
     /** 처음부터 다시 */
     resetSave() {
@@ -130,6 +158,7 @@ async function boot() {
       fresh.seenContentVersion = data.version.contentVersion;
       ctx.save = fresh;
       ctx.commit();
+      ctx.flush();
     },
     async toggleFullscreen() {
       const r = await toggleFullscreen();

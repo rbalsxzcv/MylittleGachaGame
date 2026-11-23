@@ -90,9 +90,9 @@ export function powerOf(stats, balance) {
   );
 }
 
-/** 보유 캐릭터 하나의 전투력 */
-export function charPower(char, entry, balance) {
-  return powerOf(statsOf(char, entry?.level ?? 1, entry?.breakthrough ?? 0, balance), balance);
+/** 보유 캐릭터 하나의 전투력 (extras: 추억/장비 — teams.extrasOf) */
+export function charPower(char, entry, balance, extras = {}) {
+  return powerOf(statsOf(char, entry?.level ?? 1, entry?.breakthrough ?? 0, balance, extras), balance);
 }
 
 // ── 레벨업 비용 ──────────────────────────────────────────

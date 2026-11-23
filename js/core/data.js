@@ -2,7 +2,7 @@
 // 각 파일은 독립적으로 불러오며, 한 파일이 깨져도 게임 전체가 멈추지 않습니다.
 // 잘못된 항목은 건너뛰고(콘솔 경고) 나머지는 그대로 사용합니다.
 
-import { cleanKit, cleanStats, cleanPassiveList, cleanPassive, cleanEnemyBehavior, cleanResource, cleanTweak } from '../battle/schema.js';
+import { cleanKit, cleanStats, cleanPassiveList, cleanPassive, cleanEnemyBehavior, cleanResource, cleanTweak, STAT_KEYS } from '../battle/schema.js';
 import { loadConfig, normalizeRarity, normalizeGrade, isNpc, NPC, RARITIES, ROLES, ENEMY_ARCHETYPES } from '../config.js';
 import { validateAliases } from './aliases.js';
 
@@ -182,6 +182,42 @@ export function linkEnemyNpcs(enemies, allCharMap) {
   });
 }
 
+// ── memories.json (추억 카드) ──────────────────────────────
+// { id, name, rarity 3–5, kind: default|generic|signature, role?(기본 추억), signatureOf?(전용 주인), featuredCharacterId?,
+//   baseAtk?(없으면 balance.memory.atkBase), secondary {stat}, passive {generic, owner?}, image, thumb, addedAt, retired? }
+// 역할 제한 없음 — 누구나 장착. owner 패시브는 장착자 = signatureOf일 때만
+export const MEMORY_KINDS = ['default', 'generic', 'signature'];
+export function validateMemories(json, vocab) {
+  return cleanList(asList(json, 'memories'), 'memories', (raw) => {
+    const name = str(raw.name).trim();
+    if (!name) throw new Error('name 없음');
+    const rarity = normalizeRarity(raw.rarity);
+    if (!rarity || rarity < 3) throw new Error('추억 rarity는 3~5');
+    const where = `memories/${raw.id}`;
+    const stat = STAT_KEYS.includes(raw.secondary?.stat) ? raw.secondary.stat : 'atk';
+    const p = raw.passive || {};
+    return {
+      id: raw.id,
+      name,
+      rarity,
+      kind: MEMORY_KINDS.includes(raw.kind) ? raw.kind : 'generic',
+      role: ROLES.includes(raw.role) ? raw.role : null,
+      signatureOf: idOk(raw.signatureOf) ? raw.signatureOf : null,
+      featuredCharacterId: idOk(raw.featuredCharacterId) ? raw.featuredCharacterId : null,
+      baseAtk: Number.isFinite(Number(raw.baseAtk)) && raw.baseAtk !== '' && raw.baseAtk != null ? Math.max(0, Math.round(Number(raw.baseAtk))) : null,
+      secondary: { stat },
+      passive: {
+        generic: vocab && p.generic ? cleanPassive(p.generic, vocab, warnData, `${where}.passive.generic`) : null,
+        owner: vocab && p.owner ? cleanPassive(p.owner, vocab, warnData, `${where}.passive.owner`) : null,
+      },
+      image: str(raw.image).trim(),
+      thumb: str(raw.thumb).trim(),
+      addedAt: str(raw.addedAt).trim(),
+      retired: raw.retired === true,
+    };
+  });
+}
+
 // ── stages.json ───────────────────────────────────────────
 /** 보상 묶음 {tickets, gems, gold, scrolls} (스테이지 / 우편 / 상점이 같이 씀) */
 export function cleanRewards(r, max = 1_000_000) {
@@ -236,6 +272,9 @@ export function validateBanners(json) {
       id: raw.id,
       title: str(raw.title, raw.id).trim() || raw.id,
       type,
+      // character = 캐릭터 뽑기, memory = 추억 뽑기 (pickupIds는 추억 id, pickupFrom = 이 캐릭터 배너의 픽업 전용 추억을 따라감)
+      category: raw.category === 'memory' ? 'memory' : 'character',
+      pickupFrom: raw.category === 'memory' && idOk(raw.pickupFrom) ? raw.pickupFrom : null,
       rotation: rot
         ? {
             rarity: normalizeRarity(rot.rarity) || 5,
@@ -466,6 +505,7 @@ export async function loadGameData() {
     ['balance', 'data/balance.json', loadConfig({}, vocab), (j) => loadConfig(j, vocab, warnData)],
     ['characters', 'data/characters.json', [], (j) => validateCharacters(j, vocab)],
     ['enemies', 'data/enemies.json', [], (j) => validateEnemies(j, vocab)],
+    ['memories', 'data/memories.json', [], (j) => validateMemories(j, vocab)],
     ['banners', 'data/banners.json', [], validateBanners],
     ['storyIndex', 'data/stories/index.json', [], validateStoryIndex],
     ['notices', 'data/notices.json', [], validateNotices],

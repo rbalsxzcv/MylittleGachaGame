@@ -5,7 +5,7 @@
 //   공개 시각(addedAt) → id 순서로 줄 세운 것. 끝까지 가면 처음으로 돌아가요.
 //   지금 로테이션이 끝나는 시각이 그 배너의 endAt처럼 보여요(남은 시간 표시). 대상이 없으면 배너를 숨겨요.
 import { inPeriod, now, parseDate } from '../core/time.js';
-import { STANDARD_BANNER } from './gacha.js';
+import { STANDARD_BANNER, STANDARD_MEMORY_BANNER, isMemoryBanner } from './gacha.js';
 import { normalizeRarity, isNpc } from '../config.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -75,7 +75,7 @@ export function resolveBanner(banner, characters, t = now()) {
  */
 function withLivePickups(banner, characters) {
   if (banner.type !== 'pickup' || !characters.length) return banner;
-  const live = new Set(characters.filter(isPullable).map((c) => c.id));
+  const live = new Set(characters.filter(isPullable).map((c) => c.id)); // 추억도 같은 규칙 (은퇴 = 안 나옴)
   const pickupIds = (banner.pickupIds || []).filter((id) => live.has(id));
   return pickupIds.length ? { ...banner, pickupIds } : null;
 }
@@ -84,21 +84,35 @@ function withLivePickups(banner, characters) {
  * 지금 진행 중인 배너 목록 (픽업 먼저, 곧 끝나는 순)
  * 진행 중인 상시 배너가 없으면 기본 상시 배너를 맨 뒤에 붙여서 뽑기는 항상 가능
  */
-export function activeBanners(banners, characters = [], t = now()) {
-  const list = banners
-    .filter((b) => isBannerActive(b, t))
-    .map((b) => resolveBanner(b, characters, t))
-    .filter((b) => b && isBannerActive(b, t))
-    .map((b) => withLivePickups(b, characters))
+export function activeBanners(banners, characters = [], t = now(), memories = []) {
+  const charBanners = banners.filter((b) => !isMemoryBanner(b));
+  const resolved = (list, pool) =>
+    list
+      .filter((b) => isBannerActive(b, t))
+      .map((b) => resolveBanner(b, pool, t))
+      .filter((b) => b && isBannerActive(b, t));
+  const chars = resolved(charBanners, characters).map((b) => withLivePickups(b, characters)).filter(Boolean);
+  // 추억 픽업: pickupFrom(캐릭터 배너 id)이면 그 배너의 지금 픽업 캐릭터 전용 추억 (로테이션도 따라감)
+  const mems = resolved(banners.filter(isMemoryBanner), memories)
+    .map((b) => {
+      if (b.type !== 'pickup' || !b.pickupFrom) return b;
+      const from = chars.find((x) => x.id === b.pickupFrom);
+      const ids = from ? memories.filter((m) => m.signatureOf && from.pickupIds.includes(m.signatureOf)).map((m) => m.id) : [];
+      return { ...b, pickupIds: ids };
+    })
+    .map((b) => withLivePickups(b, memories))
     .filter(Boolean);
-  list.sort((a, b) => {
+  const order = (a, b) => {
     if (a.type !== b.type) return a.type === 'pickup' ? -1 : 1;
     const ae = a.endAt ? Date.parse(a.endAt) : Infinity;
     const be = b.endAt ? Date.parse(b.endAt) : Infinity;
     return ae - be;
-  });
-  if (!list.some((b) => b.type === 'standard')) list.push(STANDARD_BANNER);
-  return list;
+  };
+  chars.sort(order);
+  mems.sort(order);
+  if (!chars.some((b) => b.type === 'standard')) chars.push(STANDARD_BANNER);
+  if (memories.some(isPullable) && !mems.some((b) => b.type === 'standard')) mems.push(STANDARD_MEMORY_BANNER);
+  return [...chars, ...mems];
 }
 
 /** 목록이 바뀌었는지 비교하기 위한 서명 (로테이션이 넘어가도 바뀜) */

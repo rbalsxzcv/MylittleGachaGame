@@ -2016,3 +2016,20 @@ button.ccard:active { transform: scale(0.97); }
 .adv-state.is-done { color: #8be3a8; }
 .adv-reward { display: flex; gap: 4px; align-items: center; font-size: 12.5px; color: #ffe8a8; }
 .adv-reward svg, .adv-reward .gem-icon { width: 14px; height: 14px; }
+
+/* ── 추억 카드 (테두리는 희귀도 색, 그림에 굽지 않음) ── */
+.mem-card { position: relative; aspect-ratio: 832 / 1216; border-radius: 14px; overflow: hidden; background: #1c1430; border: 3px solid var(--rar-3); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+.mem-card.rar-4 { border-color: var(--rar-4); }
+.mem-card.rar-5 { border-color: var(--rar-5); box-shadow: 0 0 0 2px rgba(255, 216, 77, 0.35), 0 6px 18px rgba(0, 0, 0, 0.35); }
+.mem-card.is-locked { filter: grayscale(1) brightness(0.55); }
+.mem-art, .mem-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.mem-fallback { position: absolute; inset: 0; display: grid; place-content: center; gap: 8px; text-align: center; padding: 12px; background: radial-gradient(circle at 50% 30%, #4a3480, #1c1430 70%); color: #f4e9ff; }
+.mem-fallback span { font-size: 42px; color: #ffd84d; }
+.mem-plate { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 10px 8px; background: linear-gradient(transparent, rgba(10, 6, 20, 0.9) 45%); color: #fff; }
+.mem-stars { color: #ffd84d; font-size: 12px; letter-spacing: 1px; }
+.mem-name { display: block; font-size: 15px; line-height: 1.25; }
+.mem-meta, .mem-owner { font-size: 12px; color: #d9cdf5; }
+.mem-kind { position: absolute; left: 8px; top: 8px; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; background: #ffd84d; color: #2a1a00; }
+.mem-card .ccard-badge { position: absolute; right: 8px; top: 8px; z-index: 1; }
+.mem-card.is-small .mem-name { font-size: 12px; }
+.mem-card.is-small .mem-plate { padding: 12px 6px 5px; }

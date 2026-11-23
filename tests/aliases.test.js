@@ -45,7 +45,7 @@ describe('id 별칭: 세이브 옮기기', () => {
     expect(s.teams.presets[0].slots).toEqual(['char_0002', 'char_0001', null, null, null]);
   });
   it('스테이지 / 읽은 스토리 / 받은 우편 / 상점 구매 기록 → 새 id', () => {
-    expect(s.stages).toEqual({ stage_0004: { clears: 3, firstClaimed: true, bestRounds: 5 } });
+    expect(s.stages).toEqual({ stage_0004: { clears: 3, firstClaimed: true, bestRounds: 5, stars: 0 } });
     expect(Object.keys(s.readStories).sort()).toEqual(['story_0001', 'story_0004']);
     expect(s.claimedMail).toEqual(['mail_0001']);
     expect(s.shop.bought).toEqual({ shop_0007: 1, shop_0001: 3 });

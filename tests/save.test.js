@@ -1,4 +1,4 @@
-// js/core/save.js: 순서 있는 마이그레이션 (v1 → v2 → v3), 정리(sanitize)
+// js/core/save.js: 순서 있는 마이그레이션 (v1 → v2 → v3 → v4), 정리(sanitize)
 import { describe, it, expect } from './lib/runner.js';
 import { migrate, MIGRATIONS, sanitize, SAVE_VERSION, exportCode, parseCode, createNewSave } from '../js/core/save.js';
 import { loadConfig } from '../js/config.js';
@@ -22,8 +22,8 @@ describe('save: 마이그레이션 목록', () => {
 describe('save: v1 → 최신', () => {
   const m = migrate(structuredClone(SAVE_V1), env);
   const s = sanitize(m.raw);
-  it('v1 → v2 → v3 순서로 적용', () => {
-    expect(m.applied).toEqual([2, 3]);
+  it('v1 → v2 → v3 → v4 순서로 적용', () => {
+    expect(m.applied).toEqual([2, 3, 4]);
     expect(s.v).toBe(SAVE_VERSION);
   });
   it('중복 → 정수 (최대 = 돌파 상한 6), 넘치는 몫은 희귀도별 티켓', () => {
@@ -39,7 +39,7 @@ describe('save: v1 → 최신', () => {
     expect(s.owned.deleted_char.essence).toBe(2);
   });
   it('천장 카운트/픽업 확정 유지, 설정은 기본값', () => {
-    expect(s.pity).toEqual({ standard: 12, pickup: 3 });
+    expect(s.pity).toEqual({ standard: 12, pickup: 3, memory: 0, memoryPickup: 0 });
     expect(s.guaranteed.pickup).toBe(true);
     expect(s.settings).toEqual({ fxSpeed: 1, fxSkip: false, battleSpeed: 1, battleAuto: false });
   });
@@ -48,8 +48,8 @@ describe('save: v1 → 최신', () => {
 describe('save: v2 → v3', () => {
   const m = migrate(structuredClone(SAVE_V2), env);
   const s = sanitize(m.raw);
-  it('v2 → v3 하나만 적용, 정수/티켓 환산 없음', () => {
-    expect(m.applied).toEqual([3]);
+  it('v2 → v3 → v4, 정수/티켓 환산 없음', () => {
+    expect(m.applied).toEqual([3, 4]);
     expect(m.report).toEqual({ tickets: 0, essence: 0 });
   });
   it('기존 값은 그대로', () => {
@@ -67,6 +67,46 @@ describe('save: v2 → v3', () => {
   });
   it('settings 추가', () => {
     expect(s.settings.fxSpeed).toBe(1);
+  });
+});
+
+describe('save: v3 → v4 (추억 · 장비 · 장착)', () => {
+  const v3 = { ...structuredClone(SAVE_V2), v: 3, settings: { fxSpeed: 2, fxSkip: false, battleSpeed: 1, battleAuto: true } };
+  const m = migrate(v3, env);
+  const s = sanitize(m.raw);
+  it('v3 → v4 하나만, 기존 값 · 설정 유지', () => {
+    expect(m.applied).toEqual([4]);
+    expect(s.v).toBe(4);
+    expect(s.settings.fxSpeed).toBe(2);
+    expect(s.owned.fx_ssr_a.breakthrough).toBe(2);
+    expect(s.pity.standard).toBe(33);
+  });
+  it('새 필드는 빈 값 (역할 기본 추억은 불러온 뒤 지급)', () => {
+    expect([s.memories, s.memSeq, s.memMat, s.memGranted, s.gear, s.gearMat, s.equips]).toEqual([[], 0, 0, [], {}, 0, {}]);
+    expect([s.pity.memory, s.pity.memoryPickup, s.guaranteed.memoryPickup]).toEqual([0, 0, false]);
+    expect(s.stages.st_01_04.stars).toBe(0);
+  });
+  it('정리: 잘못된 추억/장비/장착은 버리고, 추억 한 장은 한 명만, 돌파는 6까지', () => {
+    const raw = {
+      ...createNewSave(),
+      owned: { char_0001: { level: 3, essence: 0, breakthrough: 9, count: 1 }, char_0002: { level: 1, essence: 0, breakthrough: 0, count: 1 } },
+      memories: [{ u: 'm1', id: 'memory_0001', lv: 3, r: 2 }, { u: 'm1', id: 'memory_0002' }, { u: 'x', id: 'memory_0003' }, { u: 'm7', id: 'memory_0004', lv: 9999, r: 9 }],
+      gear: { 'atk.2.1': { n: 3 }, 'boot.1.0': { n: 1 }, 'hp.1.0': { n: 0 }, 'def.3.0': { n: 0, lock: true } },
+      equips: { char_0001: { m: 'm1', g: { atk: '2.1', hp: 'bad' } }, char_0002: { m: 'm1', g: {} }, nobody: { m: 'm7' } },
+    };
+    const c = sanitize(raw);
+    expect(c.owned.char_0001.breakthrough).toBe(6);
+    expect(c.memories).toEqual([{ u: 'm1', id: 'memory_0001', lv: 3, r: 2 }, { u: 'm7', id: 'memory_0004', lv: 1000, r: 5 }]);
+    expect(c.memSeq).toBe(7);
+    expect(c.gear).toEqual({ 'atk.2.1': { n: 3, lock: false }, 'def.3.0': { n: 0, lock: true } });
+    expect(c.equips.char_0001).toEqual({ m: 'm1', g: { hp: null, def: null, crit: null, atk: '2.1' } });
+    expect(c.equips.char_0002.m).toBe(null);
+    expect('nobody' in c.equips).toBe(false);
+  });
+  it('세이브 코드(TG2:)로 v4도 그대로', () => {
+    const r = parseCode(exportCode(s), env);
+    expect(r.ok).toBe(true);
+    expect(r.save.v).toBe(4);
   });
 });
 

@@ -12,7 +12,7 @@ import subprocess
 from . import config, rarity, store, validate
 from .timeutil import now_iso, parse
 
-LIST_KEYS = ("characters", "banners", "storyIndex", "notices", "mail", "enemies", "stages")
+LIST_KEYS = ("characters", "banners", "storyIndex", "notices", "mail", "enemies", "stages", "memories")
 PUBLIC_FILE = {
     "characters": "data/characters.json",
     "banners": "data/banners.json",
@@ -21,15 +21,16 @@ PUBLIC_FILE = {
     "mail": "data/mail.json",
     "enemies": "data/enemies.json",
     "stages": "data/stages/index.json",  # 실제로는 챕터 파일 여러 개 (_stage_targets)
+    "memories": "data/memories.json",
 }
 BATTLE_FIELDS = ("role", "statTweak", "stats", "resource", "kit", "talents", "bt2", "bt6", "breakthroughs", "archetype", "kitGen")
 # 개발 도구 전용 메모 (외형 키워드, 작가용 설정 — 스포일러가 있을 수 있음) → 공개 파일에는 넣지 않음
-DEV_ONLY_FIELDS = {"characters": ("keywords", "lore"), "enemies": ("keywords", "memo")}
+DEV_ONLY_FIELDS = {"characters": ("keywords", "lore", "appearance"), "enemies": ("keywords", "memo"), "memories": ("theme", "scene")}
 
 
 def _start_of(kind, item):
     """항목이 공개되는 시각 (보류 판정용)"""
-    if kind == "characters":
+    if kind in ("characters", "memories"):
         return item.get("addedAt")
     if kind == "banners" or kind == "mail":
         return item.get("startAt")
@@ -126,6 +127,10 @@ def _referenced_assets(content):
     for e in content.get("enemies") or []:
         if isinstance(e, dict) and e.get("image"):
             paths.add(e["image"])
+    for m in content.get("memories") or []:
+        for key in ("image", "thumb"):
+            if isinstance(m, dict) and m.get(key):
+                paths.add(m[key])
     for body in content["stories"].values():
         for sc in (body or {}).get("scenes") or []:
             bg = (sc or {}).get("background") or {}

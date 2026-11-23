@@ -137,7 +137,7 @@ describe('NPC 등급: NPC → 다시 1–5로 바꾸면', () => {
     const ctx = { save, data: back };
     expect(ownedCount(save, back.characters)).toBe(2);
     expect(getFeatured(save, back.characters, back.charMap)?.id).toBe(X);
-    expect(teamMembers(ctx)[0]).toEqual({ charId: X, level: 30, breakthrough: 2 });
+    expect(teamMembers(ctx)[0]).toEqual({ charId: X, level: 30, breakthrough: 2, extras: {} });
   });
   it('다른 희귀도로 바꾸면 그 희귀도 풀로 옮겨짐 (5★ → NPC → 4★)', () => {
     const as4 = dataWithGrade(4);

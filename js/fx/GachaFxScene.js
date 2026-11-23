@@ -20,7 +20,7 @@ import { playCutIn, queueCharTexture, charTextureKey } from './CutIn.js';
 const TAU = Math.PI * 2;
 
 /** 컷인을 보여 줄 결과인지: 모든 5★ + 새 4★ */
-export const needsCutIn = (r) => r.rarity >= 5 || (r.rarity === 4 && r.isNew);
+export const needsCutIn = (r) => !r.memory && (r.rarity >= 5 || (r.rarity === 4 && r.isNew)); // 추억 카드는 컷인 없음
 
 /** 카드 테두리 텍스처 (크기별로 한 번) */
 function frameTexture(scene, w, h) {
@@ -377,7 +377,7 @@ export function createGachaFxScene(Phaser) {
       }
 
       // 배지: NEW / 정수 +1 / 티켓 +n, 픽업
-      const badgeText = r.isNew ? 'NEW' : r.essence ? '정수 +1' : r.tickets ? `티켓 +${r.tickets}` : '';
+      const badgeText = r.isNew ? 'NEW' : r.badge ? r.badge : r.essence ? '정수 +1' : r.tickets ? `티켓 +${r.tickets}` : '';
       if (badgeText) {
         front.add(
           this.add

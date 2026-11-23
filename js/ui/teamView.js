@@ -3,8 +3,8 @@
 import { h } from './dom.js';
 import { openModal, closeTopModal, promptModal } from './modal.js';
 import { charArt, rarityBadge, starRow } from './charCard.js';
-import { charPower } from '../systems/progression.js';
-import { presetOf, setActive, setSlot, renamePreset, teamPower } from '../systems/teams.js';
+
+import { presetOf, setActive, setSlot, renamePreset, teamPower, ownedPower } from '../systems/teams.js';
 
 import { formatBig } from '../config.js';
 
@@ -18,7 +18,7 @@ export async function pickCharacter(ctx, { presetIdx, slot }) {
   const current = slots[slot];
   const list = ctx.data.characters
     .filter((c) => ctx.save.owned[c.id])
-    .map((c) => ({ c, e: ctx.save.owned[c.id], p: charPower(c, ctx.save.owned[c.id], balance) }))
+    .map((c) => ({ c, e: ctx.save.owned[c.id], p: ownedPower(ctx, c) }))
     .sort((a, b) => b.p - a.p);
   let picked = null;
   const grid = h(
@@ -136,7 +136,7 @@ export function teamPanel(ctx, { onChange } = {}) {
           h('span', { class: 'slot-no' }, slot + 1),
           h('div', { class: 'slot-art' }, charArt(c)),
           rarityBadge(c.rarity),
-          h('div', { class: 'slot-plate' }, h('div', { class: 'slot-name' }, c.name), h('div', { class: 'slot-sub' }, `Lv.${e.level}`, starRow(e.breakthrough)), h('div', { class: 'slot-power' }, num(charPower(c, e, ctx.data.balance)))),
+          h('div', { class: 'slot-plate' }, h('div', { class: 'slot-name' }, c.name), h('div', { class: 'slot-sub' }, `Lv.${e.level}`, starRow(e.breakthrough)), h('div', { class: 'slot-power' }, num(ownedPower(ctx, c)))),
         );
       }),
     );

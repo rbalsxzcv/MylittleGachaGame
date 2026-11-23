@@ -25,8 +25,9 @@ LIST_FILES = {
     "enemies": "enemies.json",
     "stages": "stages/index.json",  # 모험 챕터 목록 → stages/<챕터>.json (read_list/write_list가 합쳐서 다룸)
     "props": "props.json",  # 소품 그림 목록 (개발 도구 전용 — 배포하지 않음, 그림만 상점 등에서 참조)
+    "memories": "memories.json",  # 추억 카드 (무기 대신, 추억 뽑기)
 }
-ASSET_DIRS = ("chars", "banners", "bg", "ui", "enemies", "props")
+ASSET_DIRS = ("chars", "banners", "bg", "ui", "enemies", "props", "memories")
 UI_FILE = "ui.json"  # 게임 화면 에셋(배경/아이콘) 연결 정보 — 목록이 아니라 객체
 BALANCE_FILE = "balance.json"  # 전투/육성 숫자 (객체)
 SHOP_FILE = "shop.json"  # 골드 상점 / 가상 캐시 상점 상품 (객체)
@@ -64,7 +65,7 @@ def _ensure_extras():
         write_json(ws_data(BALANCE_FILE), read_json(config.PUBLIC_DATA / BALANCE_FILE, None) or {})
     if not ws_data(SHOP_FILE).exists():
         write_json(ws_data(SHOP_FILE), read_json(config.PUBLIC_DATA / SHOP_FILE, None) or empty_shop())
-    for key in ("enemies", "props"):
+    for key in ("enemies", "props", "memories"):
         if not ws_data(LIST_FILES[key]).exists():
             write_json(ws_data(LIST_FILES[key]), read_json(config.PUBLIC_DATA / LIST_FILES[key], None) or [])
     # 스테이지: 작업 공간에 챕터 파일도 예전 stages.json도 없으면 공개 데이터에서 복사
@@ -368,6 +369,7 @@ ID_KINDS = {
     "shop": ("shop", None),  # 상점 상품 (골드/캐시 공용 번호)
     "prop": ("prop", "props"),
     "bg": ("bg", None),  # 스토리 배경 그림 (설정집 backgrounds 키 = 파일 이름)
+    "memory": ("memory", "memories"),  # 추억 카드
 }
 KIND_OF_LIST = {v[1]: k for k, v in ID_KINDS.items() if v[1]}
 AUTO_ID_RE = re.compile(r"^([a-z]+)_(\d{4,})$")

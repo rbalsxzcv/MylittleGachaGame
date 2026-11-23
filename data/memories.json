@@ -1,0 +1,678 @@
+[
+  {
+    "genKey": "generic:default_attacker",
+    "name": "첫 의뢰의 칼자국",
+    "rarity": 3,
+    "kind": "default",
+    "role": "attacker",
+    "secondary": {
+      "stat": "atk"
+    },
+    "passive": {
+      "generic": {
+        "name": "첫 의뢰",
+        "description": "전투 시작 때 공격력이 잠깐 올라요.",
+        "trigger": "onBattleStart",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "buff",
+            "stat": "atk",
+            "pct": 28,
+            "turns": 2
+          }
+        ],
+        "modifiers": []
+      }
+    },
+    "id": "memory_0001",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "generic:default_defender",
+    "name": "찌그러진 방패",
+    "rarity": 3,
+    "kind": "default",
+    "role": "defender",
+    "secondary": {
+      "stat": "hp"
+    },
+    "passive": {
+      "generic": {
+        "name": "버텨 낸 밤",
+        "description": "처음 HP가 절반 아래로 떨어지면 보호막.",
+        "trigger": "onHpBelow",
+        "pct": 50,
+        "conditions": [],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "shield",
+            "mult": 4,
+            "stat": "def",
+            "turns": 2,
+            "perStack": 0
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "hp",
+            "pct": 10
+          }
+        ],
+        "limit": 1
+      }
+    },
+    "id": "memory_0002",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "generic:default_support",
+    "name": "구겨진 작전 지도",
+    "rarity": 3,
+    "kind": "default",
+    "role": "support",
+    "secondary": {
+      "stat": "spd"
+    },
+    "passive": {
+      "generic": {
+        "name": "길잡이",
+        "description": "전투 시작 때 행동이 조금 빨라져요.",
+        "trigger": "onBattleStart",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "advance_action",
+            "pct": 46
+          }
+        ],
+        "modifiers": []
+      }
+    },
+    "id": "memory_0003",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "generic:default_healer",
+    "name": "약초 주머니",
+    "rarity": 3,
+    "kind": "default",
+    "role": "healer",
+    "secondary": {
+      "stat": "healBonus"
+    },
+    "passive": {
+      "generic": {
+        "name": "응급 약초",
+        "description": "스킬을 쓰면 자신도 조금 회복.",
+        "trigger": "onSkill",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "heal",
+            "mult": 0.8,
+            "stat": "atk",
+            "perStack": 0
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "healBonus",
+            "pct": 7
+          }
+        ]
+      }
+    },
+    "id": "memory_0004",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "generic:tavern_brawl",
+    "name": "술집 난투의 밤",
+    "rarity": 3,
+    "kind": "generic",
+    "secondary": {
+      "stat": "critRate"
+    },
+    "passive": {
+      "generic": {
+        "name": "주먹다짐",
+        "description": "적을 쓰러뜨리면 기력.",
+        "trigger": "onKill",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "energy_gain",
+            "n": 40
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "critRate",
+            "pct": 5
+          }
+        ]
+      }
+    },
+    "id": "memory_0005",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "generic:muddy_road",
+    "name": "진흙길 행군",
+    "rarity": 3,
+    "kind": "generic",
+    "secondary": {
+      "stat": "def"
+    },
+    "passive": {
+      "generic": {
+        "name": "꾸역꾸역",
+        "description": "받는 피해가 조금 줄어요.",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "def",
+            "pct": 19
+          }
+        ]
+      }
+    },
+    "id": "memory_0006",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "generic:first_pay",
+    "name": "첫 월급 봉투",
+    "rarity": 4,
+    "kind": "generic",
+    "secondary": {
+      "stat": "atk"
+    },
+    "passive": {
+      "generic": {
+        "name": "두둑한 봉투",
+        "description": "궁극기를 쓰면 팀 SP +1.",
+        "trigger": "onUltimate",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "sp_gain",
+            "n": 1
+          },
+          {
+            "type": "energy_gain",
+            "n": 20
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "atk",
+            "pct": 10
+          }
+        ]
+      }
+    },
+    "id": "memory_0007",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "generic:border_sunrise",
+    "name": "국경의 해돋이",
+    "rarity": 4,
+    "kind": "generic",
+    "secondary": {
+      "stat": "energyRegen"
+    },
+    "passive": {
+      "generic": {
+        "name": "새 아침",
+        "description": "자기 턴 시작마다 기력.",
+        "trigger": "onTurnStart",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "energy_gain",
+            "n": 15
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "energyRegen",
+            "pct": 11
+          }
+        ]
+      }
+    },
+    "id": "memory_0008",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "generic:black_market",
+    "name": "암시장 뒷거래",
+    "rarity": 4,
+    "kind": "generic",
+    "secondary": {
+      "stat": "effectHit"
+    },
+    "passive": {
+      "generic": {
+        "name": "뒷거래",
+        "description": "약화를 거는 확률이 올라가요.",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "effectHit",
+            "pct": 17
+          }
+        ]
+      }
+    },
+    "id": "memory_0009",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "generic:oath_rain",
+    "name": "빗속의 맹세",
+    "rarity": 4,
+    "kind": "generic",
+    "secondary": {
+      "stat": "hp"
+    },
+    "passive": {
+      "generic": {
+        "name": "빗속의 맹세",
+        "description": "공격받으면 받는 피해를 줄여요 (라운드당 1번).",
+        "trigger": "onHit",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "buff",
+            "stat": "dmgTaken",
+            "pct": 25,
+            "turns": 1
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "hp",
+            "pct": 10
+          }
+        ],
+        "perRound": 1
+      }
+    },
+    "id": "memory_0010",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "generic:war_drum",
+    "name": "전장의 북소리",
+    "rarity": 4,
+    "kind": "generic",
+    "secondary": {
+      "stat": "critDmg"
+    },
+    "passive": {
+      "generic": {
+        "name": "북소리",
+        "description": "궁극기를 쓰면 아군 전체 공격력 상승.",
+        "trigger": "onUltimate",
+        "conditions": [],
+        "targeting": "ally_all",
+        "effects": [
+          {
+            "type": "buff",
+            "stat": "atk",
+            "pct": 20,
+            "turns": 2
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "critDmg",
+            "pct": 2
+          }
+        ]
+      }
+    },
+    "id": "memory_0011",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "generic:healer_lamp",
+    "name": "야전 병원의 등불",
+    "rarity": 4,
+    "kind": "generic",
+    "secondary": {
+      "stat": "healBonus"
+    },
+    "passive": {
+      "generic": {
+        "name": "밤샘 간호",
+        "description": "치유가 강해져요.",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [],
+        "modifiers": [
+          {
+            "type": "effect_power",
+            "action": "any",
+            "effect": "heal",
+            "pct": 14
+          }
+        ]
+      }
+    },
+    "id": "memory_0012",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "generic:shield_wall",
+    "name": "방패벽의 기억",
+    "rarity": 4,
+    "kind": "generic",
+    "secondary": {
+      "stat": "def"
+    },
+    "passive": {
+      "generic": {
+        "name": "방패벽",
+        "description": "보호막이 단단해져요.",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "shieldBonus",
+            "pct": 23
+          }
+        ]
+      }
+    },
+    "id": "memory_0013",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "generic:lucky_coin",
+    "name": "행운의 동전",
+    "rarity": 4,
+    "kind": "generic",
+    "secondary": {
+      "stat": "critRate"
+    },
+    "passive": {
+      "generic": {
+        "name": "앞면",
+        "description": "치명타를 내면 기력.",
+        "trigger": "onCrit",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "energy_gain",
+            "n": 20
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "critRate",
+            "pct": 6
+          }
+        ],
+        "perRound": 1
+      }
+    },
+    "id": "memory_0014",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "signature:char_0002",
+    "name": "칼날의 기억",
+    "rarity": 5,
+    "kind": "signature",
+    "signatureOf": "char_0002",
+    "featuredCharacterId": "char_0002",
+    "secondary": {
+      "stat": "critDmg"
+    },
+    "passive": {
+      "generic": {
+        "name": "칼날의 기억",
+        "description": "",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "atk",
+            "pct": 16
+          }
+        ]
+      },
+      "owner": {
+        "name": "투지의 맹세",
+        "description": "",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [],
+        "modifiers": [
+          {
+            "type": "effect_power",
+            "action": "skill",
+            "effect": "damage",
+            "pct": 25
+          }
+        ]
+      }
+    },
+    "id": "memory_0015",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "signature:char_0007",
+    "name": "몰락 귀족의 품위",
+    "rarity": 5,
+    "kind": "signature",
+    "signatureOf": "char_0007",
+    "featuredCharacterId": "char_0007",
+    "secondary": {
+      "stat": "energyRegen"
+    },
+    "passive": {
+      "generic": {
+        "name": "몰락 귀족의 품위",
+        "description": "",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "spd",
+            "pct": 11
+          }
+        ]
+      },
+      "owner": {
+        "name": "살림 비법",
+        "description": "",
+        "trigger": "onBattleStart",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "sp_gain",
+            "n": 1
+          },
+          {
+            "type": "energy_gain",
+            "n": 40
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "energyRegen",
+            "pct": 9
+          }
+        ]
+      }
+    },
+    "id": "memory_0016",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "signature:char_0008",
+    "name": "깨진 마탑 열쇠",
+    "rarity": 5,
+    "kind": "signature",
+    "signatureOf": "char_0008",
+    "featuredCharacterId": "char_0008",
+    "secondary": {
+      "stat": "atk"
+    },
+    "passive": {
+      "generic": {
+        "name": "깨진 마탑 열쇠",
+        "description": "",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "critDmg",
+            "pct": 20
+          }
+        ]
+      },
+      "owner": {
+        "name": "악마와의 내기",
+        "description": "",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [],
+        "modifiers": [
+          {
+            "type": "effect_power",
+            "action": "any",
+            "effect": "damage",
+            "pct": 16
+          }
+        ]
+      }
+    },
+    "id": "memory_0017",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  },
+  {
+    "genKey": "signature:char_0012",
+    "name": "굳은 결의",
+    "rarity": 5,
+    "kind": "signature",
+    "signatureOf": "char_0012",
+    "featuredCharacterId": "char_0012",
+    "secondary": {
+      "stat": "def"
+    },
+    "passive": {
+      "generic": {
+        "name": "굳은 결의",
+        "description": "",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "def",
+            "pct": 24
+          },
+          {
+            "type": "stat_bonus",
+            "stat": "hp",
+            "pct": 4
+          }
+        ]
+      },
+      "owner": {
+        "name": "검의 응답",
+        "description": "",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [],
+        "modifiers": [
+          {
+            "type": "effect_power",
+            "action": "any",
+            "effect": "damage",
+            "pct": 16
+          }
+        ]
+      }
+    },
+    "id": "memory_0018",
+    "image": "",
+    "thumb": "",
+    "addedAt": "2026-11-24T00:09:19+09:00"
+  }
+]
