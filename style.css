@@ -2033,3 +2033,17 @@ button.ccard:active { transform: scale(0.97); }
 .mem-card .ccard-badge { position: absolute; right: 8px; top: 8px; z-index: 1; }
 .mem-card.is-small .mem-name { font-size: 12px; }
 .mem-card.is-small .mem-plate { padding: 12px 6px 5px; }
+
+/* ── 육성: 추억 탭 ── */
+.grow-memory { display: grid; gap: 14px; }
+.mem-current { display: grid; grid-template-columns: 170px 1fr; gap: 16px; align-items: start; }
+.mem-current-info { display: grid; gap: 6px; }
+.mem-stat-line { font-weight: 800; }
+.mem-owner-bonus { padding: 8px 10px; border-radius: 10px; border: 1px dashed var(--muted); opacity: 0.7; }
+.mem-owner-bonus.is-on { border: 2px solid var(--rar-5); opacity: 1; background: rgba(255, 216, 77, 0.08); }
+.mem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+.mem-pick { padding: 0; border: 0; background: none; cursor: pointer; border-radius: 14px; }
+.mem-pick.is-equipped { outline: 3px solid var(--accent); }
+.level-modes { display: flex; gap: 6px; }
+.mem-card.is-clickable { cursor: pointer; }
+.mem-detail { display: grid; grid-template-columns: 200px 1fr; gap: 16px; align-items: start; }

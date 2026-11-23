@@ -6,12 +6,17 @@ import { charCard, charArt, rarityBadge, starRow } from './charCard.js';
 import { isOwned, isMarkedNew, markSeen, sortCharacters, ownedCount } from '../systems/collection.js';
 import { formatKST } from '../core/time.js';
 import { ownedPower } from '../systems/teams.js';
-import { formatBig } from '../config.js';
+import { formatBig, RATIO_STATS } from '../config.js';
+import { memoryCard } from './memoryCard.js';
+import { memoryStats } from '../systems/stats.js';
+import { memoryPassives } from '../systems/memories.js';
+import { describePassive } from '../battle/describe.js';
 
 const FILTERS = [
   { id: 'all', label: '전체' },
   ...[5, 4, 3, 2, 1].map((r) => ({ id: `r${r}`, label: `${r}★`, rarity: r })),
   { id: 'owned', label: '보유' },
+  { id: 'memories', label: '추억' },
 ];
 
 export function collectionScreen(ctx) {
@@ -46,8 +51,49 @@ export function collectionScreen(ctx) {
       );
       const counter = h('div', { class: 'collection-count' });
 
+      /** 추억 갤러리: 가진 카드는 그림, 없는 카드는 어둡게 */
+      function renderMemories() {
+        const mems = [...(ctx.data.memories || [])].filter((m) => !m.retired || ctx.save.memories.some((x) => x.id === m.id)).sort((a, b) => b.rarity - a.rarity || a.id.localeCompare(b.id));
+        const ownedIds = new Set(ctx.save.memories.map((m) => m.id));
+        counter.replaceChildren('보유 ', h('b', {}, mems.filter((m) => ownedIds.has(m.id)).length), ` / ${mems.length}`);
+        grid.replaceChildren(
+          ...mems.map((m) => {
+            const best = ctx.save.memories.filter((x) => x.id === m.id).sort((a, b) => b.r - a.r || b.lv - a.lv)[0];
+            const el = memoryCard(m, { inst: best, locked: !best, owner: m.signatureOf ? ctx.data.allCharMap.get(m.signatureOf) : null });
+            el.classList.add('is-clickable');
+            el.addEventListener('click', () => openMemory(m, best));
+            return el;
+          }),
+        );
+        if (!mems.length) grid.append(h('p', { class: 'collection-empty' }, '추억 데이터가 없어요'));
+      }
+
+      function openMemory(m, best) {
+        const vocab = ctx.data.vocab;
+        const lv = best?.lv || 1;
+        const ms = memoryStats(m, lv, ctx.data.balance);
+        const owner = m.signatureOf && ctx.data.allCharMap.get(m.signatureOf);
+        const [generic, own] = memoryPassives(m, best || { r: 1 }, m.signatureOf, ctx.data.balance);
+        const body = h(
+          'div',
+          { class: 'mem-detail' },
+          h('div', { class: 'mem-detail-card' }, memoryCard(m, { inst: best, locked: !best, owner })),
+          h(
+            'div',
+            {},
+            h('p', {}, `${m.rarity}★ 추억${owner ? ` · ${owner.name} 전용` : m.role ? ' · 역할 기본' : ''}`),
+            h('p', {}, `Lv.${lv}: 공격력 +${formatBig(ms.atk)}`, ms.secondary && ` · ${vocab?.stats?.[ms.secondary.stat] || ms.secondary.stat} +${ms.secondary.pct}${RATIO_STATS.includes(ms.secondary.stat) ? '%p' : '%'}`),
+            generic && h('ul', { class: 'skill-effects' }, describePassive(generic, vocab).map((t) => h('li', {}, t))),
+            own && h('div', { class: 'mem-owner-bonus is-on' }, h('b', {}, `주인 보너스 (${owner?.name || ''})`), h('ul', { class: 'skill-effects' }, describePassive(own, vocab).map((t) => h('li', {}, t)))),
+            h('p', { class: 'muted small' }, best ? `가진 카드 ${ctx.save.memories.filter((x) => x.id === m.id).length}장 · 최고 R${best.r} Lv.${best.lv}` : '아직 없어요 — 추억 뽑기에서 얻을 수 있어요'),
+          ),
+        );
+        openModal({ title: m.name, body, dismissValue: true });
+      }
+
       function render() {
         [...tabs.children].forEach((t) => t.classList.toggle('active', t.dataset.filter === filter));
+        if (filter === 'memories') return renderMemories();
         counter.replaceChildren('보유 ', h('b', {}, ownedCount(ctx.save, characters)), ` / ${characters.length}`);
 
         const list = sortCharacters(characters).filter((c) => {

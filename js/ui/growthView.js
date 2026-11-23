@@ -17,6 +17,10 @@ import {
   essenceTicketRate,
 } from '../systems/progression.js';
 import { buildUnit } from '../battle/units.js';
+import { extrasOf } from '../systems/teams.js';
+import { findMemory, holderOf, equipMemory, levelUpMemory, memoryCostFor, memoryPassives } from '../systems/memories.js';
+import { memoryStats } from '../systems/stats.js';
+import { memoryCard } from './memoryCard.js';
 import { formatBig, RATIO_STATS } from '../config.js';
 import { describeSkill, describePassive, describeModifier } from '../battle/describe.js';
 
@@ -29,6 +33,7 @@ const TABS = [
   { id: 'level', label: '레벨업' },
   { id: 'skills', label: '스킬' },
   { id: 'break', label: '돌파' },
+  { id: 'memory', label: '추억' },
 ];
 const STAT_ROWS = [
   ['atk', '공격력'],
@@ -37,11 +42,18 @@ const STAT_ROWS = [
   ['spd', '속도'],
   ['critRate', '치명타 확률'],
   ['critDmg', '치명타 피해'],
+  ['energyRegen', '기력 회복'],
+  ['effectHit', '효과 적중'],
+  ['effectRes', '효과 저항'],
+  ['healBonus', '치유 보너스'],
+  ['shieldBonus', '보호막 보너스'],
 ];
+/** 기본값이면 표에서 숨기는 능력치 (기력 회복 100%, 나머지 0%) */
+const HIDE_DEFAULT = { energyRegen: 1, effectHit: 0, effectRes: 0, healBonus: 0, shieldBonus: 0 };
 const ACTION_LABEL = { basic: '기본 공격', skill: '스킬', ultimate: '궁극기' };
 
 const num = (n) => Number(n).toLocaleString('ko-KR');
-const fmtStat = (key, v) => (key.startsWith('crit') ? `${Math.round(v * 1000) / 10}%` : num(v));
+const fmtStat = (key, v) => (RATIO_STATS.includes(key) ? `${Math.round(v * 1000) / 10}%` : num(v));
 
 /** 이 수정자가 어떤 행동에 영향을 주는지 (스킬 탭의 "돌파 N 적용" 표시용) */
 function modifierAction(m) {
@@ -66,7 +78,7 @@ export function growthScreen(ctx) {
       let mode = '1'; // 레벨업 미리보기: '1' | '10' | 'max'
 
       const owned = () => ctx.data.characters.filter((c) => ctx.save.owned[c.id]);
-      const powerOfChar = (c) => powerOf(statsOf(c, ctx.save.owned[c.id].level, ctx.save.owned[c.id].breakthrough, balance), balance);
+      const powerOfChar = (c) => powerOf(statsOf(c, ctx.save.owned[c.id].level, ctx.save.owned[c.id].breakthrough, balance, extrasOf(ctx, c.id)), balance);
 
       const sortTabs = h('div', { class: 'filter-tabs' });
       const list = h('div', { class: 'grow-list' });
@@ -129,7 +141,8 @@ export function growthScreen(ctx) {
           detail.replaceChildren(h('div', { class: 'grow-none muted' }, '캐릭터를 골라 주세요'));
           return;
         }
-        const stats = statsOf(c, e.level, e.breakthrough, balance);
+        const extras = extrasOf(ctx, c.id);
+        const stats = statsOf(c, e.level, e.breakthrough, balance, extras);
         const head = h(
           'div',
           { class: `grow-head rar-${c.rarity}` },
@@ -150,17 +163,17 @@ export function growthScreen(ctx) {
             h('button', { class: ['grow-tab', tab === t.id && 'active'], type: 'button', role: 'tab', onclick: () => ((tab = t.id), renderDetail()) }, t.label),
           ),
         );
-        const body = tab === 'level' ? levelTab(c, e, stats) : tab === 'skills' ? skillsTab(c, e) : breakTab(c, e);
+        const body = tab === 'level' ? levelTab(c, e, stats, extras) : tab === 'skills' ? skillsTab(c, e) : tab === 'memory' ? memoryTab(c, e) : breakTab(c, e);
         detail.replaceChildren(head, tabBar, h('div', { class: 'grow-body' }, body));
       }
 
-      function levelTab(c, e, stats) {
+      function levelTab(c, e, stats, extras) {
         const gold = ctx.save.gold || 0;
         const max = maxAffordable(e.level, ctx.save.tickets, balance, 100000, gold);
         const n = mode === '10' ? 10 : mode === 'max' ? Math.max(1, max.n) : 1;
         const cost = costFor(e.level, n, balance);
         const goldCost = goldCostFor(e.level, n, balance);
-        const after = statsOf(c, e.level + n, e.breakthrough, balance);
+        const after = statsOf(c, e.level + n, e.breakthrough, balance, extras);
         const okTickets = ctx.save.tickets >= cost;
         const okGold = gold >= goldCost;
         const can = okTickets && okGold;
@@ -172,7 +185,7 @@ export function growthScreen(ctx) {
           'table',
           { class: 'grow-stats' },
           h('tr', {}, h('th', {}, ''), h('th', {}, `Lv.${e.level}`), h('th', {}, `Lv.${e.level + n}`)),
-          STAT_ROWS.map(([k, label]) =>
+          STAT_ROWS.filter(([k]) => !(k in HIDE_DEFAULT) || stats[k] !== HIDE_DEFAULT[k]).map(([k, label]) =>
             h('tr', {}, h('td', {}, label), h('td', {}, fmtStat(k, stats[k])), h('td', { class: after[k] > stats[k] ? 'up' : '' }, fmtStat(k, after[k]))),
           ),
           h('tr', { class: 'power-row' }, h('td', {}, '전투력'), h('td', {}, num(powerOf(stats, balance))), h('td', { class: 'up' }, num(powerOf(after, balance)))),
@@ -270,6 +283,108 @@ export function growthScreen(ctx) {
         );
       }
 
+      // ── 추억: 장착/교체 · 레벨업 · 재련 · 전용 보너스 ──
+      let memMode = '1';
+      function memoryTab(c) {
+        const cur = ctx.save.equips?.[c.id]?.m;
+        const inst = cur ? findMemory(ctx.save, cur) : null;
+        const mem = inst && ctx.data.memoryMap.get(inst.id);
+        const passiveLines = (p) => describePassive(p, vocab).map((t) => h('li', {}, t));
+        let current;
+        if (mem) {
+          const ms = memoryStats(mem, inst.lv, balance);
+          const ownerHere = mem.signatureOf === c.id;
+          const owner = mem.signatureOf && ctx.data.allCharMap.get(mem.signatureOf);
+          const maxLv = balance.memory.maxLevel;
+          const n = Math.max(1, Math.min(maxLv - inst.lv, memMode === '10' ? 10 : memMode === 'max' ? maxLv - inst.lv : 1));
+          const cost = memoryCostFor(inst.lv, n, ctx.save, balance);
+          const can = inst.lv < maxLv && ctx.save.tickets >= cost.tickets && (ctx.save.gold || 0) >= cost.gold;
+          const scaled = memoryPassives(mem, inst, c.id, balance);
+          current = h(
+            'div',
+            { class: 'mem-current' },
+            h('div', { class: 'mem-current-card' }, memoryCard(mem, { inst, owner })),
+            h(
+              'div',
+              { class: 'mem-current-info' },
+              h('div', { class: 'mem-stat-line' }, `공격력 +${num(ms.atk)}`, ms.secondary && ` · ${vocab.stats[ms.secondary.stat] || ms.secondary.stat} +${ms.secondary.pct}${RATIO_STATS.includes(ms.secondary.stat) ? '%p' : '%'}`),
+              h('div', { class: 'muted small' }, `재련 R${inst.r}/5 — 같은 추억을 또 뽑으면 재련돼요 (패시브 수치 ×${balance.memory.refineScale[inst.r - 1]})`),
+              h('h4', {}, '패시브'),
+              scaled[0] && h('ul', { class: 'skill-effects' }, passiveLines(scaled[0])),
+              mem.passive.owner &&
+                h(
+                  'div',
+                  { class: ['mem-owner-bonus', ownerHere && 'is-on'] },
+                  h('b', {}, ownerHere ? `★ 주인 보너스 (${c.name})` : `주인 보너스 — ${owner?.name || '주인'}이(가) 장착하면`),
+                  h('ul', { class: 'skill-effects' }, passiveLines(ownerHere ? scaled[1] : mem.passive.owner)),
+                ),
+              h(
+                'div',
+                { class: 'level-modes' },
+                [
+                  ['1', '+1'],
+                  ['10', '+10'],
+                  ['max', 'MAX'],
+                ].map(([v, label]) => h('button', { class: ['btn btn-ghost', memMode === v && 'active'], type: 'button', onclick: () => ((memMode = v), renderDetail()) }, label)),
+              ),
+              h('div', { class: 'small' }, `필요: 티켓 ${num(cost.tickets)} · 골드 ${num(cost.gold)}${cost.material ? ` · 추억 재료 ${num(cost.material)}` : ''} (보유 재료 ${num(ctx.save.memMat || 0)})`),
+              h(
+                'div',
+                { class: 'row' },
+                h(
+                  'button',
+                  {
+                    class: 'btn btn-primary',
+                    type: 'button',
+                    disabled: !can,
+                    onclick: () => {
+                      if (!levelUpMemory(ctx.save, inst.u, n, balance)) return;
+                      ctx.commit();
+                      renderList();
+                      renderDetail();
+                    },
+                  },
+                  inst.lv >= maxLv ? '최대 레벨' : `추억 레벨업 (Lv.${inst.lv} → ${inst.lv + n})`,
+                ),
+                h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => (equipMemory(ctx.save, c.id, null), ctx.commit(), renderList(), renderDetail()) }, '해제'),
+              ),
+            ),
+          );
+        } else current = h('p', { class: 'muted' }, '장착한 추억이 없어요. 아래에서 골라 주세요 — 역할 제한 없이 누구나 장착할 수 있어요.');
+
+        // 가진 추억 (이 캐릭터 전용 먼저 → 희귀도 → 레벨)
+        const owned = ctx.save.memories
+          .map((m) => ({ m, d: ctx.data.memoryMap.get(m.id) }))
+          .filter((x) => x.d)
+          .sort((a, b) => (b.d.signatureOf === c.id) - (a.d.signatureOf === c.id) || b.d.rarity - a.d.rarity || b.m.lv - a.m.lv || a.m.u.localeCompare(b.m.u, 'en', { numeric: true }));
+        const grid = h(
+          'div',
+          { class: 'mem-grid' },
+          owned.map(({ m, d }) => {
+            const holder = holderOf(ctx.save, m.u);
+            const holderName = holder && holder !== c.id ? ctx.data.allCharMap.get(holder)?.name : null;
+            return h(
+              'button',
+              {
+                class: ['mem-pick', m.u === cur && 'is-equipped'],
+                type: 'button',
+                title: holderName ? `${holderName}이(가) 장착 중 — 누르면 옮겨요` : '',
+                onclick: () => {
+                  if (m.u === cur) return;
+                  equipMemory(ctx.save, c.id, m.u);
+                  ctx.commit();
+                  if (holderName) toast(`「${d.name}」을(를) ${holderName}에게서 옮겼어요`, { type: 'info' });
+                  renderList();
+                  renderDetail();
+                },
+              },
+              memoryCard(d, { inst: m, small: true, badge: m.u === cur ? '장착' : holderName ? holderName : '', badgeClass: m.u === cur ? 'badge-new' : 'badge-max' }),
+            );
+          }),
+        );
+        return h('div', { class: 'grow-memory' }, current, h('h4', {}, `가진 추억 ${owned.length}장`), owned.length ? grid : h('p', { class: 'muted' }, '추억 뽑기에서 얻을 수 있어요.'));
+      }
+
       function breakTab(c, e) {
         const nodes = breakthroughNodes(c, balance);
         const max = balance.essence.maxBreakthrough;
@@ -331,7 +446,7 @@ export function growthScreen(ctx) {
       renderDetail();
       return {
         onKey(e) {
-          const tabKeys = { Digit1: 'level', Digit2: 'skills', Digit3: 'break' };
+          const tabKeys = { Digit1: 'level', Digit2: 'skills', Digit3: 'break', Digit4: 'memory', Digit5: 'gear' };
           if (tabKeys[e.code]) {
             tab = tabKeys[e.code];
             renderDetail();
