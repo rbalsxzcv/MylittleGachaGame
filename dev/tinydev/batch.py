@@ -15,7 +15,7 @@ from .genai import GenError
 from .timeutil import now_iso, stamp
 
 MAX_RETRY = 2
-GROUPS = [("char", "캐릭터"), ("banner", "배너"), ("bg", "스토리 배경"), ("enemy", "적"), ("prop", "소품"), ("ui_bg", "화면 배경"), ("ui_icon", "로고 · 아이콘")]
+GROUPS = [("char", "캐릭터"), ("banner", "배너"), ("memory", "추억 카드"), ("bg", "스토리 배경"), ("enemy", "적"), ("prop", "소품"), ("ui_bg", "화면 배경"), ("ui_icon", "로고 · 아이콘")]
 
 _lock = threading.Lock()
 _cancel = threading.Event()
@@ -55,6 +55,8 @@ def targets():
             continue  # 그림 = 연결된 NPC 그림 (캐릭터 항목에서 뽑음)
         note = " (NPC 그림 덮어씀)" if linked else ""
         out.append({"key": f"enemy:{e['id']}", "group": "enemy", "label": f"{e.get('name', e['id'])}{' (보스)' if e.get('boss') else ''}{note}", "path": e.get("image") or "", "has": _exists(e.get("image"))})
+    for m in store.read_list("memories"):
+        out.append({"key": f"memory:{m['id']}", "group": "memory", "label": f"{m.get('name', m['id'])} ({m.get('rarity', '?')}★)", "path": m.get("image") or "", "has": _exists(m.get("image"))})
     for p in store.read_list("props"):
         out.append({"key": f"prop:{p['id']}", "group": "prop", "label": p.get("label") or p["id"], "path": p.get("image") or "", "has": _exists(p.get("image"))})
     ui = store.read_ui()
@@ -91,6 +93,11 @@ def _job_input(key, extra):
         if not e:
             raise ValueError("적이 없어요")
         return "enemy", enemy_input(e, extra)
+    if kind == "memory":
+        m = next((x for x in store.read_list("memories") if x.get("id") == ident), None)
+        if not m:
+            raise ValueError("추억이 없어요")
+        return "memory", memory_input(m, extra)
     if kind == "prop":
         p = next((x for x in store.read_list("props") if x.get("id") == ident), None)
         if not p:
@@ -119,6 +126,23 @@ def enemy_input(e, extra="", keywords=None):
         "memo": e.get("memo", ""),
         "extra": extra,
     }
+
+
+def memory_input(m, extra="", img2img=None, seed=None):
+    """추억 데이터 → 카드 그림 생성 입력값 (주인/등장 캐릭터가 있으면 그 외형 슬롯을 그대로 씀)"""
+    out = {
+        "memoryId": m["id"],
+        "name": m.get("name", m["id"]),
+        "rarity": m.get("rarity", 3),
+        "theme": m.get("theme") or [],
+        "featuredCharacterId": m.get("featuredCharacterId") or m.get("signatureOf"),
+        "extra": extra,
+    }
+    if img2img is not None:
+        out["img2img"] = bool(img2img)
+    if seed:
+        out["seed"] = int(seed)
+    return out
 
 
 def upsert_prop(pid, label=None, prompt=None, image=None):
@@ -161,6 +185,10 @@ def apply_job(job, n):
             raise ValueError("적이 지워졌어요")
     elif kind == "prop":
         rel = f"assets/props/{inp['propId']}.png"
+    elif kind == "memory":
+        rel = f"assets/memories/{inp['memoryId']}.webp"
+        if not any(m.get("id") == inp["memoryId"] for m in store.read_list("memories")):
+            raise ValueError("추억이 지워졌어요")
     else:
         raise ValueError("새 캐릭터는 캐릭터 탭에서 승인해 주세요")
     if kind == "char" and not any(c.get("id") == inp["charId"] for c in store.read_list("characters")):
@@ -185,6 +213,21 @@ def apply_job(job, n):
         store.write_list("enemies", enemies)
     elif kind == "prop":
         upsert_prop(inp["propId"], label=inp.get("label"), prompt=inp.get("prompt"), image=rel)
+    elif kind == "memory":
+        # 카드(높이 1024 WebP) + 썸네일(높이 256 WebP). 테두리는 게임 화면이 그림
+        from PIL import Image
+
+        card = Image.open(dest)
+        th = jobs.MEMORY_THUMB_H
+        thumb = card.resize((max(1, round(card.width * th / card.height)), th), Image.LANCZOS)
+        thumb_rel = f"assets/memories/{inp['memoryId']}_thumb.webp"
+        thumb.save(config.WORKSPACE / thumb_rel, "WEBP", quality=85, method=6)
+        mems = store.read_list("memories")
+        for m in mems:
+            if m.get("id") == inp["memoryId"]:
+                m["image"] = rel
+                m["thumb"] = thumb_rel
+        store.write_list("memories", mems)
     elif kind == "char":
         chars = store.read_list("characters")
         for c in chars:

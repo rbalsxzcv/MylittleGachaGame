@@ -14,7 +14,8 @@ _lock = threading.Lock()
 
 DEFAULTS = {
     "engine": "comfy",  # 그림 엔진 (ComfyUI 고정, 예전 설정 파일 호환용)
-    "aiPrompt": True,  # True면 Gemini가 Anima용 그림 프롬프트를 작성
+    "ai": True,  # AI 스위치: False면 모든 AI 호출(문구/키트 초안/챕터 팩/그림 프롬프트)을 끄고 템플릿만 씀
+    "aiPrompt": True,  # True면 Gemini가 Anima용 그림 프롬프트를 작성 (ai가 꺼지면 같이 꺼짐)
     "theme": "아기자기한 판타지 마법 세계, 밤하늘과 별빛, 파스텔 보라·분홍 톤",  # UI 에셋 공통 분위기
     "comfy": {
         "url": "http://127.0.0.1:8188",
@@ -31,6 +32,11 @@ DEFAULTS = {
         "sampler": "euler_ancestral",
         "scheduler": "normal",
         "quality": "masterpiece, best quality, safe",  # Anima 품질/등급 태그 (프롬프트 맨 앞)
+        # 추억 카드: 832x1216에서 latent 확대(hires) 한 번 더 → 카드 WebP. img2img: 승인한 컷아웃을 대충 그린 배경에 합성해서 시작
+        "hiresScale": 1.5,
+        "hiresDenoise": 0.5,
+        "memoryImg2img": False,
+        "img2imgDenoise": 0.55,
         "negative": "worst quality, low quality, lowres, blurry, jpeg artifacts, bad anatomy, bad hands, extra fingers, missing fingers, text, watermark, signature, artist name, nsfw",
         # LoRA 프로필: 그림 종류에 따라 다른 LoRA/트리거 태그 사용
         #   char  = 캐릭터 관련 (캐릭터, 픽업 배너, 적)
@@ -89,7 +95,8 @@ def clean(s):
     """값 범위 정리 (잘못된 값은 기본값으로)"""
     d = DEFAULTS
     s["engine"] = "comfy"
-    s["aiPrompt"] = bool(s.get("aiPrompt"))
+    s["ai"] = s.get("ai") is not False
+    s["aiPrompt"] = bool(s.get("aiPrompt")) and s["ai"]
     s["theme"] = str(s.get("theme") or "")[:500]
     c = s["comfy"]
     url = str(c.get("url") or d["comfy"]["url"]).strip().rstrip("/")
@@ -112,6 +119,12 @@ def clean(s):
     c["sampler"] = str(c.get("sampler") or d["comfy"]["sampler"])[:60]
     c["scheduler"] = str(c.get("scheduler") or d["comfy"]["scheduler"])[:60]
     c["quality"] = str(c.get("quality") or "")[:300]
+    for key, lo, hi in (("hiresScale", 1.0, 2.0), ("hiresDenoise", 0.1, 0.9), ("img2imgDenoise", 0.3, 0.8)):
+        try:
+            c[key] = round(max(lo, min(hi, float(c.get(key)))), 2)
+        except (TypeError, ValueError):
+            c[key] = d["comfy"][key]
+    c["memoryImg2img"] = c.get("memoryImg2img") is True
     c["negative"] = str(c.get("negative") or "")[:2000]
     lp = c.get("loraProfiles") if isinstance(c.get("loraProfiles"), dict) else {}
     c["loraProfiles"] = {k: _clean_lora_profile(lp.get(k)) for k in d["comfy"]["loraProfiles"]}

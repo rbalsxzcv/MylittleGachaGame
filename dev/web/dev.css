@@ -349,3 +349,7 @@ a.chip { text-decoration: none; }
 .kit-card { display: grid; gap: 6px; align-content: start; }
 .kit-card.is-draft { outline: 2px dashed var(--accent); }
 .be-budget, .be-sim { margin: 4px 0; }
+
+/* 추억 탭 */
+.mem-preview { width: 180px; aspect-ratio: 832 / 1216; border-radius: 12px; overflow: hidden; background: #241a3a; display: grid; place-items: center; flex: none; }
+.mem-preview img { width: 100%; height: 100%; object-fit: cover; }

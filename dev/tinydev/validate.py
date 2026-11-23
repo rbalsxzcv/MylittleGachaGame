@@ -443,6 +443,28 @@ def validate(content, asset_exists, held=None):
         if start and end and start >= end:
             r.error(where, "시작 시각이 종료 시각보다 늦어요")
         rot = b.get("rotation")
+        cat = b.get("category", "character")
+        if cat not in ("character", "memory"):
+            r.error(where, f"category는 character 또는 memory여야 해요: {cat!r}")
+        if cat == "memory":
+            # 추억 뽑기: 픽업은 추억 id, 또는 pickupFrom(캐릭터 픽업 배너 → 그 픽업 캐릭터의 전용 추억)
+            mem_ids = {m.get("id") for m in content.get("memories") or [] if isinstance(m, dict)}
+            if isinstance(rot, dict):
+                r.error(where, "추억 배너는 자동 로테이션을 쓸 수 없어요 (pickupFrom으로 캐릭터 로테이션을 따라가세요)")
+            if b.get("type") == "pickup":
+                src = b.get("pickupFrom")
+                if src:
+                    if src not in {x.get("id") for x in banners}:
+                        r.error(where, f"pickupFrom의 배너가 없어요: {src!r}")
+                elif not b.get("pickupIds"):
+                    r.error(where, "추억 픽업 배너인데 픽업 추억도 pickupFrom도 없어요")
+                for mid in b.get("pickupIds") or []:
+                    if mid not in mem_ids:
+                        r.error(where, f"픽업 추억이 없어요: {mid!r}")
+            if not mem_ids:
+                r.error(where, "추억 배너가 있는데 추억 데이터가 없어요")
+            _check_asset(r, where, "bannerImage", b.get("bannerImage"), asset_exists)
+            continue
         if b.get("type") == "pickup" and isinstance(rot, dict):
             # 자동 로테이션 픽업: 대상은 실행할 때 정해짐
             rot_rarity = rarity.normalize(rot.get("rarity"))

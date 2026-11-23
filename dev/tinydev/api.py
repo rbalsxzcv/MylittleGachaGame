@@ -374,7 +374,7 @@ def prompt_write():
     """생성 전에 Gemini가 쓴 프롬프트를 먼저 보고 고칠 수 있게"""
     data = body()
     kind = data.get("kind")
-    inputs = {"char": _char_input, "banner": _banner_input, "bg": _bg_input, "ui": _ui_input, "enemy": _enemy_input, "prop": _prop_input}
+    inputs = {"char": _char_input, "banner": _banner_input, "bg": _bg_input, "ui": _ui_input, "enemy": _enemy_input, "prop": _prop_input, "memory": _memory_input}
     if kind not in inputs:
         raise ValueError("잘못된 종류")
     inp = inputs[kind](data.get("input") or {})
@@ -507,6 +507,15 @@ def char_approve():
     if existing:
         entry = {**existing, **entry}
     entry.pop("pullable", None)  # 예전 방식 (등급 NPC로 대체)
+    # 외형 슬롯: 승인한 그림의 프롬프트에서 머리/눈/옷/소품 태그를 나눠 저장 → 추억 카드 그림이 그대로 씀 (개발 도구 전용 칸)
+    try:
+        n = int(data.get("attempt") or len(job["attempts"]))
+        look = (job["attempts"][n - 1].get("corePrompt") or job["attempts"][n - 1].get("prompt") or "") if job["attempts"] else ""
+    except (ValueError, IndexError, TypeError):
+        look = ""
+    app = prompts.split_look(look or job["input"].get("keywords", ""))
+    if any(app.values()):
+        entry["appearance"] = app
     if existing:
         chars[chars.index(existing)] = entry
     else:
@@ -746,6 +755,21 @@ def _prop_input(data):
         raise ValueError(f"'{pid}'는 발급받은 소품 id가 아니에요 (id는 자동으로 정해져요)")
     # 물건 설명은 'description'으로 받음 ('prompt'는 개발자가 확인/수정한 그림 프롬프트)
     return {"propId": pid, "label": text(data, "label", 60) or pid, "prompt": text(data, "description", 1000), "extra": text(data, "extra", 1000)}
+
+
+def _memory_input(data):
+    mid = data.get("memoryId")
+    m = next((x for x in store.read_list("memories") if x.get("id") == mid), None)
+    if not m:
+        raise ValueError("저장된 추억에만 그림을 만들 수 있어요 (그림 파일 이름 = 추억 id)")
+    return batch.memory_input(m, text(data, "extra", 1000), img2img=data.get("img2img"), seed=data.get("seed"))
+
+
+@app.post("/api/memory/generate")
+def memory_generate():
+    """추억 카드 그림: 장면 프롬프트(AI 또는 테마 태그 템플릿) + 주인 캐릭터 외형 슬롯 그대로 → hires → WebP 카드/썸네일 (승인은 approve-image)"""
+    data = body()
+    return jsonify(_create_and_generate("memory", _memory_input(data), data))
 
 
 @app.post("/api/enemy/generate")

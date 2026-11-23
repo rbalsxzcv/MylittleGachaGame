@@ -38,7 +38,7 @@ export function bannersTab(root, { select } = {}) {
         return h(
           'button',
           { class: ['list-item', b.id === selectedId && 'active'], onclick: () => edit(b) },
-          h('div', {}, h('b', {}, b.title), ' ', h('span', { class: `chip ${cls}` }, label), ' ', h('span', { class: 'chip' }, b.rotation ? `로테이션 ${rarLabel(b.rotation.rarity)} ${b.rotation.count}명/${b.rotation.days}일` : b.type === 'pickup' ? '픽업' : '상시')),
+          h('div', {}, h('b', {}, b.title), ' ', h('span', { class: `chip ${cls}` }, label), ' ', b.category === 'memory' && h('span', { class: 'chip ok' }, '추억'), ' ', h('span', { class: 'chip' }, b.rotation ? `로테이션 ${rarLabel(b.rotation.rarity)} ${b.rotation.count}명/${b.rotation.days}일` : b.type === 'pickup' ? '픽업' : '상시')),
           h('div', { class: 'muted small' }, `${fmt(b.startAt)} ~ ${fmt(b.endAt)}`),
         );
       }),
@@ -65,6 +65,12 @@ export function bannersTab(root, { select } = {}) {
     const title = h('input', { value: v.title });
     const type = h('select', {}, h('option', { value: 'pickup' }, '픽업'), h('option', { value: 'standard' }, '상시'));
     type.value = v.type;
+    // 종류: 캐릭터 뽑기 / 추억 뽑기 (추억은 따로 천장 · balance.memoryGacha 확률)
+    const category = h('select', {}, h('option', { value: 'character' }, '캐릭터 뽑기'), h('option', { value: 'memory' }, '추억 뽑기'));
+    category.value = v.category === 'memory' ? 'memory' : 'character';
+    const charBanners = state.data.banners.filter((b) => b.category !== 'memory' && b.type === 'pickup' && b.id !== v.id);
+    const pickupFrom = h('select', {}, h('option', { value: '' }, '(직접 고르기)'), charBanners.map((b) => h('option', { value: b.id }, `${b.title} — 그 픽업 캐릭터의 전용 추억 (자동)`)));
+    pickupFrom.value = v.pickupFrom || '';
     const start = dateField('시작', v.startAt);
     const end = dateField('종료 (이 시각에 끝남)', v.endAt);
     const desc = h('textarea', { rows: 3 }, v.description);
@@ -76,8 +82,37 @@ export function bannersTab(root, { select } = {}) {
     image.oninput = showImg;
     showImg();
 
-    // 픽업 캐릭터 선택
+    // 픽업 선택 (캐릭터 또는 추억)
     const picked = new Set(v.pickupIds);
+    const memories = state.data.memories || [];
+    const memGrid = h(
+      'div',
+      { class: 'pick-grid' },
+      [...memories]
+        .sort((a, b) => (b.kind === 'signature') - (a.kind === 'signature') || b.rarity - a.rarity)
+        .map((m) => {
+          const cb = h('input', { type: 'checkbox', checked: picked.has(m.id), onchange: (e) => (e.target.checked ? picked.add(m.id) : picked.delete(m.id)) });
+          const owner = m.signatureOf && state.data.characters.find((c) => c.id === m.signatureOf);
+          return h('label', { class: ['pick', `r-${m.rarity}`] }, cb, h('div', { class: 'thumb checker' }, m.thumb || m.image ? h('img', { src: wsImage(m.thumb || m.image), onerror: (e) => e.target.remove() }) : '✦'), h('span', {}, `${m.name} (${m.rarity}★)${owner ? ` · ${owner.name} 전용` : ''}`));
+        }),
+    );
+    const syncFromChars = h(
+      'button',
+      {
+        class: 'btn small',
+        type: 'button',
+        onclick: () => {
+          const from = state.data.banners.find((b) => b.id === pickupFrom.value) || charBanners[0];
+          if (!from) return toast('픽업 캐릭터 배너가 없어요', 'error');
+          const ids = memories.filter((m) => m.signatureOf && (from.pickupIds || []).includes(m.signatureOf)).map((m) => m.id);
+          picked.clear();
+          ids.forEach((id) => picked.add(id));
+          memGrid.querySelectorAll('input[type=checkbox]').forEach((cb, i) => (cb.checked = picked.has([...memories].sort((a, b) => (b.kind === 'signature') - (a.kind === 'signature') || b.rarity - a.rarity)[i].id)));
+          toast(ids.length ? `「${from.title}」 픽업의 전용 추억 ${ids.length}장을 골랐어요` : '그 배너의 픽업 캐릭터에게 전용 추억이 없어요', ids.length ? 'success' : 'error');
+        },
+      },
+      '캐릭터 픽업과 맞추기',
+    );
     const pickGrid = h(
       'div',
       { class: 'pick-grid' },
@@ -119,16 +154,22 @@ export function bannersTab(root, { select } = {}) {
       rotPreview,
     );
     const pickWrap = h('div', {}, h('div', { class: 'label' }, '픽업 캐릭터 (5★가 나오면 50% 확률로 픽업)'), pickGrid);
+    const memPickWrap = h('div', {}, h('label', { class: 'field' }, '추억 픽업 따라가기', pickupFrom), h('div', { class: 'row wrap' }, h('div', { class: 'label' }, '픽업 추억 (직접 고를 때)'), syncFromChars), memGrid);
     const rotWrap = h('div', {}, h('label', { class: 'inline' }, rotOn, h('b', {}, '자동 로테이션 픽업')), rotBox);
     const syncType = () => {
       const pickup = type.value === 'pickup';
-      rotWrap.hidden = !pickup;
+      const memory = category.value === 'memory';
+      rotWrap.hidden = !pickup || memory;
       rotBox.hidden = !rotOn.checked;
-      pickWrap.hidden = !pickup || rotOn.checked;
-      if (pickup && rotOn.checked) showRotation();
+      pickWrap.hidden = !pickup || rotOn.checked || memory;
+      memPickWrap.hidden = !pickup || !memory;
+      memGrid.hidden = !!pickupFrom.value;
+      if (pickup && rotOn.checked && !memory) showRotation();
     };
     type.onchange = syncType;
     rotOn.onchange = syncType;
+    category.onchange = syncType;
+    pickupFrom.onchange = syncType;
     syncType();
 
     // 키 아트 생성
@@ -159,12 +200,15 @@ export function bannersTab(root, { select } = {}) {
     }
 
     function collect(strict = true) {
+      const memory = category.value === 'memory';
       const data = {
         id: bid,
         title: title.value.trim(),
         type: type.value,
-        pickupIds: type.value === 'pickup' && !rotOn.checked ? [...picked] : [],
-        ...(type.value === 'pickup' && rotOn.checked ? { rotation: rotation() } : {}),
+        category: category.value,
+        pickupIds: type.value === 'pickup' && (memory ? !pickupFrom.value : !rotOn.checked) ? [...picked].filter((id) => (memory ? memories.some((m) => m.id === id) : !id.startsWith('memory_'))) : [],
+        ...(type.value === 'pickup' && rotOn.checked && !memory ? { rotation: rotation() } : {}),
+        ...(memory && type.value === 'pickup' && pickupFrom.value ? { pickupFrom: pickupFrom.value } : {}),
         startAt: start.get(),
         endAt: end.get(),
         bannerImage: image.value.trim(),
@@ -212,11 +256,12 @@ export function bannersTab(root, { select } = {}) {
         'section',
         { class: 'card' },
         h('h2', {}, isNew ? '새 배너' : `배너 편집 — ${v.id}`),
-        h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (자동)', id), h('label', { class: 'field' }, '종류', type)),
+        h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (자동)', id), h('div', { class: 'row' }, h('label', { class: 'field' }, '뽑기', category), h('label', { class: 'field' }, '종류', type))),
         h('label', { class: 'field' }, '제목', title),
         h('div', { class: 'grid2' }, start.el, end.el),
         rotWrap,
         pickWrap,
+        memPickWrap,
         h('label', { class: 'field' }, '설명 (배너 화면과 상세에 표시)', desc),
         h('label', { class: 'field' }, '관련 이벤트 스토리', related),
         h('label', { class: 'field' }, '배너 그림 경로', image),

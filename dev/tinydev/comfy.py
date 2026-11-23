@@ -164,33 +164,59 @@ def model_label(cfg):
     return name.replace("\\", "/").rsplit("/", 1)[-1]
 
 
-def build_workflow(prompt, negative, width, height, seed, cfg, loras=()):
-    """기본 텍스트→이미지 워크플로 (ComfyUI 'API 형식'). loras: [{name, model, clip, on}]"""
+def build_workflow(prompt, negative, width, height, seed, cfg, loras=(), hires=1.0, init_image=None, denoise=1.0):
+    """텍스트→이미지 워크플로 (ComfyUI 'API 형식'). loras: [{name, model, clip, on}]
+    hires > 1: 1차 결과 latent를 hires배로 키워 한 번 더 (cfg hiresDenoise) — 추억 카드용
+    init_image: ComfyUI input 폴더의 그림 이름 → img2img (denoise 0.45~0.6 권장)
+    """
     nodes, model, clip, vae = _loaders(cfg)
     model, clip = _apply_loras(nodes, model, clip, loras)
-    return {
+
+    def sampler(latent, d, s):
+        return {
+            "class_type": "KSampler",
+            "inputs": {"seed": s, "steps": cfg["steps"], "cfg": cfg["cfg"], "sampler_name": cfg["sampler"], "scheduler": cfg["scheduler"], "denoise": d, "model": model, "positive": ["6", 0], "negative": ["7", 0], "latent_image": latent},
+        }
+
+    wf = {
         **nodes,
         "6": {"class_type": "CLIPTextEncode", "inputs": {"text": prompt, "clip": clip}},
         "7": {"class_type": "CLIPTextEncode", "inputs": {"text": negative, "clip": clip}},
-        "5": {"class_type": "EmptyLatentImage", "inputs": {"width": width, "height": height, "batch_size": 1}},
-        "3": {
-            "class_type": "KSampler",
-            "inputs": {
-                "seed": seed,
-                "steps": cfg["steps"],
-                "cfg": cfg["cfg"],
-                "sampler_name": cfg["sampler"],
-                "scheduler": cfg["scheduler"],
-                "denoise": 1.0,
-                "model": model,
-                "positive": ["6", 0],
-                "negative": ["7", 0],
-                "latent_image": ["5", 0],
-            },
-        },
-        "8": {"class_type": "VAEDecode", "inputs": {"samples": ["3", 0], "vae": vae}},
-        "9": {"class_type": "SaveImage", "inputs": {"filename_prefix": "tinygacha", "images": ["8", 0]}},
     }
+    if init_image:
+        wf["40"] = {"class_type": "LoadImage", "inputs": {"image": init_image}}
+        wf["41"] = {"class_type": "ImageScale", "inputs": {"image": ["40", 0], "upscale_method": "lanczos", "width": width, "height": height, "crop": "center"}}
+        wf["5"] = {"class_type": "VAEEncode", "inputs": {"pixels": ["41", 0], "vae": vae}}
+        wf["3"] = sampler(["5", 0], denoise, seed)
+    else:
+        wf["5"] = {"class_type": "EmptyLatentImage", "inputs": {"width": width, "height": height, "batch_size": 1}}
+        wf["3"] = sampler(["5", 0], 1.0, seed)
+    last = "3"
+    if hires and hires > 1.0:
+        wf["10"] = {"class_type": "LatentUpscaleBy", "inputs": {"samples": ["3", 0], "upscale_method": "nearest-exact", "scale_by": hires}}
+        wf["11"] = sampler(["10", 0], cfg.get("hiresDenoise", 0.5), seed)
+        last = "11"
+    wf["8"] = {"class_type": "VAEDecode", "inputs": {"samples": [last, 0], "vae": vae}}
+    wf["9"] = {"class_type": "SaveImage", "inputs": {"filename_prefix": "tinygacha", "images": ["8", 0]}}
+    return wf
+
+
+def upload_image(cfg, png_bytes, name):
+    """그림을 ComfyUI input 폴더에 올림 (img2img 시작 그림) → ComfyUI 안의 이름"""
+    boundary = uuid.uuid4().hex
+    body = (
+        f"--{boundary}\r\nContent-Disposition: form-data; name=\"image\"; filename=\"{name}\"\r\nContent-Type: image/png\r\n\r\n".encode()
+        + png_bytes
+        + f"\r\n--{boundary}\r\nContent-Disposition: form-data; name=\"overwrite\"\r\n\r\ntrue\r\n--{boundary}--\r\n".encode()
+    )
+    req = urllib.request.Request(f"{cfg['url']}/upload/image", data=body, headers={"Content-Type": f"multipart/form-data; boundary={boundary}"}, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=30) as res:
+            out = json.loads(res.read().decode("utf-8"))
+    except (urllib.error.URLError, OSError, ValueError) as e:
+        raise GenError(f"ComfyUI에 시작 그림을 올리지 못했어요: {e}") from e
+    sub = out.get("subfolder") or ""
+    return f"{sub}/{out['name']}" if sub else out["name"]
 
 
 def interrupt(cfg, prompt_id):
@@ -203,7 +229,7 @@ def interrupt(cfg, prompt_id):
             pass
 
 
-def generate(prompt, negative, aspect_ratio, cfg, cancel=None, loras=()):
+def generate(prompt, negative, aspect_ratio, cfg, cancel=None, loras=(), seed=None, hires=1.0, init_image=None, denoise=1.0):
     """그림 한 장 생성 → (PNG 바이트, seed)
     loras: 이번 그림에 적용할 LoRA 목록 (캐릭터용 / 배경·소품용 프로필에서 고른 것)
     cancel: threading.Event — 켜지면 ComfyUI 작업을 멈추고 Cancelled 발생
@@ -214,8 +240,8 @@ def generate(prompt, negative, aspect_ratio, cfg, cancel=None, loras=()):
     if problem:
         raise GenError(problem)
     width, height = SIZES[cfg["resolution"]].get(aspect_ratio, SIZES[cfg["resolution"]]["1:1"])
-    seed = random.randint(1, 2**48)
-    workflow = build_workflow(prompt, negative, width, height, seed, cfg, loras)
+    seed = int(seed) if seed else random.randint(1, 2**48)  # 다시 그리기: 기록해 둔 seed 그대로
+    workflow = build_workflow(prompt, negative, width, height, seed, cfg, loras, hires=hires, init_image=init_image, denoise=denoise)
     base = cfg["url"]
     sent = _json(f"{base}/prompt", {"prompt": workflow, "client_id": uuid.uuid4().hex})
     if sent.get("node_errors"):

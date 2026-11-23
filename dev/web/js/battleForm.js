@@ -334,7 +334,9 @@ export function passiveForm(p, { onChange, preview, title }) {
       ),
       h('button', { class: 'btn tiny', onclick: () => (p.modifiers.push(newModifier('stat_bonus')), changed(), render()) }, '+ 수정자 (상시)'),
     );
+    // replaceChildren은 undefined를 글자로 넣으므로 빈 칸은 걸러냄 (상시 능력이면 p.trigger 칸들이 비어 있음)
     box.replaceChildren(
+      ...[
       title && h('div', { class: 'bf-title' }, title),
       h(
         'div',
@@ -360,6 +362,7 @@ export function passiveForm(p, { onChange, preview, title }) {
       p.trigger && h('div', { class: 'bf-sub' }, h('div', { class: 'muted small' }, '발동 효과'), effectList(p.effects, { onChange: changed, passive: true })),
       h('div', { class: 'bf-sub' }, h('div', { class: 'muted small' }, '상시 수정자'), mods),
       prev,
+      ].filter(Boolean),
     );
     refreshPreview();
   };

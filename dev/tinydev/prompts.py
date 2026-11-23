@@ -32,7 +32,7 @@ class _HintMap(dict):
 RARITY_HINT = _HintMap()
 
 # 에셋 종류(pkind)별 공통 스타일 파일
-STYLE_FILE = {"char": "style.txt", "banner": "style_banner.txt", "bg": "style_bg.txt", "ui_bg": "style_bg.txt", "ui_icon": "style_icon.txt", "logo": "style_icon.txt", "enemy": "style.txt", "prop": "style_icon.txt"}
+STYLE_FILE = {"char": "style.txt", "banner": "style_banner.txt", "bg": "style_bg.txt", "ui_bg": "style_bg.txt", "ui_icon": "style_icon.txt", "logo": "style_icon.txt", "enemy": "style.txt", "prop": "style_icon.txt", "memory": "style.txt"}
 
 # 에셋 종류별로 항상 붙는 네거티브 (Anima 태그)
 KIND_NEGATIVE = {
@@ -44,6 +44,7 @@ KIND_NEGATIVE = {
     "logo": "scenery, detailed background, person, cropped, frame, border, photo",
     "enemy": "cropped, multiple views, reference sheet, scenery, detailed background, floor, cast shadow, frame, border, cute, chibi",
     "prop": "multiple objects, scenery, detailed background, hand, person, cropped, frame, border, drop shadow, text",
+    "memory": "letters, logo, title, speech bubble, frame, border, multiple views, reference sheet, cropped head, split screen",
 }
 
 
@@ -89,6 +90,7 @@ REQUIRED = {
     "logo": ("no humans, emblem", "One single emblem only."),
     "enemy": ("solo, full body", "One single enemy drawn only once, alone."),
     "prop": ("no humans, object focus, still life", "One single item only."),
+    "memory": ("", ""),
 }
 
 
@@ -114,7 +116,7 @@ def enforce(kind, prompt):
                 count = count or low
                 continue
             bad = bool(_SHEET.search(t))
-        elif kind == "enemy":
+        elif kind in ("enemy", "memory"):
             bad = bool(_SHEET.search(t))
         elif kind == "banner":
             bad = bool(_SHEET.search(t) and not re.search(r"\b\d+(girls|boys)\b", t, re.I)) or bool(re.search(r"\b(text|letters?|title|logo)\b", t, re.I))
@@ -176,6 +178,19 @@ def brief(kind, inp, chars=(), theme="", slot=None):
         ]
         if inp.get("memo"):
             lines.append(f"Notes about this enemy (use them to choose the pose and details): {inp['memo']}")
+    elif kind == "memory":
+        lines = [
+            "Portrait gacha 'memory' card illustration (2:3, a single moment like a key frame from the story). The frame and name are drawn by the game.",
+            f"Card name (do NOT render any text): {inp.get('name', '')}",
+            f"Theme / scene tags: {', '.join(inp.get('theme') or []) or '(none — invent a moment that fits the name)'}",
+        ]
+        if chars:
+            c = chars[0]
+            lines.append(f"Featured character: {c['name']} ({c.get('title', '')}): {c.get('description', '')}")
+            lines.append(f"APPEARANCE TAGS — copy them exactly, never change hair/eyes/outfit/props: {appearance_text(c.get('appearance'))}")
+            lines.append("You choose only the scene: pose, expression, camera, lighting, background and mood.")
+        else:
+            lines.append("No featured character: draw a scene, object or place that fits the name (no humans).")
     elif kind == "prop":
         lines = [
             "Game item illustration asset (shop goods, rewards, story items), a single isolated object, centered.",
@@ -252,6 +267,11 @@ KIND_RULES = {
 - The background must be empty: 'simple background', 'white background'. No scenery, floor, frame or text. Keep effects few and close to the body.
 - FORBIDDEN: the enemy appearing more than once, turnaround / reference sheet layout, several poses, inset close-ups, a second creature standing apart. Never write 'multiple views', 'reference sheet', 'concept art', 'turnaround', 'back view'.
 - The sentence part must describe one enemy only.""",
+    "memory": """ASSET: portrait (2:3) gacha memory card illustration — a full illustrated scene, not a standee. The game draws the frame and the name.
+- If APPEARANCE TAGS are given, put them right after the count tag exactly as written (do not rename, reorder into new meanings or drop any). Then add only scene tags: pose, expression, camera ('cowboy shot', 'upper body', 'from above' ...), lighting, background, time of day, mood.
+- A detailed, story-like background that matches the theme; cinematic lighting, depth of field.
+- One character only (the featured one) unless the theme clearly needs a crowd in the far background. No text, letters, UI or frames.
+- If there is no featured character: 'no humans', a scene / object / place that fits the card name.""",
     "prop": """ASSET: game item illustration (shop goods, rewards, story items). The background will be removed automatically; shown at about 120-200px.
 - 'no humans', 'object focus', exactly one item (a bundle, chest or pouch counts as one item), 'centered', fills most of the frame, slight three-quarter view.
 - Clean outline, rich but readable detail, soft cel shading with a glossy highlight; materials described concretely (leather, brass, parchment, wax seal ...).
@@ -269,6 +289,7 @@ KIND_TEMPLATE = {
     "logo": "no humans, emblem, centered, symmetrical, ribbon, simple background, white background",
     "enemy": "solo, full body, fighting stance, glaring, simple background, white background",
     "prop": "no humans, object focus, still life, centered, simple background, white background",
+    "memory": "cowboy shot, dynamic angle, detailed background, cinematic lighting, depth of field, looking at viewer",
 }
 
 
@@ -279,6 +300,39 @@ def _feedback_block(reasons):
 
 
 _NOT_LOOK = set(merge_tags(KIND_TEMPLATE["char"], KIND_TEMPLATE["banner"], "masterpiece, best quality, safe").split(", "))
+
+
+# ── 캐릭터 외형 슬롯 (승인할 때 저장 → 추억 카드 그림에 그대로 넣음, AI가 못 바꿈) ──
+APPEARANCE_SLOTS = ("body", "hair", "eyes", "outfit", "props")
+_HAIR = re.compile(r"\bhair|ponytail|braid|twintails|bangs|ahoge|hair bun|sidelocks|bob cut", re.I)
+_EYES = re.compile(r"\beyes?\b|heterochromia|eyepatch|eyelashes", re.I)
+_PROPS = re.compile(r"\bholding\b|sword|staff|\bbook\b|weapon|shield|crossbow|\bbow \(weapon\)|dagger|knife|wand|\bgun\b|lantern|ledger|greatsword|spear|axe|cleaver|ladle|blade", re.I)
+# 장면이 정하는 것 (포즈 · 표정 · 효과) — 외형 슬롯에서 뺌
+_SCENE_ONLY = re.compile(r"stance|pose|smile|smirk|grin|frown|pout|expression|looking|standing|sitting|kneeling|running|jumping|waving|\bv\b|wink|blush|open mouth|closed eyes|sparks?|particles|aura|light|glow(?!ing eyes)|motion|wind", re.I)
+_OUTFIT = re.compile(
+    r"dress|armor|armour|coat|jacket|shirt|skirt|pants|shorts|boots|shoes|cloak|cape|robe|uniform|gloves|apron|\bhat\b|hood|scarf|belt|pauldrons?|breastplate|trim|tiara|crown|"
+    r"stockings|thighhighs|bodysuit|kimono|tunic|vest|corset|helmet|gauntlet|ribbon|\bbow\b|collar|necklace|earrings|jewelry|sleeves|socks|sandals|tabard",
+    re.I,
+)
+
+
+def split_look(look):
+    """캐릭터 그림 프롬프트(외형 태그) → {body, hair, eyes, outfit, props} (구도/배경 태그는 뺌, 순서는 그대로)"""
+    out = {k: [] for k in APPEARANCE_SLOTS}
+    for t in look_tags(look).split(", "):
+        t = t.strip()
+        if not t or "." in t or len(t) > 60 or _SCENE_ONLY.search(t):  # 문장 · 포즈/표정/효과는 빼고 외형 태그만
+            continue
+        slot = "hair" if _HAIR.search(t) else "eyes" if _EYES.search(t) else "props" if _PROPS.search(t) else "outfit" if _OUTFIT.search(t) else "body"
+        out[slot].append(t)
+    return {k: ", ".join(v) for k, v in out.items()}
+
+
+def appearance_text(app):
+    """외형 슬롯 → 태그 한 줄 (body → hair → eyes → outfit → props)"""
+    if not isinstance(app, dict):
+        return ""
+    return merge_tags(*(app.get(k, "") for k in APPEARANCE_SLOTS))
 
 
 def look_tags(look):
@@ -297,6 +351,9 @@ def template_prompt(kind, inp, slot, chars, reasons):
         subject = inp.get("prompt", "")
     elif kind == "enemy":
         subject = ", ".join(x for x in (inp.get("keywords") or inp.get("name", ""), "boss, armor" if inp.get("boss") else "") if x)
+    elif kind == "memory":
+        look = appearance_text(chars[0].get("appearance")) if chars else ""
+        subject = ", ".join(x for x in ((look or "1girl") if chars else "no humans, scenery", ", ".join(inp.get("theme") or []), inp.get("name", "")) if x)
     elif kind == "prop":
         subject = ", ".join(x for x in (inp.get("prompt"), inp.get("label")) if x)
     else:

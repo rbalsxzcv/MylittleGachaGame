@@ -2,7 +2,7 @@
 import { api } from './api.js';
 
 export const state = {
-  data: { characters: [], banners: [], storyIndex: [], notices: [], mail: [], enemies: [], stages: [], props: [], shop: { gold: [], cash: [], vip: [] }, balance: {}, version: { contentVersion: 0 }, errors: {} },
+  data: { characters: [], banners: [], storyIndex: [], notices: [], mail: [], enemies: [], stages: [], props: [], memories: [], shop: { gold: [], cash: [], vip: [] }, balance: {}, version: { contentVersion: 0 }, errors: {} },
   status: null,
   settings: null, // 그림 엔진, ComfyUI 설정 (dev/settings.json)
 };

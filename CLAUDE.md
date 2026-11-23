@@ -27,7 +27,7 @@
 - 브라우저: 게임 폴더를 로컬 서버로 열고(`python -m http.server`) `tests/index.html` → 자동 실행. `?filter=gacha`로 일부만.
   개발 도구에서는 `http://127.0.0.1:5050/preview/tests/index.html` (작업 공간 데이터로 실행, 스냅샷 갱신 버튼이 파일로 저장).
 - Node(설치했다면): `node tests/run.js [이름 일부] [--update]` (`npm test`). `--update` = 회귀 스냅샷 갱신.
-- 파일: `config` / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀) / `deletion`(캐릭터 삭제 정리) / `aliases`(id 별칭으로 세이브 옮기기 + 지금 id가 규칙대로인지) / `npc`(NPC 등급 ↔ 1–5 전환 시 가챠 풀/플레이어 화면/적 연결).
+- 파일: `config` / `stats`(능력치 모델) / `kitgen`(아키타입 생성기 · 번들 분리) / `memory`(추억) / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀) / `deletion`(캐릭터 삭제 정리) / `aliases`(id 별칭으로 세이브 옮기기 + 지금 id가 규칙대로인지) / `npc`(NPC 등급 ↔ 1–5 전환 시 가챠 풀/플레이어 화면/적 연결).
 - 새 테스트 파일은 `tests/all.js`에 한 줄. 러너 `tests/lib/runner.js`, 실제 데이터 로더 `tests/lib/gameData.js`, 전투 픽스처 `js/battle/testkit.js`, 샘플 `tests/fixtures/`.
 - **회귀 스냅샷** `tests/snapshots/stages.json`: 모든 스테이지 × 기준 팀(`tests/fixtures/teams.js`) × 시드 1~3 자동 전투 (`승패 라운드 피해/…`). 다르면 실패 + 바뀐 줄 목록 → 의도한 변경이면 갱신.
 - 연출 확인: `dev/fx-test.html` (정적 서버) 또는 개발 도구 `/fx-test` — 희귀도 조합 강제, 2배속, 모션 줄이기, `?auto=5&fake=1` 자동 실행.
@@ -99,16 +99,36 @@ ch01.json:  { chapter: "ch01", title, stages: [ { id, name, storyId, recommended
 - `level`이 없으면 `config.enemyLevelFor`: `max(1, round(1 + (추천 전투력 ÷ 5 − refPower) ÷ perLevel))`.
 - 개발 도구 안에서는 모든 챕터를 한 목록(항목마다 `chapter`)으로 다룸: `store.read_list("stages")` / `write_list("stages")`가 챕터 파일로 나눠 저장. 예전 `data/stages.json`도 읽음.
 
-### 세이브 (localStorage `tinygacha_save_v2`, 안의 `v` = schemaVersion, 지금 3)
+### memories.json 항목 (추억 카드 — 무기 대신, 누구나 장착)
+```
+id (memory_0001), name, rarity 3–5, kind: default(역할 기본) | generic | signature(5★ 전용), role?(default), signatureOf?, featuredCharacterId?,
+baseAtk?(없으면 balance.memory.atkBase), secondary { stat }, passive { generic, owner? }, image(.webp 카드), thumb, addedAt, retired?,
+genKey (생성기 항목: generic:<key> | signature:<캐릭터 id>), theme[] (그림 장면 태그, 개발 도구 전용 — 배포 때 빠짐)
+```
+- 생성: `node tools/memgen/cli.js [--apply]` 또는 개발 도구 추억 탭 '생성기로 다시 만들기' (일반 라이브러리 `tools/memgen/library.js` + 5★마다 아키타입 signature 변형).
+  genKey가 같으면 id · 그림 · 공개 시각 유지. id는 `dev/ids.json` memory 카운터.
+- 규칙(`js/systems/memories.js`): 역할 기본 추억 캐릭터당 1장(`memGranted`, `ctx.commit`마다 확인), 중복 → 재련 +1(레벨 높은 카드) → R5면 추억 재료,
+  레벨업 티켓(재료 1 = materialTickets 티켓 먼저), 재련 = 패시브 숫자 × refineScale, owner 패시브는 장착자 = signatureOf일 때만.
+  능력치: 기본 공격력은 레벨 기본값에 더하고 부옵션은 %. `teams.extrasOf(ctx, id)` → 멤버 `extras` → statsOf/charPower/createBattle.
+- 추억 뽑기: 배너 `category: 'memory'`, `gacha.rulesFor`(balance.memoryGacha, 1·2★ 0%), 천장 키 memory / memoryPickup, `pickupFrom`(캐릭터 픽업 배너 → 그 픽업의 전용 추억),
+  진행 중인 추억 상시 배너가 없으면 `STANDARD_MEMORY_BANNER`. 뽑기 화면 캐릭터/추억 탭.
+- 그림: 개발 도구 job 종류 `memory` — 등장 캐릭터 외형 슬롯(`characters.appearance {body, hair, eyes, outfit, props}`, 승인할 때 저장 / 없으면 승인 그림 프롬프트에서 한 번 만듦)
+  을 프롬프트 맨 앞에 그대로 + AI(또는 theme 태그 템플릿)는 장면만 → 832×1216 → hires(`comfy.hiresScale`) → 카드 WebP 높이 1024 + 썸네일 256. 선택 img2img(컷아웃 합성).
+  seed는 시도마다 기록, 입력 `seed`로 다시 그리기. 테두리는 게임 CSS(`.mem-card.rar-N`).
+
+### 세이브 (localStorage `tinygacha_save_v2`, 안의 `v` = schemaVersion, 지금 4)
 ```
 v, gems, tickets, gold, scrolls, createdAt, lastLoginDate,
-owned { id: { level, essence, breakthrough, count, firstAt } },
-pity { standard, pickup }, guaranteed { pickup }, teams { active, presets[3] { name, slots[5] } },
-stages { id: { clears, firstClaimed, bestRounds } }, readStories, claimedMail, hiddenNotices, …,
-settings { fxSpeed: 1|2, fxSkip, battleSpeed: 1|2, battleAuto }
+owned { id: { level, essence, breakthrough(0–6), count, firstAt } },
+pity { standard, pickup, memory, memoryPickup }, guaranteed { pickup, memoryPickup }, teams { active, presets[3] { name, slots[5] } },
+stages { id: { clears, firstClaimed, bestRounds, stars } }, readStories, claimedMail, hiddenNotices, …,
+settings { fxSpeed: 1|2, fxSkip, battleSpeed: 1|2, battleAuto },
+memories [{ u: 'm<n>', id, lv, r }], memSeq, memMat, memGranted[], gear { '<칸>.<티어>.<강화>': { n, lock } }, gearMat,
+equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<강화>' | null } } }
 ```
-마이그레이션 `MIGRATIONS` (한 칸씩, 순서대로): 1→2 중복→정수(넘치면 희귀도별 티켓), 2→3 settings 추가.
-새 버전: 목록 끝에 `{from, to, run}` + `SAVE_VERSION` 올림 + `tests/save.test.js` 케이스. 세이브 코드 `TG2:`(v2·v3), 예전 `TG1:`도 읽음.
+마이그레이션 `MIGRATIONS` (한 칸씩, 순서대로): 1→2 중복→정수(넘치면 희귀도별 티켓), 2→3 settings 추가, 3→4 추억 · 장비 · 장착 · 추억 천장 · 별점 자리.
+새 버전: 목록 끝에 `{from, to, run}` + `SAVE_VERSION` 올림 + `tests/save.test.js` 케이스. 세이브 코드 `TG2:`(v2–v4), 예전 `TG1:`도 읽음.
+저장: `ctx.commit()`은 500ms 모아서 한 번 쓰기, 화면 숨김/pagehide 때 바로(`ctx.flush()`). 세이브 교체/초기화는 바로 저장.
 
 ## 공식 / 규칙
 

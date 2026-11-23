@@ -14,7 +14,9 @@ import secrets
 from . import config, cutout, images, store, uislots
 from .timeutil import now_iso, stamp
 
-KINDS = ("char", "banner", "bg", "ui", "enemy", "prop")
+KINDS = ("char", "banner", "bg", "ui", "enemy", "prop", "memory")
+MEMORY_CARD_H = 1024  # 추억 카드 WebP 높이 (썸네일 256은 승인할 때)
+MEMORY_THUMB_H = 256
 PROP_LONG_SIDE = 384  # 소품(상점 상품 그림 등)
 
 
@@ -77,6 +79,12 @@ def _process(job, original_img, flatten=None):
             long_side = PROP_LONG_SIDE
         img, method, warning = cutout.make_cutout(original_img, flatten, long_side)
         return img, "png", method, warning
+    if job["kind"] == "memory":
+        img = original_img.convert("RGB")
+        w = max(1, round(img.width * MEMORY_CARD_H / img.height))
+        from PIL import Image
+
+        return img.resize((w, MEMORY_CARD_H), Image.LANCZOS), "webp", "resize", None
     size = config.BANNER_SIZE if job["kind"] == "banner" else config.BG_SIZE
     return images.cover_resize(original_img, size), "jpg", "resize", None
 
@@ -97,6 +105,8 @@ def _write_result(job, attempt, img, ext):
     path = job_dir(job["id"]) / name
     if ext == "png":
         img.save(path, "PNG", optimize=True)
+    elif ext == "webp":
+        img.save(path, "WEBP", quality=90, method=6)
     else:
         images.save_jpeg(img, path)
     attempt["results"].append(name)
