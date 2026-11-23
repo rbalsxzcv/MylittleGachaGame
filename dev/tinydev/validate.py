@@ -258,6 +258,10 @@ def validate(content, asset_exists, held=None):
         where = f"stages/{st['id']}"
         if not str(st.get("name") or "").strip():
             r.warn(where, "이름(name)이 비어 있어요")
+        if st.get("difficulty") is not None and (not kit._is_num(st["difficulty"]) or not 0.05 <= st["difficulty"] <= 20):
+            r.error(where, f"difficulty(난이도 배율)는 0.05~20 숫자여야 해요: {st.get('difficulty')!r}")
+        if st.get("stageType") not in (None, "normal", "elite", "boss"):
+            r.error(where, f"stageType은 normal / elite / boss 중 하나: {st.get('stageType')!r}")
         waves = st.get("waves")
         if not isinstance(waves, list) or not waves:
             r.error(where, "웨이브(waves)가 비어 있어요")

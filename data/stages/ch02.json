@@ -6,30 +6,30 @@
       "id": "stage_0025",
       "name": "국경선 봉쇄 돌파",
       "storyId": "story_0025",
-      "recommendedPower": 2500,
+      "recommendedPower": 9633,
       "waves": [
         [
           {
             "enemyId": "enemy_0003",
-            "level": 13
+            "level": 18
           },
           {
             "enemyId": "enemy_0003",
-            "level": 13
+            "level": 18
           }
         ],
         [
           {
             "enemyId": "enemy_0003",
-            "level": 13
+            "level": 18
           },
           {
             "enemyId": "enemy_0001",
-            "level": 13
+            "level": 18
           },
           {
             "enemyId": "enemy_0002",
-            "level": 13
+            "level": 18
           }
         ]
       ],
@@ -43,36 +43,38 @@
         "tickets": 160,
         "gems": 50,
         "gold": 1600
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 2.565
     },
     {
       "id": "stage_0026",
       "name": "주점 뒷골목의 추적자",
       "storyId": "story_0026",
-      "recommendedPower": 2600,
+      "recommendedPower": 9899,
       "waves": [
         [
           {
             "enemyId": "enemy_0007",
-            "level": 14
+            "level": 19
           },
           {
             "enemyId": "enemy_0007",
-            "level": 14
+            "level": 19
           }
         ],
         [
           {
             "enemyId": "enemy_0007",
-            "level": 14
+            "level": 19
           },
           {
             "enemyId": "enemy_0007",
-            "level": 14
+            "level": 19
           },
           {
             "enemyId": "enemy_0002",
-            "level": 14
+            "level": 19
           }
         ]
       ],
@@ -86,36 +88,38 @@
         "tickets": 170,
         "gems": 50,
         "gold": 1700
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 2.521
     },
     {
       "id": "stage_0027",
       "name": "피 튀기는 주점 난투",
       "storyId": "story_0027",
-      "recommendedPower": 2700,
+      "recommendedPower": 10507,
       "waves": [
         [
           {
             "enemyId": "enemy_0007",
-            "level": 15
+            "level": 21
           },
           {
             "enemyId": "enemy_0007",
-            "level": 15
+            "level": 21
           },
           {
             "enemyId": "enemy_0007",
-            "level": 15
+            "level": 21
           }
         ],
         [
           {
             "enemyId": "enemy_0007",
-            "level": 15
+            "level": 21
           },
           {
             "enemyId": "enemy_0008",
-            "level": 15
+            "level": 21
           }
         ]
       ],
@@ -129,36 +133,38 @@
         "tickets": 180,
         "gems": 50,
         "gold": 1800
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 2
     },
     {
       "id": "stage_0028",
       "name": "수풀 속 매복 습격",
       "storyId": "story_0028",
-      "recommendedPower": 2700,
+      "recommendedPower": 10775,
       "waves": [
         [
           {
             "enemyId": "enemy_0002",
-            "level": 16
+            "level": 22
           },
           {
             "enemyId": "enemy_0002",
-            "level": 16
+            "level": 22
           }
         ],
         [
           {
             "enemyId": "enemy_0007",
-            "level": 16
+            "level": 22
           },
           {
             "enemyId": "enemy_0007",
-            "level": 16
+            "level": 22
           },
           {
             "enemyId": "enemy_0003",
-            "level": 16
+            "level": 22
           }
         ]
       ],
@@ -172,36 +178,38 @@
         "tickets": 190,
         "gems": 50,
         "gold": 1900
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 2.778
     },
     {
       "id": "stage_0029",
       "name": "보리밭 방화 저지",
       "storyId": "story_0029",
-      "recommendedPower": 3100,
+      "recommendedPower": 11015,
       "waves": [
         [
           {
             "enemyId": "enemy_0007",
-            "level": 17
+            "level": 23
           },
           {
             "enemyId": "enemy_0007",
-            "level": 17
+            "level": 23
           }
         ],
         [
           {
             "enemyId": "enemy_0009",
-            "level": 18
+            "level": 23
           },
           {
             "enemyId": "enemy_0007",
-            "level": 17
+            "level": 23
           },
           {
             "enemyId": "enemy_0007",
-            "level": 17
+            "level": 23
           }
         ]
       ],
@@ -215,32 +223,34 @@
         "tickets": 200,
         "gems": 50,
         "gold": 2000
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 2.693
     },
     {
       "id": "stage_0030",
       "name": "곡물창고 잔당 소탕",
       "storyId": "story_0030",
-      "recommendedPower": 2300,
+      "recommendedPower": 11559,
       "waves": [
         [
           {
             "enemyId": "enemy_0007",
-            "level": 18
+            "level": 25
           },
           {
             "enemyId": "enemy_0008",
-            "level": 18
+            "level": 25
           }
         ],
         [
           {
             "enemyId": "enemy_0009",
-            "level": 19
+            "level": 25
           },
           {
             "enemyId": "enemy_0008",
-            "level": 18
+            "level": 25
           }
         ]
       ],
@@ -254,50 +264,52 @@
         "tickets": 210,
         "gems": 50,
         "gold": 2100
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 1.986
     },
     {
       "id": "stage_0031",
       "name": "철벽 방진 분쇄",
       "storyId": "story_0031",
-      "recommendedPower": 3300,
+      "recommendedPower": 11912,
       "waves": [
         [
           {
             "enemyId": "enemy_0008",
-            "level": 19
+            "level": 26
           },
           {
             "enemyId": "enemy_0008",
-            "level": 19
+            "level": 26
           }
         ],
         [
           {
             "enemyId": "enemy_0008",
-            "level": 19
+            "level": 26
           },
           {
             "enemyId": "enemy_0008",
-            "level": 19
+            "level": 26
           },
           {
             "enemyId": "enemy_0007",
-            "level": 19
+            "level": 26
           }
         ],
         [
           {
             "enemyId": "enemy_0008",
-            "level": 19
+            "level": 26
           },
           {
             "enemyId": "enemy_0008",
-            "level": 19
+            "level": 26
           },
           {
             "enemyId": "enemy_0009",
-            "level": 20
+            "level": 26
           }
         ]
       ],
@@ -311,36 +323,38 @@
         "tickets": 220,
         "gems": 50,
         "gold": 2200
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 0.818
     },
     {
       "id": "stage_0032",
       "name": "진흙 참호 돌파전",
       "storyId": "story_0032",
-      "recommendedPower": 3400,
+      "recommendedPower": 12419,
       "waves": [
         [
           {
             "enemyId": "enemy_0007",
-            "level": 20
+            "level": 28
           },
           {
             "enemyId": "enemy_0003",
-            "level": 20
+            "level": 28
           }
         ],
         [
           {
             "enemyId": "enemy_0008",
-            "level": 20
+            "level": 28
           },
           {
             "enemyId": "enemy_0007",
-            "level": 20
+            "level": 28
           },
           {
             "enemyId": "enemy_0009",
-            "level": 21
+            "level": 28
           }
         ]
       ],
@@ -354,36 +368,38 @@
         "tickets": 230,
         "gems": 50,
         "gold": 2300
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 1.877
     },
     {
       "id": "stage_0033",
       "name": "성문 돌파와 혈전",
       "storyId": "story_0033",
-      "recommendedPower": 3400,
+      "recommendedPower": 12688,
       "waves": [
         [
           {
             "enemyId": "enemy_0008",
-            "level": 21
+            "level": 29
           },
           {
             "enemyId": "enemy_0007",
-            "level": 21
+            "level": 29
           }
         ],
         [
           {
             "enemyId": "enemy_0010",
-            "level": 22
+            "level": 29
           },
           {
             "enemyId": "enemy_0008",
-            "level": 21
+            "level": 29
           },
           {
             "enemyId": "enemy_0007",
-            "level": 21
+            "level": 29
           }
         ]
       ],
@@ -397,40 +413,42 @@
         "tickets": 240,
         "gems": 50,
         "gold": 2400
-      }
+      },
+      "stageType": "elite",
+      "difficulty": 1.238
     },
     {
       "id": "stage_0034",
       "name": "용병대장의 최후",
       "storyId": "story_0034",
-      "recommendedPower": 3900,
+      "recommendedPower": 12959,
       "waves": [
         [
           {
             "enemyId": "enemy_0008",
-            "level": 22
+            "level": 30
           },
           {
             "enemyId": "enemy_0008",
-            "level": 22
+            "level": 30
           },
           {
             "enemyId": "enemy_0007",
-            "level": 22
+            "level": 30
           }
         ],
         [
           {
             "enemyId": "enemy_0010",
-            "level": 23
+            "level": 30
           },
           {
             "enemyId": "enemy_0008",
-            "level": 22
+            "level": 30
           },
           {
             "enemyId": "enemy_0009",
-            "level": 23
+            "level": 30
           }
         ]
       ],
@@ -444,40 +462,42 @@
         "tickets": 250,
         "gems": 50,
         "gold": 2500
-      }
+      },
+      "stageType": "elite",
+      "difficulty": 1.088
     },
     {
       "id": "stage_0035",
       "name": "알현실 친위대 청소",
       "storyId": "story_0035",
-      "recommendedPower": 4700,
+      "recommendedPower": 13561,
       "waves": [
         [
           {
             "enemyId": "enemy_0008",
-            "level": 23
+            "level": 32
           },
           {
             "enemyId": "enemy_0008",
-            "level": 23
+            "level": 32
           }
         ],
         [
           {
             "enemyId": "enemy_0008",
-            "level": 23
+            "level": 32
           },
           {
             "enemyId": "enemy_0008",
-            "level": 23
+            "level": 32
           },
           {
             "enemyId": "enemy_0009",
-            "level": 24
+            "level": 32
           },
           {
             "enemyId": "enemy_0007",
-            "level": 23
+            "level": 32
           }
         ]
       ],
@@ -491,36 +511,38 @@
         "tickets": 260,
         "gems": 50,
         "gold": 2600
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 1.15
     },
     {
       "id": "stage_0036",
       "name": "반역자의 마지막 발악",
       "storyId": "story_0036",
-      "recommendedPower": 5200,
+      "recommendedPower": 13802,
       "waves": [
         [
           {
             "enemyId": "enemy_0008",
-            "level": 24
+            "level": 33
           },
           {
             "enemyId": "enemy_0008",
-            "level": 24
+            "level": 33
           }
         ],
         [
           {
             "enemyId": "enemy_0011",
-            "level": 27
+            "level": 33
           },
           {
             "enemyId": "enemy_0008",
-            "level": 24
+            "level": 33
           },
           {
             "enemyId": "enemy_0009",
-            "level": 25
+            "level": 33
           }
         ]
       ],
@@ -534,7 +556,9 @@
         "tickets": 270,
         "gems": 100,
         "gold": 2700
-      }
+      },
+      "stageType": "boss",
+      "difficulty": 1.019
     }
   ]
 }

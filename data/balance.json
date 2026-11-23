@@ -492,9 +492,9 @@
   },
   "enemy": {
     "base": {
-      "atk": 60,
-      "def": 20,
-      "hp": 450,
+      "atk": 150,
+      "def": 30,
+      "hp": 1350,
       "spd": 100
     },
     "archetypes": {
@@ -566,12 +566,18 @@
       "4": 1,
       "5": 0
     },
+    "breakthroughRamp": 12,
     "memory": {
       "rarity": 3,
       "levelRatio": 0.8,
       "refine": 1
     },
-    "gearEnhPerStage": 0.25
+    "gearEnhPerStage": 0.25,
+    "maxRarityByChapter": [
+      4,
+      5
+    ],
+    "gearFromPosition": 2
   },
   "tuner": {
     "targetWinRate": {

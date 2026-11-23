@@ -14,3 +14,4 @@ import './npc.test.js';
 import './kitgen.test.js';
 import './memory.test.js';
 import './gear.test.js';
+import './tuner.test.js';

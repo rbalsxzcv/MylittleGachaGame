@@ -8,6 +8,7 @@
 import base64
 import io
 import json
+import re
 from pathlib import Path
 
 from flask import Flask, abort, jsonify, redirect, request, send_from_directory
@@ -120,6 +121,26 @@ def tests_snapshot():
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     return jsonify(ok=True, path="tests/snapshots/stages.json")
+
+
+@app.post("/api/reports")
+def save_report():
+    """밸런스 툴킷 보고서 저장 → reports/<이름>.md + .json (개발 도구 밸런스 탭의 튜너/평가)"""
+    data = body()
+    name = str(data.get("name") or "")
+    if not re.fullmatch(r"(tune|eval)-\d{8,14}", name):
+        raise ValueError("보고서 이름은 tune-날짜 또는 eval-날짜")
+    md = text(data, "markdown", 2_000_000)
+    dest = config.ROOT / "reports"
+    dest.mkdir(parents=True, exist_ok=True)
+    (dest / f"{name}.md").write_text(md, encoding="utf-8", newline="\n")
+    payload = data.get("json")
+    if payload is not None:
+        raw = json.dumps(payload, indent=2, ensure_ascii=False)
+        if len(raw) > 5_000_000:
+            raise ValueError("보고서가 너무 커요")
+        (dest / f"{name}.json").write_text(raw + "\n", encoding="utf-8", newline="\n")
+    return jsonify(ok=True, path=f"reports/{name}.md")
 
 
 @app.get("/fx-test")

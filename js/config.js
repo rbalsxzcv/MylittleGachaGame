@@ -175,7 +175,7 @@ export const DEFAULTS = {
   repeat: { maxRuns: 50 },
   // 적: 기본(Lv.1) × 아키타입 배율 × 스테이지 난이도(difficulty, 튜너가 정함)
   enemy: {
-    base: { atk: 60, def: 20, hp: 450, spd: 100 },
+    base: { atk: 150, def: 30, hp: 1350, spd: 100 }, // Lv.1 잡몹 기준 (튜너가 스테이지마다 difficulty로 맞춤)
     archetypes: {
       grunt: { atk: 1, def: 1, hp: 1, spd: 1, effectRes: 0 },
       brute: { atk: 1.25, def: 1.3, hp: 1.8, spd: 0.88, effectRes: 0.05 },
@@ -191,9 +191,12 @@ export const DEFAULTS = {
   expected: {
     levelStart: 1,
     levelPerStage: 1.4,
-    breakthrough: { 1: 3, 2: 3, 3: 2, 4: 1, 5: 0 },
+    breakthrough: { 1: 3, 2: 3, 3: 2, 4: 1, 5: 0 }, // 희귀도별 돌파 가정 (breakthroughRamp 스테이지에 걸쳐 0에서 이 값까지)
+    breakthroughRamp: 12,
     memory: { rarity: 3, levelRatio: 0.8, refine: 1 },
     gearEnhPerStage: 0.25, // 지역 안에서 n번째 스테이지 → 강화 floor(n × 이 값) (최대 maxEnh)
+    maxRarityByChapter: [4, 5], // 기준 팀에 넣는 캐릭터 최고 희귀도 (챕터 순서, 마지막 값이 이어짐) — 초반은 3~4★ 팀 기준으로 맞춤
+    gearFromPosition: 2, // 지역 안 이 순서부터 지역 티어 장비 (그 전은 이전 지역 티어, 첫 지역이면 장비 없음 — 드롭으로 모으는 중)
   },
   tuner: {
     targetWinRate: { normal: 0.9, elite: 0.75, boss: 0.6 },
@@ -395,7 +398,11 @@ export function loadConfig(json, vocab = null, warn = () => {}) {
     stars: { star3Ratio: num(j.stars?.star3Ratio, d.stars.star3Ratio, 0.05, 1) },
     repeat: { maxRuns: int(j.repeat?.maxRuns, d.repeat.maxRuns, 1, 500) },
     enemy: like(j.enemy, d.enemy, 1e6),
-    expected: like(j.expected, d.expected, 1e6),
+    expected: {
+      ...like(j.expected, d.expected, 1e6),
+      // 챕터 수만큼 늘어나는 목록 (like는 기본값 길이로 자르므로 따로)
+      maxRarityByChapter: Array.isArray(j.expected?.maxRarityByChapter) && j.expected.maxRarityByChapter.length ? j.expected.maxRarityByChapter.slice(0, 50).map((v) => int(v, 5, 1, 5)) : [...d.expected.maxRarityByChapter],
+    },
     tuner: {
       ...like(j.tuner, d.tuner),
       targetWinRate: like(j.tuner?.targetWinRate, d.tuner.targetWinRate, 1),

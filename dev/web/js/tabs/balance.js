@@ -4,6 +4,7 @@
 // 2) 전투력 표: 희귀도별 평균보다 크게 높은 캐릭터 경고
 // 3) balance.json 편집 (성장률, 레벨업 비용, 기력, 전투력 가중치, 기본 스킬…)
 import { h, toast, isNpc } from '../ui.js';
+import { tunerSection } from '../tunerSection.js';
 import { api, tryApi } from '../api.js';
 import { state, reloadData } from '../state.js';
 import { loadBattleKit, cleanEntity, skillForm, issueList } from '../battleForm.js';
@@ -321,6 +322,7 @@ export function balanceTab(root, { select } = {}) {
         progress,
       ),
       powerHost,
+      tunerSection(),
       gachaSim(),
     );
     right.replaceChildren(h('section', { class: 'card' }, h('h2', {}, '결과'), result), balanceEditor());

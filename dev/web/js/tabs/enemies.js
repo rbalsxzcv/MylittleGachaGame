@@ -118,6 +118,30 @@ export function enemiesTab(root, { select } = {}) {
     const id = h('div', {}, idBadge(v.id));
     const name = h('input', { value: v.name, oninput: (ev) => ((v.name = ev.target.value), mark()) });
     const boss = h('input', { type: 'checkbox', checked: v.boss, onchange: (ev) => ((v.boss = ev.target.checked), mark()) });
+    // 아키타입: 능력치 배율 + 행동/패턴 템플릿 (tools/enemygen). '다시 계산'은 행동 id · 이름 · 아이콘은 두고 수치만 바꿈
+    const ARCH_LABEL = { grunt: '잡몹', brute: '중장', caster: '술사', healer: '치유사', shielder: '방패병', assassin: '암살자', elite: '정예', boss: '보스' };
+    const archSel = h('select', { onchange: (ev) => (ev.target.value ? (v.archetype = ev.target.value) : delete v.archetype, mark()) }, h('option', { value: '' }, '(손으로 만든 적)'), Object.entries(ARCH_LABEL).map(([k, l]) => h('option', { value: k }, `${l} (${k})`)));
+    archSel.value = v.archetype || '';
+    const regen = h(
+      'button',
+      {
+        class: 'btn small',
+        onclick: async () => {
+          if (!v.archetype) return toast('아키타입을 먼저 골라 주세요', 'error');
+          if (!(await confirmBox('아키타입으로 다시 계산', '능력치 · 행동 효과 · 패턴 · 페이즈 · 광폭화 · 패시브를 템플릿 값으로 바꿔요 (행동 id/이름/아이콘, 페이즈 이름은 그대로). 저장 전까지는 되돌릴 수 있어요.', { ok: '다시 계산' }))) return;
+          const gen = await import('/preview/tools/enemygen/generate.js');
+          const { enemy, issues } = gen.regenerateEnemy(v, v.archetype, balance, vocab);
+          for (const k of Object.keys(v)) delete v[k];
+          Object.assign(v, enemy);
+          if (issues.length) toast(`경고 ${issues.length}개: ${issues[0]}`, 'error');
+          const keep = structuredClone(v);
+          dirty = false;
+          await edit(keep);
+          dirty = true;
+        },
+      },
+      '아키타입으로 수치 다시 계산',
+    );
     const noImgOpt = h('option', { value: '' });
     const imgSel = h('select', { onchange: (ev) => ((v.image = ev.target.value), mark(), renderImg()) }, noImgOpt, images.map((p) => h('option', { value: p }, p.replace('assets/enemies/', ''))));
     imgSel.value = v.image || '';
@@ -375,7 +399,7 @@ NPC 그림을 바꾸려는 거면 캐릭터 탭에서 다시 뽑아 주세요.`,
         'section',
         { class: 'card' },
         h('h2', {}, isNew ? '새 적' : `적 편집 — ${v.id}`),
-        h('div', { class: 'row', style: { gap: '16px', alignItems: 'flex-start' } }, imgBox, h('div', { class: 'grow' }, h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (자동)', id), h('label', { class: 'field' }, '이름', name)), h('label', { class: 'inline' }, boss, '보스 (카드가 크게 표시)'), h('label', { class: 'field', title: 'NPC 등급 캐릭터가 적으로 싸울 때 연결. 적 그림을 비워 두면 그 캐릭터 그림을 써요' }, 'NPC 연결 (선택)', npcSel), h('label', { class: 'field' }, '그림 (assets/enemies) — 올리기 또는 AI로 그리기', h('div', { class: 'row wrap' }, imgSel, upload, drawAi)), imgNote)),
+        h('div', { class: 'row', style: { gap: '16px', alignItems: 'flex-start' } }, imgBox, h('div', { class: 'grow' }, h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (자동)', id), h('label', { class: 'field' }, '이름', name)), h('label', { class: 'inline' }, boss, '보스 (카드가 크게 표시)'), h('div', { class: 'row wrap' }, h('label', { class: 'field' }, '아키타입', archSel), regen), h('label', { class: 'field', title: 'NPC 등급 캐릭터가 적으로 싸울 때 연결. 적 그림을 비워 두면 그 캐릭터 그림을 써요' }, 'NPC 연결 (선택)', npcSel), h('label', { class: 'field' }, '그림 (assets/enemies) — 올리기 또는 AI로 그리기', h('div', { class: 'row wrap' }, imgSel, upload, drawAi)), imgNote)),
         power,
         h('h3', {}, '기본 능력치 (Lv.1, 레벨에 따라 성장)'),
         statsForm(v.stats, { ...balance.stats.byRarity[3], critRate: balance.stats.critRate, critDmg: balance.stats.critDmg }, { onChange: mark }),

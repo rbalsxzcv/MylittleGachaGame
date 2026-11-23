@@ -6,7 +6,7 @@
       "id": "stage_0013",
       "name": "시체밭의 하이에나들",
       "storyId": "story_0013",
-      "recommendedPower": 1200,
+      "recommendedPower": 4082,
       "waves": [
         [
           {
@@ -39,13 +39,15 @@
         "tickets": 160,
         "gems": 50,
         "gold": 1600
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 2.714
     },
     {
       "id": "stage_0014",
       "name": "피 냄새 맡은 사냥개",
       "storyId": "story_0014",
-      "recommendedPower": 1200,
+      "recommendedPower": 4274,
       "waves": [
         [
           {
@@ -78,36 +80,38 @@
         "tickets": 170,
         "gems": 50,
         "gold": 1700
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 2.168
     },
     {
       "id": "stage_0015",
       "name": "썩은 술집 패싸움",
       "storyId": "story_0015",
-      "recommendedPower": 1900,
+      "recommendedPower": 5162,
       "waves": [
         [
           {
             "enemyId": "enemy_0001",
-            "level": 3
+            "level": 4
           },
           {
             "enemyId": "enemy_0001",
-            "level": 3
+            "level": 4
           },
           {
             "enemyId": "enemy_0003",
-            "level": 3
+            "level": 4
           }
         ],
         [
           {
             "enemyId": "enemy_0003",
-            "level": 3
+            "level": 4
           },
           {
             "enemyId": "enemy_0003",
-            "level": 3
+            "level": 4
           }
         ]
       ],
@@ -121,32 +125,34 @@
         "tickets": 180,
         "gems": 50,
         "gold": 1800
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 1.959
     },
     {
       "id": "stage_0016",
       "name": "시궁창 청소",
       "storyId": "story_0016",
-      "recommendedPower": 1300,
+      "recommendedPower": 5421,
       "waves": [
         [
           {
             "enemyId": "enemy_0001",
-            "level": 4
+            "level": 5
           },
           {
             "enemyId": "enemy_0003",
-            "level": 4
+            "level": 5
           }
         ],
         [
           {
             "enemyId": "enemy_0003",
-            "level": 4
+            "level": 5
           },
           {
             "enemyId": "enemy_0003",
-            "level": 4
+            "level": 5
           }
         ]
       ],
@@ -160,32 +166,34 @@
         "tickets": 190,
         "gems": 50,
         "gold": 1900
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 2.858
     },
     {
       "id": "stage_0017",
       "name": "불청객 이단 심문",
       "storyId": "story_0017",
-      "recommendedPower": 1400,
+      "recommendedPower": 5862,
       "waves": [
         [
           {
             "enemyId": "enemy_0002",
-            "level": 5
+            "level": 7
           },
           {
             "enemyId": "enemy_0006",
-            "level": 5
+            "level": 7
           }
         ],
         [
           {
             "enemyId": "enemy_0006",
-            "level": 5
+            "level": 7
           },
           {
             "enemyId": "enemy_0003",
-            "level": 5
+            "level": 7
           }
         ]
       ],
@@ -199,32 +207,34 @@
         "tickets": 200,
         "gems": 50,
         "gold": 2000
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 2.641
     },
     {
       "id": "stage_0018",
       "name": "암시장 부채 청산",
       "storyId": "story_0018",
-      "recommendedPower": 1400,
+      "recommendedPower": 6051,
       "waves": [
         [
           {
             "enemyId": "enemy_0001",
-            "level": 6
+            "level": 8
           },
           {
             "enemyId": "enemy_0002",
-            "level": 6
+            "level": 8
           }
         ],
         [
           {
             "enemyId": "enemy_0003",
-            "level": 6
+            "level": 8
           },
           {
             "enemyId": "enemy_0003",
-            "level": 6
+            "level": 8
           }
         ]
       ],
@@ -238,32 +248,34 @@
         "tickets": 210,
         "gems": 50,
         "gold": 2100
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 2.808
     },
     {
       "id": "stage_0019",
       "name": "수송 마차 털이 야근",
       "storyId": "story_0019",
-      "recommendedPower": 1700,
+      "recommendedPower": 6429,
       "waves": [
         [
           {
             "enemyId": "enemy_0003",
-            "level": 7
+            "level": 9
           },
           {
             "enemyId": "enemy_0003",
-            "level": 7
+            "level": 9
           }
         ],
         [
           {
             "enemyId": "enemy_0004",
-            "level": 7
+            "level": 9
           },
           {
             "enemyId": "enemy_0003",
-            "level": 7
+            "level": 9
           }
         ]
       ],
@@ -277,32 +289,34 @@
         "tickets": 220,
         "gems": 50,
         "gold": 2200
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 2.191
     },
     {
       "id": "stage_0020",
       "name": "교차로 검문소 철거",
       "storyId": "story_0020",
-      "recommendedPower": 2000,
+      "recommendedPower": 6877,
       "waves": [
         [
           {
             "enemyId": "enemy_0002",
-            "level": 8
+            "level": 11
           },
           {
             "enemyId": "enemy_0003",
-            "level": 8
+            "level": 11
           }
         ],
         [
           {
             "enemyId": "enemy_0004",
-            "level": 8
+            "level": 11
           },
           {
             "enemyId": "enemy_0004",
-            "level": 8
+            "level": 11
           }
         ]
       ],
@@ -316,32 +330,34 @@
         "tickets": 230,
         "gems": 50,
         "gold": 2300
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 1.386
     },
     {
       "id": "stage_0021",
       "name": "감시탑의 밀린 외상값",
       "storyId": "story_0021",
-      "recommendedPower": 1900,
+      "recommendedPower": 7105,
       "waves": [
         [
           {
             "enemyId": "enemy_0006",
-            "level": 9
+            "level": 12
           },
           {
             "enemyId": "enemy_0003",
-            "level": 9
+            "level": 12
           }
         ],
         [
           {
             "enemyId": "enemy_0004",
-            "level": 9
+            "level": 12
           },
           {
             "enemyId": "enemy_0006",
-            "level": 9
+            "level": 12
           }
         ]
       ],
@@ -355,32 +371,34 @@
         "tickets": 240,
         "gems": 50,
         "gold": 2400
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 1.783
     },
     {
       "id": "stage_0022",
       "name": "지하 와인창고 기습",
       "storyId": "story_0022",
-      "recommendedPower": 2100,
+      "recommendedPower": 7531,
       "waves": [
         [
           {
             "enemyId": "enemy_0003",
-            "level": 10
+            "level": 14
           },
           {
             "enemyId": "enemy_0004",
-            "level": 10
+            "level": 14
           }
         ],
         [
           {
             "enemyId": "enemy_0004",
-            "level": 10
+            "level": 14
           },
           {
             "enemyId": "enemy_0004",
-            "level": 10
+            "level": 14
           }
         ]
       ],
@@ -394,36 +412,38 @@
         "tickets": 250,
         "gems": 50,
         "gold": 2500
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 1.196
     },
     {
       "id": "stage_0023",
       "name": "연회장 난입 소동",
       "storyId": "story_0023",
-      "recommendedPower": 3100,
+      "recommendedPower": 7827,
       "waves": [
         [
           {
             "enemyId": "enemy_0003",
-            "level": 11
+            "level": 15
           },
           {
             "enemyId": "enemy_0004",
-            "level": 11
+            "level": 15
           }
         ],
         [
           {
             "enemyId": "enemy_0004",
-            "level": 11
+            "level": 15
           },
           {
             "enemyId": "enemy_0004",
-            "level": 11
+            "level": 15
           },
           {
             "enemyId": "enemy_0006",
-            "level": 11
+            "level": 15
           }
         ]
       ],
@@ -437,36 +457,38 @@
         "tickets": 260,
         "gems": 50,
         "gold": 2600
-      }
+      },
+      "stageType": "normal",
+      "difficulty": 1.065
     },
     {
       "id": "stage_0024",
       "name": "탐욕의 대가",
       "storyId": "story_0024",
-      "recommendedPower": 4200,
+      "recommendedPower": 8055,
       "waves": [
         [
           {
             "enemyId": "enemy_0004",
-            "level": 12
+            "level": 16
           },
           {
             "enemyId": "enemy_0004",
-            "level": 12
+            "level": 16
           }
         ],
         [
           {
             "enemyId": "enemy_0005",
-            "level": 15
+            "level": 16
           },
           {
             "enemyId": "enemy_0004",
-            "level": 12
+            "level": 16
           },
           {
             "enemyId": "enemy_0004",
-            "level": 12
+            "level": 16
           }
         ]
       ],
@@ -480,7 +502,9 @@
         "tickets": 270,
         "gems": 100,
         "gold": 2700
-      }
+      },
+      "stageType": "boss",
+      "difficulty": 0.879
     }
   ]
 }

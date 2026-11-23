@@ -1,0 +1,432 @@
+{
+  "characters": [
+    {
+      "id": "char_0004",
+      "name": "바바루아",
+      "rarity": 3,
+      "role": "support",
+      "archetype": "dot_spreader",
+      "bt0": {
+        "winRate": 1,
+        "share": 0.14298115788504076
+      },
+      "bt6": {
+        "winRate": 1,
+        "share": 0.32592294135657335
+      },
+      "score": 65.7,
+      "tier": "S"
+    },
+    {
+      "id": "char_0007",
+      "name": "루미 아이올락",
+      "rarity": 5,
+      "role": "support",
+      "archetype": "sp_battery",
+      "bt0": {
+        "winRate": 1,
+        "share": 0.03709105767362827
+      },
+      "bt6": {
+        "winRate": 1,
+        "share": 0.01776981559356108
+      },
+      "sig": {
+        "winRate": 1,
+        "share": 0.041275888172094106
+      },
+      "score": 61.5,
+      "tier": "S"
+    },
+    {
+      "id": "char_0012",
+      "name": "아이린",
+      "rarity": 5,
+      "role": "defender",
+      "archetype": "counter_tank",
+      "bt0": {
+        "winRate": 0.7749999999999999,
+        "share": 0.3187386755592271
+      },
+      "bt6": {
+        "winRate": 0.8833333333333333,
+        "share": 0.3874586974876343
+      },
+      "sig": {
+        "winRate": 0.95,
+        "share": 0.42210037600288913
+      },
+      "score": 59.2,
+      "tier": "S"
+    },
+    {
+      "id": "char_0002",
+      "name": "발레리아",
+      "rarity": 5,
+      "role": "attacker",
+      "archetype": "stack_burst",
+      "bt0": {
+        "winRate": 0.8166666666666667,
+        "share": 0.2337728449425488
+      },
+      "bt6": {
+        "winRate": 1,
+        "share": 0.31918780273770375
+      },
+      "sig": {
+        "winRate": 0.9916666666666667,
+        "share": 0.2883538871492808
+      },
+      "score": 58.4,
+      "tier": "A"
+    },
+    {
+      "id": "char_0011",
+      "name": "레일라 버스튼",
+      "rarity": 4,
+      "role": "support",
+      "archetype": "timeline",
+      "bt0": {
+        "winRate": 0.8583333333333334,
+        "share": 0.029318880605032623
+      },
+      "bt6": {
+        "winRate": 1,
+        "share": 0.048077787258211935
+      },
+      "score": 52.7,
+      "tier": "A"
+    },
+    {
+      "id": "char_0006",
+      "name": "안나",
+      "rarity": 4,
+      "role": "healer",
+      "archetype": "sustain_healer",
+      "bt0": {
+        "winRate": 0.6499999999999999,
+        "share": 0.17049104175208074
+      },
+      "bt6": {
+        "winRate": 0.625,
+        "share": 0.16916578904080254
+      },
+      "score": 45.8,
+      "tier": "B"
+    },
+    {
+      "id": "char_0008",
+      "name": "이레나",
+      "rarity": 5,
+      "role": "attacker",
+      "archetype": "transform_carry",
+      "bt0": {
+        "winRate": 0.5166666666666667,
+        "share": 0.25158298822199443
+      },
+      "bt6": {
+        "winRate": 1,
+        "share": 0.36153229118668107
+      },
+      "sig": {
+        "winRate": 0.975,
+        "share": 0.31460302610671936
+      },
+      "score": 41.1,
+      "tier": "B"
+    },
+    {
+      "id": "char_0003",
+      "name": "가린",
+      "rarity": 3,
+      "role": "attacker",
+      "archetype": "follow_up",
+      "bt0": {
+        "winRate": 0.49166666666666664,
+        "share": 0.2077466763778255
+      },
+      "bt6": {
+        "winRate": 1,
+        "share": 0.3205411604003763
+      },
+      "score": 37.8,
+      "tier": "B"
+    },
+    {
+      "id": "char_0001",
+      "name": "시논",
+      "rarity": 4,
+      "role": "attacker",
+      "archetype": "mark_hunter",
+      "bt0": {
+        "winRate": 0.4,
+        "share": 0.19961764340227078
+      },
+      "bt6": {
+        "winRate": 1,
+        "share": 0.2912070743966215
+      },
+      "score": 32,
+      "tier": "C"
+    },
+    {
+      "id": "char_0009",
+      "name": "뜨내기 용병",
+      "rarity": 1,
+      "role": "defender",
+      "archetype": "shield_converter",
+      "bt0": {
+        "winRate": 0.3416666666666667,
+        "share": 0.15125556955227537
+      },
+      "bt6": {
+        "winRate": 0.36666666666666664,
+        "share": 0.1972841120566558
+      },
+      "score": 26.6,
+      "tier": "C"
+    }
+  ],
+  "memories": [
+    {
+      "id": "memory_0015",
+      "name": "칼날의 기억",
+      "rarity": 5,
+      "kind": "signature",
+      "holder": "char_0002",
+      "winRate": 0.95,
+      "avgRounds": 24.5,
+      "share": 0.23141609092101087
+    },
+    {
+      "id": "memory_0007",
+      "name": "첫 월급 봉투",
+      "rarity": 4,
+      "kind": "generic",
+      "holder": "char_0002",
+      "winRate": 0.9833333333333333,
+      "avgRounds": 24.5,
+      "share": 0.2241988450112258
+    },
+    {
+      "id": "memory_0014",
+      "name": "행운의 동전",
+      "rarity": 4,
+      "kind": "generic",
+      "holder": "char_0002",
+      "winRate": 0.9,
+      "avgRounds": 24.7,
+      "share": 0.22419735013870914
+    },
+    {
+      "id": "memory_0008",
+      "name": "국경의 해돋이",
+      "rarity": 4,
+      "kind": "generic",
+      "holder": "char_0002",
+      "winRate": 0.8666666666666667,
+      "avgRounds": 24.8,
+      "share": 0.22223897696498807
+    },
+    {
+      "id": "memory_0016",
+      "name": "몰락 귀족의 품위",
+      "rarity": 5,
+      "kind": "signature",
+      "holder": "char_0002",
+      "winRate": 0.75,
+      "avgRounds": 25,
+      "share": 0.22057800465091496
+    },
+    {
+      "id": "memory_0017",
+      "name": "깨진 마탑 열쇠",
+      "rarity": 5,
+      "kind": "signature",
+      "holder": "char_0002",
+      "winRate": 0.9166666666666666,
+      "avgRounds": 24.8,
+      "share": 0.21656345175105834
+    },
+    {
+      "id": "memory_0005",
+      "name": "술집 난투의 밤",
+      "rarity": 3,
+      "kind": "generic",
+      "holder": "char_0002",
+      "winRate": 0.7,
+      "avgRounds": 25.2,
+      "share": 0.20040701638731542
+    },
+    {
+      "id": "memory_0018",
+      "name": "굳은 결의",
+      "rarity": 5,
+      "kind": "signature",
+      "holder": "char_0002",
+      "winRate": 0.7,
+      "avgRounds": 25.3,
+      "share": 0.19434018822939111
+    },
+    {
+      "id": "memory_0011",
+      "name": "전장의 북소리",
+      "rarity": 4,
+      "kind": "generic",
+      "holder": "char_0002",
+      "winRate": 0.9833333333333333,
+      "avgRounds": 24.7,
+      "share": 0.19228721061336496
+    },
+    {
+      "id": "memory_0001",
+      "name": "첫 의뢰의 칼자국",
+      "rarity": 3,
+      "kind": "default",
+      "holder": "char_0002",
+      "winRate": 0.5666666666666667,
+      "avgRounds": 25.4,
+      "share": 0.18990843085474388
+    },
+    {
+      "id": "memory_0013",
+      "name": "방패벽의 기억",
+      "rarity": 4,
+      "kind": "generic",
+      "holder": "char_0002",
+      "winRate": 0.6,
+      "avgRounds": 25.4,
+      "share": 0.18784362093874138
+    },
+    {
+      "id": "memory_0010",
+      "name": "빗속의 맹세",
+      "rarity": 4,
+      "kind": "generic",
+      "holder": "char_0002",
+      "winRate": 0.6,
+      "avgRounds": 25.4,
+      "share": 0.1876160406690267
+    },
+    {
+      "id": "memory_0009",
+      "name": "암시장 뒷거래",
+      "rarity": 4,
+      "kind": "generic",
+      "holder": "char_0002",
+      "winRate": 0.6,
+      "avgRounds": 25.4,
+      "share": 0.18751624839001332
+    },
+    {
+      "id": "memory_0012",
+      "name": "야전 병원의 등불",
+      "rarity": 4,
+      "kind": "generic",
+      "holder": "char_0002",
+      "winRate": 0.6,
+      "avgRounds": 25.4,
+      "share": 0.18751624839001332
+    },
+    {
+      "id": "memory_0004",
+      "name": "약초 주머니",
+      "rarity": 3,
+      "kind": "default",
+      "holder": "char_0002",
+      "winRate": 0.38333333333333336,
+      "avgRounds": 25.6,
+      "share": 0.1863493364812986
+    },
+    {
+      "id": "memory_0003",
+      "name": "구겨진 작전 지도",
+      "rarity": 3,
+      "kind": "default",
+      "holder": "char_0002",
+      "winRate": 0.35,
+      "avgRounds": 25.6,
+      "share": 0.18623108056326926
+    },
+    {
+      "id": "memory_0006",
+      "name": "진흙길 행군",
+      "rarity": 3,
+      "kind": "generic",
+      "holder": "char_0002",
+      "winRate": 0.38333333333333336,
+      "avgRounds": 25.6,
+      "share": 0.1819409809056505
+    },
+    {
+      "id": "memory_0002",
+      "name": "찌그러진 방패",
+      "rarity": 3,
+      "kind": "default",
+      "holder": "char_0002",
+      "winRate": 0.38333333333333336,
+      "avgRounds": 25.6,
+      "share": 0.18148769882685087
+    }
+  ],
+  "gear": [
+    {
+      "chapter": "ch01",
+      "regionTier": 1,
+      "piecesPerRun": 1,
+      "expectedRuns": 8.3,
+      "winWithPrevTier": null,
+      "winWithRegionTier": 1
+    },
+    {
+      "chapter": "ch02",
+      "regionTier": 2,
+      "piecesPerRun": 0.35,
+      "expectedRuns": 23.8,
+      "winWithPrevTier": 0.8,
+      "winWithRegionTier": 0.9333333333333333
+    }
+  ],
+  "combos": {
+    "stage": "stage_0036",
+    "tested": 200,
+    "top": [
+      {
+        "team": [
+          "char_0001",
+          "char_0002",
+          "char_0003",
+          "char_0007",
+          "char_0008"
+        ],
+        "winRate": 1,
+        "avgRounds": 14.6,
+        "share": null
+      },
+      {
+        "team": [
+          "char_0001",
+          "char_0002",
+          "char_0004",
+          "char_0007",
+          "char_0008"
+        ],
+        "winRate": 1,
+        "avgRounds": 16.1,
+        "share": null
+      }
+    ],
+    "median": {
+      "team": [
+        "char_0003",
+        "char_0004",
+        "char_0006",
+        "char_0008",
+        "char_0009"
+      ],
+      "winRate": 0.85,
+      "avgRounds": 25,
+      "share": null
+    }
+  }
+}

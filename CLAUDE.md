@@ -27,7 +27,7 @@
 - 브라우저: 게임 폴더를 로컬 서버로 열고(`python -m http.server`) `tests/index.html` → 자동 실행. `?filter=gacha`로 일부만.
   개발 도구에서는 `http://127.0.0.1:5050/preview/tests/index.html` (작업 공간 데이터로 실행, 스냅샷 갱신 버튼이 파일로 저장).
 - Node(설치했다면): `node tests/run.js [이름 일부] [--update]` (`npm test`). `--update` = 회귀 스냅샷 갱신.
-- 파일: `config` / `stats`(능력치 모델) / `kitgen`(아키타입 생성기 · 번들 분리) / `memory`(추억) / `gear`(장비 · 드롭 · 반복/소탕) / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀) / `deletion`(캐릭터 삭제 정리) / `aliases`(id 별칭으로 세이브 옮기기 + 지금 id가 규칙대로인지) / `npc`(NPC 등급 ↔ 1–5 전환 시 가챠 풀/플레이어 화면/적 연결).
+- 파일: `config` / `stats`(능력치 모델) / `kitgen`(아키타입 생성기 · 번들 분리) / `memory`(추억) / `gear`(장비 · 드롭 · 반복/소탕) / `tuner`(적 아키타입 · 기대 성장 · 튜너) / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀) / `deletion`(캐릭터 삭제 정리) / `aliases`(id 별칭으로 세이브 옮기기 + 지금 id가 규칙대로인지) / `npc`(NPC 등급 ↔ 1–5 전환 시 가챠 풀/플레이어 화면/적 연결).
 - 새 테스트 파일은 `tests/all.js`에 한 줄. 러너 `tests/lib/runner.js`, 실제 데이터 로더 `tests/lib/gameData.js`, 전투 픽스처 `js/battle/testkit.js`, 샘플 `tests/fixtures/`.
 - **회귀 스냅샷** `tests/snapshots/stages.json`: 모든 스테이지 × 기준 팀(`tests/fixtures/teams.js`) × 시드 1~3 자동 전투 (`승패 라운드 피해/…`). 다르면 실패 + 바뀐 줄 목록 → 의도한 변경이면 갱신.
 - 연출 확인: `dev/fx-test.html` (정적 서버) 또는 개발 도구 `/fx-test` — 희귀도 조합 강제, 2배속, 모션 줄이기, `?auto=5&fake=1` 자동 실행.
@@ -203,6 +203,20 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
 - 개발 도구: '키트 일괄' 탭(격자 · 예산 · 빠른 시뮬 · 전체/카드별 승인), 캐릭터 전투 편집기(역할/손조정/자원/스킬/변신/특성/돌파 2·6 + 예산 + 빠른 시뮬 + 생성기).
   `/preview/tools/*`로 불러옴.
 
+## 적 아키타입 · 밸런스 툴킷 (`tools/enemygen/`, `tools/balance/`, AI 없음)
+- 적 아키타입 8종(grunt · brute · caster · healer · shielder · assassin · elite · boss): 능력치 = `balance.enemy.base × archetypes[아키타입]`,
+  행동은 칸(basic/skill/ultimate) × 기존 아이콘별 템플릿 → **행동 id · 이름 · 아이콘 · 페이즈 이름 · 웨이브 구성은 그대로**, 효과/패턴/페이즈/광폭화/패시브만 새로.
+  보스 큰 공격 = 차지(예고 big → 반 턴 뒤 터지는 big 토큰, 둘 다 차단 가능). 배정 `ENEMY_BOOTSTRAP`, 개발 도구 적 탭 '아키타입으로 수치 다시 계산'.
+- 스테이지: 적 레벨 = 기대 레벨(`expected.levelStart + levelPerStage × 전체 순서`), `stageType`(보스/정예 적 → boss/elite), `difficulty`(튜너), `recommendedPower` = 기대 전투력.
+  `node tools/enemygen/cli.js --apply` (작업 공간 · data/ 각각 — 공개 안 한 그림이 공개 파일로 안 넘어감).
+- 기대 성장(`expected.js`): 스테이지마다 레벨 · 돌파(희귀도별 × 0→`breakthroughRamp` 스테이지에 걸쳐) · 추억(역할 기본, 레벨 × levelRatio) ·
+  장비(지역 안 `gearFromPosition`번째부터 지역 티어, 그 전은 이전 지역 티어 / 첫 지역 초반은 없음). 기준 팀 = NPC·은퇴 제외, 챕터별 최고 희귀도(`maxRarityByChapter`),
+  3★+ 탱커 1 · 치유/지원 1 → 나머지 기대 전투력 순.
+- 튜너(`tuner.js`): 기준 팀 × 시드 1..runs AUTO → difficulty 로그 이분 탐색(min~max, maxIter) → 목표 승률 ±tolerance. `node tools/balance/cli.js tune [--apply] [--runs N]`.
+- 평가(`evaluate.js`): 캐릭터 교체 테스트(돌0/돌6/전용 추억 → 티어), 추억 교체, 장비 곡선(4칸 교체 기대 판 수), 조합 몬테카를로 상위 1%. `cli.js eval`.
+  보고서 `reports/tune-*.md|json`, `reports/eval-*.md|json` (밸런스 탭 '자동 튜너 · 평가'에서도 돌리고 저장 → `POST /api/reports`).
+- 전투 결과가 바뀌는 수치(적 · 기대 성장 · 키트)를 고치면: enemygen(추천 전투력) → tune --apply → 스냅샷 차이 확인 → `node tests/run.js --update`.
+
 ## 개발 도구 (dev/)
 - 희귀도 `tinydev/rarity.py`, 전투 검사 `tinydev/kit.py`(vocab 기반, 적 actions/pattern/phases/enrage), 콘텐츠 검사 `tinydev/validate.py`(모험 규칙 포함), 배포 `publish.py`(스테이지 챕터 파일, 밸런스 변경 요약 패치노트).
 - 웹: 캐릭터 전투 편집(`web/js/battleEditor.js` + `battleForm.js`), 적 편집(행동/패턴/페이즈/광폭화), 스테이지(챕터/연결 스토리/자동 레벨), 밸런스(전투 시뮬, 가챠 시뮬, 전투력 표, balance.json 편집), `/fx-test`, `/preview/tests/`.
@@ -225,6 +239,6 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
 
 ## 알아 둘 것 (남은 일)
 - 1★/2★ 캐릭터가 아직 없음 → 그 확률은 3★로 대체됨.
-- 지금 스테이지는 Lv.1 팀으로도 거의 다 이김 (밸런스 탭/스냅샷으로 조정).
+- 스테이지 난이도는 자동 튜너로 맞춤 (reports/의 마지막 tune/eval 보고서 참고). 평가에서 안나(치유) 돌파 효과가 작고, 1★ 탱커는 보스 칸에서 약함.
 - `enemy_0006`(광휘교단 이단 사냥꾼, 1-7 적) 그림은 작업 공간에만 있음 → 배포하면 공개됨.
 - 1-1/1-2/1-3/1-5/1-7 스토리의 전투 장면과 도입 대사(b0)는 초안 — 스토리 탭에서 다듬기.

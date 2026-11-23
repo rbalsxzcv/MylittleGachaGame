@@ -3,7 +3,7 @@
 // 잘못된 항목은 건너뛰고(콘솔 경고) 나머지는 그대로 사용합니다.
 
 import { cleanKit, cleanStats, cleanPassiveList, cleanPassive, cleanEnemyBehavior, cleanResource, cleanTweak, STAT_KEYS } from '../battle/schema.js';
-import { loadConfig, normalizeRarity, normalizeGrade, isNpc, NPC, RARITIES, ROLES, ENEMY_ARCHETYPES } from '../config.js';
+import { loadConfig, normalizeRarity, normalizeGrade, isNpc, NPC, RARITIES, ROLES, ENEMY_ARCHETYPES, STAGE_TYPES } from '../config.js';
 import { validateAliases } from './aliases.js';
 
 export { RARITIES, normalizeRarity, normalizeGrade, isNpc, NPC };
@@ -254,6 +254,9 @@ export function validateStages(json, ch = {}) {
       retired: raw.retired === true,
       recommendedPower: int(raw.recommendedPower, 0, 1e9, 0),
       waves,
+      // 난이도 배율(적 공격/HP, 자동 튜너가 정함) · 종류(목표 승률: normal/elite/boss)
+      difficulty: Number.isFinite(Number(raw.difficulty)) && raw.difficulty !== '' && raw.difficulty != null ? Math.min(20, Math.max(0.05, Number(raw.difficulty))) : 1,
+      stageType: STAGE_TYPES.includes(raw.stageType) ? raw.stageType : 'normal',
       // 라운드 제한 (예전 이름 turnLimit도 받음)
       roundLimit: (raw.roundLimit ?? raw.turnLimit) == null || (raw.roundLimit ?? raw.turnLimit) === '' ? null : int(raw.roundLimit ?? raw.turnLimit, 1, 999, 20),
       rewards: cleanRewards(raw.rewards),
