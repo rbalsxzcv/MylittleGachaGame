@@ -124,12 +124,15 @@ export const DEFAULTS = {
   // 키트 예산 (개발 도구 생성기/검사): 점수 = points[효과] × 크기 × 대상 계수 × 지속 × 확률, 칸 상한 × 희귀도 계수
   kitBudget: {
     points: {
-      damage: 100, heal: 90, shield: 80, dot: 85, buff: 1, debuff: 1.1, energy_gain: 0.8, sp_gain: 40, advance_action: 0.8, delay_action: 0.9,
-      interrupt: 40, cleanse: 25, taunt: 20, stack_gain: 12, stack_spend: 0, mark: 15, mark_detonate: 100, follow_up: 100, counter: 100, transform: 30, charge: 100, summon: 60,
+      damage: 100, heal: 90, shield: 80, dot: 85, buff: 2.5, debuff: 2.5, energy_gain: 1.2, sp_gain: 40, advance_action: 3, delay_action: 3,
+      interrupt: 40, cleanse: 25, taunt: 20, stack_gain: 8, stack_spend: 0, mark: 10, mark_detonate: 100, follow_up: 100, counter: 100, transform: 30, charge: 100, summon: 60,
     },
     statWeight: { atk: 1, def: 0.6, hp: 0.6, spd: 1.5, critRate: 2, critDmg: 0.8, dmgDealt: 1.2, dmgTaken: 1.2, energyRegen: 1, effectHit: 0.8, effectRes: 0.6, healBonus: 0.8, shieldBonus: 0.6 },
     targetFactor: { single: 1, all: 1.8, randomPer: 0.7, self: 1, ally: 1, allyAll: 1.8 },
-    caps: { basic: 100, skill: 220, ultimate: 420, talent: 150, bt2: 60, bt6: 140, signature: 120 },
+    // 패시브: 발동 조건마다 전투 한 판에서 대략 몇 번쯤 쓸모 있는지 (점수 배율) · 수정자 점수 (값 1당)
+    triggerWeight: { always: 1, onBattleStart: 0.5, onTurnStart: 1, onBasic: 0.7, onSkill: 0.5, onUltimate: 0.4, onCrit: 0.4, onKill: 0.3, onHit: 0.8, onHpBelow: 0.3, onAllyAttack: 1, onStackFull: 0.5 },
+    modifierPoints: { stat_bonus: 3, effect_power: 4, ultimate_cost: 2, sp_cost: 60, energy_gain: 4, action_targeting: 60, resource_cap: 16, mark_turns: 24 },
+    caps: { basic: 100, skill: 220, ultimate: 420, talent: 120, bt2: 80, bt6: 160, signature: 100 },
     rarityFactor: { 1: 0.55, 2: 0.62, 3: 0.7, 4: 0.84, 5: 1 },
     tolerancePct: 5,
   },

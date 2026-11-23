@@ -140,7 +140,8 @@ def preview(path):
         if path.startswith("assets/") and not target.exists():
             return send_from_directory(config.ROOT, path)  # 아이콘 등 공개 자산
         return send_from_directory(config.WORKSPACE, path)
-    allowed = path in ("index.html", "style.css", "manifest.webmanifest") or path.startswith("js/") or path.startswith("tests/")
+    # tools/: 개발 도구 전용 생성기 · 밸런스 툴킷 (게임 js/는 import하지 않음 — 테스트와 개발 도구 탭이 씀)
+    allowed = path in ("index.html", "style.css", "manifest.webmanifest") or path.startswith(("js/", "tests/", "tools/"))
     if not allowed:
         abort(404)
     return send_from_directory(config.ROOT, path)

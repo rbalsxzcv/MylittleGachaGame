@@ -21,6 +21,12 @@ export const MODIFIERS = {
   effect_power: (u, m) => {
     u.effectPower.push({ action: m.action, effect: m.effect, pct: m.pct });
   },
+  resource_cap: (u, m) => {
+    if (u.res) u.res.cap = Math.max(1, u.res.cap + m.delta);
+  },
+  mark_turns: (u, m) => {
+    u.markTurnsDelta = (u.markTurnsDelta || 0) + m.delta; // 이 유닛이 거는 표식 지속 +턴
+  },
   extra_effects: (u, m) => {
     const s = u.kit?.[m.action];
     if (!s) return;

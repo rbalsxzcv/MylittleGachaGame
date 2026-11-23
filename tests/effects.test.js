@@ -250,3 +250,15 @@ describe('효과: 반응 / 변신 / 토큰', () => {
     expect(chooseAction(b.tools, a1).action).toBe('skill');
   });
 });
+
+describe('수정자: 자원 상한 / 표식 지속', () => {
+  it('resource_cap: 자원 상한 ±, mark_turns: 내가 거는 표식 지속 +턴', () => {
+    const bt = [{ name: '넘침', modifiers: [{ type: 'resource_cap', delta: 2 }, { type: 'mark_turns', delta: 1 }] }];
+    const c = char(vocab, 'h', { resource: { name: '투지', cap: 5 }, breakthroughs: bt });
+    const b = createBattle({ team: [{ charId: 'h', level: 1, breakthrough: 1 }], stage: stageOf(['d']), data: mkData(vocab, [c], [enemy(vocab, 'd')]), seed: 3 });
+    const a1 = b.unit('a1');
+    expect(a1.res.cap).toBe(7);
+    b.tools.addMark(a1, b.unit('w1e1'), 2, 3);
+    expect(b.unit('w1e1').marks[0].turns).toBe(3);
+  });
+});

@@ -921,6 +921,34 @@
       },
       "text": "{action}의 {effect} {pct}%"
     },
+    "resource_cap": {
+      "label": "자원 상한",
+      "params": {
+        "delta": {
+          "kind": "int",
+          "min": -10,
+          "max": 10,
+          "default": 2,
+          "label": "변화량",
+          "format": "signed"
+        }
+      },
+      "text": "자원 상한 {delta}"
+    },
+    "mark_turns": {
+      "label": "표식 지속 턴",
+      "params": {
+        "delta": {
+          "kind": "int",
+          "min": -5,
+          "max": 5,
+          "default": 1,
+          "label": "변화량",
+          "format": "signed"
+        }
+      },
+      "text": "내가 거는 표식 지속 {delta}턴"
+    },
     "extra_effects": {
       "label": "행동에 효과 추가",
       "params": {

@@ -254,7 +254,8 @@ export function createBattle({ team, stage, data, seed = 1 }) {
       log({ t: 'stack', src: src.uid, tgt: tgt.uid, value: r.value, cap: r.cap, delta: r.value - before, name: r.name });
     },
     /** 표식 +1 (시전자별, 최대 max개), 지속 시간 새로 고침 */
-    addMark(src, tgt, turns, max = 1) {
+    addMark(src, tgt, baseTurns, max = 1) {
+      const turns = Math.max(1, baseTurns + (src.markTurnsDelta || 0));
       const m = tgt.marks.find((x) => x.src === src.uid);
       if (m) {
         m.n = Math.min(Math.max(1, max), m.n + 1);
