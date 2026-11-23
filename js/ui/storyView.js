@@ -10,7 +10,8 @@ import { completeStory, isRead } from '../systems/stories.js';
 import { mountBattle } from './battleView.js';
 import { openTeamEditor } from './teamView.js';
 import { teamMembers, teamPower, presetOf } from '../systems/teams.js';
-import { isCleared, stageRecord, recordClear } from '../systems/stageProgress.js';
+import { isCleared, stageRecord } from '../systems/stageProgress.js';
+import { clearStage } from '../systems/farming.js';
 import { rewardText as rewardLine } from '../systems/economy.js';
 
 const num = (n) => Number(n).toLocaleString('ko-KR');
@@ -203,7 +204,7 @@ export function storyScreen(ctx) {
           background: bg?.type === 'image' ? bg.value : null,
           onResult(summary) {
             if (summary.result !== 'win') return null;
-            const r = recordClear(ctx.save, stage, summary.rounds);
+            const r = clearStage(ctx, stage, summary, Math.random); // 별점 + 보상 + 장비 드롭
             ctx.commit();
             return r;
           },

@@ -2047,3 +2047,21 @@ button.ccard:active { transform: scale(0.97); }
 .level-modes { display: flex; gap: 6px; }
 .mem-card.is-clickable { cursor: pointer; }
 .mem-detail { display: grid; grid-template-columns: 200px 1fr; gap: 16px; align-items: start; }
+.result-stars { font-size: 26px; letter-spacing: 4px; color: #ffd84d; }
+
+/* ── 육성: 장비 탭 (티어 테두리 색) ── */
+.grow-gear { display: grid; gap: 12px; }
+.gear-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.gear-slot { display: grid; gap: 6px; padding: 10px; border-radius: 12px; border: 3px solid var(--tier, #5a4c78); background: rgba(255, 255, 255, 0.04); }
+.gear-slot-head { display: flex; justify-content: space-between; align-items: baseline; }
+.gear-tier { font-weight: 900; color: var(--tier, #ccc); }
+.gear-bag { display: grid; gap: 6px; max-height: 360px; overflow: auto; }
+.gear-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; border-left: 5px solid var(--tier, #5a4c78); background: rgba(255, 255, 255, 0.04); }
+.tier-1 { --tier: #9aa0a6; } .tier-2 { --tier: #5fd38a; } .tier-3 { --tier: #4f9dff; } .tier-4 { --tier: #b277ff; }
+.tier-5 { --tier: #ffd84d; } .tier-6 { --tier: #ff7a59; } .tier-7 { --tier: #4fe3e0; } .tier-8 { --tier: #ff5fae; }
+.adv-stars { color: #ffd84d; letter-spacing: 2px; }
+.adv-stars.big { font-size: 22px; }
+.stage-panel { display: grid; gap: 10px; }
+.drop-table { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.drop-chip { padding: 1px 8px; border-radius: 999px; border: 2px solid var(--tier, #888); font-weight: 800; }
+.farm-result { display: grid; gap: 4px; }

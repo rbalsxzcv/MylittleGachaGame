@@ -2,13 +2,14 @@
 import { TEAM_SIZE } from '../core/save.js';
 import { charPower } from './progression.js';
 import { memoryExtras } from './memories.js';
+import { gearExtras } from './gear.js';
 
 /**
  * 캐릭터 한 명의 장착품 → 능력치/전투에 넘길 extras { memory, passives, gear }
  * (statsOf · charPower · createBattle 멤버가 같이 씀)
  */
 export function extrasOf(ctx, charId) {
-  return { ...memoryExtras(ctx.save, ctx.data, charId) };
+  return { ...memoryExtras(ctx.save, ctx.data, charId), ...gearExtras(ctx.save, charId) };
 }
 
 /** 보유 캐릭터 하나의 전투력 (장착품 포함) */

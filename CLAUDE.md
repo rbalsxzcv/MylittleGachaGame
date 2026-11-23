@@ -27,7 +27,7 @@
 - 브라우저: 게임 폴더를 로컬 서버로 열고(`python -m http.server`) `tests/index.html` → 자동 실행. `?filter=gacha`로 일부만.
   개발 도구에서는 `http://127.0.0.1:5050/preview/tests/index.html` (작업 공간 데이터로 실행, 스냅샷 갱신 버튼이 파일로 저장).
 - Node(설치했다면): `node tests/run.js [이름 일부] [--update]` (`npm test`). `--update` = 회귀 스냅샷 갱신.
-- 파일: `config` / `stats`(능력치 모델) / `kitgen`(아키타입 생성기 · 번들 분리) / `memory`(추억) / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀) / `deletion`(캐릭터 삭제 정리) / `aliases`(id 별칭으로 세이브 옮기기 + 지금 id가 규칙대로인지) / `npc`(NPC 등급 ↔ 1–5 전환 시 가챠 풀/플레이어 화면/적 연결).
+- 파일: `config` / `stats`(능력치 모델) / `kitgen`(아키타입 생성기 · 번들 분리) / `memory`(추억) / `gear`(장비 · 드롭 · 반복/소탕) / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀) / `deletion`(캐릭터 삭제 정리) / `aliases`(id 별칭으로 세이브 옮기기 + 지금 id가 규칙대로인지) / `npc`(NPC 등급 ↔ 1–5 전환 시 가챠 풀/플레이어 화면/적 연결).
 - 새 테스트 파일은 `tests/all.js`에 한 줄. 러너 `tests/lib/runner.js`, 실제 데이터 로더 `tests/lib/gameData.js`, 전투 픽스처 `js/battle/testkit.js`, 샘플 `tests/fixtures/`.
 - **회귀 스냅샷** `tests/snapshots/stages.json`: 모든 스테이지 × 기준 팀(`tests/fixtures/teams.js`) × 시드 1~3 자동 전투 (`승패 라운드 피해/…`). 다르면 실패 + 바뀐 줄 목록 → 의도한 변경이면 갱신.
 - 연출 확인: `dev/fx-test.html` (정적 서버) 또는 개발 도구 `/fx-test` — 희귀도 조합 강제, 2배속, 모션 줄이기, `?auto=5&fake=1` 자동 실행.
@@ -115,6 +115,14 @@ genKey (생성기 항목: generic:<key> | signature:<캐릭터 id>), theme[] (�
 - 그림: 개발 도구 job 종류 `memory` — 등장 캐릭터 외형 슬롯(`characters.appearance {body, hair, eyes, outfit, props}`, 승인할 때 저장 / 없으면 승인 그림 프롬프트에서 한 번 만듦)
   을 프롬프트 맨 앞에 그대로 + AI(또는 theme 태그 템플릿)는 장면만 → 832×1216 → hires(`comfy.hiresScale`) → 카드 WebP 높이 1024 + 썸네일 256. 선택 img2img(컷아웃 합성).
   seed는 시도마다 기록, 입력 `seed`로 다시 그리기. 테두리는 게임 CSS(`.mem-card.rar-N`).
+
+### 장비 (`js/systems/gear.js`, 클리어 처리 `js/systems/farming.js`)
+- 4칸 고정 주옵션 hp · def · crit(확률+피해) · atk, 티어 T1–T`gear.tiers`, 강화 +0–+`maxEnh`. 수치 = slotBase × tierMul^(티어−1) × (1 + enhStep × 강화), 고정값 (stats.gearPieceStats).
+- 세이브는 개수로 쌓음 `gear['atk.3.2'] = {n, lock}`, 장착하면 하나 빠짐 → `equips[id].g.atk = '3.2'`. 자동 장착(칸마다 티어 → 강화), 강화(강화석), 분해(기본 + 쓴 강화석 × enhRefund, 잠금 제외), 일괄 분해(티어 이하).
+- 드롭: 지역 = 챕터, 지역 티어 = 챕터 순서 + 1(`gear.regionTier` 덮어쓰기), [티어−1, 티어] 비율 rates.normal / 챕터 마지막 스테이지 rates.boss + count.boss, 강화석 matPerClear × 티어. 칸은 무작위.
+- 별점: ★1 승리 · ★2 쓰러진 아군 없음 · ★3 + 라운드 ≤ ceil(제한 × star3Ratio). `stages[id].stars` = 최고.
+- `farming.clearStage(ctx, stage, summary, rand)` = 별점 + recordClear + 드롭 (스토리 전투 · 반복 · 소탕 공용). 반복 전투 = `sim.runOne` AUTO, 렌더 없음, 지면 멈춤. 소탕 = ★3만, 전투 없이. 스태미나 없음.
+- 화면: 육성 장비 탭(키 5), 모험에서 클리어한 스테이지 → 스테이지 창(드롭 표 · 반복 N · 소탕 N · 스토리 다시 보기), 전투 결과에 별점 · 드롭.
 
 ### 세이브 (localStorage `tinygacha_save_v2`, 안의 `v` = schemaVersion, 지금 4)
 ```

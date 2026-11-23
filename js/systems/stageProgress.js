@@ -2,7 +2,7 @@
 import { grantRewards } from './economy.js';
 
 export function stageRecord(save, id) {
-  return save.stages[id] || { clears: 0, firstClaimed: false, bestRounds: null };
+  return save.stages[id] || { clears: 0, firstClaimed: false, bestRounds: null, stars: 0 };
 }
 
 export const isCleared = (save, id) => stageRecord(save, id).clears > 0;

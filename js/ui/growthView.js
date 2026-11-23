@@ -19,9 +19,10 @@ import {
 import { buildUnit } from '../battle/units.js';
 import { extrasOf } from '../systems/teams.js';
 import { findMemory, holderOf, equipMemory, levelUpMemory, memoryCostFor, memoryPassives } from '../systems/memories.js';
-import { memoryStats } from '../systems/stats.js';
+import { memoryStats, gearPieceStats } from '../systems/stats.js';
 import { memoryCard } from './memoryCard.js';
-import { formatBig, RATIO_STATS } from '../config.js';
+import { bagList, equipGear, unequipGear, autoEquip, enhanceEquipped, enhanceCost, salvage, salvageValue, bulkSalvage, toggleLock, parsePiece } from '../systems/gear.js';
+import { formatBig, RATIO_STATS, GEAR_SLOTS } from '../config.js';
 import { describeSkill, describePassive, describeModifier } from '../battle/describe.js';
 
 const SORTS = [
@@ -34,7 +35,9 @@ const TABS = [
   { id: 'skills', label: '스킬' },
   { id: 'break', label: '돌파' },
   { id: 'memory', label: '추억' },
+  { id: 'gear', label: '장비' },
 ];
+const SLOT_LABEL = { hp: '체력', def: '방어', crit: '치명', atk: '공격' };
 const STAT_ROWS = [
   ['atk', '공격력'],
   ['def', '방어력'],
@@ -163,7 +166,7 @@ export function growthScreen(ctx) {
             h('button', { class: ['grow-tab', tab === t.id && 'active'], type: 'button', role: 'tab', onclick: () => ((tab = t.id), renderDetail()) }, t.label),
           ),
         );
-        const body = tab === 'level' ? levelTab(c, e, stats, extras) : tab === 'skills' ? skillsTab(c, e) : tab === 'memory' ? memoryTab(c, e) : breakTab(c, e);
+        const body = tab === 'level' ? levelTab(c, e, stats, extras) : tab === 'skills' ? skillsTab(c, e) : tab === 'memory' ? memoryTab(c, e) : tab === 'gear' ? gearTab(c) : breakTab(c, e);
         detail.replaceChildren(head, tabBar, h('div', { class: 'grow-body' }, body));
       }
 
@@ -383,6 +386,88 @@ export function growthScreen(ctx) {
           }),
         );
         return h('div', { class: 'grow-memory' }, current, h('h4', {}, `가진 추억 ${owned.length}장`), owned.length ? grid : h('p', { class: 'muted' }, '추억 뽑기에서 얻을 수 있어요.'));
+      }
+
+      // ── 장비: 4칸(티어 테두리) · 강화 · 자동 장착 · 가방(장착/잠금/분해/일괄 분해) ──
+      let salvageTier = 1;
+      function gearTab(c) {
+        const g = ctx.save.equips?.[c.id]?.g || {};
+        const refresh = () => (ctx.commit(), renderList(), renderDetail());
+        const statText = (slot, tier, enh) =>
+          Object.entries(gearPieceStats(slot, tier, enh, balance))
+            .map(([k, v]) => `${vocab.stats[k] || k} +${RATIO_STATS.includes(k) ? `${Math.round(v * 1000) / 10}%p` : num(v)}`)
+            .join(' · ');
+        const slots = GEAR_SLOTS.map((slot) => {
+          const cur = parsePiece(g[slot]);
+          const cost = cur && cur.enh < balance.gear.maxEnh ? enhanceCost(cur.tier, cur.enh, balance) : null;
+          return h(
+            'div',
+            { class: ['gear-slot', cur && `tier-${cur.tier}`] },
+            h('div', { class: 'gear-slot-head' }, h('b', {}, SLOT_LABEL[slot]), cur ? h('span', { class: 'gear-tier' }, `T${cur.tier} +${cur.enh}`) : h('span', { class: 'muted' }, '비어 있음')),
+            cur && h('div', { class: 'small' }, statText(slot, cur.tier, cur.enh)),
+            cur &&
+              h(
+                'div',
+                { class: 'row' },
+                h('button', { class: 'btn btn-primary', type: 'button', disabled: cost == null || (ctx.save.gearMat || 0) < cost, onclick: () => enhanceEquipped(ctx.save, c.id, slot, balance) && refresh() }, cost == null ? '최대 강화' : `강화 (강화석 ${num(cost)})`),
+                h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => unequipGear(ctx.save, c.id, slot) && refresh() }, '해제'),
+              ),
+          );
+        });
+        const bag = bagList(ctx.save);
+        const bagEl = h(
+          'div',
+          { class: 'gear-bag' },
+          bag.length
+            ? bag.map((x) =>
+                h(
+                  'div',
+                  { class: ['gear-row', `tier-${x.tier}`] },
+                  h('b', {}, `${SLOT_LABEL[x.slot]} T${x.tier} +${x.enh}`),
+                  h('span', { class: 'muted small' }, `×${x.n} · ${statText(x.slot, x.tier, x.enh)}`),
+                  h('span', { class: 'grow' }),
+                  h('button', { class: 'btn btn-ghost', type: 'button', onclick: () => equipGear(ctx.save, c.id, x.slot, x.tier, x.enh) && refresh() }, '장착'),
+                  h('button', { class: ['btn btn-ghost', x.lock && 'active'], type: 'button', title: '잠그면 분해되지 않아요', onclick: () => (toggleLock(ctx.save, x.key), refresh()) }, x.lock ? '🔒' : '🔓'),
+                  h('button', { class: 'btn btn-ghost', type: 'button', disabled: x.lock, onclick: () => salvage(ctx.save, x.key, 1, balance) && refresh() }, `분해 +${salvageValue(x.tier, x.enh, balance)}`),
+                ),
+              )
+            : h('p', { class: 'muted' }, '가방이 비어 있어요. 스테이지를 클리어하면 장비가 나와요 (반복 전투 · 소탕으로 파밍).'),
+        );
+        const tierSel = h('select', { onchange: (ev) => (salvageTier = Number(ev.target.value)) }, Array.from({ length: balance.gear.tiers }, (_, i) => h('option', { value: i + 1 }, `T${i + 1} 이하`)));
+        tierSel.value = String(salvageTier);
+        return h(
+          'div',
+          { class: 'grow-gear' },
+          h(
+            'div',
+            { class: 'row' },
+            h('button', { class: 'btn btn-primary', type: 'button', onclick: () => (autoEquip(ctx.save, c.id) ? refresh() : toast('더 좋은 장비가 없어요', { type: 'info' })) }, '자동 장착'),
+            h('span', { class: 'muted small' }, `강화석 ${num(ctx.save.gearMat || 0)}`),
+          ),
+          h('div', { class: 'gear-slots' }, slots),
+          h(
+            'div',
+            { class: 'row' },
+            h('h4', {}, `가방 (${bag.reduce((a, x) => a + x.n, 0)}개)`),
+            h('span', { class: 'grow' }),
+            tierSel,
+            h(
+              'button',
+              {
+                class: 'btn btn-ghost',
+                type: 'button',
+                onclick: () => {
+                  const r = bulkSalvage(ctx.save, salvageTier, balance);
+                  if (!r.pieces) return toast('분해할 장비가 없어요 (잠금 제외)', { type: 'info' });
+                  toast(`${r.pieces}개 분해 → 강화석 +${num(r.mat)}`, { type: 'success' });
+                  refresh();
+                },
+              },
+              '일괄 분해 (잠금 제외)',
+            ),
+          ),
+          bagEl,
+        );
       }
 
       function breakTab(c, e) {

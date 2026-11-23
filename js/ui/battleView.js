@@ -21,6 +21,14 @@ const num = (n) => Number(n).toLocaleString('ko-KR');
  * @param {(result:string)=>Array<{label:string, primary?:boolean, onClick:()=>void}>} o.resultActions
  * @param {()=>void} o.onQuit 포기
  */
+const SLOT_LABEL = { hp: '체력', def: '방어', crit: '치명', atk: '공격' };
+/** 드롭 한 줄: '공격 T2 · 체력 T1 · 강화석 +20' */
+export function dropLine(drops) {
+  const parts = drops.pieces.map((p) => `${SLOT_LABEL[p.slot] || p.slot} T${p.tier}`);
+  if (drops.gearMat) parts.push(`강화석 +${drops.gearMat}`);
+  return parts.join(' · ');
+}
+
 export function mountBattle(host, { ctx, stage, team, background = null, onResult, resultActions, onQuit }) {
   const seed = randomSeed();
   const battle = createBattle({ team, stage, data: ctx.data, seed });
@@ -78,6 +86,8 @@ export function mountBattle(host, { ctx, stage, team, background = null, onResul
         note && h('div', { class: 'muted small' }, note),
         reward?.first && rewardLine(reward.first) && h('div', { class: 'result-reward first' }, '첫 클리어 보상 ', h('b', {}, rewardLine(reward.first))),
         reward?.rewards && rewardLine(reward.rewards) && h('div', { class: 'result-reward' }, '클리어 보상 ', h('b', {}, rewardLine(reward.rewards))),
+        reward?.stars != null && h('div', { class: 'result-stars', title: '★1 승리 · ★2 쓰러진 아군 없음 · ★3 빠른 클리어 (★3이면 소탕 가능)' }, '★'.repeat(reward.stars) + '☆'.repeat(3 - reward.stars)),
+        reward?.drops && h('div', { class: 'result-reward' }, '장비 ', h('b', {}, dropLine(reward.drops))),
         h(
           'table',
           { class: 'result-table' },
