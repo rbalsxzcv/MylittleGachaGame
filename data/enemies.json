@@ -412,8 +412,7 @@
   {
     "id": "enemy_0007",
     "name": "숙부파 사설 경비병",
-    "image": "",
-    "boss": false,
+    "image": "assets/enemies/enemy_0007.png",
     "stats": {
       "atk": 60,
       "def": 18,
@@ -430,7 +429,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1.0,
+            "mult": 1,
             "stat": "atk",
             "hits": 1
           }
@@ -448,8 +447,7 @@
   {
     "id": "enemy_0008",
     "name": "이웃 영지 정규 방패병",
-    "image": "",
-    "boss": false,
+    "image": "assets/enemies/enemy_0008.png",
     "stats": {
       "atk": 51,
       "def": 23,
@@ -466,7 +464,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1.0,
+            "mult": 1,
             "stat": "atk",
             "hits": 1
           }
@@ -508,8 +506,7 @@
   {
     "id": "enemy_0009",
     "name": "약탈 부대 방화범",
-    "image": "",
-    "boss": false,
+    "image": "assets/enemies/enemy_0009.png",
     "stats": {
       "atk": 75,
       "def": 23,
@@ -575,8 +572,7 @@
   {
     "id": "enemy_0010",
     "name": "강철송곳니 용병대장",
-    "image": "",
-    "boss": false,
+    "image": "assets/enemies/enemy_0010.png",
     "stats": {
       "atk": 71,
       "def": 26,
@@ -593,7 +589,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1.0,
+            "mult": 1,
             "stat": "atk",
             "hits": 1
           }
@@ -656,7 +652,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1.0,
+            "mult": 1,
             "stat": "atk",
             "hits": 1
           }
