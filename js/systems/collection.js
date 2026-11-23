@@ -4,7 +4,7 @@ import { nowKstIso, now } from '../core/time.js';
 import { grantDuplicate } from './progression.js';
 
 /** 카드의 별 칸 수 = 최대 돌파 단계 */
-export const MAX_STARS = 5;
+export { MAX_BREAKTHROUGH as MAX_STARS } from '../config.js'; // 돌파 별 칸 수 (1–6)
 
 export function isOwned(save, id) {
   return !!save.owned[id];

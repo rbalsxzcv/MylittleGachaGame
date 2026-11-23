@@ -59,9 +59,9 @@ describe('id 별칭: 세이브 옮기기', () => {
   it('v1 세이브(예전 id) → 정수 환산도 새 id 기준 희귀도로', () => {
     const v1 = { v: 1, gems: 0, owned: { ssr_valeria: { count: 9, firstAt: '2026-11-01T00:00:00+09:00' } } };
     const m = migrate(v1, env);
-    // 5★: 중복 8 → 정수 5 + 넘침 3 × 200
-    expect(m.raw.owned.char_0002.essence).toBe(5);
-    expect(m.report.tickets).toBe(600);
+    // 5★: 중복 8 → 정수 6 (돌파 상한) + 넘침 2 × 200
+    expect(m.raw.owned.char_0002.essence).toBe(6);
+    expect(m.report.tickets).toBe(400);
   });
   it('예전 세이브 코드(예전 id)도 새 id로 불러옴', () => {
     const r = parseCode(exportCode(oldSave()), env);

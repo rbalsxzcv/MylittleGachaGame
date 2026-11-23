@@ -31,7 +31,7 @@ export const ARCHETYPES = [
       useIf: [{ type: 'stacks_at_least', n: 3 }],
     },
     ultimate: { names: ['폭렬 참', '심판의 대검', '끝없는 투지'], blurb: '{res}을(를) 가득 채우고 적 전체를 벱니다.', targeting: 'enemy_all', effects: [{ type: 'stack_gain', n: 5, ...self }, dmg(S('m', 1.2, 0.6, 3))] },
-    talents: [{ names: ['맞을수록 단단히'], blurb: '공격받으면 {res} +1 (라운드당 2번).', trigger: 'onHit', targeting: 'self', perRound: 2, effects: [{ type: 'stack_gain', n: S('n', 1, 1, 2, 1) }] }],
+    talents: [{ names: ['맞을수록 단단히'], blurb: '공격받으면 {res}을(를) 얻어요 (라운드당 2번).', trigger: 'onHit', targeting: 'self', perRound: 2, effects: [{ type: 'stack_gain', n: S('n', 1, 1, 2, 1) }] }],
     bt2: [
       { id: 'cap', label: '자원 상한 +2', passive: { names: ['넘치는 투지'], modifiers: [{ type: 'resource_cap', delta: 2 }, { type: 'stat_bonus', stat: 'atk', pct: S('a', 4, 0, 12, 1) }] } },
       { id: 'start', label: '자원 2개로 시작', passive: { names: ['준비된 칼날'], trigger: 'onBattleStart', targeting: 'self', effects: [{ type: 'stack_gain', n: S('n', 2, 1, 4, 1) }] } },
@@ -253,7 +253,7 @@ export const ARCHETYPES = [
     resource: null,
     basic: { names: ['흑마법 화살', '저주 탄', '마력 구체'], blurb: '마력 구체를 던져요.', targeting: 'enemy_single', effects: [dmg(S('m', 1, 0.3, 1.6))] },
     skill: { names: ['어둠의 창', '악마의 손톱', '저주 폭발'], blurb: '강한 흑마법 한 방.', targeting: 'enemy_single', effects: [dmg(S('m', 1.7, 0.8, 3.5))] },
-    ultimate: { names: ['악마 강림', '금기 해방', '계약 이행'], blurb: '적 전체를 치고 2턴 동안 악마의 모습으로 변신해요.', targeting: 'enemy_all', effects: [dmg(S('m', 1, 0.4, 2.5)), { type: 'transform', turns: 2, ...self }, { type: 'buff', stat: 'atk', pct: S('a', 20, 5, 40, 1), turns: 2, ...self }] },
+    ultimate: { names: ['악마 강림', '금기 해방', '계약 이행'], blurb: '적 전체를 치고 잠시 악마의 모습으로 변신해요.', targeting: 'enemy_all', effects: [dmg(S('m', 1, 0.4, 2.5)), { type: 'transform', turns: 2, ...self }, { type: 'buff', stat: 'atk', pct: S('a', 20, 5, 40, 1), turns: 2, ...self }] },
     transformed: {
       basic: { names: ['악마의 숨결', '지옥불', '검은 불꽃'], blurb: '변신 중: 기본 공격이 적 전체를 태워요.', targeting: 'enemy_all', effects: [dmg(S('m', 0.7, 0.3, 1.4))] },
       skill: { names: ['멸망의 창', '심연의 손', '종말의 저주'], blurb: '변신 중: 아주 강한 한 방 + 기력.', targeting: 'enemy_single', effects: [dmg(S('m', 2.4, 1, 5)), { type: 'energy_gain', n: 10, ...self }] },

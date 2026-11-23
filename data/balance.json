@@ -120,7 +120,7 @@
     "goldPerTicket": 10
   },
   "essence": {
-    "maxBreakthrough": 5,
+    "maxBreakthrough": 6,
     "overflowTickets": {
       "1": 30,
       "2": 30,

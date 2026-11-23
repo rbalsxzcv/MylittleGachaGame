@@ -52,25 +52,26 @@ describe('progression: 정수 / 돌파', () => {
     const save = createNewSave();
     const char = { id: 'x', rarity: 5 };
     expect(addCharacter(save, char, cfg).isNew).toBe(true);
-    for (let i = 0; i < 5; i++) expect(addCharacter(save, char, cfg).essence).toBe(1);
+    for (let i = 0; i < 6; i++) expect(addCharacter(save, char, cfg).essence).toBe(1);
     const over = addCharacter(save, char, cfg);
     expect(over).toEqual({ isNew: false, essence: 0, tickets: 200, breakthrough: 0 });
     expect(save.tickets).toBe(200);
   });
-  it('돌파하면 정수 1개 사용, 보유 한도 = 5 − 돌파 단계', () => {
+  it('돌파하면 정수 1개 사용, 보유 한도 = 6 − 돌파 단계', () => {
     const save = createNewSave();
-    save.owned.y = { level: 1, essence: 5, breakthrough: 0, count: 6, firstAt: '' };
+    save.owned.y = { level: 1, essence: 6, breakthrough: 0, count: 7, firstAt: '' };
     expect(canBreakthrough(save.owned.y, cfg)).toBe(true);
     expect(doBreakthrough(save, 'y', cfg)).toBe(true);
-    expect(save.owned.y).toEqual({ level: 1, essence: 4, breakthrough: 1, count: 6, firstAt: '' });
-    // 돌파 1 + 정수 4 = 5 → 이미 가득 → 다음 중복은 4★ 티켓 80
+    expect(save.owned.y).toEqual({ level: 1, essence: 5, breakthrough: 1, count: 7, firstAt: '' });
+    // 돌파 1 + 정수 5 = 6 → 이미 가득 → 다음 중복은 4★ 티켓 80
     expect(grantDuplicate(save, { id: 'y', rarity: 4 }, cfg)).toEqual({ essence: 0, tickets: 80 });
     save.owned.z = { level: 1, essence: 2, breakthrough: 0, count: 3, firstAt: '' };
-    doBreakthrough(save, 'z', cfg); // 정수 1, 돌파 1 → 한도 4
+    doBreakthrough(save, 'z', cfg); // 정수 1, 돌파 1 → 한도 5
     expect(grantDuplicate(save, { id: 'z', rarity: 4 }, cfg)).toEqual({ essence: 1, tickets: 0 });
   });
-  it('돌파 5단계면 더 돌파할 수 없음', () => {
-    expect(canBreakthrough({ essence: 3, breakthrough: 5 }, cfg)).toBe(false);
+  it('돌파 6단계면 더 돌파할 수 없음', () => {
+    expect(canBreakthrough({ essence: 3, breakthrough: 5 }, cfg)).toBe(true);
+    expect(canBreakthrough({ essence: 3, breakthrough: 6 }, cfg)).toBe(false);
     expect(canBreakthrough({ essence: 0, breakthrough: 2 }, cfg)).toBe(false);
   });
 });

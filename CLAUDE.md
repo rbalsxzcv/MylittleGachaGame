@@ -118,7 +118,9 @@ settings { fxSpeed: 1|2, fxSkip, battleSpeed: 1|2, battleAuto }
 - 천장: 배너 종류(상시/픽업)별 카운터, 5★ 없이 70번째 = 5★. 10연: 앞 9장에 4★+ 없으면 10번째는 4★/5★ (8:2).
 - 픽업: 5★일 때 확정이면 픽업, 아니면 50%, 놓치면 다음 5★ 확정. 빈 희귀도 → 가까운 낮은 희귀도 → 가까운 높은 희귀도.
 - 실제 5★ 비율은 천장/확정 때문에 약 3%. 지금 1·2★ 캐릭터가 없어서 그 몫은 3★로 대체됨 (가챠 시뮬로 확인).
-- 중복: 정수 +1, 보유 가능 = 5 − 돌파, 넘치면 바로 티켓 (5★ 200 / 4★ 80 / ≤3★ 30). 돌파: 정수 1 → +1단계(최대 5), 단계마다 패시브 하나.
+- 중복: 정수 +1, 보유 가능 = 6 − 돌파, 넘치면 바로 티켓 (5★ 200 / 4★ 80 / ≤3★ 30). 돌파: 정수 1 → +1단계(최대 6, `MAX_BREAKTHROUGH`).
+  1·3·4·5 = 역할 능력치 노드(`balance.breakthrough.statNodes` × `lowRarityBoost`, 실행 시 공식), 2 = `bt2`(메커니즘 강화), 6 = `bt6`(메커니즘 변형).
+  화면용 칸 목록 `progression.breakthroughNodes`.
 
 ### 육성 / 능력치 (`js/systems/stats.js computeStats`, `progression.statsOf`는 래퍼)
 - 능력치 11개: atk, def, hp, spd, critRate, critDmg, energyRegen(기본 1), effectHit, effectRes, healBonus, shieldBonus.

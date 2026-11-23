@@ -242,7 +242,7 @@
     "talents": [
       {
         "name": "맞을수록 단단히",
-        "description": "공격받으면 투지 +1 (라운드당 2번).",
+        "description": "공격받으면 투지를 얻어요 (라운드당 2번).",
         "trigger": "onHit",
         "conditions": [],
         "targeting": "self",
@@ -923,7 +923,7 @@
       },
       "ultimate": {
         "name": "악마 강림",
-        "description": "적 전체를 치고 2턴 동안 악마의 모습으로 변신해요.",
+        "description": "적 전체를 치고 잠시 악마의 모습으로 변신해요.",
         "targeting": "enemy_all",
         "effects": [
           {

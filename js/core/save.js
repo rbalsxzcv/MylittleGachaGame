@@ -3,7 +3,7 @@
 // 예전 버전은 MIGRATIONS를 순서대로 적용해서 최신으로 옮김 (v1 키는 백업으로 그대로 둠)
 
 import { ID_PATTERN } from './data.js';
-import { overflowTickets } from '../config.js';
+import { overflowTickets, MAX_BREAKTHROUGH } from '../config.js';
 import { remapSaveIds } from './aliases.js';
 import { kstDateKey, nowKstIso, now } from './time.js';
 
@@ -224,7 +224,7 @@ export function sanitize(raw) {
       owned[id] = {
         level: int(entry.level, 1, MAX_LEVEL, 1),
         essence: int(entry.essence, 0, 99, 0),
-        breakthrough: int(entry.breakthrough, 0, 5, 0),
+        breakthrough: int(entry.breakthrough, 0, MAX_BREAKTHROUGH, 0),
         count: int(entry.count, 1, 1_000_000, 1),
         firstAt: isoString(entry.firstAt, base.createdAt),
       };

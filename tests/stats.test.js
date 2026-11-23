@@ -2,7 +2,7 @@
 import { describe, it, expect } from './lib/runner.js';
 import { loadConfig } from '../js/config.js';
 import { computeStats, baseStatsOf, breakthroughStatNodes, memoryStats, gearPieceStats, gearStats } from '../js/systems/stats.js';
-import { statsOf, powerOf } from '../js/systems/progression.js';
+import { statsOf, powerOf, breakthroughNodes } from '../js/systems/progression.js';
 
 const cfg = loadConfig({});
 const T = cfg.stats.roleTemplate;
@@ -67,5 +67,19 @@ describe('능력치 모델: 돌파 · 추억 · 장비', () => {
     const p0 = powerOf(base, cfg);
     expect(powerOf({ ...base, energyRegen: 1.1 }, cfg)).toBe(Math.floor(p0 + 200 * 0.1));
     expect(powerOf({ ...base, effectHit: 0.2 }, cfg)).toBe(Math.floor(p0 + 100 * 0.2));
+  });
+});
+
+describe('돌파 1–6 칸', () => {
+  it('1·3·4·5 = 역할 능력치 노드, 2 = bt2, 6 = bt6 (없으면 빈 칸)', () => {
+    const c = { rarity: 5, role: 'defender', bt2: { name: '강화', modifiers: [] }, bt6: null };
+    const nodes = breakthroughNodes(c, cfg);
+    expect(nodes.map((n) => n.kind)).toEqual(['stat', 'passive', 'stat', 'stat', 'stat', 'empty']);
+    expect(nodes[0]).toEqual({ step: 1, kind: 'stat', stat: 'hp', pct: 8 });
+    expect(nodes[1].passive.name).toBe('강화');
+  });
+  it('예전 데이터(breakthroughs만): 그 목록 그대로', () => {
+    const nodes = breakthroughNodes({ rarity: 3, breakthroughs: [{ name: 'a' }, { name: 'b' }] }, cfg);
+    expect(nodes.map((n) => n.passive?.name ?? null)).toEqual(['a', 'b', null, null, null, null]);
   });
 });

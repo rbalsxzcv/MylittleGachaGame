@@ -107,7 +107,7 @@ export const DEFAULTS = {
     tweakWarnPct: 10, // 캐릭터 statTweak(%)가 이걸 넘으면 개발 도구 경고
   },
   level: { costBase: 10, costExp: 1.25, goldPerTicket: 10 }, // lv→lv+1 티켓 = ceil(costBase × lv^costExp), 골드 = 티켓 × goldPerTicket
-  essence: { maxBreakthrough: 5, overflowTickets: { 1: 30, 2: 30, 3: 30, 4: 80, 5: 200 } },
+  essence: { maxBreakthrough: 6, overflowTickets: { 1: 30, 2: 30, 3: 30, 4: 80, 5: 200 } }, // 돌파 1–6, 정수 1개씩
   daily: { tickets: 30, gold: 3000 },
   // 전투력 가중치 (energyRegen은 1을 넘는 만큼만)
   power: { atk: 2, def: 1.5, hp: 0.2, spd: 2, critRate: 300, critDmg: 100, energyRegen: 200, effectHit: 100, effectRes: 100, healBonus: 120, shieldBonus: 120 },

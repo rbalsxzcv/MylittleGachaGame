@@ -5,6 +5,7 @@ import { go } from './router.js';
 import { charArt, rarityBadge, starRow } from './charCard.js';
 import { formatGems } from '../systems/economy.js';
 import {
+  breakthroughNodes,
   statsOf,
   powerOf,
   costFor,
@@ -16,7 +17,7 @@ import {
   essenceTicketRate,
 } from '../systems/progression.js';
 import { buildUnit } from '../battle/units.js';
-import { formatBig } from '../config.js';
+import { formatBig, RATIO_STATS } from '../config.js';
 import { describeSkill, describePassive, describeModifier } from '../battle/describe.js';
 
 const SORTS = [
@@ -221,10 +222,25 @@ export function growthScreen(ctx) {
 
       function skillsTab(c, e) {
         const unit = buildUnit({ entity: c, level: e.level, breakthrough: e.breakthrough, side: 'ally', slot: 0, uid: 'p', balance });
-        const unlocked = (c.breakthroughs || []).slice(0, e.breakthrough);
+        // 지금 켜진 상시 능력 중 수정자가 있는 것 (특성 · 돌파 2/6 · 예전 돌파)
+        const unlocked = [
+          ...(c.talents || []).map((p) => ({ p, label: '특성' })),
+          ...(c.bt2 && e.breakthrough >= 2 ? [{ p: c.bt2, label: '돌파 2' }] : []),
+          ...(c.bt6 && e.breakthrough >= 6 ? [{ p: c.bt6, label: '돌파 6' }] : []),
+          ...(c.breakthroughs || []).slice(0, e.breakthrough).map((p, i) => ({ p, label: `돌파 ${i + 1}` })),
+        ];
+        const res = c.resource;
         return h(
           'div',
           { class: 'grow-skills' },
+          // 핵심 메커니즘 먼저: 자원 · 특성
+          (res || (c.talents || []).length) &&
+            h(
+              'section',
+              { class: 'skill-card skill-core' },
+              h('div', { class: 'skill-head' }, h('span', { class: 'skill-kind' }, '핵심'), h('b', {}, res ? `${res.name} (최대 ${unit.res?.cap ?? res.cap})` : '특성')),
+              (c.talents || []).map((p) => h('div', {}, h('b', { class: 'small' }, p.name), p.description && h('p', { class: 'skill-desc' }, p.description), h('ul', { class: 'skill-effects' }, describePassive(p, vocab).map((t) => h('li', {}, t))))),
+            ),
           ['basic', 'skill', 'ultimate'].map((a) => {
             const s = unit.kit[a];
             if (!s) return null;
@@ -236,12 +252,12 @@ export function growthScreen(ctx) {
                   ? `기력 ${unit.ultCost} · 턴을 쓰지 않음`
                   : `SP +${balance.combat.sp.basicGain} · 기력 +${unit.energyGain.basic}`;
             const applied = [];
-            unlocked.forEach((p, i) => {
+            for (const { p, label } of unlocked) {
               for (const m of p.modifiers || []) {
                 const act = modifierAction(m);
-                if (act === a || (act === 'any' && m.type === 'effect_power')) applied.push(`돌파 ${i + 1} 적용: ${describeModifier(m, vocab)}`);
+                if (act === a || (act === 'any' && m.type === 'effect_power')) applied.push(`${label} 적용: ${describeModifier(m, vocab)}`);
               }
-            });
+            }
             return h(
               'section',
               { class: ['skill-card', `skill-${a}`] },
@@ -255,7 +271,7 @@ export function growthScreen(ctx) {
       }
 
       function breakTab(c, e) {
-        const nodes = c.breakthroughs || [];
+        const nodes = breakthroughNodes(c, balance);
         const max = balance.essence.maxBreakthrough;
         const rate = essenceTicketRate(c.rarity, balance);
         return h(
@@ -271,14 +287,15 @@ export function growthScreen(ctx) {
             'ol',
             { class: 'break-nodes' },
             Array.from({ length: max }, (_, i) => {
-              const p = nodes[i];
+              const node = nodes[i];
+              const p = node?.kind === 'passive' ? node.passive : node?.kind === 'stat' ? { name: `${vocab.stats[node.stat] || node.stat} +${node.pct}${RATIO_STATS.includes(node.stat) ? '%p' : '%'}`, description: '' } : null;
               const state = i < e.breakthrough ? 'unlocked' : i === e.breakthrough && e.essence >= 1 ? 'ready' : 'locked';
               const stateLabel = { unlocked: '해금', ready: '돌파 가능', locked: '잠김' }[state];
-              const lines = p ? describePassive(p, vocab) : [];
+              const lines = node?.kind === 'passive' ? describePassive(p, vocab) : [];
               return h(
                 'li',
                 { class: ['break-node', `is-${state}`] },
-                h('div', { class: 'break-step' }, `돌파 ${i + 1}`),
+                h('div', { class: 'break-step' }, `돌파 ${i + 1}`, node?.kind === 'passive' && (i === 1 || i === 5) && h('span', { class: 'break-tag' }, i === 1 ? '강화' : '변형')),
                 h(
                   'div',
                   { class: 'break-main' },

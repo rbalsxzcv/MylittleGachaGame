@@ -2,7 +2,7 @@
 // 공식의 숫자는 모두 balance(= config.js loadConfig 결과)에서 옵니다.
 // 화면과 분리된 순수 함수 — 전투 엔진과 개발 도구 시뮬레이터도 같이 씁니다.
 
-import { baseStatsOf, computeStats } from './stats.js';
+import { baseStatsOf, computeStats, breakthroughStatNodes } from './stats.js';
 import { loadConfig, normalizeRarity, overflowTickets } from '../config.js';
 
 /** 예전 이름 호환 (개발 도구가 부름): balance.json → 설정 객체 */
@@ -25,6 +25,25 @@ export function activePassives(entity, breakthrough = 0, extra = []) {
   if (entity?.bt6 && breakthrough >= 6) out.push(entity.bt6);
   out.push(...(entity?.breakthroughs || []).slice(0, Math.max(0, breakthrough)));
   return [...out, ...extra];
+}
+
+/**
+ * 돌파 1–6 칸 (화면용): 1·3·4·5 = 역할 능력치 노드 (balance 공식), 2 = bt2, 6 = bt6
+ * 예전 데이터(breakthroughs만 있음)는 그 목록을 그대로 1~N칸으로
+ * @returns {Array<{step:number, kind:'stat'|'passive'|'empty', stat?:string, pct?:number, passive?:object}>}
+ */
+export function breakthroughNodes(entity, balance) {
+  const max = balance.essence.maxBreakthrough;
+  const legacy = !entity?.bt2 && !entity?.bt6 && (entity?.breakthroughs || []).length > 0;
+  const stat = breakthroughStatNodes(entity, max, balance);
+  return Array.from({ length: max }, (_, i) => {
+    const step = i + 1;
+    if (legacy) return entity.breakthroughs[i] ? { step, kind: 'passive', passive: entity.breakthroughs[i] } : { step, kind: 'empty' };
+    if (step === 2) return entity?.bt2 ? { step, kind: 'passive', passive: entity.bt2 } : { step, kind: 'empty' };
+    if (step === 6) return entity?.bt6 ? { step, kind: 'passive', passive: entity.bt6 } : { step, kind: 'empty' };
+    const n = stat.find((x) => x.step === step);
+    return n ? { step, kind: 'stat', stat: n.stat, pct: n.pct } : { step, kind: 'empty' };
+  });
 }
 
 /**

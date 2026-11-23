@@ -2,7 +2,7 @@
 // 이미지가 없거나 불러오기 실패 → 희귀도 색 카드 + 이름으로 대체
 
 import { h } from './dom.js';
-import { MAX_STARS } from '../systems/collection.js';
+import { MAX_BREAKTHROUGH as MAX_STARS } from '../config.js';
 import { rarityLabel } from '../config.js';
 
 // 한 번 실패한 이미지 주소는 다시 요청하지 않음

@@ -26,13 +26,13 @@ describe('save: v1 → 최신', () => {
     expect(m.applied).toEqual([2, 3]);
     expect(s.v).toBe(SAVE_VERSION);
   });
-  it('중복 → 정수 (최대 5), 넘치는 몫은 희귀도별 티켓', () => {
-    expect(s.owned.fx_ssr_a.essence).toBe(5);
+  it('중복 → 정수 (최대 = 돌파 상한 6), 넘치는 몫은 희귀도별 티켓', () => {
+    expect(s.owned.fx_ssr_a.essence).toBe(6);
     expect(s.owned.fx_sr_a.essence).toBe(1);
-    expect(s.owned.fx_r_a.essence).toBe(5);
-    // 5★ 넘침 3 × 200 + 3★ 넘침 1 × 30 (+ 데이터에 없는 id: 중복 2 → 정수 2, 넘침 없음)
-    expect(m.report.tickets).toBe(630);
-    expect(s.tickets).toBe(630);
+    expect(s.owned.fx_r_a.essence).toBe(6);
+    // 5★ 중복 8 → 넘침 2 × 200, 3★ 중복 6 → 넘침 없음 (+ 데이터에 없는 id: 중복 2 → 정수 2, 넘침 없음)
+    expect(m.report.tickets).toBe(400);
+    expect(s.tickets).toBe(400);
   });
   it('데이터에 없는 id도 지우지 않음', () => {
     expect(!!s.owned.deleted_char).toBe(true);

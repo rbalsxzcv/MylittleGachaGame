@@ -108,7 +108,7 @@ export function showBannerDetail(ctx, banner) {
     `${g.pity}회 안에 ${MAX_RARITY}★가 나오지 않으면 ${g.pity}번째는 ${MAX_RARITY}★ 확정`,
     `10회 뽑기는 ${g.tenGuaranteeMin}★ 이상 1장 확정`,
     banner.type === 'pickup' && `${MAX_RARITY}★ 획득 시 ${share}% 확률로 픽업 캐릭터 · 픽업이 아니었다면 다음 ${MAX_RARITY}★는 픽업 확정`,
-    '이미 가진 캐릭터가 나오면 그 캐릭터의 정수 +1 (돌파 5단계를 넘는 정수는 티켓으로 바뀌어요)',
+    '이미 가진 캐릭터가 나오면 그 캐릭터의 정수 +1 (돌파 6단계를 넘는 정수는 티켓으로 바뀌어요)',
     banner.type === 'pickup' ? '천장 횟수와 픽업 확정은 모든 픽업 배너가 함께 사용해요' : '천장 횟수는 픽업 배너와 따로 세요',
   ].filter(Boolean);
 
