@@ -71,6 +71,7 @@ phases  [ { hpBelow: 1–99, name, pattern, enterEffects[] } ]                  
 enrage  { round, effects[] } | null                                           // 그 라운드부터 효과 (자신)
 passives [Passive]                                                            // 항상 켜짐
 ```
+NPC 연결 적은 보통 `image`를 비워 둠(= NPC 그림, NPC를 다시 뽑으면 전투에도 반영). 개발 도구 일괄 생성은 그런 적을 빼고 NPC 항목에 "적 겸용"으로 표시, 적 전용 그림은 덮어쓰기(배포 검사 경고, 적 탭 "NPC 그림으로 되돌리기").
 예전 `kit{basic,skill,ultimate}`는 읽을 때 actions + 기본 패턴 `[basic, basic, skill(, ultimate=big)]`으로 바뀜 (`schema.cleanEnemyBehavior`).
 
 ### 모험 스테이지: data/stages/index.json + data/stages/<챕터>.json

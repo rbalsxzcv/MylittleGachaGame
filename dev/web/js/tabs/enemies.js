@@ -118,14 +118,34 @@ export function enemiesTab(root, { select } = {}) {
     const id = h('div', {}, idBadge(v.id));
     const name = h('input', { value: v.name, oninput: (ev) => ((v.name = ev.target.value), mark()) });
     const boss = h('input', { type: 'checkbox', checked: v.boss, onchange: (ev) => ((v.boss = ev.target.checked), mark()) });
-    const imgSel = h('select', { onchange: (ev) => ((v.image = ev.target.value), mark(), renderImg()) }, h('option', { value: '' }, '(그림 없음 — 기본 카드)'), images.map((p) => h('option', { value: p }, p.replace('assets/enemies/', ''))));
+    const noImgOpt = h('option', { value: '' });
+    const imgSel = h('select', { onchange: (ev) => ((v.image = ev.target.value), mark(), renderImg()) }, noImgOpt, images.map((p) => h('option', { value: p }, p.replace('assets/enemies/', ''))));
     imgSel.value = v.image || '';
     const imgBox = h('div', { class: 'thumb big-thumb checker' });
-    // NPC 연결: 이 적이 어떤 NPC 캐릭터 본인인지 (적 그림이 없으면 그 캐릭터 그림을 씀)
+    const imgNote = h('div', { class: 'muted small' });
+    // NPC 연결: 이 적이 어떤 NPC 캐릭터 본인인지. 보통 적 그림은 비워 둠 → 그 캐릭터 그림을 씀 (NPC 그림을 다시 뽑으면 전투에도 바로 반영)
     const linkedChar = () => (v.charId ? state.data.characters.find((c) => c.id === v.charId) : null);
     const renderImg = () => {
-      const fallback = !v.image && linkedChar()?.image;
+      const c = linkedChar();
+      const fallback = !v.image && c?.image;
+      noImgOpt.textContent = c ? `(연결된 NPC 그림 사용 — ${c.name})` : '(그림 없음 — 기본 카드)';
       imgBox.replaceChildren(v.image ? h('img', { src: wsImage(v.image), alt: '' }) : fallback ? h('img', { src: wsImage(fallback), alt: '', title: '연결된 NPC 그림' }) : h('span', {}, '그림 없음'));
+      imgNote.replaceChildren(
+        ...(c && v.image
+          ? [`적 전용 그림이 「${c.name}」 NPC 그림을 덮어쓰고 있어요. `, h('button', { class: 'btn tiny', onclick: () => ((v.image = ''), (imgSel.value = ''), mark(), renderImg()) }, 'NPC 그림으로 되돌리기')]
+          : c
+            ? [`「${c.name}」 NPC 그림을 같이 써요 — 그림을 바꾸려면 캐릭터 탭에서 다시 뽑아 주세요.`]
+            : []),
+      );
+    };
+    /** NPC 연결 적에 전용 그림을 넣기 전 확인 */
+    const okToOverride = () => {
+      const c = linkedChar();
+      if (!c || v.image) return Promise.resolve(true);
+      return confirmBox('NPC 그림 덮어쓰기', `이 적은 「${c.name}」 NPC 그림을 같이 쓰고 있어요.
+적 전용 그림을 넣으면 전투에서는 NPC 그림 대신 그 그림이 나와요 (NPC 그림을 다시 뽑아도 전투에는 반영 안 됨).
+
+NPC 그림을 바꾸려는 거면 캐릭터 탭에서 다시 뽑아 주세요.`, { ok: '전용 그림 넣기' });
     };
     const npcOptions = state.data.characters.filter((c) => isNpc(c) || c.id === v.charId);
     const npcSel = h(
@@ -155,6 +175,7 @@ export function enemiesTab(root, { select } = {}) {
         const file = ev.target.files?.[0];
         if (!file) return;
         if (editing.isNew || !state.data.enemies.some((x) => x.id === v.id)) return toast('먼저 적을 저장해 주세요 (그림 파일 이름 = 자동 id)', 'error');
+        if (!(await okToOverride())) return (ev.target.value = '');
         const data = await new Promise((res) => {
           const r = new FileReader();
           r.onload = () => res(r.result);
@@ -177,8 +198,9 @@ export function enemiesTab(root, { select } = {}) {
       'button',
       {
         class: 'btn small',
-        onclick: () => {
+        onclick: async () => {
           if (editing.isNew || !state.data.enemies.some((x) => x.id === v.id)) return toast('먼저 적을 저장해 주세요 (그림은 저장된 적에 연결돼요)', 'error');
+          if (!(await okToOverride())) return;
           openEnemyGenerator({ ...(state.data.enemies.find((x) => x.id === v.id) || {}), name: v.name, boss: v.boss }, (path) => {
             if (!images.includes(path)) {
               images.push(path);
@@ -353,7 +375,7 @@ export function enemiesTab(root, { select } = {}) {
         'section',
         { class: 'card' },
         h('h2', {}, isNew ? '새 적' : `적 편집 — ${v.id}`),
-        h('div', { class: 'row', style: { gap: '16px', alignItems: 'flex-start' } }, imgBox, h('div', { class: 'grow' }, h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (자동)', id), h('label', { class: 'field' }, '이름', name)), h('label', { class: 'inline' }, boss, '보스 (카드가 크게 표시)'), h('label', { class: 'field', title: 'NPC 등급 캐릭터가 적으로 싸울 때 연결. 적 그림이 없으면 그 캐릭터 그림을 써요' }, 'NPC 연결 (선택)', npcSel), h('label', { class: 'field' }, '그림 (assets/enemies) — 올리기 또는 AI로 그리기', h('div', { class: 'row wrap' }, imgSel, upload, drawAi)))),
+        h('div', { class: 'row', style: { gap: '16px', alignItems: 'flex-start' } }, imgBox, h('div', { class: 'grow' }, h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (자동)', id), h('label', { class: 'field' }, '이름', name)), h('label', { class: 'inline' }, boss, '보스 (카드가 크게 표시)'), h('label', { class: 'field', title: 'NPC 등급 캐릭터가 적으로 싸울 때 연결. 적 그림을 비워 두면 그 캐릭터 그림을 써요' }, 'NPC 연결 (선택)', npcSel), h('label', { class: 'field' }, '그림 (assets/enemies) — 올리기 또는 AI로 그리기', h('div', { class: 'row wrap' }, imgSel, upload, drawAi)), imgNote)),
         power,
         h('h3', {}, '기본 능력치 (Lv.1, 레벨에 따라 성장)'),
         statsForm(v.stats, { ...balance.stats.byRarity[3], critRate: balance.stats.critRate, critDmg: balance.stats.critDmg }, { onChange: mark }),

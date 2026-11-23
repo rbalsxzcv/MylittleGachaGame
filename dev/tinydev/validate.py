@@ -244,6 +244,8 @@ def validate(content, asset_exists, held=None):
                 r.error(where, f"연결된 NPC 캐릭터가 없어요: {link!r}")
             elif link not in npc_ids:
                 r.warn(where, f"연결된 캐릭터 '{link}'가 NPC 등급이 아니에요 (뽑을 수 있는 캐릭터가 적으로도 나와요)")
+            if link in char_ids and e.get("image"):
+                r.warn(where, "연결된 NPC 그림 대신 적 전용 그림을 써요 — NPC 그림을 다시 뽑아도 전투에는 반영 안 됨 (의도한 게 아니면 적 탭에서 'NPC 그림으로 되돌리기')")
         # 그림이 없어도 연결된 NPC 그림이 있으면 그걸 씀
         linked_image = next((c.get("image") for c in chars if c["id"] == link), "") if link else ""
         _check_asset(r, where, "image", e.get("image") or linked_image, asset_exists)

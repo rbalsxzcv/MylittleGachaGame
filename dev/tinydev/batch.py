@@ -30,8 +30,17 @@ def _exists(path):
 def targets():
     """뽑을 수 있는 항목 전체 + 지금 그림이 있는지"""
     out = []
-    for c in store.read_list("characters"):
-        out.append({"key": f"char:{c['id']}", "group": "char", "label": f"{c.get('name', c['id'])} ({rarity.label(rarity.grade_of(c))})", "path": c.get("image") or "", "has": _exists(c.get("image"))})
+    chars = store.read_list("characters")
+    enemies = store.read_list("enemies")
+    char_ids = {c.get("id") for c in chars}
+    # NPC 연결 적(charId)은 보통 그림을 비워 두고 NPC 그림을 같이 씀 → 적 항목 대신 NPC 항목에 '겸용' 표시
+    shared = {}
+    for e in enemies:
+        if e.get("charId") in char_ids and not e.get("image"):
+            shared.setdefault(e["charId"], []).append(e.get("name") or e["id"])
+    for c in chars:
+        also = "".join(f" · 적 「{n}」 겸용" for n in shared.get(c["id"], []))
+        out.append({"key": f"char:{c['id']}", "group": "char", "label": f"{c.get('name', c['id'])} ({rarity.label(rarity.grade_of(c))}){also}", "path": c.get("image") or "", "has": _exists(c.get("image"))})
     for b in store.read_list("banners"):
         out.append({"key": f"banner:{b['id']}", "group": "banner", "label": b.get("title") or b["id"], "path": b.get("bannerImage") or "", "has": _exists(b.get("bannerImage"))})
     # 스토리 배경: 설정집(챕터 팩)에 등록된 배경 → assets/bg/<이름>.jpg
@@ -40,8 +49,12 @@ def targets():
     for name, bg in sorted(bible.load().get("backgrounds", {}).items()):
         path = f"assets/bg/{name}.jpg"
         out.append({"key": f"bg:{name}", "group": "bg", "label": bg.get("label") or name, "path": path, "has": _exists(path)})
-    for e in store.read_list("enemies"):
-        out.append({"key": f"enemy:{e['id']}", "group": "enemy", "label": f"{e.get('name', e['id'])}{' (보스)' if e.get('boss') else ''}", "path": e.get("image") or "", "has": _exists(e.get("image"))})
+    for e in enemies:
+        linked = e.get("charId") in char_ids
+        if linked and not e.get("image"):
+            continue  # 그림 = 연결된 NPC 그림 (캐릭터 항목에서 뽑음)
+        note = " (NPC 그림 덮어씀)" if linked else ""
+        out.append({"key": f"enemy:{e['id']}", "group": "enemy", "label": f"{e.get('name', e['id'])}{' (보스)' if e.get('boss') else ''}{note}", "path": e.get("image") or "", "has": _exists(e.get("image"))})
     for p in store.read_list("props"):
         out.append({"key": f"prop:{p['id']}", "group": "prop", "label": p.get("label") or p["id"], "path": p.get("image") or "", "has": _exists(p.get("image"))})
     ui = store.read_ui()

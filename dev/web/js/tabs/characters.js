@@ -163,7 +163,11 @@ export function charactersTab(root) {
             h('span', { class: `chip r-${gradeOf(c)}` }, rarLabel(gradeOf(c))),
             ' ',
             gradeOf(c) === NPC
-              ? linkedEnemies(c).map((e) => h('a', { class: 'chip', href: `#enemies/${e.id}`, title: '이 NPC와 연결된 적' }, `적: ${e.name}`))
+              ? linkedEnemies(c).map((e) =>
+                  e.image
+                    ? h('a', { class: 'chip warn', href: `#enemies/${e.id}`, title: '이 NPC와 연결된 적 — 적 전용 그림이 이 NPC 그림을 덮어쓰고 있어요 (적 탭에서 되돌리기)' }, `적: ${e.name} (전용 그림)`)
+                    : h('a', { class: 'chip', href: `#enemies/${e.id}`, title: '이 NPC와 연결된 적 — 전투에서도 이 그림을 써요' }, `적: ${e.name} (그림 겸용)`),
+                )
               : c.kit
                 ? h('span', { class: 'chip ok', title: `돌파 능력 ${(c.breakthroughs || []).length}개` }, `전투 ✓ 돌파 ${(c.breakthroughs || []).length}`)
                 : h('span', { class: 'chip warn' }, '기본 스킬'),
