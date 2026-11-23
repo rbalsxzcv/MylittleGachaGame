@@ -308,7 +308,7 @@ def shop_put():
 
 @app.post("/api/assets/upload")
 def asset_upload():
-    """그림 올리기 (적 / 소품 그림): dataURL → PNG, 긴 변 512px(소품 384px)로 줄여 assets/<dir>/<name>.png"""
+    """그림 올리기 (적 / 소품 그림): dataURL → PNG, 긴 변 1280px(소품 384px)보다 크면 줄여 assets/<dir>/<name>.png"""
     data = body()
     sub = data.get("dir")
     if sub not in ("enemies", "props"):
@@ -340,7 +340,7 @@ def asset_upload():
     except Exception as e:  # noqa: BLE001 — 어떤 형식 오류든 사용자에게 같은 안내
         raise ValueError("PNG/JPEG/WebP 그림만 올릴 수 있어요") from e
     img = img.convert("RGBA")
-    side = jobs.PROP_LONG_SIDE if sub == "props" else config.CHAR_LONG_SIDE
+    side = jobs.PROP_LONG_SIDE if sub == "props" else config.UPLOAD_MAX_LONG_SIDE
     img.thumbnail((side, side))
     rel = f"assets/{sub}/{name}.png"
     dest = config.WORKSPACE / rel

@@ -96,6 +96,13 @@ def resize_long_side(img, long_side):
     return img.resize((max(1, round(w * scale)), max(1, round(h * scale))), Image.LANCZOS)
 
 
+def shrink_long_side(img, max_side):
+    """긴 변이 max_side보다 클 때만 줄임 (키우지 않음)"""
+    if max(img.size) <= max_side:
+        return img
+    return resize_long_side(img, max_side)
+
+
 def cover_resize(img, size):
     """비율을 유지하며 size를 꽉 채우도록 자르기 (배너/배경용)"""
     return ImageOps.fit(img.convert("RGB"), size, Image.LANCZOS, centering=(0.5, 0.45))

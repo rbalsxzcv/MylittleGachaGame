@@ -168,7 +168,7 @@ export function enemiesTab(root, { select } = {}) {
         imgSel.value = r.path;
         mark();
         renderImg();
-        toast('그림을 올렸어요 (긴 변 512px PNG)', 'success');
+        toast('그림을 올렸어요 (PNG, 긴 변 최대 1280px)', 'success');
       },
     });
 

@@ -67,7 +67,7 @@ def is_cutout_job(job):
 
 def _process(job, original_img, flatten=None):
     """원본 → 결과 이미지
-    캐릭터: 배경 제거 + 긴 변 512px / UI 아이콘: 배경 제거 + 256px(로고 640px) / 배너·배경: 1280x720 JPG"""
+    캐릭터·적: 배경 제거 + 여백 자르기(원본 해상도) / 소품 384px · UI 아이콘 256px(로고 640px) / 배너·배경: 1280x720 JPG"""
     if is_cutout_job(job):
         long_side = None
         if job["kind"] == "ui":
@@ -154,6 +154,11 @@ def redo_cutout(job, n, flatten_color=None):
     attempt = get_attempt(job, n)
     original = images.open_image(job_dir(job["id"]) / attempt["original"])
     img, ext, method, warning = _process(job, original, flatten_color)
+    return add_result(job, attempt, img, ext, method, warning, flatten_color)
+
+
+def add_result(job, attempt, img, ext, method, warning, flatten_color=None):
+    """시도에 새 결과 그림을 더하고(aNN-result-K) 지금 결과로 정함"""
     _write_result(job, attempt, img, ext)
     attempt["method"], attempt["warning"], attempt["flatten"] = method, warning, flatten_color
     attempt["check"] = _check(job, img)

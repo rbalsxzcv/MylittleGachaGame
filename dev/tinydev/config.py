@@ -45,8 +45,11 @@ RMBG_MODEL = env("TG_RMBG_MODEL", "briaai/RMBG-2.0")
 
 PORT = int(env("TG_DEV_PORT", "5050"))
 
-# 캐릭터 이미지 규격
-CHAR_LONG_SIDE = 512
+# 이미지 규격
+# 캐릭터/적 그림: 배경 제거 후 투명 여백만 자르고 줄이지 않음 (원본 해상도)
+CUTOUT_ERODE_PX = 1  # 배경 제거 마스크를 깎는 정도 (흰 테두리 제거)
+CUTOUT_FEATHER_PX = 1  # 마스크 가장자리를 부드럽게 하는 정도
+UPLOAD_MAX_LONG_SIDE = 1280  # 직접 올린 적 그림: 긴 변이 이보다 크면 줄임
 BANNER_SIZE = (1280, 720)
 BG_SIZE = (1280, 720)
 

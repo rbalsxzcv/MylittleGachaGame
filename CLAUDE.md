@@ -134,6 +134,8 @@ settings { fxSpeed: 1|2, fxSkip, battleSpeed: 1|2, battleAuto }
 - 희귀도 `tinydev/rarity.py`, 전투 검사 `tinydev/kit.py`(vocab 기반, 적 actions/pattern/phases/enrage), 콘텐츠 검사 `tinydev/validate.py`(모험 규칙 포함), 배포 `publish.py`(스테이지 챕터 파일, 밸런스 변경 요약 패치노트).
 - 웹: 캐릭터 전투 편집(`web/js/battleEditor.js` + `battleForm.js`), 적 편집(행동/패턴/페이즈/광폭화), 스테이지(챕터/연결 스토리/자동 레벨), 밸런스(전투 시뮬, 가챠 시뮬, 전투력 표, balance.json 편집), `/fx-test`, `/preview/tests/`.
 - 개발 도구 웹은 `/preview/js/...`로 게임 모듈을 그대로 import (progression, schema, data, sim, gacha).
+- 배경 제거 `tinydev/cutout.py`: RMBG에서는 마스크만 → 원본 W×H로 LANCZOS 확대 → 1px 깎기 + 1px 부드럽게(`config.CUTOUT_*`) → **칠하지 않은 원본**에 알파로 적용(크기 다르면 오류) → 투명 여백 자르기.
+  캐릭터/적은 줄이지 않음(원본 해상도), 소품 384 · UI 아이콘 256 · 로고 640만 줄임. 예전 512px 그림 다시 만들기: `python -m tinydev.recut [--dry-run]`.
 
 ## 구현 단계 (사양 Build order)
 | 단계 | 내용 | 상태 |

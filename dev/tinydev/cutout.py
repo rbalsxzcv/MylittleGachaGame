@@ -1,4 +1,11 @@
-"""배경 제거: BRIA RMBG(로컬 AI 모델) → 투명 여백 자르기 → 긴 변 512px.
+"""배경 제거: BRIA RMBG(로컬 AI 모델) → 원본 크기 마스크 → 원본에 알파로 적용 → 투명 여백 자르기.
+
+화질 원칙
+- 원본(생성된 PNG)은 건드리지 않음. 결과 색은 원본 픽셀 그대로, RMBG에서는 마스크(알파)만 가져옴.
+- 마스크는 모델 해상도(1024²)에서 원본 W×H로 고품질 확대(LANCZOS, 실수 정밀도)한 뒤
+  1px 깎기(erode) + 1px 부드럽게(feather)로 흰 테두리를 없앰.
+- 배경 제거 직후 결과는 원본과 크기가 같아야 함 (다르면 오류). 그다음 투명 여백만 잘라냄.
+  캐릭터/적은 줄이지 않음(원본 해상도). UI 아이콘/로고/소품만 long_side로 줄임.
 
 RMBG를 쓰려면 torch / transformers 등이 설치되어 있어야 합니다 (dev/README.md 참고).
 설치되어 있지 않거나 불러오기에 실패하면 '간단 모드'(단색 배경 지우기)로 대신 처리하고
@@ -9,6 +16,8 @@ RMBG를 쓰려면 torch / transformers 등이 설치되어 있어야 합니다 (
 """
 import importlib.util
 import threading
+
+from PIL import Image, ImageFilter
 
 from . import config, images
 
@@ -64,14 +73,32 @@ def _load():
         return _state["model"]
 
 
+def _as_mask(out):
+    """모델 출력 그림에서 마스크만: RGBA면 알파 채널, 아니면 흑백(L)"""
+    if out.mode in ("RGBA", "LA") or (out.mode == "P" and "transparency" in out.info):
+        return out.convert("RGBA").getchannel("A")
+    return out.convert("L")
+
+
+def _upscale_mask(mask, size):
+    """마스크를 원본 크기로 고품질 확대 (실수 정밀도로 LANCZOS → 0~255로 자르고 L)"""
+    if mask.size == size:
+        return mask.convert("L") if mask.mode != "L" else mask
+    import numpy as np
+
+    f = np.asarray(mask.convert("F").resize(size, Image.LANCZOS), dtype=np.float32)
+    return Image.fromarray(np.clip(np.rint(f), 0, 255).astype(np.uint8), mode="L")
+
+
 def _rmbg_mask(img):
-    """RMBG로 전경 마스크(L 모드) 계산"""
+    """RMBG로 전경 마스크 계산 → 원본(img)과 정확히 같은 크기의 L 마스크"""
     model = _load()
     if model is None:
         return None
     if _state["kind"] == "pipeline":
-        return model(img, return_mask=True).convert("L").resize(img.size)
+        return _upscale_mask(_as_mask(model(img, return_mask=True)), img.size)
 
+    import numpy as np
     import torch
     from torchvision import transforms
 
@@ -85,34 +112,61 @@ def _rmbg_mask(img):
     tensor = transform(img.convert("RGB")).unsqueeze(0).to(_state["device"])
     with torch.no_grad():
         pred = model(tensor)[-1].sigmoid().cpu()[0].squeeze()
-    return transforms.ToPILImage()(pred).resize(img.size)
+    # 8비트로 줄이기 전에 실수(0~255) 그대로 확대 → 계단/띠 없이 부드러운 가장자리
+    small = Image.fromarray((pred.numpy().astype(np.float32) * 255.0), mode="F")
+    return _upscale_mask(small, img.size)
 
 
-def make_cutout(original, flatten_color=None, long_side=None):
-    """원본 이미지 → 최종 PNG (투명 배경, 여백 제거, 긴 변 long_side px — 기본 512 = 캐릭터)
+def refine_mask(mask, erode_px=None, feather_px=None):
+    """흰 테두리 없애기: erode_px만큼 깎고(MinFilter) feather_px만큼 부드럽게(GaussianBlur)"""
+    erode_px = config.CUTOUT_ERODE_PX if erode_px is None else erode_px
+    feather_px = config.CUTOUT_FEATHER_PX if feather_px is None else feather_px
+    if erode_px > 0:
+        mask = mask.filter(ImageFilter.MinFilter(2 * int(erode_px) + 1))
+    if feather_px > 0:
+        mask = mask.filter(ImageFilter.GaussianBlur(feather_px))
+    return mask
 
-    flatten_color: '#ffffff' 같은 값이면 먼저 배경을 그 색으로 평평하게 칠한 뒤 제거
-    returns: (RGBA 이미지, 사용한 방법 'rmbg' | 'simple', 경고 메시지 또는 None)
+
+def cutout_full(original, flatten_color=None):
+    """배경 제거 (자르기/줄이기 전): 원본과 같은 W×H의 RGBA
+
+    flatten_color: '#ffffff' 같은 값이면 배경을 그 색으로 평평하게 칠한 그림을 '모델 입력'으로만 씀
+                   (결과 색은 항상 칠하지 않은 원본 그대로)
+    returns: (RGBA 이미지, 'rmbg' | 'simple', 경고 메시지 또는 None)
     """
-    img = original.convert("RGB")
-    if flatten_color:
-        img = images.flatten_background(img, images.parse_hex_color(flatten_color))
+    base = original.convert("RGB")  # 원본 픽셀 — 결과 색의 출처, 수정하지 않음
+    model_input = images.flatten_background(base, images.parse_hex_color(flatten_color)) if flatten_color else base
 
     warning = None
     method = "rmbg"
     try:
-        mask = _rmbg_mask(img)
+        mask = _rmbg_mask(model_input)
     except Exception as e:
         mask = None
         _state["error"] = f"RMBG 실행 오류: {e}"
     if mask is None:
         method = "simple"
         warning = _state["error"]
-        rgba = images.simple_cutout(img)
+        alpha = images.simple_cutout(model_input).getchannel("A")
+        full = Image.merge("RGBA", (*base.split(), alpha))
     else:
-        rgba = img.convert("RGBA")
-        rgba.putalpha(mask)
+        full = base.convert("RGBA")
+        full.putalpha(refine_mask(mask))
 
-    rgba = images.trim_transparent(rgba)
-    rgba = images.resize_long_side(rgba, long_side or config.CHAR_LONG_SIDE)
+    if full.size != original.size:
+        raise RuntimeError(f"배경 제거 결과 크기가 원본과 달라요 ({full.size[0]}×{full.size[1]} ≠ {original.size[0]}×{original.size[1]})")
+    return full, method, warning
+
+
+def make_cutout(original, flatten_color=None, long_side=None):
+    """원본 이미지 → 최종 PNG (투명 배경, 여백 제거)
+
+    long_side: None이면 줄이지 않음 (캐릭터/적 = 원본 해상도). 숫자면 긴 변이 그보다 클 때만 줄임 (UI 아이콘/소품)
+    returns: (RGBA 이미지, 사용한 방법 'rmbg' | 'simple', 경고 메시지 또는 None)
+    """
+    full, method, warning = cutout_full(original, flatten_color)
+    rgba = images.trim_transparent(full)
+    if long_side:
+        rgba = images.shrink_long_side(rgba, long_side)
     return rgba, method, warning
