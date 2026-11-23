@@ -16,7 +16,9 @@ import { playCutIn, queueCharTexture, charTextureKey } from './CutIn.js';
 
 const ICON = { attack: '⚔', aoe: '✸', buff: '▲', heal: '✚', debuff: '▼' };
 const ROLE = { attacker: '공', defender: '방', support: '지', healer: '치' };
-const STAT_SHORT = { atk: '공', def: '방', spd: '속', critRate: '치확', critDmg: '치피', dmgDealt: '주피', dmgTaken: '받피' };
+const STAT_SHORT = { atk: '공', def: '방', spd: '속', critRate: '치확', critDmg: '치피', dmgDealt: '주피', dmgTaken: '받피', energyRegen: '기회', effectHit: '적중', effectRes: '저항', healBonus: '치보', shieldBonus: '막보' };
+/** 타임라인 토큰 아이콘 (차지 / 소환물) */
+const TOKEN_ICON = { charge: '⚡', orb: '◉', bird: '✦', wolf: '✧', demon: '☠', turret: '▣' };
 const enemyKey = (id) => `enemy:${id}`;
 const hex = (n) => `#${n.toString(16).padStart(6, '0')}`;
 
@@ -218,14 +220,25 @@ export function createBattleScene(Phaser) {
         this.queueLayer.add(this.text(52, y + 44, '지금', 13, '#ffe08a').setOrigin(0.5));
         y += 92;
       }
-      for (const uid of this.battle.queue(Math.max(1, this.opts.data.balance.combat.queuePreview - 1))) {
-        const u = this.battle.unit(uid);
-        if (!u) continue;
-        const p = this.portraitOf(u, 46);
-        p.setPosition(52, y);
-        p.getData('mask')?.setPosition(52, y);
-        this.queueLayer.add(p);
-        y += 58;
+      for (const item of this.battle.queueItems(Math.max(1, this.opts.data.balance.combat.queuePreview - 1))) {
+        if (item.kind === 'token') {
+          // 차지/소환 토큰: 아이콘 동그라미 (큰 차지는 빨간 테두리)
+          const c = this.add.container(52, y);
+          const owner = this.battle.unit(item.owner);
+          c.add(this.add.circle(0, 0, 20, item.big ? 0xff4d5e : owner?.side === 'ally' ? 0x4f9dff : 0xff5d6c));
+          c.add(this.add.circle(0, 0, 17, 0x221838));
+          c.add(this.text(0, 0, TOKEN_ICON[item.icon] || '◉', 18, '#ffe08a').setOrigin(0.5));
+          this.queueLayer.add(c);
+          y += 50;
+        } else {
+          const u = this.battle.unit(item.id);
+          if (!u) continue;
+          const p = this.portraitOf(u, 46);
+          p.setPosition(52, y);
+          p.getData('mask')?.setPosition(52, y);
+          this.queueLayer.add(p);
+          y += 58;
+        }
         if (y > 560) break;
       }
     }
@@ -346,6 +359,10 @@ export function createBattleScene(Phaser) {
       for (const s of u.statuses) parts.push(`${STAT_SHORT[s.stat] || s.stat}${(s.kind === 'buff') !== (s.stat === 'dmgTaken') ? '↑' : '↓'}${s.turns}`);
       if (u.dots.length) parts.push(`지속${Math.max(...u.dots.map((d) => d.turns))}`);
       if (u.taunt) parts.push(`도발${u.taunt.turns}`);
+      if (u.res) parts.unshift(`◆${u.res.name} ${u.res.value}/${u.res.cap}`);
+      const marks = (u.marks || []).reduce((n, m) => n + m.n, 0);
+      if (marks) parts.push(`표식${marks}`);
+      if (u.transform) parts.push(`변신${u.transform.turns}`);
       return parts.join(' ');
     }
 
@@ -670,9 +687,44 @@ export function createBattleScene(Phaser) {
           this.bigBanner('광폭화!', '#ff4d5e');
           this.cameras.main.shake(260 / this.speed, 0.006);
           return this.wait(420);
+        case 'stack':
+          if (fast || ev.delta < 0) return;
+          this.floatText(ev.tgt, `◆${ev.name} ${ev.value}/${ev.cap}`, '#ffd27a', 18, 36);
+          return this.wait(30);
+        case 'mark':
+          if (fast) return;
+          this.floatText(ev.tgt, `표식 ${ev.n}`, '#ff9ad5', 18, 24);
+          return this.wait(40);
+        case 'detonate':
+          if (fast) return;
+          this.floatText(ev.tgt, `표식 폭발 ×${ev.n}`, '#ff6fb5', 24);
+          return this.wait(120);
+        case 'resist':
+          if (fast) return;
+          this.floatText(ev.tgt, '저항', '#cfd8ff', 20, 20);
+          return this.wait(60);
+        case 'transform':
+          if (fast) return;
+          this.floatText(ev.uid, '변신!', '#ffb3ff', 30);
+          return this.wait(260);
+        case 'transform_end':
+          if (fast) return;
+          this.floatText(ev.uid, '변신 해제', '#cccccc', 20);
+          return this.wait(120);
+        case 'token_add':
+          if (fast) return;
+          this.floatText(ev.owner, `${TOKEN_ICON[ev.icon] || '◉'} ${ev.name}`, ev.big ? '#ff8a8a' : '#ffe08a', 20, 40);
+          return this.wait(120);
+        case 'token_act': {
+          if (fast) return;
+          const u = this.battle.unit(ev.owner);
+          if (u) this.banner(`${u.name} · ${ev.name}`, u.side === 'ally' ? '#bfe0ff' : '#ffc0c0');
+          return this.wait(180);
+        }
         case 'round':
         case 'intent':
         case 'sp':
+        case 'token_end':
           return;
         default:
           return;

@@ -13,6 +13,9 @@
 //   - 지속 시간(강화/약화/보호막/도발)은 가진 유닛의 턴이 끝날 때 1 줄어듦 (자기 턴 중 받은 효과는 그 턴엔 안 줄어듦)
 //   - 지속 피해는 가진 유닛의 턴 시작에 터짐
 //   - 패시브에서 나온 효과는 다른 발동 조건을 다시 부르지 않음 (무한 반복 방지)
+//   - 효과 적중: 상대에게 거는 약화/지속 피해/행동 밀기/표식 = 확률 × (1 + 효과 적중) × (1 − 효과 저항). 1 이상이면 난수를 안 굴림
+//   - 반응 큐(추가 공격/반격): 행동이 끝난 뒤 차례대로 실행. 턴/SP를 안 쓰고, 반응은 다른 발동 조건을 부르지 않음
+//   - 토큰(차지/소환): 타임라인에 유닛처럼 놓여 자기 차례에 효과 실행. 같은 av면 유닛이 먼저. 주인이 쓰러지면 사라짐
 
 import { createRng } from '../core/rng.js';
 import { enemyLevelFor } from '../config.js';
@@ -23,7 +26,12 @@ import { CONDITIONS } from './conditions.js';
 import { MODIFIERS } from './modifiers.js';
 import { chooseAction, chooseUltimates } from './ai.js';
 
-export const TRIGGERS = ['onBattleStart', 'onTurnStart', 'onBasic', 'onSkill', 'onUltimate', 'onCrit', 'onKill', 'onHit', 'onHpBelow'];
+export const TRIGGERS = ['onBattleStart', 'onTurnStart', 'onBasic', 'onSkill', 'onUltimate', 'onCrit', 'onKill', 'onHit', 'onHpBelow', 'onAllyAttack', 'onStackFull'];
+/** 상대에게 걸 때 효과 적중/저항 판정을 받는 효과 */
+const RESISTABLE = new Set(['debuff', 'dot', 'delay_action', 'mark']);
+/** 비율 능력치 (기본값 + 강화/약화 합 ÷ 100) */
+const RATIO = new Set(['critRate', 'critDmg', 'energyRegen', 'effectHit', 'effectRes', 'healBonus', 'shieldBonus']);
+const RES_LABEL = { follow_up: '추가 공격', counter: '반격' };
 const ACTION_TRIGGER = { basic: 'onBasic', skill: 'onSkill', ultimate: 'onUltimate' };
 
 /** vocab.json과 구현이 맞는지 → 빠진 것 목록 (비어 있으면 정상) */
@@ -76,7 +84,11 @@ export function createBattle({ team, stage, data, seed = 1 }) {
     reason: null, // 'wipe' | 'timeout'
     events: [],
     actions: [], // 아군 결정 기록 (리플레이용): {type:'act', action, target} | {type:'ult', uid, target}
+    tokens: [], // 타임라인 토큰 (차지/소환): {id, kind, owner, side, name, icon, av, len, targeting, effects, left, big, interrupted}
+    reactions: [], // 행동이 끝난 뒤 실행할 추가 공격/반격
   };
+  let tokenSeq = 0;
+  const stackFull = []; // 이번 행동에서 자원이 가득 찬 유닛 (onStackFull)
 
   const log = (ev) => state.events.push(ev);
   const all = () => [...state.allies, ...state.enemies];
@@ -92,7 +104,7 @@ export function createBattle({ team, stage, data, seed = 1 }) {
     if (key === 'atk' || key === 'def') return Math.max(0, Math.floor(u.base[key] * (1 + sum / 100)));
     if (key === 'spd') return Math.max(1, Math.floor(u.base.spd * (1 + sum / 100)));
     if (key === 'hp') return u.maxHp;
-    if (key === 'critRate' || key === 'critDmg') return Math.max(0, u.base[key] + sum / 100);
+    if (RATIO.has(key)) return Math.max(0, (u.base[key] ?? 0) + sum / 100);
     return sum / 100; // dmgDealt / dmgTaken (기본 0)
   }
 
@@ -128,6 +140,7 @@ export function createBattle({ team, stage, data, seed = 1 }) {
   function advanceTime(dt) {
     if (dt > 0) {
       for (const u of living()) u.av = Math.max(0, u.av - dt);
+      for (const t of state.tokens) t.av = Math.max(0, t.av - dt);
       state.elapsed += dt;
     }
     const round = Math.max(1, Math.ceil(state.elapsed / C.roundAv - 1e-9));
@@ -139,9 +152,11 @@ export function createBattle({ team, stage, data, seed = 1 }) {
     }
   }
 
+  /** 기력 (얻을 때만 × 기력 회복). 소수 첫째 자리까지 */
   function gainEnergy(u, n) {
     if (!u.alive || !n || u.side !== 'ally') return;
-    u.energy = Math.min(C.energy.max, Math.max(0, u.energy + n));
+    const gain = n > 0 ? n * stat(u, 'energyRegen') : n;
+    u.energy = Math.min(C.energy.max, Math.max(0, Math.round((u.energy + gain) * 10) / 10));
   }
 
   function gainSp(side, n, src) {
@@ -161,7 +176,11 @@ export function createBattle({ team, stage, data, seed = 1 }) {
     tgt.shield = null;
     tgt.taunt = null;
     tgt.intent = null;
+    tgt.marks = [];
+    tgt.transform = null;
     log({ t: 'death', uid: tgt.uid, by: src?.uid ?? null });
+    // 주인이 쓰러지면 그 토큰(차지/소환)도 사라짐
+    for (const t of state.tokens.filter((x) => x.owner === tgt.uid)) removeToken(t, 'owner');
     ctx?.kills.push(tgt);
     // 이 유닛을 노리던 적 예고는 새 대상으로
     if (tgt.side === 'ally') for (const e of state.enemies) if (e.alive && e.intent?.targetUid === tgt.uid) e.intent.targetUid = pickIntentTarget(e, e.intent.rule)?.uid ?? null;
@@ -220,6 +239,62 @@ export function createBattle({ team, stage, data, seed = 1 }) {
       src.stats.healed += tgt.hp - before;
       log({ t: 'heal', src: src.uid, tgt: tgt.uid, amount: tgt.hp - before, hp: tgt.hp });
     },
+    /** 자원(스택) ± n (0~상한). 가득 차는 순간 onStackFull 예약 */
+    addStacks(ctx, src, tgt, n) {
+      const r = tgt.res;
+      if (!r || !n) return;
+      const before = r.value;
+      r.value = Math.max(0, Math.min(r.cap, r.value + n));
+      if (r.value === before) return;
+      if (r.value < r.cap) r.full = false;
+      else if (!r.full) {
+        r.full = true;
+        stackFull.push(tgt);
+      }
+      log({ t: 'stack', src: src.uid, tgt: tgt.uid, value: r.value, cap: r.cap, delta: r.value - before, name: r.name });
+    },
+    /** 표식 +1 (시전자별, 최대 max개), 지속 시간 새로 고침 */
+    addMark(src, tgt, turns, max = 1) {
+      const m = tgt.marks.find((x) => x.src === src.uid);
+      if (m) {
+        m.n = Math.min(Math.max(1, max), m.n + 1);
+        m.turns = turns;
+        m.fresh = state.actorUid === tgt.uid;
+      } else tgt.marks.push({ src: src.uid, n: 1, turns, fresh: state.actorUid === tgt.uid });
+      log({ t: 'mark', src: src.uid, tgt: tgt.uid, n: tgt.marks.find((x) => x.src === src.uid).n, turns });
+    },
+    /** 대상에 붙은 시전자 표식 개수 */
+    marksFrom: (src, tgt) => tgt.marks?.find((x) => x.src === src.uid)?.n || 0,
+    clearMarks(src, tgt) {
+      tgt.marks = tgt.marks.filter((x) => x.src !== src.uid);
+    },
+    /** 변신: turns턴 동안 키트의 transformed 칸으로 */
+    setTransform(tgt, turns) {
+      tgt.transform = { turns, fresh: state.actorUid === tgt.uid };
+      if (tgt.kitBase && tgt.kitAlt) tgt.kit = { ...tgt.kitBase, ...tgt.kitAlt };
+      log({ t: 'transform', uid: tgt.uid, turns });
+    },
+    /** 반응 큐에 추가 (행동이 끝난 뒤 실행) */
+    queueReaction(r) {
+      if (state.reactions.length < 20) state.reactions.push(r);
+    },
+    /** 타임라인 토큰 놓기 */
+    addToken(owner, spec) {
+      const len = spec.kind === 'summon' ? C.avBase / Math.max(1, spec.spd || 100) : Infinity;
+      const av = spec.kind === 'summon' ? len : turnLength(owner) * ((spec.delayPct ?? 100) / 100);
+      const t = { id: `t${++tokenSeq}`, kind: spec.kind, owner: owner.uid, side: owner.side, name: spec.name, icon: spec.icon || (spec.kind === 'charge' ? 'charge' : 'orb'), av, len, targeting: spec.targeting, effects: spec.effects || [], left: spec.actions || 1, big: !!spec.big, interrupted: false };
+      state.tokens.push(t);
+      log({ t: 'token_add', id: t.id, kind: t.kind, owner: owner.uid, name: t.name, icon: t.icon, big: t.big });
+    },
+    /** 주인의 큰 차지 하나를 끊음 → 끊었으면 true */
+    interruptToken(owner) {
+      const t = state.tokens.find((x) => x.owner === owner.uid && x.kind === 'charge' && x.big && !x.interrupted);
+      if (!t) return false;
+      t.interrupted = true;
+      return true;
+    },
+    /** 조건 목록이 모두 맞는지 (AI useIf) */
+    check: (u, conds, target = null) => (conds || []).every((c) => CONDITIONS[c.type]?.(b, u, c, { target })),
     /** 강화/약화: 같은 시전자·같은 출처·같은 능력치면 새로 고침, 다르면 겹침 */
     addStatus(ctx, src, tgt, { kind, stat: key, value, turns }) {
       const sourceKey = `${src.uid}:${ctx.sourceKey}:${key}:${kind}`;
@@ -230,6 +305,51 @@ export function createBattle({ team, stage, data, seed = 1 }) {
     },
   };
 
+  // ── 토큰 (차지/소환) ──
+  function removeToken(t, why) {
+    state.tokens = state.tokens.filter((x) => x !== t);
+    log({ t: 'token_end', id: t.id, owner: t.owner, why });
+  }
+
+  /** 토큰 차례: 주인 능력치로 효과 실행. 차지는 1번, 소환은 left번 */
+  function runToken(t) {
+    const owner = unitOf(t.owner);
+    if (!owner?.alive) return removeToken(t, 'owner');
+    if (t.interrupted) {
+      log({ t: 'stagger', uid: owner.uid, name: t.name, token: t.id });
+      return removeToken(t, 'interrupted');
+    }
+    log({ t: 'token_act', id: t.id, kind: t.kind, owner: owner.uid, name: t.name, icon: t.icon });
+    const ctx = newCtx(owner, t.kind, `tok:${t.id}`, true);
+    ctx.reaction = true; // 토큰 행동은 발동 조건을 부르지 않음
+    const primary = resolve(owner, t.targeting || 'enemy_all', {});
+    for (const eff of t.effects) applyEffect(ctx, owner, eff, primary, null);
+    t.left -= 1;
+    if (t.left <= 0 || t.kind === 'charge') removeToken(t, 'done');
+    else t.av = t.len;
+    checkHpBelow();
+    checkEnd();
+  }
+
+  // ── 반응 큐 (추가 공격 / 반격) ──
+  function processReactions() {
+    for (let guard = 0; guard < 30 && state.reactions.length && !state.result; guard++) {
+      const r = state.reactions.shift();
+      const u = unitOf(r.uid);
+      if (!u?.alive) continue;
+      let t = unitOf(r.target);
+      if (!t?.alive || t.side === u.side) t = lowestHp(opponentsOf(u));
+      if (!t) continue;
+      log({ t: 'action', uid: u.uid, action: r.kind, name: RES_LABEL[r.kind] || r.kind, side: u.side, reaction: true });
+      const ctx = newCtx(u, r.kind, r.kind, true);
+      ctx.reaction = true;
+      EFFECTS.damage(b, ctx, u, t, { type: 'damage', mult: r.mult, stat: r.stat, hits: 1 }, powerFor(u, 'damage', r.kind));
+      checkHpBelow();
+      checkEnd();
+    }
+    state.reactions.length = 0;
+  }
+
   // ── 웨이브 ──
   function spawnWave(i) {
     state.wave = i;
@@ -237,7 +357,7 @@ export function createBattle({ team, stage, data, seed = 1 }) {
       .map((e, j) => {
         const entity = data.enemyMap.get(e.enemyId);
         if (!entity) return null;
-        const u = buildUnit({ entity, level: enemyLevelFor(e, stage, balance), side: 'enemy', slot: j, uid: `w${i + 1}e${j + 1}`, balance });
+        const u = buildUnit({ entity, level: enemyLevelFor(e, stage, balance), side: 'enemy', slot: j, uid: `w${i + 1}e${j + 1}`, balance, difficulty: stage.difficulty ?? 1 });
         u.av = turnLength(u); // 지금부터 한 턴 뒤에 첫 행동
         return u;
       })
@@ -340,8 +460,14 @@ export function createBattle({ team, stage, data, seed = 1 }) {
   // ── 패시브 ──
   function runPassive(u, p, triggerTarget) {
     if (p.limit && p.fired >= p.limit) return;
+    if (p.perRound && p.roundOf === state.round && p.roundFired >= p.perRound) return;
     if (!p.conditions.every((c) => CONDITIONS[c.type]?.(b, u, c, { target: triggerTarget }))) return;
     p.fired += 1;
+    if (p.roundOf !== state.round) {
+      p.roundOf = state.round;
+      p.roundFired = 0;
+    }
+    p.roundFired += 1;
     log({ t: 'passive', uid: u.uid, name: p.name });
     const ctx = newCtx(u, 'passive', `p${p.idx}`, true);
     ctx.triggerTarget = triggerTarget;
@@ -372,7 +498,7 @@ export function createBattle({ team, stage, data, seed = 1 }) {
 
   // ── 행동 ──
   function newCtx(actor, action, sourceKey, fromPassive = false) {
-    return { actor, action, sourceKey, fromPassive, crit: false, critTarget: null, kills: [], hits: [], triggerTarget: null };
+    return { actor, action, sourceKey, fromPassive, reaction: false, skillName: '', crit: false, critTarget: null, kills: [], hits: [], triggerTarget: null };
   }
 
   function resolve(u, targeting, opts) {
@@ -385,13 +511,30 @@ export function createBattle({ team, stage, data, seed = 1 }) {
     return Math.max(0, 1 + pct / 100);
   }
 
+  /** 상대에게 거는 효과가 걸릴 확률 (0~1+) = 확률 × (1 + 효과 적중) × (1 − 효과 저항) */
+  function landChance(u, t, eff) {
+    return ((eff.chance ?? 100) / 100) * (1 + stat(u, 'effectHit')) * Math.max(0, 1 - stat(t, 'effectRes'));
+  }
+
   function applyEffect(ctx, u, eff, primary, chosen) {
     const fn = EFFECTS[eff.type];
     if (!fn) return;
-    if (eff.chance != null && rng() * 100 >= eff.chance) return;
+    const resistable = RESISTABLE.has(eff.type);
+    // 적중/저항 판정을 받는 효과는 대상마다 따로 굴림 (확률 포함). 아니면 지금처럼 효과마다 한 번
+    if (!resistable && eff.chance != null && rng() * 100 >= eff.chance) return;
     const targets = eff.target ? resolve(u, eff.target, { chosen, count: eff.count, triggerTarget: ctx.triggerTarget }) : primary;
     const power = powerFor(u, eff.type, ctx.action);
-    for (const t of targets) if (t.alive) fn(b, ctx, u, t, eff, power);
+    for (const t of targets) {
+      if (!t.alive) continue;
+      if (resistable && t.side !== u.side) {
+        const p = landChance(u, t, eff);
+        if (p < 1 && rng() >= p) {
+          log({ t: 'resist', src: u.uid, tgt: t.uid, effect: eff.type });
+          continue;
+        }
+      } else if (resistable && eff.chance != null && rng() * 100 >= eff.chance) continue;
+      fn(b, ctx, u, t, eff, power);
+    }
   }
 
   /** 아군이 지금 이 행동을 쓸 수 있는지 */
@@ -408,6 +551,7 @@ export function createBattle({ team, stage, data, seed = 1 }) {
   function runSkill(u, kind, skill, chosen) {
     log({ t: 'action', uid: u.uid, action: kind, name: skill.name, side: u.side });
     const ctx = newCtx(u, kind, kind);
+    ctx.skillName = skill.name;
     const primary = resolve(u, skill.targeting, { chosen, count: skill.count });
     for (const eff of skill.effects) applyEffect(ctx, u, eff, primary, chosen);
     return { ctx, first: primary.find(Boolean) || null };
@@ -419,8 +563,21 @@ export function createBattle({ team, stage, data, seed = 1 }) {
     if (ctx.crit) firePassives(u, 'onCrit', { triggerTarget: ctx.critTarget ?? first });
     for (const k of ctx.kills) if (k.side !== u.side) firePassives(u, 'onKill', { triggerTarget: k });
     for (const h of ctx.hits) if (h.tgt.alive && h.tgt !== u) firePassives(h.tgt, 'onHit', { triggerTarget: h.src });
+    // 다른 아군이 상대를 공격했으면 (추가 공격 아키타입)
+    const hitFoe = ctx.hits.find((h) => h.tgt.side !== u.side);
+    if (hitFoe) for (const a of alliesOf(u)) if (a !== u) firePassives(a, 'onAllyAttack', { triggerTarget: hitFoe.tgt.alive ? hitFoe.tgt : null });
+    flushStackFull();
     checkHpBelow();
     checkEnd();
+    processReactions();
+  }
+
+  /** 이번 행동에서 자원이 가득 찬 유닛 → onStackFull (가득 찬 순간 한 번) */
+  function flushStackFull() {
+    while (stackFull.length) {
+      const u = stackFull.shift();
+      if (u.alive) firePassives(u, 'onStackFull', {});
+    }
   }
 
   /** 아군 기본 공격 / 스킬 (턴을 씀) */
@@ -479,8 +636,10 @@ export function createBattle({ team, stage, data, seed = 1 }) {
     }
     if (u.alive && !state.result) {
       firePassives(u, 'onTurnStart', {});
+      flushStackFull();
       checkHpBelow();
       checkEnd();
+      processReactions();
     }
   }
 
@@ -500,18 +659,27 @@ export function createBattle({ team, stage, data, seed = 1 }) {
     u.statuses = u.statuses.map(tick).filter(Boolean);
     u.shield = tick(u.shield);
     u.taunt = tick(u.taunt);
+    u.marks = u.marks.map(tick).filter(Boolean);
+    if (u.transform) {
+      u.transform = tick(u.transform);
+      if (!u.transform) {
+        if (u.kitBase) u.kit = u.kitBase;
+        log({ t: 'transform_end', uid: u.uid });
+      }
+    }
     u.spdNow = stat(u, 'spd');
     u.av = Math.max(0, turnLength(u) * (1 + (u.pendingShift || 0) / 100)); // 다음 행동까지 한 턴 (± 이번 턴에 받은 당기기/밀기)
     u.pendingShift = 0;
   }
 
-  /** 다음에 행동할 유닛 → 시간을 그만큼 흘림 */
+  /** 다음에 행동할 유닛/토큰 → 시간을 그만큼 흘림. 같은 av면 유닛이 먼저, 토큰끼리는 놓은 순서 */
   function nextActor() {
-    const list = living().sort(order);
-    const u = list[0];
-    if (!u) return null;
-    advanceTime(u.av);
-    return state.result ? null : u;
+    const u = living().sort(order)[0] || null;
+    const t = state.tokens.reduce((best, x) => (!best || x.av < best.av ? x : best), null);
+    const pick = t && (!u || t.av < u.av) ? t : u;
+    if (!pick) return null;
+    advanceTime(pick.av);
+    return state.result ? null : pick;
   }
 
   /** 아군의 결정이 필요하거나 전투가 끝날 때까지 진행 */
@@ -520,6 +688,10 @@ export function createBattle({ team, stage, data, seed = 1 }) {
       const u = nextActor();
       if (!u) {
         if (!state.result) checkEnd();
+        continue;
+      }
+      if (u.kind && !u.uid) {
+        runToken(u);
         continue;
       }
       beginTurn(u);
@@ -540,16 +712,23 @@ export function createBattle({ team, stage, data, seed = 1 }) {
 
   /** 앞으로 행동할 순서 (지금 차례인 유닛은 빼고) — 타임라인 복사본으로 미리 돌려 봄 */
   function simulateQueue(n) {
-    const sims = living().map((u) => ({ u, av: u.av, len: turnLength(u), side: u.side, slot: u.slot }));
+    const sims = living().map((u) => ({ u, av: u.av, len: turnLength(u), side: u.side, slot: u.slot, left: Infinity }));
     const cur = state.pendingUid || state.actorUid;
     for (const s of sims) if (s.u.uid === cur) s.av = Math.max(0, s.len * (1 + (s.u.pendingShift || 0) / 100)); // 지금 차례가 끝나면 한 턴 뒤
+    // 토큰은 유닛 뒤 (같은 av면 유닛 먼저), 차지는 한 번, 소환은 남은 횟수만큼
+    state.tokens.forEach((t, i) => sims.push({ u: t, av: t.av, len: t.len, side: 'token', slot: i, left: t.kind === 'charge' ? 1 : t.left }));
+    const rank = (x) => (x.side === 'ally' ? 0 : x.side === 'enemy' ? 1 : 2);
+    const cmp = (a, c) => a.av - c.av || rank(a) - rank(c) || a.slot - c.slot;
     const out = [];
-    for (let i = 0; i < n && sims.length; i++) {
-      sims.sort(order);
-      const s = sims[0];
+    for (let i = 0; i < n; i++) {
+      const live = sims.filter((x) => x.left > 0);
+      if (!live.length) break;
+      live.sort(cmp);
+      const s = live[0];
       const dt = s.av;
-      for (const x of sims) x.av -= dt;
+      for (const x of live) x.av -= dt;
       out.push(s.u);
+      s.left -= 1;
       s.av = s.len;
     }
     return out;
@@ -560,7 +739,8 @@ export function createBattle({ team, stage, data, seed = 1 }) {
     .map((m, slot) => {
       if (!m) return null;
       const entity = data.charMap.get(m.charId);
-      return entity ? buildUnit({ entity, level: m.level || 1, breakthrough: m.breakthrough || 0, side: 'ally', slot, uid: `a${slot + 1}`, balance }) : null;
+      // m.extras: 추억/장비 (teams.teamMembers가 붙임) → { memory: {entity, level, refine}, gear: {칸: {tier, enh}}, passives: [추억 패시브] }
+      return entity ? buildUnit({ entity, level: m.level || 1, breakthrough: m.breakthrough || 0, side: 'ally', slot, uid: `a${slot + 1}`, balance, extras: m.extras || {} }) : null;
     })
     .filter(Boolean);
   for (const u of state.allies) {
@@ -641,10 +821,17 @@ export function createBattle({ team, stage, data, seed = 1 }) {
       return state.events.slice(from);
     },
     /** 다음에 행동할 n명 (왼쪽 행동 순서 표시). 지금 차례 유닛은 current()로 */
-    queue: (n = C.queuePreview) => simulateQueue(n).map((u) => u.uid),
+    queue: (n = C.queuePreview) =>
+      simulateQueue(n + state.tokens.length * 2)
+        .filter((x) => x.uid)
+        .slice(0, n)
+        .map((u) => u.uid),
+    /** 행동 순서 (유닛 + 토큰): { kind: 'unit'|'token', id, name, icon?, owner?, big?, side } */
+    queueItems: (n = C.queuePreview) =>
+      simulateQueue(n).map((x) => (x.uid ? { kind: 'unit', id: x.uid, name: x.name, side: x.side } : { kind: 'token', id: x.id, name: x.name, icon: x.icon, owner: x.owner, big: x.big, side: x.side, tokenKind: x.kind })),
     /** 적 예고: 무엇을, 누구에게, 몇 번 뒤에 (eta 0 = 다음 차례) */
     intents() {
-      const q = simulateQueue(Math.max(20, living().length * 3)).map((u) => u.uid);
+      const q = simulateQueue(Math.max(20, living().length * 3)).filter((x) => x.uid).map((u) => u.uid);
       return state.enemies
         .filter((e) => e.alive && e.intent)
         .map((e) => {

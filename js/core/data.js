@@ -2,8 +2,8 @@
 // 각 파일은 독립적으로 불러오며, 한 파일이 깨져도 게임 전체가 멈추지 않습니다.
 // 잘못된 항목은 건너뛰고(콘솔 경고) 나머지는 그대로 사용합니다.
 
-import { cleanKit, cleanStats, cleanPassiveList, cleanEnemyBehavior } from '../battle/schema.js';
-import { loadConfig, normalizeRarity, normalizeGrade, isNpc, NPC, RARITIES } from '../config.js';
+import { cleanKit, cleanStats, cleanPassiveList, cleanPassive, cleanEnemyBehavior, cleanResource, cleanTweak } from '../battle/schema.js';
+import { loadConfig, normalizeRarity, normalizeGrade, isNpc, NPC, RARITIES, ROLES, ENEMY_ARCHETYPES } from '../config.js';
 import { validateAliases } from './aliases.js';
 
 export { RARITIES, normalizeRarity, normalizeGrade, isNpc, NPC };
@@ -84,13 +84,16 @@ function cleanList(list, label, fn) {
 const warnData = (msg) => console.warn(`[data] ${msg}`);
 
 // ── characters.json ───────────────────────────────────────
-export const ROLES = ['attacker', 'defender', 'support', 'healer'];
+export { ROLES };
 const colorOrNull = (v) => (typeof v === 'string' && /^#[0-9a-f]{3,8}$/i.test(v) ? v : null);
 
 // 필수: id, name, rarity(등급: 1–5 또는 'npc'. 예전 'R'/'SR'/'SSR'은 3/4/5, 예전 pullable: false는 'npc'로 읽음)
 // NPC 등급 = 뽑기/도감/육성/편성에 안 나옴 (스토리 화자, 적 연결용). pullable은 등급에서 계산 (NPC가 아니면 true)
 // 표시(선택): nameEn, role, cutout, themeColor, quote — 가챠 컷인/전투 초상에 씀
-// 전투(선택): stats, kit {basic, skill, ultimate}, breakthroughs[5] — 없으면 희귀도 기본값 / 기본 스킬
+// 전투(선택): role → 역할 템플릿 능력치 (stats 절대값이 있으면 그게 우선), statTweak {능력치: %} 손조정,
+//   archetype + kitGen {archetype, variants, seed, version} (개발 도구 생성기 기록), resource {name, cap, start} (자원/스택),
+//   kit {basic, skill, ultimate, transformed?}, talents [상시 패시브], bt2 / bt6 (돌파 2·6 능력, 1·3·4·5는 balance 공식),
+//   breakthroughs[] (예전 방식 — 돌파 N단계에서 N번째가 켜짐)
 // retired: true = 은퇴 (뽑기에서 빠지지만 보유/도감은 유지. id는 절대 지우지 않음)
 export function validateCharacters(json, vocab) {
   return cleanList(asList(json, 'characters'), 'characters', (raw) => {
@@ -116,8 +119,15 @@ export function validateCharacters(json, vocab) {
       pullable: rarity !== NPC, // NPC 등급이면 false (뽑기/도감/육성/편성에 안 나옴)
       retired: raw.retired === true,
       stats: cleanStats(raw.stats),
+      statTweak: cleanTweak(raw.statTweak),
+      archetype: typeof raw.archetype === 'string' ? raw.archetype.slice(0, 32) : '',
+      kitGen: raw.kitGen && typeof raw.kitGen === 'object' ? raw.kitGen : null,
+      resource: cleanResource(raw.resource),
       kit: vocab ? cleanKit(raw.kit, vocab, warnData, `${where}.kit`) : null,
-      breakthroughs: vocab ? cleanPassiveList(raw.breakthroughs, vocab, warnData, `${where}.breakthroughs`, 5) : [],
+      talents: vocab ? cleanPassiveList(raw.talents, vocab, warnData, `${where}.talents`, 4) : [],
+      bt2: vocab && raw.bt2 ? cleanPassive(raw.bt2, vocab, warnData, `${where}.bt2`) : null,
+      bt6: vocab && raw.bt6 ? cleanPassive(raw.bt6, vocab, warnData, `${where}.bt6`) : null,
+      breakthroughs: vocab ? cleanPassiveList(raw.breakthroughs, vocab, warnData, `${where}.breakthroughs`, 6) : [],
     };
   });
 }
@@ -137,7 +147,9 @@ export function validateEnemies(json, vocab) {
       image: str(raw.image).trim(),
       boss: raw.boss === true,
       charId: idOk(raw.charId) ? raw.charId : null,
+      archetype: ENEMY_ARCHETYPES.includes(raw.archetype) ? raw.archetype : null,
       stats: cleanStats(raw.stats),
+      resource: cleanResource(raw.resource),
       ...cleanEnemyBehavior(raw, vocab, warnData, where),
       passives: cleanPassiveList(raw.passives, vocab, warnData, `${where}.passives`, 8),
     };

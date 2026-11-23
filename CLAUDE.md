@@ -66,16 +66,18 @@ tuner:      { targetWinRate:{normal,elite,boss}, runs, tolerance, difficulty:{mi
 ```
 id, name, rarity: 1–5 | "npc" (예전 'R'/'SR'/'SSR' → 3/4/5, 예전 pullable:false → "npc"), title, description, image, addedAt,
 retired (true = 뽑기 제외, 보유 유지),            // 게임 데이터의 pullable은 계산값 (= NPC 아님). 파일에는 쓰지 않음
-nameEn, role (attacker|defender|support|healer), cutout, themeColor, quote,   // 컷인/전투 초상용, 선택
-stats { atk, def, hp, spd, critRate, critDmg } (선택, 없으면 희귀도 기본값),
-kit { basic, skill, ultimate:{…, cost?} } (선택, 없으면 defaultKit), breakthroughs [패시브 × 5]
+nameEn, role (attacker|defender|support|healer, 기본 attacker), cutout, themeColor, quote,   // 컷인/전투 초상용, 선택
+statTweak { 능력치: % } (±10% 넘으면 경고), stats { 능력치 11개 } (절대값 — 있으면 역할 템플릿 대신),
+archetype, kitGen { archetype, variants, seed, version } (생성기 기록), resource { name, cap, start },
+kit { basic, skill, ultimate:{…, cost?}, transformed? } (없으면 defaultKit), talents [상시 패시브 ≤4], bt2, bt6 (돌파 2·6),
+breakthroughs [패시브 ≤6] (예전 방식)
 ```
-- Skill = `{ name, description, targeting, count?, effects[] }` — **cooldown 없음** (스킬은 팀 SP. 예전 cooldown은 경고 후 무시)
-- Effect = `{ type, ...params, target?, chance? }` / Passive = `{ name, description, trigger?, pct?, conditions[], targeting, count?, effects[], modifiers[], limit? }`
+- Skill = `{ name, description, targeting, count?, effects[], useIf?[조건] }` — **cooldown 없음** (스킬은 팀 SP. 예전 cooldown은 경고 후 무시)
+- Effect = `{ type, ...params, target?, chance? }` / Passive = `{ name, description, trigger?, pct?, conditions[], targeting, count?, effects[], modifiers[], limit?, perRound? }`
 
 ### enemies.json 항목
 ```
-id, name, image, boss, charId? (NPC 캐릭터 연결 — 적 그림이 없으면 그 그림, data.linkEnemyNpcs), stats {…, spd},
+id, name, image, boss, charId? (NPC 캐릭터 연결 — 적 그림이 없으면 그 그림, data.linkEnemyNpcs), archetype?, resource?, stats {…, spd, effectRes?},
 actions { <id>: Skill & { icon: attack|aoe|buff|heal|debuff, big?: true } },
 pattern [ { action, target?: random|lowest_hp|highest_atk|slot1..5 } ]       // 순서대로 예고 → 반복
 phases  [ { hpBelow: 1–99, name, pattern, enterEffects[] } ]                  // 보스: HP % 미만이면 교체
@@ -118,8 +120,13 @@ settings { fxSpeed: 1|2, fxSkip, battleSpeed: 1|2, battleAuto }
 - 실제 5★ 비율은 천장/확정 때문에 약 3%. 지금 1·2★ 캐릭터가 없어서 그 몫은 3★로 대체됨 (가챠 시뮬로 확인).
 - 중복: 정수 +1, 보유 가능 = 5 − 돌파, 넘치면 바로 티켓 (5★ 200 / 4★ 80 / ≤3★ 30). 돌파: 정수 1 → +1단계(최대 5), 단계마다 패시브 하나.
 
-### 육성
-- atk/def/hp = floor(floor(base × (1 + 0.08 × (lv − 1))) × (1 + 상시 보너스%)). spd/치명타는 레벨과 무관.
+### 육성 / 능력치 (`js/systems/stats.js computeStats`, `progression.statsOf`는 래퍼)
+- 능력치 11개: atk, def, hp, spd, critRate, critDmg, energyRegen(기본 1), effectHit, effectRes, healBonus, shieldBonus.
+- 기본: 캐릭터에 `role`이 있고 절대값 `stats`가 없으면 `round(rarityMul[희귀도] × roleTemplate[역할][능력치] × (1 + statTweak%))` (희귀도 배율은 atk/def/hp만).
+  절대값 `stats`가 있으면 그 값(적, 예전 데이터, 테스트), 빠진 칸은 `byRarity` / 기본값.
+- 최종 = floor((floor(기본 × (1 + 0.08 × (lv − 1))) + 추억 공격력) × (1 + Σ%)) + Σ장비. Σ% = 돌파 1·3·4·5 노드 + `stat_bonus` + 추억 부옵션.
+  비율 능력치는 % 포인트(+6 → +0.06), spd/비율 능력치는 레벨과 무관.
+- 상시 능력(`activePassives`): 적 = passives / 캐릭터 = talents + bt2(돌파 2+) + bt6(돌파 6) + 예전 breakthroughs[0..돌파−1] + 바깥(추억).
 - 레벨업 lv→lv+1: 티켓 ceil(10 × lv^1.25), 골드 = 티켓 × 10. 전투력 = floor(2·atk + 1.5·def + 0.2·hp + 2·spd + 300·critRate + 100·critDmg). 큰 숫자 `formatBig` (1.2만, 3.4억).
 
 ### 전투 (`js/battle/engine.js`, 순수 · 시드 · 결정론)
@@ -134,7 +141,19 @@ settings { fxSpeed: 1|2, fxSkip, battleSpeed: 1|2, battleAuto }
   `interrupt`는 예고된 big만 취소 → 그 차례 '흐트러짐'. `api.intents()`의 `eta` = 그 적보다 먼저 행동하는 횟수(0 = 다음).
 - AUTO(`ai.js`): 궁극기 — 피해형은 큰 공격 예고 중이거나 쓰러뜨릴 수 있을 때, 지원형은 큰 공격 예고/HP 50% 미만 아군/강화형이면. 스킬 — SP ≥ 2 또는 치유/보호막이 필요할 때. 아니면 기본. 대상: 도발 > 처치 가능(HP 낮은 순) > HP 최저 / 아군은 HP 비율 최저.
 - API: `createBattle({team, stage, data, seed})` → `current() options() targets(action, uid?) act({action,target}) ultimate({uid,target}) auto() runToEnd() queue(n) intents() summary() record()`, `replayBattle`.
-- 효과: damage, heal, shield, buff, debuff, energy_gain, sp_gain, advance_action, delay_action, interrupt, dot, cleanse, taunt. 수정자: action_targeting, ultimate_cost, sp_cost, energy_gain, stat_bonus, effect_power, extra_effects.
+- 효과: damage(perStack, vsMarked), heal, shield(perStack), buff, debuff, energy_gain, sp_gain, advance_action, delay_action, interrupt, dot, cleanse, taunt,
+  stack_gain, stack_spend, mark, mark_detonate, follow_up, counter, transform, charge, summon. 수정자: action_targeting, ultimate_cost, sp_cost, energy_gain, stat_bonus, effect_power, extra_effects.
+- 발동: onBattleStart, onTurnStart, onBasic, onSkill, onUltimate, onCrit, onKill, onHit, onHpBelow, onAllyAttack(다른 아군이 상대를 공격한 뒤), onStackFull(가득 찬 순간 한 번).
+  패시브 `limit`(전투당) / `perRound`(라운드당). 조건에 stacks_at_least, stacks_full, target_marked, is_transformed, sp_at_least 추가.
+- 새 능력치: 기력 획득 × energyRegen, 치유 × (1 + healBonus), 보호막 × (1 + shieldBonus).
+  효과 적중: 상대에게 거는 debuff/dot/delay_action/mark = 확률 × (1 + effectHit) × (1 − effectRes), 대상마다. 1 이상이면 난수 안 굴림, 실패 = 'resist' 이벤트.
+- 자원(스택): 키트 `resource {name, cap, start}` → 유닛 `res`. 표식: 대상 `marks[{src, n, turns}]` (대상 턴 끝에 −1).
+  변신: `kit.transformed {basic?, skill?, ultimate?}`로 turns턴 교체 (자기 턴 끝에 −1, 받은 턴엔 안 줄어듦).
+- 반응 큐(follow_up/counter): 행동이 끝난 뒤(afterAction 끝, 턴 시작 패시브 뒤) 실행, 턴/SP 안 씀, 반응 · 토큰 행동은 발동 조건을 부르지 않음.
+- 토큰(charge/summon): `state.tokens`, 유닛처럼 av가 줄어 차례가 되면 주인 능력치로 효과 실행. 같은 av면 유닛 먼저.
+  차지 = 주인 한 턴 × delayPct%, 1번 (big이면 interrupt로 끊김). 소환 = 자기 속도로 actions번. 주인이 쓰러지면 사라짐. `api.queueItems()` = 유닛 + 토큰.
+- AUTO: 스킬/궁극기에 `useIf [조건]`이 있으면 그 조건일 때 사용 (스킬은 SP가 가득이면 조건과 상관없이).
+- 적: 스테이지 `difficulty` 배율 → 적 atk/hp × difficulty (buildUnit).
 
 ### 연출 (`js/fx/`)
 - `phaserHost.js`: Phaser.Game 하나(1280×720 FIT, `#fx-layer` — CSS 확대되는 #stage 밖), 글꼴 Pretendard(FontFace)를 먼저 불러옴, 끝나면 레이어 숨기고 루프 재움. 레이어가 떠 있으면 `main.js` 키 처리는 Phaser에 양보.

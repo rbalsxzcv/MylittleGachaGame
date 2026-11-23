@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "stats": {
     "atk": "공격력",
     "def": "방어력",
@@ -8,7 +8,12 @@
     "critRate": "치명타 확률",
     "critDmg": "치명타 피해",
     "dmgDealt": "주는 피해",
-    "dmgTaken": "받는 피해"
+    "dmgTaken": "받는 피해",
+    "energyRegen": "기력 회복",
+    "effectHit": "효과 적중",
+    "effectRes": "효과 저항",
+    "healBonus": "치유 보너스",
+    "shieldBonus": "보호막 보너스"
   },
   "statGroups": {
     "scaleStats": [
@@ -23,7 +28,12 @@
       "critRate",
       "critDmg",
       "dmgDealt",
-      "dmgTaken"
+      "dmgTaken",
+      "energyRegen",
+      "effectHit",
+      "effectRes",
+      "healBonus",
+      "shieldBonus"
     ],
     "bonusStats": [
       "atk",
@@ -31,7 +41,12 @@
       "hp",
       "spd",
       "critRate",
-      "critDmg"
+      "critDmg",
+      "energyRegen",
+      "effectHit",
+      "effectRes",
+      "healBonus",
+      "shieldBonus"
     ]
   },
   "actions": {
@@ -124,9 +139,27 @@
           "max": 10,
           "default": 1,
           "label": "타수"
+        },
+        "perStack": {
+          "kind": "number",
+          "min": 0,
+          "max": 5,
+          "default": 0,
+          "step": 0.05,
+          "label": "자원 1개당 배율 +",
+          "format": "pct",
+          "optional": true
+        },
+        "vsMarked": {
+          "kind": "int",
+          "min": 0,
+          "max": 300,
+          "default": 0,
+          "label": "표식 1개당 피해 +%",
+          "optional": true
         }
       },
-      "text": "{target}에게 {stat}의 {mult} 피해[[ ×{hits}]][[ (현재 {value})]]"
+      "text": "{target}에게 {stat}의 {mult} 피해[[ ×{hits}]][[ (자원 1개당 +{perStack})]][[ (내 표식 1개당 +{vsMarked}%)]][[ (현재 {value})]]"
     },
     "heal": {
       "label": "치유",
@@ -146,9 +179,19 @@
           "labels": "stats",
           "default": "atk",
           "label": "기준 능력치"
+        },
+        "perStack": {
+          "kind": "number",
+          "min": 0,
+          "max": 5,
+          "default": 0,
+          "step": 0.05,
+          "label": "자원 1개당 배율 +",
+          "format": "pct",
+          "optional": true
         }
       },
-      "text": "{target}의 HP를 {stat}의 {mult}만큼 회복[[ (현재 {value})]]"
+      "text": "{target}의 HP를 {stat}의 {mult}만큼 회복[[ (자원 1개당 +{perStack})]][[ (현재 {value})]]"
     },
     "shield": {
       "label": "보호막",
@@ -175,9 +218,19 @@
           "max": 20,
           "default": 2,
           "label": "지속 턴"
+        },
+        "perStack": {
+          "kind": "number",
+          "min": 0,
+          "max": 5,
+          "default": 0,
+          "step": 0.05,
+          "label": "자원 1개당 배율 +",
+          "format": "pct",
+          "optional": true
         }
       },
-      "text": "{target}에게 {stat}의 {mult} 보호막 ({turns}턴)[[ (현재 {value})]]"
+      "text": "{target}에게 {stat}의 {mult} 보호막 ({turns}턴)[[ (자원 1개당 +{perStack})]][[ (현재 {value})]]"
     },
     "buff": {
       "label": "강화",
@@ -331,6 +384,207 @@
         }
       },
       "text": "{target} 도발 {turns}턴 (상대의 단일 공격을 끌어옴)"
+    },
+    "stack_gain": {
+      "label": "자원 얻기",
+      "params": {
+        "n": {
+          "kind": "int",
+          "min": 1,
+          "max": 20,
+          "default": 1,
+          "label": "개수"
+        }
+      },
+      "text": "{target}의 자원 +{n}"
+    },
+    "stack_spend": {
+      "label": "자원 쓰기",
+      "params": {
+        "n": {
+          "kind": "int",
+          "min": 0,
+          "max": 20,
+          "default": 0,
+          "label": "개수 (0 = 전부)"
+        }
+      },
+      "text": "{target}의 자원 {spend}"
+    },
+    "mark": {
+      "label": "표식",
+      "params": {
+        "turns": {
+          "kind": "int",
+          "min": 1,
+          "max": 10,
+          "default": 2,
+          "label": "지속 턴"
+        },
+        "max": {
+          "kind": "int",
+          "min": 1,
+          "max": 10,
+          "default": 1,
+          "label": "최대 개수"
+        }
+      },
+      "text": "{target}에게 표식 +1[[ (최대 {max}개)]] ({turns}턴)"
+    },
+    "mark_detonate": {
+      "label": "표식 터뜨리기",
+      "params": {
+        "mult": {
+          "kind": "number",
+          "min": 0,
+          "max": 10,
+          "default": 0.5,
+          "step": 0.05,
+          "label": "표식 1개당 배율",
+          "format": "pct"
+        }
+      },
+      "text": "{target}의 내 표식을 터뜨려 1개당 공격력의 {mult} 피해"
+    },
+    "follow_up": {
+      "label": "추가 공격",
+      "params": {
+        "mult": {
+          "kind": "number",
+          "min": 0,
+          "max": 10,
+          "default": 0.6,
+          "step": 0.05,
+          "label": "배율",
+          "format": "pct"
+        },
+        "stat": {
+          "kind": "enum",
+          "of": "scaleStats",
+          "labels": "stats",
+          "default": "atk",
+          "label": "기준 능력치"
+        }
+      },
+      "text": "행동이 끝난 뒤 {target}에게 {stat}의 {mult} 추가 공격"
+    },
+    "counter": {
+      "label": "반격",
+      "params": {
+        "mult": {
+          "kind": "number",
+          "min": 0,
+          "max": 10,
+          "default": 0.6,
+          "step": 0.05,
+          "label": "배율",
+          "format": "pct"
+        },
+        "stat": {
+          "kind": "enum",
+          "of": "scaleStats",
+          "labels": "stats",
+          "default": "atk",
+          "label": "기준 능력치"
+        }
+      },
+      "text": "{target}에게 {stat}의 {mult} 반격"
+    },
+    "transform": {
+      "label": "변신",
+      "params": {
+        "turns": {
+          "kind": "int",
+          "min": 1,
+          "max": 10,
+          "default": 2,
+          "label": "지속 턴"
+        }
+      },
+      "text": "{target} 변신 {turns}턴 (기본 공격/스킬이 바뀜)"
+    },
+    "charge": {
+      "label": "차지 (늦게 터지는 행동)",
+      "params": {
+        "delayPct": {
+          "kind": "int",
+          "min": 10,
+          "max": 300,
+          "default": 100,
+          "label": "한 턴의 %만큼 뒤"
+        },
+        "big": {
+          "kind": "enum",
+          "of": [
+            "normal",
+            "big"
+          ],
+          "labels": {
+            "normal": "보통",
+            "big": "큰 공격 (차단 가능)"
+          },
+          "default": "normal",
+          "label": "종류"
+        },
+        "targeting": {
+          "kind": "targeting",
+          "default": "enemy_all",
+          "label": "대상"
+        },
+        "effects": {
+          "kind": "effects",
+          "label": "터질 때 효과"
+        }
+      },
+      "text": "한 턴의 {delayPct}% 뒤 {targeting}: {effects}[[ ({big})]]"
+    },
+    "summon": {
+      "label": "소환 (아이콘 토큰)",
+      "params": {
+        "icon": {
+          "kind": "enum",
+          "of": [
+            "orb",
+            "bird",
+            "wolf",
+            "demon",
+            "turret"
+          ],
+          "labels": {
+            "orb": "구슬",
+            "bird": "새",
+            "wolf": "늑대",
+            "demon": "악마",
+            "turret": "포탑"
+          },
+          "default": "orb",
+          "label": "소환물"
+        },
+        "spd": {
+          "kind": "int",
+          "min": 10,
+          "max": 300,
+          "default": 100,
+          "label": "속도"
+        },
+        "actions": {
+          "kind": "int",
+          "min": 1,
+          "max": 10,
+          "default": 2,
+          "label": "행동 횟수"
+        },
+        "targeting": {
+          "kind": "targeting",
+          "default": "enemy_all",
+          "label": "대상"
+        },
+        "effects": {
+          "kind": "effects",
+          "label": "행동할 때 효과"
+        }
+      },
+      "text": "{icon} 소환 (속도 {spd}, {actions}번): {targeting}에게 {effects}"
     }
   },
   "triggers": {
@@ -369,6 +623,12 @@
           "label": "HP %"
         }
       }
+    },
+    "onAllyAttack": {
+      "label": "다른 아군이 공격한 뒤"
+    },
+    "onStackFull": {
+      "label": "자원이 가득 차면"
     }
   },
   "conditions": {
@@ -457,6 +717,50 @@
           "max": 100,
           "default": 50,
           "label": "%"
+        }
+      }
+    },
+    "stacks_at_least": {
+      "label": "자원 {n}개 이상",
+      "params": {
+        "n": {
+          "kind": "int",
+          "min": 1,
+          "max": 20,
+          "default": 3,
+          "label": "개수"
+        }
+      }
+    },
+    "stacks_full": {
+      "label": "자원이 가득",
+      "params": {}
+    },
+    "target_marked": {
+      "label": "대상에 내 표식 {n}개 이상",
+      "params": {
+        "n": {
+          "kind": "int",
+          "min": 1,
+          "max": 10,
+          "default": 1,
+          "label": "개수"
+        }
+      }
+    },
+    "is_transformed": {
+      "label": "변신 중",
+      "params": {}
+    },
+    "sp_at_least": {
+      "label": "팀 SP {n} 이상",
+      "params": {
+        "n": {
+          "kind": "int",
+          "min": 1,
+          "max": 10,
+          "default": 3,
+          "label": "SP"
         }
       }
     }

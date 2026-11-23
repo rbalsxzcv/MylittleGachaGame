@@ -3,7 +3,7 @@ import { describe, it, expect } from './lib/runner.js';
 import { loadJson } from './lib/load.js';
 import { createBattle } from '../js/battle/engine.js';
 import { EFFECTS } from '../js/battle/effects/index.js';
-import { char, enemy, mkData, stageOf, teamOf, skill } from '../js/battle/testkit.js';
+import { char, enemy, mkData, stageOf, teamOf, skill, dmg } from '../js/battle/testkit.js';
 
 const vocab = await loadJson('js/battle/vocab.json');
 
@@ -120,5 +120,133 @@ describe('효과', () => {
     const a2 = b.unit('a2');
     run('taunt', { turns: 2 }, a2, a2);
     expect(b.tools.opponentsOf(b.unit('w1e1')).find((x) => x.taunt)?.uid).toBe('a2');
+  });
+});
+
+// ── 키트 아키타입용 메커니즘 (자원/표식/추가 공격/반격/변신/차지/소환 + 새 능력치) ──
+const withRes = (id, extra = {}) => char(vocab, id, { resource: { name: '투지', cap: 5 }, ...extra });
+
+describe('효과: 자원 / 표식 / 새 능력치', () => {
+  it('stack_gain / stack_spend: 상한까지, 0이면 전부', () => {
+    const { a1, run } = setup({ chars: [withRes('h')] });
+    run('stack_gain', { n: 3 }, a1, a1);
+    run('stack_gain', { n: 9 }, a1, a1);
+    expect(a1.res.value).toBe(5);
+    run('stack_spend', { n: 2 }, a1, a1);
+    expect(a1.res.value).toBe(3);
+    run('stack_spend', { n: 0 }, a1, a1);
+    expect(a1.res.value).toBe(0);
+  });
+  it('damage perStack: 배율 + 자원 1개당 값', () => {
+    const { a1, run } = setup({ chars: [withRes('h')] });
+    run('stack_gain', { n: 3 }, a1, a1);
+    const ev = run('damage', { mult: 1, stat: 'atk', hits: 1, perStack: 0.2 });
+    expect(ev[0].amount).toBe(Math.floor(100 * 1.6 * (100 / 140)));
+  });
+  it('onStackFull: 가득 차는 순간 한 번만', () => {
+    const c = withRes('h', {
+      resource: { name: '투지', cap: 2 },
+      kit: { basic: skill('enemy_single', [dmg(1), { type: 'stack_gain', n: 1, target: 'self' }]) },
+      talents: [{ name: '가득', trigger: 'onStackFull', targeting: 'self', effects: [{ type: 'buff', stat: 'atk', pct: 10, turns: 2 }] }],
+    });
+    const { b } = setup({ chars: [c] });
+    for (let i = 0; i < 4; i++) b.act({ action: 'basic', target: 'w1e1' });
+    expect(b.state.events.filter((e) => e.t === 'passive' && e.name === '가득').length).toBe(1);
+  });
+  it('mark / vsMarked / mark_detonate', () => {
+    const { a1, e1, b, run } = setup();
+    run('mark', { turns: 2, max: 3 });
+    run('mark', { turns: 2, max: 3 });
+    expect(b.tools.marksFrom(a1, e1)).toBe(2);
+    expect(run('damage', { mult: 1, stat: 'atk', hits: 1, vsMarked: 50 })[0].amount).toBe(Math.floor(100 * 2 * (100 / 140)));
+    const ev = run('mark_detonate', { mult: 0.5 });
+    expect(ev.find((e) => e.t === 'damage').amount).toBe(Math.floor(100 * 1 * (100 / 140)));
+    expect(b.tools.marksFrom(a1, e1)).toBe(0);
+  });
+  it('효과 적중/저항: 저항 100%면 약화가 안 걸림, 확률이 1 이상이면 난수를 안 굴림', () => {
+    const debuffKit = { skill: skill('enemy_single', [{ type: 'debuff', stat: 'def', pct: 20, turns: 2 }]) };
+    const { b, e1 } = setup({ chars: [char(vocab, 'h', { kit: debuffKit })], enemyOpts: { stats: { effectRes: 1 } } });
+    b.act({ action: 'skill', target: 'w1e1' });
+    expect(b.state.events.some((e) => e.t === 'resist')).toBe(true);
+    expect(e1.statuses.length).toBe(0);
+    // 적중 1(=+100%) × 저항 0.5 → 확률 1 → 판정 없이 걸림
+    const s2 = setup({ chars: [char(vocab, 'h', { kit: debuffKit, stats: { effectHit: 1 } })], enemyOpts: { stats: { effectRes: 0.5 } } });
+    s2.b.act({ action: 'skill', target: 'w1e1' });
+    expect(s2.e1.statuses.length).toBe(1);
+  });
+  it('energyRegen / healBonus / shieldBonus', () => {
+    const { a1, run } = setup({ chars: [char(vocab, 'h', { stats: { energyRegen: 1.5, healBonus: 0.5, shieldBonus: 1 } })] });
+    run('energy_gain', { n: 20 }, a1, a1);
+    expect(a1.energy).toBe(30);
+    a1.hp = 100;
+    run('heal', { mult: 0.5, stat: 'atk' }, a1, a1);
+    expect(a1.hp).toBe(175);
+    run('shield', { mult: 1, stat: 'def', turns: 2 }, a1, a1);
+    expect(a1.shield.value).toBe(80);
+  });
+});
+
+describe('효과: 반응 / 변신 / 토큰', () => {
+  const striker = (id) => char(vocab, id, { talents: [{ name: '추격', trigger: 'onAllyAttack', targeting: 'trigger_target', perRound: 1, effects: [{ type: 'follow_up', mult: 0.5, stat: 'atk' }] }] });
+  it('follow_up: 다른 아군이 공격한 뒤 추가 공격, 라운드당 제한', () => {
+    const { b } = setup({ team: ['h', 'h2', 'f'], chars: [char(vocab, 'h'), char(vocab, 'h2'), striker('f')] });
+    b.act({ action: 'basic', target: 'w1e1' }); // a1 → a3 추가 공격
+    b.act({ action: 'basic', target: 'w1e1' }); // a2 (같은 라운드) → 제한
+    const fu = b.state.events.filter((e) => e.t === 'action' && e.action === 'follow_up');
+    expect(fu.length).toBe(1);
+    expect(fu[0].uid).toBe('a3');
+  });
+  it('counter: 공격받으면 행동이 끝난 뒤 반격 (반응은 반응을 부르지 않음)', () => {
+    const tank = char(vocab, 'h', { talents: [{ name: '반격', trigger: 'onHit', targeting: 'trigger_target', effects: [{ type: 'counter', mult: 0.5, stat: 'atk' }] }] });
+    const foe = { stats: { spd: 300 }, actions: { hit: skill('enemy_single', [dmg(1)]) }, passives: [{ name: '맞반격', trigger: 'onHit', targeting: 'trigger_target', effects: [{ type: 'counter', mult: 0.5, stat: 'atk' }] }] };
+    const { b } = setup({ chars: [tank], enemyOpts: foe });
+    const counters = b.state.events.filter((e) => e.t === 'action' && e.action === 'counter');
+    expect(counters.length > 0).toBe(true);
+    expect(counters.every((e) => e.uid === 'a1')).toBe(true); // 적의 맞반격은 반격에 반응하지 않음
+  });
+  it('transform: 키트가 바뀌고 지속 턴이 끝나면 돌아옴', () => {
+    const c = char(vocab, 'h', { kit: { transformed: { basic: skill('enemy_single', [dmg(3)], { name: '변신 기본' }) } } });
+    const { b, a1, run } = setup({ chars: [c] });
+    run('transform', { turns: 1 }, a1, a1);
+    expect(a1.kit.basic.name).toBe('변신 기본');
+    b.act({ action: 'basic', target: 'w1e1' }); // 이번 턴에 받은 건 이번 턴 끝에 안 줄어듦
+    expect(a1.kit.basic.name).toBe('변신 기본');
+    b.act({ action: 'basic', target: 'w1e1' });
+    expect(a1.kit.basic.name).toBe('기본');
+    expect(a1.transform).toBe(null);
+  });
+  it('charge: 타임라인 토큰 → 시간이 되면 실행, 큰 차지는 차단 가능', () => {
+    const big = { type: 'charge', delayPct: 100, big: 'big', targeting: 'enemy_all', effects: [dmg(1)] };
+    const s = setup();
+    s.run('charge', big, s.e1, s.a1);
+    expect(s.b.queueItems(8).some((x) => x.kind === 'token' && x.big)).toBe(true);
+    for (let i = 0; i < 4; i++) s.b.act({ action: 'basic', target: 'w1e1' });
+    expect(s.b.state.events.some((e) => e.t === 'token_act')).toBe(true);
+    expect(s.b.state.tokens.length).toBe(0);
+    const s2 = setup();
+    s2.run('charge', big, s2.e1, s2.a1);
+    expect(s2.run('interrupt', {}, s2.a1, s2.e1).find((e) => e.t === 'interrupt').ok).toBe(true);
+    for (let i = 0; i < 4; i++) s2.b.act({ action: 'basic', target: 'w1e1' });
+    expect(s2.b.state.events.some((e) => e.t === 'token_act')).toBe(false);
+    expect(s2.b.state.events.some((e) => e.t === 'token_end' && e.why === 'interrupted')).toBe(true);
+  });
+  it('summon: 자기 속도로 actions번 행동하고 사라짐', () => {
+    const s = setup();
+    s.run('summon', { icon: 'orb', spd: 200, actions: 2, targeting: 'enemy_all', effects: [dmg(0.5)] }, s.a1, s.a1);
+    for (let i = 0; i < 4; i++) s.b.act({ action: 'basic', target: 'w1e1' });
+    expect(s.b.state.events.filter((e) => e.t === 'token_act').length).toBe(2);
+    expect(s.b.state.tokens.length).toBe(0);
+  });
+  it('AI useIf: 조건이 맞을 때만 스킬 (SP가 가득이면 예외)', async () => {
+    const { chooseAction } = await import('../js/battle/ai.js');
+    const c = withRes('h', { kit: { skill: skill('enemy_single', [dmg(2)], { useIf: [{ type: 'stacks_full' }] }) } });
+    const { b, a1 } = setup({ chars: [c] });
+    b.state.sp.ally = 3;
+    expect(chooseAction(b.tools, a1).action).toBe('basic');
+    a1.res.value = a1.res.cap;
+    expect(chooseAction(b.tools, a1).action).toBe('skill');
+    a1.res.value = 0;
+    b.state.sp.ally = b.state.spMax;
+    expect(chooseAction(b.tools, a1).action).toBe('skill');
   });
 });

@@ -4,6 +4,8 @@
 import { enumLabel } from './schema.js';
 
 const VALUE_TYPES = { damage: true, heal: true, shield: true, dot: true };
+/** 비율 능력치: 강화/약화가 % 포인트 (+20 → +0.20) */
+const RATIO_STATS = new Set(['critRate', 'critDmg', 'energyRegen', 'effectHit', 'effectRes', 'healBonus', 'shieldBonus']);
 
 function fmtNumber(n) {
   return Number.isInteger(n) ? n.toLocaleString('ko-KR') : String(Math.round(n * 100) / 100);
@@ -73,8 +75,12 @@ export function describeEffect(eff, vocab, o = {}) {
   }
   if (eff.type === 'buff' || eff.type === 'debuff') {
     const sign = (eff.type === 'buff') !== (eff.stat === 'dmgTaken') ? '+' : '−';
-    special.delta = `${sign}${eff.pct}%`;
+    const ratio = RATIO_STATS.has(eff.stat);
+    special.delta = `${sign}${eff.pct}${ratio ? '%p' : '%'}`;
   }
+  if (eff.type === 'stack_spend') special.spend = eff.n > 0 ? `−${eff.n}` : '전부 사용';
+  // 안에 효과 목록이 있는 효과 (차지/소환)
+  if (Array.isArray(eff.effects)) special.effects = eff.effects.map((e) => describeEffect(e, vocab, { ...o, targeting: eff.targeting })).join(', ') || '없음';
   let text = render(def.text, eff, def.params || {}, special, vocab);
   if (eff.chance != null && eff.chance < 100) text = `${eff.chance}% 확률로 ${text}`;
   return text;
@@ -113,6 +119,7 @@ export function describePassive(p, vocab, o = {}) {
     if (effects.length) lines.push(`${head}: ${effects.join(', ')}`);
     else lines.push(head);
     if (p.limit) lines[lines.length - 1] += ` (전투당 ${p.limit}회)`;
+    if (p.perRound) lines[lines.length - 1] += ` (라운드당 ${p.perRound}회)`;
   }
   for (const m of p.modifiers || []) lines.push(describeModifier(m, vocab));
   return lines;

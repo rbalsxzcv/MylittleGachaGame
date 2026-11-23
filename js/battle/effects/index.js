@@ -12,6 +12,15 @@ import * as interrupt from './interrupt.js';
 import * as dot from './dot.js';
 import * as cleanse from './cleanse.js';
 import * as taunt from './taunt.js';
+import * as stackGain from './stackGain.js';
+import * as stackSpend from './stackSpend.js';
+import * as mark from './mark.js';
+import * as markDetonate from './markDetonate.js';
+import * as followUp from './followUp.js';
+import * as counter from './counter.js';
+import * as transform from './transform.js';
+import * as charge from './charge.js';
+import * as summon from './summon.js';
 
 export const EFFECTS = {
   damage: damage.apply,
@@ -27,4 +36,13 @@ export const EFFECTS = {
   dot: dot.apply,
   cleanse: cleanse.apply,
   taunt: taunt.apply,
+  stack_gain: stackGain.apply,
+  stack_spend: stackSpend.apply,
+  mark: mark.apply,
+  mark_detonate: markDetonate.apply,
+  follow_up: followUp.apply,
+  counter: counter.apply,
+  transform: transform.apply,
+  charge: charge.apply,
+  summon: summon.apply,
 };

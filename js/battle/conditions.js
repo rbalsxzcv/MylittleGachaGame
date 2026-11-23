@@ -10,4 +10,10 @@ export const CONDITIONS = {
   allies_alive_at_least: (b, u, c) => b.alliesOf(u).length >= c.n,
   round_at_least: (b, u, c) => b.state.round >= c.n,
   chance: (b, u, c) => b.rng() * 100 < c.pct,
+  // 자원 / 표식 / 변신 / SP (키트 아키타입용)
+  stacks_at_least: (b, u, c) => (u.res?.value || 0) >= c.n,
+  stacks_full: (b, u) => !!u.res && u.res.value >= u.res.cap,
+  target_marked: (b, u, c, o) => !!o.target && o.target.alive && b.marksFrom(u, o.target) >= (c.n || 1),
+  is_transformed: (b, u) => !!u.transform,
+  sp_at_least: (b, u, c) => u.side === 'ally' && b.state.sp.ally >= c.n,
 };

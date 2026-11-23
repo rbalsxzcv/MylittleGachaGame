@@ -8,6 +8,7 @@
 //   - 아니면 기본 공격
 // 대상: 적 1명은 도발 중인 적 → 이 행동으로 쓰러뜨릴 수 있는 적(HP 낮은 순) → HP가 가장 낮은 적
 //       아군 1명은 HP 비율이 가장 낮은 아군
+// 행동에 useIf(조건 목록)가 있으면 그 조건이 맞을 때 씀 (예: 자원이 가득할 때 스킬). 스킬은 SP가 가득이면 조건과 상관없이 씀
 import { TARGETING, lowestHp, lowestHpRatio, tauntersOf } from './targeting.js';
 
 const HURT = 0.5;
@@ -64,9 +65,14 @@ export function chooseUltimates(b) {
   const allies = b.state.allies.filter((a) => a.alive && b.canUse(a, 'ultimate'));
   for (const a of allies) {
     const ult = a.kit.ultimate;
-    const big = bigIncoming(b, a);
-    const use = hasDamage(ult) ? big || ultimateKills(b, a, ult) : big || anyHurt(b, a) || !isSupport(ult);
-    if (use) out.push({ uid: a.uid, target: targetFor(b, a, ult) });
+    const target = targetFor(b, a, ult);
+    let use;
+    if (ult.useIf?.length) use = b.check(a, ult.useIf, b.unitOf(target));
+    else {
+      const big = bigIncoming(b, a);
+      use = hasDamage(ult) ? big || ultimateKills(b, a, ult) : big || anyHurt(b, a) || !isSupport(ult);
+    }
+    if (use) out.push({ uid: a.uid, target });
   }
   return out;
 }
@@ -75,8 +81,13 @@ export function chooseUltimates(b) {
 export function chooseAction(b, u) {
   const skill = u.kit.skill;
   if (skill && b.canUse(u, 'skill')) {
-    const need = isSupport(skill) && anyHurt(b, u);
-    if (b.state.sp.ally >= 2 || need) return { action: 'skill', target: targetFor(b, u, skill) };
+    const target = targetFor(b, u, skill);
+    if (skill.useIf?.length) {
+      if (b.check(u, skill.useIf, b.unitOf(target)) || b.state.sp.ally >= b.state.spMax) return { action: 'skill', target };
+    } else {
+      const need = isSupport(skill) && anyHurt(b, u);
+      if (b.state.sp.ally >= 2 || need) return { action: 'skill', target };
+    }
   }
   return { action: 'basic', target: targetFor(b, u, u.kit.basic) };
 }

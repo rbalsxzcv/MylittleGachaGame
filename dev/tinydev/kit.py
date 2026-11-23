@@ -15,7 +15,8 @@ ACTIONS = ("basic", "skill", "ultimate")
 STAT_LIMITS = {"atk": (0, 1e6), "def": (0, 1e6), "hp": (1, 1e7), "spd": (1, 1000), "critRate": (0, 1), "critDmg": (0, 10), "energyRegen": (0, 10), "effectHit": (0, 5), "effectRes": (0, 1), "healBonus": (0, 10), "shieldBonus": (0, 10)}
 # 캐릭터 역할 (게임 js/config.js ROLES와 같음)
 CHAR_ROLES = ("attacker", "defender", "support", "healer")
-MAX_BREAKTHROUGHS = 5
+MAX_BREAKTHROUGHS = 6
+TWEAK_WARN_PCT = 10  # balance.stats.tweakWarnPct 기본값과 같음
 
 _cache = {"mtime": None, "vocab": None}
 
@@ -65,6 +66,8 @@ def targeting_ok(value, vocab, passive=False):
 def _check_param(r, where, key, value, spec, vocab, passive=False):
     kind = spec.get("kind")
     if value is None:
+        if spec.get("optional"):
+            return
         if kind != "effects" and "default" in spec:
             r.warn(where, f"{key}가 없어서 기본값({spec['default']})을 써요")
         elif kind == "effects":
@@ -135,6 +138,8 @@ def check_skill(r, where, skill, kind, vocab):
     check_effect_list(r, f"{where}.effects", skill.get("effects"), vocab)
     if "cooldown" in skill or "initialCooldown" in skill:
         r.warn(where, "cooldown은 더 이상 쓰지 않아요 (스킬은 팀 SP를 써요) — 지워 주세요")
+    if skill.get("useIf") is not None:
+        check_conditions(r, f"{where}.useIf", skill.get("useIf"), vocab)
     if kind == "ultimate" and skill.get("cost") is not None:
         c = skill.get("cost")
         if not (isinstance(c, int) and 0 <= c <= 1000):
@@ -155,6 +160,27 @@ def check_kit(r, where, kit, vocab, enemy=False):
                 r.warn(f"{where}.{kind}", "비어 있어서 기본 스킬을 써요")
             continue
         check_skill(r, f"{where}.{kind}", s, kind, vocab)
+    alt = kit.get("transformed")
+    if alt is not None:
+        if not isinstance(alt, dict) or not any(alt.get(k) for k in ACTIONS):
+            r.error(f"{where}.transformed", "변신 키트는 basic/skill/ultimate 중 하나 이상이 있는 객체여야 해요")
+        else:
+            for kind in ACTIONS:
+                if alt.get(kind):
+                    check_skill(r, f"{where}.transformed.{kind}", alt[kind], kind, vocab)
+
+
+def check_conditions(r, where, conds, vocab):
+    if not isinstance(conds, list):
+        r.error(where, "조건 목록이 아니에요")
+        return
+    for i, c in enumerate(conds):
+        cd = vocab["conditions"].get((c or {}).get("type"))
+        if not cd:
+            r.error(f"{where}[{i}]", f"알 수 없는 조건 '{(c or {}).get('type')}'")
+            continue
+        for key, spec in (cd.get("params") or {}).items():
+            _check_param(r, f"{where}[{i}]", key, c.get(key), spec, vocab)
 
 
 def check_passive(r, where, p, vocab):
@@ -206,6 +232,8 @@ def check_passive(r, where, p, vocab):
             _check_param(r, mw, key, m.get(key), spec, vocab)
     if p.get("limit") is not None and not (isinstance(p["limit"], int) and p["limit"] >= 1):
         r.error(where, f"limit은 1 이상의 정수여야 해요: {p['limit']!r}")
+    if p.get("perRound") is not None and not (isinstance(p["perRound"], int) and 1 <= p["perRound"] <= 20):
+        r.error(where, f"perRound는 1~20 정수여야 해요: {p['perRound']!r}")
     if not effects and not mods:
         r.warn(where, "효과도 수정자도 없어요 (이름만 있는 능력)")
 
@@ -225,13 +253,51 @@ def check_stats(r, where, stats):
             r.error(where, f"{k}={v!r} 는 {lo}~{hi} 숫자여야 해요")
 
 
+def check_resource(r, where, res):
+    if res is None:
+        return
+    if not isinstance(res, dict):
+        r.error(where, "resource는 {name, cap, start} 객체여야 해요")
+        return
+    cap = res.get("cap")
+    if not (isinstance(cap, int) and 1 <= cap <= 99):
+        r.error(where, f"자원 상한(cap)은 1~99 정수여야 해요: {cap!r}")
+    st = res.get("start", 0)
+    if not (isinstance(st, int) and 0 <= st <= (cap if isinstance(cap, int) else 99)):
+        r.error(where, f"자원 시작값(start)은 0~상한 정수여야 해요: {st!r}")
+
+
 def check_character_battle(r, where, c, vocab):
-    """캐릭터의 stats / kit / breakthroughs"""
+    """캐릭터의 role / stats / statTweak / resource / kit / talents / bt2 / bt6 / (예전) breakthroughs"""
+    if c.get("role") is not None and c.get("role") not in CHAR_ROLES:
+        r.error(where, f"역할(role)은 {', '.join(CHAR_ROLES)} 중 하나: {c.get('role')!r}")
     check_stats(r, f"{where}.stats", c.get("stats"))
+    tw = c.get("statTweak")
+    if tw is not None:
+        if not isinstance(tw, dict):
+            r.error(f"{where}.statTweak", "statTweak는 {능력치: %} 객체여야 해요")
+        else:
+            for k, v in tw.items():
+                if k not in STAT_LIMITS or not _is_num(v) or abs(v) > 50:
+                    r.error(f"{where}.statTweak", f"{k}={v!r}: 능력치 이름 + −50~50 %여야 해요")
+                elif abs(v) > TWEAK_WARN_PCT:
+                    r.warn(f"{where}.statTweak", f"{k} {v:+}%: 손조정이 ±{TWEAK_WARN_PCT}%를 넘어요 (역할 템플릿을 고치는 게 나을 수 있어요)")
+    check_resource(r, f"{where}.resource", c.get("resource"))
     check_kit(r, f"{where}.kit", c.get("kit"), vocab)
+    talents = c.get("talents")
+    if talents is not None:
+        if not isinstance(talents, list) or len(talents) > 4:
+            r.error(where, "talents는 상시 능력 목록(4개까지)이어야 해요")
+        else:
+            for i, p in enumerate(talents):
+                check_passive(r, f"{where}.특성{i + 1}", p, vocab)
+    for key, label in (("bt2", "돌파2"), ("bt6", "돌파6")):
+        if c.get(key) is not None:
+            check_passive(r, f"{where}.{label}", c[key], vocab)
     bts = c.get("breakthroughs")
     if bts is None:
-        r.warn(where, "돌파 능력(breakthroughs)이 없어요")
+        if c.get("bt2") is None and c.get("bt6") is None:
+            r.warn(where, "돌파 능력(bt2 / bt6)이 없어요 — 키트 생성기로 채워 주세요")
         return
     if not isinstance(bts, list):
         r.error(where, "breakthroughs가 목록이 아니에요")
@@ -239,7 +305,7 @@ def check_character_battle(r, where, c, vocab):
     if len(bts) > MAX_BREAKTHROUGHS:
         r.error(where, f"돌파 능력은 {MAX_BREAKTHROUGHS}개까지예요 ({len(bts)}개)")
     elif len(bts) < MAX_BREAKTHROUGHS:
-        r.warn(where, f"돌파 능력이 {len(bts)}개뿐이에요 (5개 권장)")
+        r.warn(where, f"예전 방식 돌파 능력(breakthroughs)이 {len(bts)}개예요 — 지금은 bt2 / bt6만 쓰고 1·3·4·5는 공식이에요")
     for i, p in enumerate(bts):
         check_passive(r, f"{where}.돌파{i + 1}", p, vocab)
 

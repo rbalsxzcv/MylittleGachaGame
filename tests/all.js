@@ -2,6 +2,7 @@
 import './config.test.js';
 import './save.test.js';
 import './progression.test.js';
+import './stats.test.js';
 import './gacha.test.js';
 import './data.test.js';
 import './effects.test.js';

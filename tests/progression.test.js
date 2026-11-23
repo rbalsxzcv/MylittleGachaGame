@@ -9,7 +9,7 @@ const cfg = loadConfig({});
 
 describe('progression: 능력치', () => {
   it('희귀도 기본값 (5★ Lv.1)', () => {
-    expect(statsOf({ rarity: 5 }, 1, 0, cfg)).toEqual({ atk: 130, def: 52, hp: 1170, spd: 105, critRate: 0.05, critDmg: 0.5 });
+    expect(statsOf({ rarity: 5 }, 1, 0, cfg)).toEqual({ atk: 130, def: 52, hp: 1170, spd: 105, critRate: 0.05, critDmg: 0.5, energyRegen: 1, effectHit: 0, effectRes: 0, healBonus: 0, shieldBonus: 0 });
   });
   it('레벨 성장: atk/def/hp만, 속도·치명타는 그대로', () => {
     const s = statsOf({ rarity: 3 }, 10, 0, cfg); // ×1.72

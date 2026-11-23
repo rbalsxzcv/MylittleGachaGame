@@ -192,6 +192,46 @@ export function runSelfTest(vocab, extra = {}) {
     return eq([kill, tough, big], [1, 0, 1]);
   });
 
+  // ── 키트 아키타입 메커니즘 ──
+  check('반응: 서로 반격하는 아군/적이 있어도 무한 반복 없음 (반응은 반응을 부르지 않음)', () => {
+    const counter = { name: '반격', trigger: 'onHit', targeting: 'trigger_target', effects: [{ type: 'counter', mult: 0.1, stat: 'atk' }] };
+    const C = char(vocab, 'c', { talents: [counter] });
+    const foe = enemy(vocab, 'cf', { stats: { spd: 150 }, actions: { hit: skill('enemy_single', [dmg(0.1)]) }, passives: [counter] });
+    const b = battle([C], [foe], stageOf(['cf']));
+    b.act({ action: 'basic', target: 'w1e1' });
+    const reactions = b.state.events.filter((e) => e.t === 'action' && e.reaction);
+    return reactions.length > 0 && reactions.length <= 10 ? true : `반응 ${reactions.length}번`;
+  });
+  check('토큰(차지/소환): 같은 시드 → 같은 기록, 행동 순서에 표시', () => {
+    const S = char(vocab, 's', {
+      kit: {
+        skill: skill('self', [{ type: 'summon', icon: 'orb', spd: 130, actions: 3, targeting: 'enemy_all', effects: [dmg(0.3)] }]),
+        ultimate: skill('self', [{ type: 'charge', delayPct: 50, big: 'normal', targeting: 'enemy_all', effects: [dmg(1)] }], { cost: 20 }),
+      },
+    });
+    const run = () => {
+      const b = battle([S], [hitter], stageOf(['atk']), teamOf('s'), 9);
+      b.act({ action: 'skill', target: null });
+      b.state.allies[0].energy = 100;
+      b.ultimate({ uid: 'a1' });
+      const shown = b.queueItems(8).filter((x) => x.kind === 'token').length;
+      for (let i = 0; i < 6 && !b.state.result; i++) b.act({ action: 'basic', target: 'w1e1' });
+      return { shown, events: JSON.stringify(b.state.events) };
+    };
+    const a = run();
+    const c = run();
+    if (a.events !== c.events) return '기록이 달라요';
+    return a.shown >= 2 ? true : `행동 순서의 토큰 ${a.shown}개`;
+  });
+  check('변신: 지속 턴이 끝나면 원래 키트로', () => {
+    const T = char(vocab, 't', { kit: { skill: skill('self', [{ type: 'transform', turns: 1 }]), transformed: { basic: skill('enemy_single', [dmg(2)], { name: '변신 공격' }) } } });
+    const b = battle([T], [dummy], stage, teamOf('t'));
+    b.act({ action: 'skill', target: null });
+    const during = b.state.allies[0].kit.basic.name;
+    b.act({ action: 'basic', target: 'w1e1' });
+    return eq([during, b.state.allies[0].kit.basic.name], ['변신 공격', '기본']);
+  });
+
   // 실제 데이터: 결정론 + 불변 조건
   const { team, stage: realStage, data: realData } = extra;
   if (team && realStage && realData) {
@@ -221,6 +261,15 @@ export function runSelfTest(vocab, extra = {}) {
         if (!bt.state.result) return `시드 ${s}: 전투가 끝나지 않음`;
       }
       return true;
+    });
+    check('성능: 전투 한 걸음(결정 하나) 평균 5ms 미만', () => {
+      const now = () => (typeof performance !== 'undefined' ? performance.now() : 0);
+      const bt = createBattle({ team, stage: realStage, data: realData, seed: 4242 });
+      let steps = 0;
+      const t0 = now();
+      for (let g = 0; g < 100000 && !bt.state.result; g++, steps++) bt.auto();
+      const ms = (now() - t0) / Math.max(1, steps);
+      return ms < 5 ? true : `평균 ${ms.toFixed(2)}ms`;
     });
   }
 

@@ -7,10 +7,18 @@ import { MODIFIERS } from './modifiers.js';
  * @param {object} o.entity 캐릭터 또는 적 데이터
  * @param {'ally'|'enemy'} o.side
  */
-export function buildUnit({ entity, level = 1, breakthrough = 0, side, slot, uid, balance }) {
-  const stats = statsOf(entity, level, breakthrough, balance);
+export function buildUnit({ entity, level = 1, breakthrough = 0, side, slot, uid, balance, extras = {}, difficulty = 1 }) {
+  const stats = statsOf(entity, level, breakthrough, balance, extras);
   const ally = side === 'ally';
-  const kit = ally ? structuredClone(kitOf(entity, balance)) : null;
+  // 적: 스테이지 난이도 배율 (공격/HP)
+  if (!ally && difficulty !== 1) {
+    stats.atk = Math.max(0, Math.floor(stats.atk * difficulty));
+    stats.hp = Math.max(1, Math.floor(stats.hp * difficulty));
+  }
+  const full = ally ? structuredClone(kitOf(entity, balance)) : null;
+  const kitAlt = full?.transformed ? Object.fromEntries(Object.entries(full.transformed).filter(([, v]) => v)) : null;
+  const kit = full ? { basic: full.basic, skill: full.skill, ultimate: full.ultimate } : null;
+  const res = entity.resource ? { name: entity.resource.name || '자원', cap: Math.max(1, entity.resource.cap || 1), value: Math.min(entity.resource.cap || 1, entity.resource.start || 0), full: false } : null;
   const e = balance.combat.energy;
   const u = {
     uid,
@@ -54,14 +62,20 @@ export function buildUnit({ entity, level = 1, breakthrough = 0, side, slot, uid
     statuses: [],
     dots: [],
     taunt: null,
+    marks: [], // 이 유닛에 붙은 표식 [{src, n, turns, fresh}]
+    res, // 자원(스택) {name, value, cap, full} | null
+    transform: null, // 변신 {turns, fresh} | null
+    kitBase: null, // 변신이 끝나면 돌아갈 키트
+    kitAlt: kitAlt && Object.keys(kitAlt).length ? kitAlt : null,
     alive: true,
     passives: [],
     stats: { dealt: 0, healed: 0, shielded: 0, taken: 0 },
   };
-  activePassives(entity, breakthrough).forEach((p, idx) => {
+  activePassives(entity, breakthrough, extras.passives || []).forEach((p, idx) => {
     for (const m of p.modifiers || []) MODIFIERS[m.type]?.(u, m);
-    if (p.trigger) u.passives.push({ ...p, idx, fired: 0, below: false });
+    if (p.trigger) u.passives.push({ ...p, idx, fired: 0, below: false, roundOf: 0, roundFired: 0 });
   });
   u.ultCost = Math.max(0, u.ultCost);
+  if (u.kit) u.kitBase = u.kit;
   return u;
 }

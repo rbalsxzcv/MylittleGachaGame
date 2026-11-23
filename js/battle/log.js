@@ -1,6 +1,6 @@
 // 전투 이벤트 → 전투 기록 문장 (한국어). 화면 없이도 쓸 수 있는 순수 함수
-const ACTION_LABEL = { basic: '기본 공격', skill: '스킬', ultimate: '궁극기' };
-const STAT_LABEL = { atk: '공격력', def: '방어력', spd: '속도', critRate: '치명타 확률', critDmg: '치명타 피해', dmgDealt: '주는 피해', dmgTaken: '받는 피해' };
+const ACTION_LABEL = { basic: '기본 공격', skill: '스킬', ultimate: '궁극기', follow_up: '추가 공격', counter: '반격' };
+const STAT_LABEL = { atk: '공격력', def: '방어력', spd: '속도', critRate: '치명타 확률', critDmg: '치명타 피해', dmgDealt: '주는 피해', dmgTaken: '받는 피해', energyRegen: '기력 회복', effectHit: '효과 적중', effectRes: '효과 저항', healBonus: '치유 보너스', shieldBonus: '보호막 보너스' };
 const n = (v) => Number(v).toLocaleString('ko-KR');
 const signed = (v) => `${v > 0 ? '+' : ''}${v}`;
 
@@ -12,6 +12,24 @@ const signed = (v) => `${v > 0 ? '+' : ''}${v}`;
 export function eventText(ev, nameOf) {
   const tgt = () => nameOf(ev.tgt);
   switch (ev.t) {
+    case 'stack':
+      return { kind: 'buff', text: `· ${tgt()} ${ev.name} ${ev.value}/${ev.cap} (${signed(ev.delta)})` };
+    case 'mark':
+      return { kind: 'debuff', text: `· ${tgt()}에게 표식 ${ev.n}개 (${ev.turns}턴)` };
+    case 'detonate':
+      return { kind: 'damage', text: `· ${tgt()}의 표식 ${ev.n}개 폭발` };
+    case 'resist':
+      return { kind: 'info', text: `· ${tgt()}이(가) 효과에 저항` };
+    case 'transform':
+      return { kind: 'buff', text: `${nameOf(ev.uid)} 변신 (${ev.turns}턴)` };
+    case 'transform_end':
+      return { kind: 'info', text: `${nameOf(ev.uid)} 변신 해제` };
+    case 'token_add':
+      return { kind: ev.big ? 'ultimate' : 'info', text: `${nameOf(ev.owner)} → ${ev.kind === 'charge' ? '차지' : '소환'} 「${ev.name}」${ev.big ? ' (큰 공격, 차단 가능)' : ''}` };
+    case 'token_act':
+      return { kind: 'action', text: `${nameOf(ev.owner)} → 「${ev.name}」 ${ev.kind === 'charge' ? '발동' : '행동'}` };
+    case 'token_end':
+      return ev.why === 'interrupted' ? { kind: 'info', text: '차지가 끊겼어요' } : null;
     case 'round':
       return { kind: 'round', text: `라운드 ${ev.round}` };
     case 'wave':

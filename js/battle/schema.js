@@ -4,7 +4,7 @@
 // 게임(data.js)과 개발 도구(폼 미리보기, 밸런스 시뮬레이터)가 같이 씁니다. DOM을 쓰지 않습니다.
 
 export const ACTIONS = ['basic', 'skill', 'ultimate'];
-export const STAT_KEYS = ['atk', 'def', 'hp', 'spd', 'critRate', 'critDmg'];
+export const STAT_KEYS = ['atk', 'def', 'hp', 'spd', 'critRate', 'critDmg', 'energyRegen', 'effectHit', 'effectRes', 'healBonus', 'shieldBonus'];
 const MAX_EFFECTS = 8;
 const MAX_LIST = 8;
 
@@ -118,7 +118,14 @@ export function cleanSkill(raw, kind, vocab, warn, where) {
   if (kind === 'ultimate' && raw.cost != null && raw.cost !== '') {
     out.cost = cleanNumber(raw.cost, { min: 0, max: 1000, default: 100 }, true);
   }
+  // AUTO가 이 행동을 쓸 조건 (선택, 예: 자원이 가득) — ai.js
+  const useIf = cleanConditions(raw.useIf, vocab, warn, `${where}.useIf`);
+  if (useIf.length) out.useIf = useIf;
   return out;
+}
+
+function cleanConditions(list, vocab, warn, where) {
+  return (Array.isArray(list) ? list.slice(0, MAX_LIST) : []).map((c, i) => cleanCondition(c, vocab, warn, `${where}[${i}]`)).filter(Boolean);
 }
 
 /** 조건 하나: { type, ...params } */
@@ -183,7 +190,15 @@ export function cleanPassive(raw, vocab, warn, where) {
     .map((m, i) => cleanModifier(m, vocab, warn, `${where}.modifiers[${i}]`))
     .filter(Boolean);
   if (raw.limit != null && raw.limit !== '') out.limit = cleanNumber(raw.limit, { min: 1, max: 99, default: 1 }, true);
+  if (raw.perRound != null && raw.perRound !== '') out.perRound = cleanNumber(raw.perRound, { min: 1, max: 20, default: 1 }, true);
   return out;
+}
+
+/** 자원(스택) 정의 { name, cap, start } — 없으면 null */
+export function cleanResource(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const cap = cleanNumber(raw.cap, { min: 1, max: 99, default: 5 }, true);
+  return { name: str(raw.name, 12) || '자원', cap, start: cleanNumber(raw.start, { min: 0, max: cap, default: 0 }, true) };
 }
 
 /**
@@ -198,6 +213,12 @@ export function cleanKit(raw, vocab, warn, where, fallback = null) {
     const cleaned = v == null ? null : cleanSkill(v, kind, vocab, warn, `${where}.${kind}`);
     kit[kind] = cleaned || (fallback?.[kind] ? structuredClone(fallback[kind]) : null);
   }
+  // 변신 중 바뀌는 칸 (transform 효과) — 빈 칸은 원래 키트 그대로
+  if (raw.transformed && typeof raw.transformed === 'object') {
+    const alt = {};
+    for (const kind of ACTIONS) if (raw.transformed[kind]) alt[kind] = cleanSkill(raw.transformed[kind], kind, vocab, warn, `${where}.transformed.${kind}`);
+    if (Object.values(alt).some(Boolean)) kit.transformed = Object.fromEntries(Object.entries(alt).filter(([, v]) => v));
+  }
   return kit;
 }
 
@@ -205,15 +226,27 @@ export function cleanKit(raw, vocab, warn, where, fallback = null) {
 export function cleanStats(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const out = {};
-  const lim = { atk: [0, 1e6], def: [0, 1e6], hp: [1, 1e7], spd: [1, 1000], critRate: [0, 1], critDmg: [0, 10] };
+  const lim = { atk: [0, 1e6], def: [0, 1e6], hp: [1, 1e7], spd: [1, 1000], critRate: [0, 1], critDmg: [0, 10], energyRegen: [0, 10], effectHit: [0, 5], effectRes: [0, 1], healBonus: [0, 10], shieldBonus: [0, 10] };
+  const whole = new Set(['atk', 'def', 'hp', 'spd']);
   for (const k of STAT_KEYS) {
     const n = Number(raw[k]);
-    if (raw[k] != null && raw[k] !== '' && Number.isFinite(n)) out[k] = Math.min(lim[k][1], Math.max(lim[k][0], k.startsWith('crit') ? n : Math.round(n)));
+    if (raw[k] != null && raw[k] !== '' && Number.isFinite(n)) out[k] = Math.min(lim[k][1], Math.max(lim[k][0], whole.has(k) ? Math.round(n) : n));
   }
   return Object.keys(out).length ? out : null;
 }
 
-export function cleanPassiveList(list, vocab, warn, where, max = 5) {
+/** 캐릭터 능력치 손조정 {능력치: %} (−50~+50) — 없으면 null */
+export function cleanTweak(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const out = {};
+  for (const k of STAT_KEYS) {
+    const n = Number(raw[k]);
+    if (raw[k] != null && raw[k] !== '' && Number.isFinite(n) && n !== 0) out[k] = Math.min(50, Math.max(-50, Math.round(n * 10) / 10));
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+export function cleanPassiveList(list, vocab, warn, where, max = 6) {
   if (!Array.isArray(list)) return [];
   if (list.length > max) warn?.(`${where}: ${max}개까지만 사용 (${list.length}개)`);
   // 순서가 곧 돌파 단계라서, 잘못된 항목도 빈 능력으로 자리를 지킴

@@ -2,36 +2,35 @@
 // 공식의 숫자는 모두 balance(= config.js loadConfig 결과)에서 옵니다.
 // 화면과 분리된 순수 함수 — 전투 엔진과 개발 도구 시뮬레이터도 같이 씁니다.
 
-import { cleanStats } from '../battle/schema.js';
-import { loadConfig, normalizeRarity, overflowTickets, rarityBaseStats } from '../config.js';
+import { baseStatsOf, computeStats } from './stats.js';
+import { loadConfig, normalizeRarity, overflowTickets } from '../config.js';
 
 /** 예전 이름 호환 (개발 도구가 부름): balance.json → 설정 객체 */
 export const validateBalance = loadConfig;
 
 // ── 능력치 ───────────────────────────────────────────────
-/** 레벨 1 기본 능력치 (캐릭터/적의 stats → 없으면 희귀도 기본값, 적은 3★ 기본값) */
-export function baseStats(entity, balance) {
-  const r = rarityBaseStats(entity?.rarity, balance);
-  const s = cleanStats(entity?.stats) || {};
-  return {
-    atk: s.atk ?? r.atk,
-    def: s.def ?? r.def,
-    hp: s.hp ?? r.hp,
-    spd: s.spd ?? r.spd,
-    critRate: s.critRate ?? balance.stats.critRate,
-    critDmg: s.critDmg ?? balance.stats.critDmg,
-  };
-}
+/** 레벨 1 기본 능력치 (역할 템플릿 × 희귀도 배율, 또는 데이터의 절대값 stats) — stats.js baseStatsOf */
+export const baseStats = baseStatsOf;
 
-/** 지금 켜져 있는 패시브: 캐릭터는 돌파 단계만큼, 적은 전부 */
-export function activePassives(entity, breakthrough = 0) {
-  if (Array.isArray(entity?.passives)) return entity.passives;
-  return (entity?.breakthroughs || []).slice(0, Math.max(0, breakthrough));
+/**
+ * 지금 켜져 있는 상시 능력 (발동 조건이 있는 것 + modifiers만 있는 것)
+ * - 적: passives 전부
+ * - 캐릭터: talents(늘) + bt2(돌파 2부터) + bt6(돌파 6) + 예전 breakthroughs[0..돌파−1]
+ * - extra: 추억 패시브 등 바깥에서 붙는 능력 (그대로 뒤에 붙음)
+ */
+export function activePassives(entity, breakthrough = 0, extra = []) {
+  if (Array.isArray(entity?.passives)) return [...entity.passives, ...extra];
+  const out = [...(entity?.talents || [])];
+  if (entity?.bt2 && breakthrough >= 2) out.push(entity.bt2);
+  if (entity?.bt6 && breakthrough >= 6) out.push(entity.bt6);
+  out.push(...(entity?.breakthroughs || []).slice(0, Math.max(0, breakthrough)));
+  return [...out, ...extra];
 }
 
 /**
  * 캐릭터/적의 스킬 세트. 빈 칸은 기본 스킬(balance.defaultKit)
  * 적(passives 배열이 있음)은 스킬/궁극기가 없으면 없는 대로 둠
+ * transformed: 변신 중 바뀌는 기본/스킬/궁극기 (없으면 null)
  */
 export function kitOf(entity, balance) {
   const k = entity?.kit || {};
@@ -41,36 +40,35 @@ export function kitOf(entity, balance) {
     basic: k.basic || d.basic,
     skill: k.skill || (enemy ? null : d.skill),
     ultimate: k.ultimate || (enemy ? null : d.ultimate),
+    transformed: k.transformed || null,
   };
 }
 
 /**
- * 레벨 + 돌파 반영 능력치
- * stat = floor(base × (1 + growth × (lv − 1))), 그 뒤 상시 능력치 보너스(stat_bonus)
- * 속도/치명타 확률/치명타 피해는 레벨과 무관 (능력으로만 바뀜)
+ * 레벨 + 돌파 (+ 추억/장비) 반영 능력치 — 공식은 stats.js computeStats
+ * @param {object} [extras] { memory: {entity, level, refine}, gear: {칸: {tier, enh}}, passives: 바깥 패시브(추억) }
  */
-export function statsOf(entity, level, breakthrough, balance) {
-  const b = baseStats(entity, balance);
-  const mul = 1 + balance.stats.growth * (Math.max(1, level) - 1);
-  const bonus = { atk: 0, def: 0, hp: 0, spd: 0, critRate: 0, critDmg: 0 };
-  for (const p of activePassives(entity, breakthrough)) {
-    for (const m of p.modifiers || []) if (m.type === 'stat_bonus' && m.stat in bonus) bonus[m.stat] += m.pct;
-  }
-  const scale = (k) => Math.max(0, Math.floor(Math.floor(b[k] * mul) * (1 + bonus[k] / 100)));
-  return {
-    atk: scale('atk'),
-    def: scale('def'),
-    hp: Math.max(1, scale('hp')),
-    spd: Math.max(1, Math.floor(b.spd * (1 + bonus.spd / 100))),
-    critRate: Math.max(0, Math.round((b.critRate + bonus.critRate / 100) * 1000) / 1000),
-    critDmg: Math.max(0, Math.round((b.critDmg + bonus.critDmg / 100) * 1000) / 1000),
-  };
+export function statsOf(entity, level, breakthrough, balance, extras = {}) {
+  const passives = activePassives(entity, breakthrough, extras.passives || []);
+  return computeStats(entity, { level, breakthrough, passives, memory: extras.memory || null, gear: extras.gear || null }, balance);
 }
 
-/** 전투력 = 능력치 가중합 */
+/** 전투력 = 능력치 가중합 (기력 회복은 1을 넘는 만큼만) */
 export function powerOf(stats, balance) {
   const w = balance.power;
-  return Math.floor(w.atk * stats.atk + w.def * stats.def + w.hp * stats.hp + w.spd * (stats.spd || 0) + w.critRate * stats.critRate + w.critDmg * stats.critDmg);
+  return Math.floor(
+    w.atk * stats.atk +
+      w.def * stats.def +
+      w.hp * stats.hp +
+      w.spd * (stats.spd || 0) +
+      w.critRate * stats.critRate +
+      w.critDmg * stats.critDmg +
+      (w.energyRegen || 0) * Math.max(0, (stats.energyRegen ?? 1) - 1) +
+      (w.effectHit || 0) * (stats.effectHit || 0) +
+      (w.effectRes || 0) * (stats.effectRes || 0) +
+      (w.healBonus || 0) * (stats.healBonus || 0) +
+      (w.shieldBonus || 0) * (stats.shieldBonus || 0),
+  );
 }
 
 /** 보유 캐릭터 하나의 전투력 */
