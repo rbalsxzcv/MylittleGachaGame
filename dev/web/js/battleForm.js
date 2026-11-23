@@ -38,7 +38,13 @@ export function cleanEntity(raw, { enemy = false } = {}) {
     // 등급: 1–5 또는 'npc' (예전 'R'/'SR'/'SSR'은 3/4/5, pullable: false는 NPC) — 게임 data.js와 같음
     out.rarity = raw.pullable === false ? 'npc' : gameMods.data.normalizeGrade(raw.rarity) || 3;
     out.pullable = out.rarity !== 'npc';
-    out.breakthroughs = schema.cleanPassiveList(raw.breakthroughs, vocab, quiet, 'breakthroughs', 5);
+    out.role = gameMods.data.ROLES.includes(raw.role) ? raw.role : 'attacker';
+    out.statTweak = schema.cleanTweak(raw.statTweak);
+    out.resource = schema.cleanResource(raw.resource);
+    out.talents = schema.cleanPassiveList(raw.talents, vocab, quiet, 'talents', 4);
+    out.bt2 = raw.bt2 ? schema.cleanPassive(raw.bt2, vocab, quiet, 'bt2') : null;
+    out.bt6 = raw.bt6 ? schema.cleanPassive(raw.bt6, vocab, quiet, 'bt6') : null;
+    out.breakthroughs = schema.cleanPassiveList(raw.breakthroughs, vocab, quiet, 'breakthroughs', 6);
   }
   return out;
 }

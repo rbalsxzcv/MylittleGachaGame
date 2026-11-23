@@ -24,6 +24,17 @@ export function hashSeed(str) {
 
 const pick = (rng, list) => list[Math.floor(rng() * list.length) % list.length];
 
+/** 받침이 있는지 (한글 음절만, 아니면 false) */
+const hasBatchim = (word) => {
+  const c = String(word).trim().slice(-1).charCodeAt(0);
+  return c >= 0xac00 && c <= 0xd7a3 && (c - 0xac00) % 28 !== 0;
+};
+const JOSA = { '을(를)': ['을', '를'], '이(가)': ['이', '가'], '은(는)': ['은', '는'], '와(과)': ['과', '와'] };
+/** '{res}을(를)' → '투지를' 처럼 이름 + 알맞은 조사 */
+export function fillName(text, word) {
+  return String(text || '').replace(/\{res\}(을\(를\)|이\(가\)|은\(는\)|와\(과\))?/g, (_, j) => (j ? word + JOSA[j][hasBatchim(word) ? 0 : 1] : word));
+}
+
 /** 변형 고르기 (지정한 건 그대로, 없는 칸만 시드로) → { bt2, bt6, sig } (변형 id) */
 export function pickVariants(arch, seed, given = {}) {
   const rng = createRng(hashSeed(`${seed}:${arch.id}:variants`));
@@ -58,7 +69,7 @@ export function generateKit({ id, role, rarity, archetype, variants = {}, seed, 
   const resName = arch.resource ? pick(rng, arch.resource.names) : '';
   const resource = arch.resource ? { name: resName, cap: arch.resource.cap, start: arch.resource.start || 0 } : null;
   const cap = resource?.cap || 0;
-  const blurb = (t) => (t || '').replaceAll('{res}', resName || '자원');
+  const blurb = (t) => fillName(t, resName || '자원');
   const quiet = (msg) => issues.push({ level: 'warning', where: 'schema', message: msg });
   const budget = {};
 

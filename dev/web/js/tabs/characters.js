@@ -7,6 +7,8 @@ import { openPreview } from '../preview.js';
 import { promptStep } from '../promptStep.js';
 import { openCharBattleEditor } from '../battleEditor.js';
 
+const ROLE_SHORT = { attacker: '딜', defender: '탱', support: '지', healer: '치' };
+
 export function charactersTab(root) {
   let activeJob = null; // 지금 검토 중인 작업
   const left = h('div', { class: 'col-left' });
@@ -169,8 +171,8 @@ export function charactersTab(root) {
                     : h('a', { class: 'chip', href: `#enemies/${e.id}`, title: '이 NPC와 연결된 적 — 전투에서도 이 그림을 써요' }, `적: ${e.name} (그림 겸용)`),
                 )
               : c.kit
-                ? h('span', { class: 'chip ok', title: `돌파 능력 ${(c.breakthroughs || []).length}개` }, `전투 ✓ 돌파 ${(c.breakthroughs || []).length}`)
-                : h('span', { class: 'chip warn' }, '기본 스킬'),
+                ? h('span', { class: 'chip ok', title: `역할 ${c.role || 'attacker'} · 아키타입 ${c.archetype || '(손으로 만든 키트)'}${c.bt2 || c.bt6 ? ' · 돌파 2/6 있음' : ''}` }, `전투 ✓ ${ROLE_SHORT[c.role] || '딜'}${c.archetype ? ` · ${c.archetype}` : ''}`)
+                : h('span', { class: 'chip warn', title: '키트 일괄 탭에서 만들 수 있어요' }, '기본 스킬'),
             h('div', { class: 'muted small' }, `${c.id} · ${c.title || ''}`),
           ),
           h(

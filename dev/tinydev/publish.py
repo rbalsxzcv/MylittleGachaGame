@@ -22,7 +22,7 @@ PUBLIC_FILE = {
     "enemies": "data/enemies.json",
     "stages": "data/stages/index.json",  # 실제로는 챕터 파일 여러 개 (_stage_targets)
 }
-BATTLE_FIELDS = ("stats", "kit", "breakthroughs")
+BATTLE_FIELDS = ("role", "statTweak", "stats", "resource", "kit", "talents", "bt2", "bt6", "breakthroughs", "archetype", "kitGen")
 # 개발 도구 전용 메모 (외형 키워드, 작가용 설정 — 스포일러가 있을 수 있음) → 공개 파일에는 넣지 않음
 DEV_ONLY_FIELDS = {"characters": ("keywords", "lore"), "enemies": ("keywords", "memo")}
 

@@ -161,6 +161,18 @@ settings { fxSpeed: 1|2, fxSkip, battleSpeed: 1|2, battleAuto }
 - `CutIn.js`: 재사용 컷인 (가챠 full, 전투 궁극기 short ≤1초). `BattleScene.js`: 전투 화면 (사양 배치), 행동 연출 ≤0.5초, 2x는 timeScale.
 - HTML 쪽: `ui/gachaView.js revealScreen`(연출 → 결과 격자), `ui/battleView.js mountBattle`(장면 → 결과/보상), 실패하면 연출 없이 결과만.
 
+## 키트 생성기 (`tools/kitgen/`, 게임은 import 안 함 — `tests/kitgen.test.js`가 검사)
+- `archetypes.js`: 아키타입 10종(1 스택 폭발 · 2 표식 사냥 · 3 추가 공격 · 4 반격 탱커 · 5 타임라인 조작 · 6 보호막 전환 · 7 지속 치유 ·
+  8 지속 피해 확산 · 9 변신 캐리 · 10 SP 배터리/버퍼). 템플릿마다 basic/skill/ultimate(+transformed)/talents, bt2 변형 ≥3, bt6 변형 ≥3, 전용 추억 ≥2.
+  숫자 칸 `S(id, base, min, max, step)`, 이름 후보, 한 줄 설명(`{res}을(를)` → 조사 맞춤).
+- `budget.js`: 점수 = `kitBudget.points[효과] × 크기 × 대상 계수 × 확률`, 패시브 × `triggerWeight` + `modifierPoints`. 상한 = `caps[칸] × rarityFactor[희귀도]`.
+  `solve`가 칸들을 같은 배율로 이분 탐색 → ±`tolerancePct`. 패시브가 모자라면 역할 주 능력치 `stat_bonus`로 채움(generate).
+- `generate.js generateKit({id, role, rarity, archetype, variants, seed})` → 같은 입력 = 같은 출력 (시드 기본 = id 해시).
+  `kitFields`가 저장 칸(role, archetype, kitGen, resource, kit, talents, bt2, bt6). `budgetOf`(수동 편집 검사), `archetypeSpread` / `suggestArchetype`.
+- 기존 캐릭터 배정 `bootstrap.js` → `node tools/kitgen/cli.js bootstrap [--apply] [--force]` (작업 공간 + data/ 둘 다, kitGen 있으면 그대로).
+- 개발 도구: '키트 일괄' 탭(격자 · 예산 · 빠른 시뮬 · 전체/카드별 승인), 캐릭터 전투 편집기(역할/손조정/자원/스킬/변신/특성/돌파 2·6 + 예산 + 빠른 시뮬 + 생성기).
+  `/preview/tools/*`로 불러옴.
+
 ## 개발 도구 (dev/)
 - 희귀도 `tinydev/rarity.py`, 전투 검사 `tinydev/kit.py`(vocab 기반, 적 actions/pattern/phases/enrage), 콘텐츠 검사 `tinydev/validate.py`(모험 규칙 포함), 배포 `publish.py`(스테이지 챕터 파일, 밸런스 변경 요약 패치노트).
 - 웹: 캐릭터 전투 편집(`web/js/battleEditor.js` + `battleForm.js`), 적 편집(행동/패턴/페이즈/광폭화), 스테이지(챕터/연결 스토리/자동 레벨), 밸런스(전투 시뮬, 가챠 시뮬, 전투력 표, balance.json 편집), `/fx-test`, `/preview/tests/`.
@@ -183,7 +195,6 @@ settings { fxSpeed: 1|2, fxSkip, battleSpeed: 1|2, battleAuto }
 
 ## 알아 둘 것 (남은 일)
 - 1★/2★ 캐릭터가 아직 없음 → 그 확률은 3★로 대체됨.
-- 실제 캐릭터에 kit/돌파 능력이 아직 없음 (모두 기본 스킬) → 개발 도구 AI 초안으로 채우기.
 - 지금 스테이지는 Lv.1 팀으로도 거의 다 이김 (밸런스 탭/스냅샷으로 조정).
 - `enemy_0006`(광휘교단 이단 사냥꾼, 1-7 적) 그림은 작업 공간에만 있음 → 배포하면 공개됨.
 - 1-1/1-2/1-3/1-5/1-7 스토리의 전투 장면과 도입 대사(b0)는 초안 — 스토리 탭에서 다듬기.

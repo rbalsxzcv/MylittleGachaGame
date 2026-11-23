@@ -16,6 +16,7 @@ import { settingsTab } from './tabs/settings.js';
 import { enemiesTab } from './tabs/enemies.js';
 import { stagesTab } from './tabs/stages.js';
 import { balanceTab } from './tabs/balance.js';
+import { kitsTab } from './tabs/kits.js';
 import { packTab } from './tabs/pack.js';
 import { openPreview } from './preview.js';
 import { onBatch, refreshBatch } from './batchWatch.js';
@@ -27,6 +28,7 @@ const TABS = [
   ['pack', '챕터 팩', packTab],
   ['enemies', '적', enemiesTab],
   ['stages', '스테이지', stagesTab],
+  ['kits', '키트 일괄', kitsTab],
   ['balance', '밸런스', balanceTab],
   ['assets', '에셋', assetsTab],
   ['ui', 'UI 에셋', uiAssetsTab],

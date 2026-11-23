@@ -573,15 +573,29 @@ def char_refs(cid):
 # ─────────────────────────────────────────────────────────
 # 전투 데이터 (능력치 / 스킬 / 돌파) + AI 초안
 # ─────────────────────────────────────────────────────────
+# 캐릭터 전투 필드 (characters.json) — 이 키들만 전투 저장 API가 바꿈
+BATTLE_KEYS = ("role", "statTweak", "stats", "resource", "kit", "talents", "bt2", "bt6", "breakthroughs", "archetype", "kitGen")
+
+
 def _battle_part(data):
-    """요청에서 전투 필드만 꺼냄 (빈 stats는 지움 → 희귀도 기본값)"""
+    """요청에서 전투 필드만 꺼냄 (빈 stats/statTweak는 지움 → 역할 템플릿/희귀도 기본값)"""
     out = {}
     if isinstance(data.get("stats"), dict) and data["stats"]:
         out["stats"] = data["stats"]
+    if isinstance(data.get("statTweak"), dict) and data["statTweak"]:
+        out["statTweak"] = data["statTweak"]
     if isinstance(data.get("kit"), dict):
         out["kit"] = data["kit"]
-    if isinstance(data.get("breakthroughs"), list):
+    if isinstance(data.get("breakthroughs"), list) and data["breakthroughs"]:
         out["breakthroughs"] = data["breakthroughs"]
+    if isinstance(data.get("talents"), list):
+        out["talents"] = data["talents"]
+    for key in ("bt2", "bt6", "resource", "kitGen"):
+        if isinstance(data.get(key), dict):
+            out[key] = data[key]
+    for key in ("role", "archetype"):
+        if isinstance(data.get(key), str) and data[key]:
+            out[key] = data[key][:32]
     return out
 
 
@@ -598,7 +612,7 @@ def char_battle_put(cid):
     errors = [i for i in issues if i["level"] == "error"]
     if errors:
         return jsonify(error=f"전투 데이터 오류 {len(errors)}개", issues=errors), 400
-    for k in ("stats", "kit", "breakthroughs"):
+    for k in BATTLE_KEYS:
         existing.pop(k, None)
     existing.update(part)
     store.write_list("characters", chars)

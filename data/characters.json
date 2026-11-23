@@ -6,7 +6,150 @@
     "title": "웃지않는 소녀",
     "description": "어릴 적 모든 것을 잃고 거친 거리에서 살아남아 용병단으로 흘러들어온 과묵한 도적 소녀입니다.\n웃는 법을 잊어 늘 차가운 무표정을 짓고 있지만, 머리를 쓰다듬어 주면 뺨을 붉히며 어쩔 줄 몰라 하는 귀여운 반전이 있습니다.",
     "image": "assets/chars/char_0001.png",
-    "addedAt": "2026-11-19T22:23:00+09:00"
+    "addedAt": "2026-11-19T22:23:00+09:00",
+    "role": "attacker",
+    "archetype": "mark_hunter",
+    "kitGen": {
+      "archetype": "mark_hunter",
+      "variants": {
+        "bt2": "crit",
+        "bt6": "detonate",
+        "sig": "hunt"
+      },
+      "seed": 4074005721,
+      "version": 1
+    },
+    "kit": {
+      "basic": {
+        "name": "그림자 베기",
+        "description": "찌르면서 표식을 새겨요.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.65,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          },
+          {
+            "type": "mark",
+            "turns": 2,
+            "max": 3
+          }
+        ]
+      },
+      "skill": {
+        "name": "약점 공략",
+        "description": "표식이 많을수록 더 아프게 찔러요.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.2,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 24
+          },
+          {
+            "type": "mark",
+            "turns": 2,
+            "max": 3
+          }
+        ],
+        "useIf": [
+          {
+            "type": "target_marked",
+            "n": 2
+          }
+        ]
+      },
+      "ultimate": {
+        "name": "사냥의 끝",
+        "description": "적 전체에 표식을 새긴 뒤 한꺼번에 터뜨려요.",
+        "targeting": "enemy_all",
+        "effects": [
+          {
+            "type": "mark",
+            "turns": 2,
+            "max": 3
+          },
+          {
+            "type": "mark_detonate",
+            "mult": 1.15
+          }
+        ]
+      }
+    },
+    "talents": [
+      {
+        "name": "놓치지 않는 눈",
+        "description": "치명타를 내면 그 적에게 표식 +1.",
+        "trigger": "onCrit",
+        "conditions": [],
+        "targeting": "trigger_target",
+        "effects": [
+          {
+            "type": "mark",
+            "turns": 2,
+            "max": 3
+          },
+          {
+            "type": "energy_gain",
+            "n": 15,
+            "target": "self"
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "atk",
+            "pct": 14
+          }
+        ]
+      }
+    ],
+    "bt2": {
+      "name": "급소 감각",
+      "description": "",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [],
+      "modifiers": [
+        {
+          "type": "stat_bonus",
+          "stat": "critRate",
+          "pct": 5
+        },
+        {
+          "type": "stat_bonus",
+          "stat": "atk",
+          "pct": 1
+        }
+      ]
+    },
+    "bt6": {
+      "name": "연쇄 처형",
+      "description": "",
+      "trigger": "onSkill",
+      "conditions": [],
+      "targeting": "trigger_target",
+      "effects": [
+        {
+          "type": "mark_detonate",
+          "mult": 1.2
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "stat_bonus",
+          "stat": "atk",
+          "pct": 7
+        }
+      ]
+    }
   },
   {
     "id": "char_0002",
@@ -15,7 +158,159 @@
     "title": "파문당한 성기사",
     "description": "교단에서 파문당한 뒤 하루 벌어 하루 먹고사는 떠돌이 기사. 입은 험하지만 묵직한 대검 한 방만큼은 확실한 밥값을 증명합니다.",
     "image": "assets/chars/char_0002.png",
-    "addedAt": "2026-11-19T23:22:00+09:00"
+    "addedAt": "2026-11-19T23:22:00+09:00",
+    "role": "attacker",
+    "archetype": "stack_burst",
+    "kitGen": {
+      "archetype": "stack_burst",
+      "variants": {
+        "bt2": "cap",
+        "bt6": "ultall",
+        "sig": "burst"
+      },
+      "seed": 4023672864,
+      "version": 1
+    },
+    "kit": {
+      "basic": {
+        "name": "돌진 베기",
+        "description": "베면서 투지를 모아요.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.9,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          },
+          {
+            "type": "stack_gain",
+            "n": 1,
+            "target": "self"
+          }
+        ]
+      },
+      "skill": {
+        "name": "대검 해방",
+        "description": "모은 투지를 전부 터뜨려 큰 피해를 줘요.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.45,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0.3,
+            "vsMarked": 0
+          },
+          {
+            "type": "stack_spend",
+            "n": 0,
+            "target": "self"
+          }
+        ],
+        "useIf": [
+          {
+            "type": "stacks_at_least",
+            "n": 3
+          }
+        ]
+      },
+      "ultimate": {
+        "name": "폭렬 참",
+        "description": "투지를 가득 채우고 적 전체를 벱니다.",
+        "targeting": "enemy_all",
+        "effects": [
+          {
+            "type": "stack_gain",
+            "n": 5,
+            "target": "self"
+          },
+          {
+            "type": "damage",
+            "mult": 2.1,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          }
+        ]
+      }
+    },
+    "talents": [
+      {
+        "name": "맞을수록 단단히",
+        "description": "공격받으면 투지 +1 (라운드당 2번).",
+        "trigger": "onHit",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "stack_gain",
+            "n": 2
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "atk",
+            "pct": 18
+          }
+        ],
+        "perRound": 2
+      }
+    ],
+    "bt2": {
+      "name": "넘치는 투지",
+      "description": "",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [],
+      "modifiers": [
+        {
+          "type": "resource_cap",
+          "delta": 2
+        },
+        {
+          "type": "stat_bonus",
+          "stat": "atk",
+          "pct": 8
+        }
+      ]
+    },
+    "bt6": {
+      "name": "멈추지 않는 칼",
+      "description": "",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [],
+      "modifiers": [
+        {
+          "type": "extra_effects",
+          "action": "ultimate",
+          "effects": [
+            {
+              "type": "energy_gain",
+              "n": 30,
+              "target": "self"
+            }
+          ]
+        },
+        {
+          "type": "effect_power",
+          "action": "ultimate",
+          "effect": "damage",
+          "pct": 36
+        }
+      ]
+    },
+    "resource": {
+      "name": "투지",
+      "cap": 5,
+      "start": 0
+    }
   },
   {
     "id": "char_0003",
@@ -24,7 +319,133 @@
     "title": "빚쟁이 석궁잡이",
     "description": "노름빚에 쫓겨 다니는 전직 밀렵꾼 출신의 사수. 비겁하지만 목숨이 걸리면 귀신같은 사격 솜씨를 뽐냅니다.",
     "image": "assets/chars/char_0003.png",
-    "addedAt": "2026-11-19T23:22:00+09:00"
+    "addedAt": "2026-11-19T23:22:00+09:00",
+    "role": "attacker",
+    "archetype": "follow_up",
+    "kitGen": {
+      "archetype": "follow_up",
+      "variants": {
+        "bt2": "limit",
+        "bt6": "tempo",
+        "sig": "cover"
+      },
+      "seed": 4040450483,
+      "version": 1
+    },
+    "kit": {
+      "basic": {
+        "name": "석궁 사격",
+        "description": "빠르게 한 발 쏘아요.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.7,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          }
+        ]
+      },
+      "skill": {
+        "name": "관통 볼트",
+        "description": "조준해서 쏘고 다음 사격의 치명타를 높여요.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.85,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          },
+          {
+            "type": "buff",
+            "stat": "critRate",
+            "pct": 7,
+            "turns": 2,
+            "target": "self"
+          }
+        ]
+      },
+      "ultimate": {
+        "name": "화살비",
+        "description": "무작위 적에게 여러 발을 쏟아부어요.",
+        "targeting": "enemy_random_n",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.05,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          }
+        ],
+        "count": 4
+      }
+    },
+    "talents": [
+      {
+        "name": "엄호 사격",
+        "description": "다른 아군이 공격하면 같은 적을 따라 쏘아요 (라운드당 1번).",
+        "trigger": "onAllyAttack",
+        "conditions": [],
+        "targeting": "trigger_target",
+        "effects": [
+          {
+            "type": "follow_up",
+            "mult": 1.05,
+            "stat": "atk"
+          }
+        ],
+        "modifiers": [],
+        "perRound": 1
+      }
+    ],
+    "bt2": {
+      "name": "재장전",
+      "description": "",
+      "trigger": "onAllyAttack",
+      "conditions": [],
+      "targeting": "trigger_target",
+      "effects": [
+        {
+          "type": "follow_up",
+          "mult": 0.7,
+          "stat": "atk"
+        }
+      ],
+      "modifiers": [],
+      "perRound": 1
+    },
+    "bt6": {
+      "name": "돌격 신호",
+      "description": "",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [],
+      "modifiers": [
+        {
+          "type": "extra_effects",
+          "action": "ultimate",
+          "effects": [
+            {
+              "type": "advance_action",
+              "pct": 30,
+              "target": "ally_all"
+            }
+          ]
+        },
+        {
+          "type": "stat_bonus",
+          "stat": "atk",
+          "pct": 8
+        }
+      ]
+    }
   },
   {
     "id": "char_0004",
@@ -33,7 +454,138 @@
     "title": "시궁창 정보상",
     "description": "뒷골목과 암시장에서 의뢰를 중개하는 능구렁이 정보상입니다.",
     "image": "assets/chars/char_0004.png",
-    "addedAt": "2026-11-19T23:22:00+09:00"
+    "addedAt": "2026-11-19T23:22:00+09:00",
+    "role": "support",
+    "archetype": "dot_spreader",
+    "kitGen": {
+      "archetype": "dot_spreader",
+      "variants": {
+        "bt2": "weaken",
+        "bt6": "tick",
+        "sig": "atk"
+      },
+      "seed": 4124338578,
+      "version": 1
+    },
+    "kit": {
+      "basic": {
+        "name": "독침",
+        "description": "찌르고 독을 남겨요.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.45,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          },
+          {
+            "type": "dot",
+            "mult": 0.15,
+            "turns": 2
+          }
+        ]
+      },
+      "skill": {
+        "name": "썩은 거래",
+        "description": "적 전체에 독을 뿌리고 효과 저항을 낮춰요.",
+        "targeting": "enemy_all",
+        "effects": [
+          {
+            "type": "dot",
+            "mult": 0.24,
+            "turns": 3
+          },
+          {
+            "type": "debuff",
+            "stat": "effectRes",
+            "pct": 8,
+            "turns": 2
+          }
+        ]
+      },
+      "ultimate": {
+        "name": "시궁창의 선물",
+        "description": "적 전체를 공격하고 진한 독을 남겨요.",
+        "targeting": "enemy_all",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.75,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          },
+          {
+            "type": "dot",
+            "mult": 0.5,
+            "turns": 2
+          }
+        ]
+      }
+    },
+    "talents": [
+      {
+        "name": "전염",
+        "description": "적을 쓰러뜨리면 남은 적 전체에 독.",
+        "trigger": "onKill",
+        "conditions": [],
+        "targeting": "enemy_all",
+        "effects": [
+          {
+            "type": "dot",
+            "mult": 0.9,
+            "turns": 2
+          }
+        ],
+        "modifiers": []
+      }
+    ],
+    "bt2": {
+      "name": "약점 소문",
+      "description": "",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [],
+      "modifiers": [
+        {
+          "type": "extra_effects",
+          "action": "basic",
+          "effects": [
+            {
+              "type": "debuff",
+              "stat": "def",
+              "pct": 20,
+              "turns": 2
+            }
+          ]
+        },
+        {
+          "type": "stat_bonus",
+          "stat": "energyRegen",
+          "pct": 2
+        }
+      ]
+    },
+    "bt6": {
+      "name": "뒷거래",
+      "description": "",
+      "trigger": "onTurnStart",
+      "conditions": [],
+      "targeting": "enemy_random_n",
+      "count": 2,
+      "effects": [
+        {
+          "type": "dot",
+          "mult": 0.45,
+          "turns": 2
+        }
+      ],
+      "modifiers": []
+    }
   },
   {
     "id": "char_0006",
@@ -42,7 +594,144 @@
     "title": "셰프",
     "description": "부모님의 정육점이 도적들에게 불타오른 뒤 홀로 남겨졌다. 평소에는 말수가 적고 조용하다. 앞치마를 매고 식칼을 휘두르는 순간은 여전히 이곳이 주방이고 자신이 요리중이라고 착각한다.",
     "image": "assets/chars/char_0006.png",
-    "addedAt": "2026-11-21T22:41:00+09:00"
+    "addedAt": "2026-11-21T22:41:00+09:00",
+    "role": "healer",
+    "archetype": "sustain_healer",
+    "kitGen": {
+      "archetype": "sustain_healer",
+      "variants": {
+        "bt2": "cleanse",
+        "bt6": "save",
+        "sig": "heal"
+      },
+      "seed": 4090783340,
+      "version": 1
+    },
+    "kit": {
+      "basic": {
+        "name": "국자 치기",
+        "description": "가볍게 때려요.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.85,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          }
+        ]
+      },
+      "skill": {
+        "name": "응급 처치",
+        "description": "HP가 가장 낮은 아군을 치유해요.",
+        "targeting": "ally_lowest_hp",
+        "effects": [
+          {
+            "type": "heal",
+            "mult": 2.05,
+            "stat": "atk",
+            "perStack": 0
+          }
+        ]
+      },
+      "ultimate": {
+        "name": "만찬",
+        "description": "아군 전체를 치유하고 받는 피해를 줄여요.",
+        "targeting": "ally_all",
+        "effects": [
+          {
+            "type": "heal",
+            "mult": 1.15,
+            "stat": "atk",
+            "perStack": 0
+          },
+          {
+            "type": "buff",
+            "stat": "dmgTaken",
+            "pct": 15,
+            "turns": 2
+          }
+        ]
+      }
+    },
+    "talents": [
+      {
+        "name": "간식 챙기기",
+        "description": "자기 턴 시작마다 HP가 가장 낮은 아군을 조금 치유.",
+        "trigger": "onTurnStart",
+        "conditions": [],
+        "targeting": "ally_lowest_hp",
+        "effects": [
+          {
+            "type": "heal",
+            "mult": 1,
+            "stat": "atk",
+            "perStack": 0
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "healBonus",
+            "pct": 2
+          }
+        ]
+      }
+    ],
+    "bt2": {
+      "name": "해독 요리",
+      "description": "",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [],
+      "modifiers": [
+        {
+          "type": "extra_effects",
+          "action": "skill",
+          "effects": [
+            {
+              "type": "cleanse"
+            },
+            {
+              "type": "energy_gain",
+              "n": 15,
+              "target": "self"
+            }
+          ]
+        },
+        {
+          "type": "stat_bonus",
+          "stat": "healBonus",
+          "pct": 10
+        }
+      ]
+    },
+    "bt6": {
+      "name": "비상식량",
+      "description": "",
+      "trigger": "onHpBelow",
+      "pct": 50,
+      "conditions": [],
+      "targeting": "ally_all",
+      "effects": [
+        {
+          "type": "heal",
+          "mult": 3,
+          "stat": "atk",
+          "perStack": 0
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "stat_bonus",
+          "stat": "healBonus",
+          "pct": 7
+        }
+      ],
+      "limit": 2
+    }
   },
   {
     "id": "char_0007",
@@ -51,7 +740,135 @@
     "title": "용병단의 어머니(?)",
     "description": "몰락 귀족 출신의 행정가, 자존심때문에 몰락하고도 품위를 지키려 한다. 용병단의 유일한 살림꾼이기에 제멋대로인 용병들에게도 '돈주는 사람', '용병단의 어머니'로 각인되어 있다. 본인도 투덜대지만 내심 싫어하지 않는 듯 하다.",
     "image": "assets/chars/char_0007.png",
-    "addedAt": "2026-11-21T22:50:00+09:00"
+    "addedAt": "2026-11-21T22:50:00+09:00",
+    "role": "support",
+    "archetype": "sp_battery",
+    "kitGen": {
+      "archetype": "sp_battery",
+      "variants": {
+        "bt2": "cost",
+        "bt6": "energy",
+        "sig": "sp"
+      },
+      "seed": 4107560959,
+      "version": 1
+    },
+    "kit": {
+      "basic": {
+        "name": "견제 공격",
+        "description": "때리면서 SP를 채워요 (라운드당 1번 추가).",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          }
+        ]
+      },
+      "skill": {
+        "name": "보너스 지급",
+        "description": "아군 한 명의 공격력과 기력을 올려요.",
+        "targeting": "ally_single",
+        "effects": [
+          {
+            "type": "buff",
+            "stat": "atk",
+            "pct": 39,
+            "turns": 2
+          },
+          {
+            "type": "energy_gain",
+            "n": 20
+          }
+        ]
+      },
+      "ultimate": {
+        "name": "전원 회식",
+        "description": "아군 전체 강화 + 팀 SP.",
+        "targeting": "ally_all",
+        "effects": [
+          {
+            "type": "buff",
+            "stat": "atk",
+            "pct": 31,
+            "turns": 2
+          },
+          {
+            "type": "sp_gain",
+            "n": 2
+          }
+        ]
+      }
+    },
+    "talents": [
+      {
+        "name": "살림꾼",
+        "description": "기본 공격 뒤 팀 SP +1 (라운드당 1번).",
+        "trigger": "onBasic",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "sp_gain",
+            "n": 1
+          },
+          {
+            "type": "energy_gain",
+            "n": 15
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "energyRegen",
+            "pct": 15
+          }
+        ],
+        "perRound": 1
+      }
+    ],
+    "bt2": {
+      "name": "알뜰 살림",
+      "description": "",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [],
+      "modifiers": [
+        {
+          "type": "sp_cost",
+          "delta": -1
+        },
+        {
+          "type": "stat_bonus",
+          "stat": "energyRegen",
+          "pct": 3
+        }
+      ]
+    },
+    "bt6": {
+      "name": "상여금",
+      "description": "",
+      "trigger": "onUltimate",
+      "conditions": [],
+      "targeting": "ally_all",
+      "effects": [
+        {
+          "type": "energy_gain",
+          "n": 25
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "stat_bonus",
+          "stat": "energyRegen",
+          "pct": 23
+        }
+      ]
+    }
   },
   {
     "id": "char_0008",
@@ -60,7 +877,175 @@
     "title": "방탕한 이례나",
     "description": "마탑 출신의 마법사, 악마를 소환해 내기하다가 실패해 마탑 건물 절반이 파괴되고 '앞으로 이름앞에 수치스러운 칭호를 달 것'이라는 저주를 평생 짊어지게 되었다. 예측할 수 없는 흑마법을 사용한다.",
     "image": "assets/chars/char_0008.png",
-    "addedAt": "2026-11-21T23:02:00+09:00"
+    "addedAt": "2026-11-21T23:02:00+09:00",
+    "role": "attacker",
+    "archetype": "transform_carry",
+    "kitGen": {
+      "archetype": "transform_carry",
+      "variants": {
+        "bt2": "atk",
+        "bt6": "tempo",
+        "sig": "demon"
+      },
+      "seed": 4191449054,
+      "version": 1
+    },
+    "kit": {
+      "basic": {
+        "name": "마력 구체",
+        "description": "마력 구체를 던져요.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          }
+        ]
+      },
+      "skill": {
+        "name": "어둠의 창",
+        "description": "강한 흑마법 한 방.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 2.2,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          }
+        ]
+      },
+      "ultimate": {
+        "name": "악마 강림",
+        "description": "적 전체를 치고 2턴 동안 악마의 모습으로 변신해요.",
+        "targeting": "enemy_all",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.3,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          },
+          {
+            "type": "transform",
+            "turns": 2,
+            "target": "self"
+          },
+          {
+            "type": "buff",
+            "stat": "atk",
+            "pct": 26,
+            "turns": 2,
+            "target": "self"
+          }
+        ]
+      },
+      "transformed": {
+        "basic": {
+          "name": "지옥불",
+          "description": "변신 중: 기본 공격이 적 전체를 태워요.",
+          "targeting": "enemy_all",
+          "effects": [
+            {
+              "type": "damage",
+              "mult": 0.55,
+              "stat": "atk",
+              "hits": 1,
+              "perStack": 0,
+              "vsMarked": 0
+            }
+          ]
+        },
+        "skill": {
+          "name": "심연의 손",
+          "description": "변신 중: 아주 강한 한 방 + 기력.",
+          "targeting": "enemy_single",
+          "effects": [
+            {
+              "type": "damage",
+              "mult": 2.1,
+              "stat": "atk",
+              "hits": 1,
+              "perStack": 0,
+              "vsMarked": 0
+            },
+            {
+              "type": "energy_gain",
+              "n": 10,
+              "target": "self"
+            }
+          ]
+        }
+      }
+    },
+    "talents": [
+      {
+        "name": "계약의 대가",
+        "description": "변신 중에 적을 쓰러뜨리면 기력을 얻어요.",
+        "trigger": "onKill",
+        "conditions": [
+          {
+            "type": "is_transformed"
+          }
+        ],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "energy_gain",
+            "n": 30
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "atk",
+            "pct": 18
+          }
+        ]
+      }
+    ],
+    "bt2": {
+      "name": "금단의 지식",
+      "description": "",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [],
+      "modifiers": [
+        {
+          "type": "stat_bonus",
+          "stat": "atk",
+          "pct": 13
+        }
+      ]
+    },
+    "bt6": {
+      "name": "멈추지 않는 마력",
+      "description": "",
+      "trigger": "onUltimate",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [
+        {
+          "type": "advance_action",
+          "pct": 100
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "stat_bonus",
+          "stat": "atk",
+          "pct": 7
+        }
+      ]
+    }
   },
   {
     "id": "char_0009",
@@ -69,7 +1054,142 @@
     "title": "뜨내기",
     "description": "어디에나 있는 뜨내기 용병, 양아치, 건달, 범죄자, 사생아, 누구나 무기를 들면 용병이 된다, 그리고 수틀리면 다시 양아치, 건달, 범죄자로 돌아간다.",
     "image": "assets/chars/char_0009.png",
-    "addedAt": "2026-11-21T23:18:00+09:00"
+    "addedAt": "2026-11-21T23:18:00+09:00",
+    "role": "defender",
+    "archetype": "shield_converter",
+    "kitGen": {
+      "archetype": "shield_converter",
+      "variants": {
+        "bt2": "start",
+        "bt6": "power",
+        "sig": "tough"
+      },
+      "seed": 4208226673,
+      "version": 1
+    },
+    "kit": {
+      "basic": {
+        "name": "몽둥이질",
+        "description": "방어력으로 때려요.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.5,
+            "stat": "def",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          }
+        ]
+      },
+      "skill": {
+        "name": "막아서기",
+        "description": "아군 전체에 보호막을 두르고 버팀을 얻어요.",
+        "targeting": "ally_all",
+        "effects": [
+          {
+            "type": "shield",
+            "mult": 0.8,
+            "stat": "def",
+            "turns": 2,
+            "perStack": 0
+          },
+          {
+            "type": "stack_gain",
+            "n": 1,
+            "target": "self"
+          }
+        ]
+      },
+      "ultimate": {
+        "name": "되갚기",
+        "description": "쌓인 버팀만큼 강해지는 광역 공격.",
+        "targeting": "enemy_all",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.7,
+            "stat": "def",
+            "hits": 1,
+            "perStack": 0.2,
+            "vsMarked": 0
+          },
+          {
+            "type": "stack_spend",
+            "n": 0,
+            "target": "self"
+          }
+        ]
+      }
+    },
+    "talents": [
+      {
+        "name": "충격 흡수",
+        "description": "공격받으면 버팀 +1 (라운드당 1번).",
+        "trigger": "onHit",
+        "conditions": [],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "stack_gain",
+            "n": 1
+          },
+          {
+            "type": "shield",
+            "mult": 1,
+            "stat": "def",
+            "turns": 1,
+            "perStack": 0
+          }
+        ],
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "hp",
+            "pct": 3
+          }
+        ],
+        "perRound": 1
+      }
+    ],
+    "bt2": {
+      "name": "선제 방어",
+      "description": "",
+      "trigger": "onBattleStart",
+      "conditions": [],
+      "targeting": "ally_all",
+      "effects": [
+        {
+          "type": "shield",
+          "mult": 0.6,
+          "stat": "def",
+          "turns": 2,
+          "perStack": 0
+        }
+      ],
+      "modifiers": []
+    },
+    "bt6": {
+      "name": "되갚음",
+      "description": "",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [],
+      "modifiers": [
+        {
+          "type": "effect_power",
+          "action": "ultimate",
+          "effect": "damage",
+          "pct": 22
+        }
+      ]
+    },
+    "resource": {
+      "name": "버팀",
+      "cap": 5,
+      "start": 0
+    }
   },
   {
     "id": "char_0011",
@@ -79,7 +1199,133 @@
     "description": "급사한 버스튼 영주의 유일한 적통 후계자. 어린 나이에 삼촌의 반역으로 쫓겨날 위기에 처하자, 전 재산을 털어 막장 용병단을 고용한다.",
     "image": "assets/chars/char_0011.png",
     "addedAt": "2026-11-22T23:25:00+09:00",
-    "arc": 2
+    "arc": 2,
+    "role": "support",
+    "archetype": "timeline",
+    "kitGen": {
+      "archetype": "timeline",
+      "variants": {
+        "bt2": "delay",
+        "bt6": "tick",
+        "sig": "start"
+      },
+      "seed": 4141263292,
+      "version": 1
+    },
+    "kit": {
+      "basic": {
+        "name": "발목 걸기",
+        "description": "때리면서 적의 행동을 조금 밀어요.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.65,
+            "stat": "atk",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          },
+          {
+            "type": "delay_action",
+            "pct": 7
+          }
+        ]
+      },
+      "skill": {
+        "name": "지휘",
+        "description": "아군 한 명을 당기고 속도를 올려요.",
+        "targeting": "ally_single",
+        "effects": [
+          {
+            "type": "advance_action",
+            "pct": 35
+          },
+          {
+            "type": "buff",
+            "stat": "spd",
+            "pct": 11,
+            "turns": 2
+          }
+        ]
+      },
+      "ultimate": {
+        "name": "시간 계산",
+        "description": "아군 전체를 당기고 적 전체를 밀어요.",
+        "targeting": "ally_all",
+        "effects": [
+          {
+            "type": "advance_action",
+            "pct": 36
+          },
+          {
+            "type": "delay_action",
+            "pct": 29,
+            "target": "enemy_all"
+          }
+        ]
+      }
+    },
+    "talents": [
+      {
+        "name": "선제 계산",
+        "description": "전투 시작 때 아군 전체 행동을 당겨요.",
+        "trigger": "onBattleStart",
+        "conditions": [],
+        "targeting": "ally_all",
+        "effects": [
+          {
+            "type": "advance_action",
+            "pct": 37
+          }
+        ],
+        "modifiers": []
+      }
+    ],
+    "bt2": {
+      "name": "발 묶기",
+      "description": "",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [],
+      "modifiers": [
+        {
+          "type": "extra_effects",
+          "action": "basic",
+          "effects": [
+            {
+              "type": "delay_action",
+              "pct": 25
+            }
+          ]
+        },
+        {
+          "type": "stat_bonus",
+          "stat": "energyRegen",
+          "pct": 2
+        }
+      ]
+    },
+    "bt6": {
+      "name": "보이지 않는 손",
+      "description": "",
+      "trigger": "onTurnStart",
+      "conditions": [],
+      "targeting": "ally_lowest_hp",
+      "effects": [
+        {
+          "type": "advance_action",
+          "pct": 30
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "stat_bonus",
+          "stat": "energyRegen",
+          "pct": 7
+        }
+      ]
+    }
   },
   {
     "id": "char_0012",
@@ -89,7 +1335,133 @@
     "description": "레일라를 목숨 바쳐 보필하는 버스튼 가문의 유일한 가신이자 호위기사. 고지식한 기사도와 현실의 막장성 사이에서 매일 위장약을 삼킨다.",
     "image": "assets/chars/char_0012.png",
     "addedAt": "2026-11-22T23:25:00+09:00",
-    "arc": 2
+    "arc": 2,
+    "role": "defender",
+    "archetype": "counter_tank",
+    "kitGen": {
+      "archetype": "counter_tank",
+      "variants": {
+        "bt2": "energy",
+        "bt6": "drain",
+        "sig": "counter"
+      },
+      "seed": 4191596149,
+      "version": 1
+    },
+    "kit": {
+      "basic": {
+        "name": "밀쳐내기",
+        "description": "방어력으로 밀어붙여요.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.9,
+            "stat": "def",
+            "hits": 1,
+            "perStack": 0,
+            "vsMarked": 0
+          }
+        ]
+      },
+      "skill": {
+        "name": "굳건한 자세",
+        "description": "적의 공격을 끌어오고 보호막을 둘러요.",
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "taunt",
+            "turns": 2
+          },
+          {
+            "type": "shield",
+            "mult": 2.25,
+            "stat": "def",
+            "turns": 2,
+            "perStack": 0
+          }
+        ]
+      },
+      "ultimate": {
+        "name": "철벽",
+        "description": "아군 전체에 보호막, 자신은 도발.",
+        "targeting": "ally_all",
+        "effects": [
+          {
+            "type": "shield",
+            "mult": 2.65,
+            "stat": "def",
+            "turns": 2,
+            "perStack": 0
+          },
+          {
+            "type": "taunt",
+            "turns": 2,
+            "target": "self"
+          }
+        ]
+      }
+    },
+    "talents": [
+      {
+        "name": "받아치기",
+        "description": "공격받으면 그 적에게 반격 (라운드당 2번).",
+        "trigger": "onHit",
+        "conditions": [],
+        "targeting": "trigger_target",
+        "effects": [
+          {
+            "type": "counter",
+            "mult": 1.35,
+            "stat": "def"
+          }
+        ],
+        "modifiers": [],
+        "perRound": 2
+      }
+    ],
+    "bt2": {
+      "name": "고통을 힘으로",
+      "description": "",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [],
+      "modifiers": [
+        {
+          "type": "energy_gain",
+          "source": "hit",
+          "delta": 12
+        },
+        {
+          "type": "stat_bonus",
+          "stat": "hp",
+          "pct": 9
+        }
+      ]
+    },
+    "bt6": {
+      "name": "피의 맹세",
+      "description": "",
+      "trigger": "onHit",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [
+        {
+          "type": "heal",
+          "mult": 0.15,
+          "stat": "hp",
+          "perStack": 0
+        }
+      ],
+      "modifiers": [
+        {
+          "type": "stat_bonus",
+          "stat": "hp",
+          "pct": 14
+        }
+      ],
+      "perRound": 2
+    }
   },
   {
     "id": "char_0013",
