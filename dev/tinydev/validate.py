@@ -228,7 +228,7 @@ def validate(content, asset_exists, held=None):
         released_at[c["id"]] = _check_date(r, where, "addedAt", c.get("addedAt"))
         if not c.get("addedAt"):
             r.warn(where, "addedAt(추가 시각)이 없어요")
-        if vocab:
+        if vocab and c["id"] not in npc_ids:  # NPC는 동료로 싸우지 않음 (적으로 나올 때는 적 데이터)
             kit.check_character_battle(r, where, c, vocab)
 
     # ── 적 / 스테이지 ──

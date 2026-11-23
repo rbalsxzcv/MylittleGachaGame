@@ -6,6 +6,8 @@ const five = (level, breakthrough) =>
 export const REFERENCE_TEAMS = [
   { name: 'Lv1', members: five(1, 0) },
   { name: 'Lv20+돌파2', members: five(20, 2) },
+  // 장착품까지: 역할 기본 추억 Lv.16 R2 + 장비 4칸 T2+2 (snapshot.js가 데이터로 풀어 줌)
+  { name: 'Lv30+돌파3+장비', members: five(30, 3).map((m) => ({ ...m, equip: { memory: 'default', memoryLevel: 16, refine: 2, gear: { tier: 2, enh: 2 } } })) },
 ];
 
 /** 스테이지마다 돌릴 시드 */

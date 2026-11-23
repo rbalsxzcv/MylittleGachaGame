@@ -99,10 +99,17 @@ def generate_image(prompt, aspect_ratio="3:4", refs=(), mock_kind="char", mock_l
 # ─────────────────────────────────────────────────────────
 # 텍스트 생성
 # ─────────────────────────────────────────────────────────
+def ai_enabled():
+    """설정의 AI 스위치 (끄면 모든 AI 호출 대신 템플릿/모의 결과 — 개발 도구 전체가 AI 없이 동작)"""
+    from . import settings
+
+    return settings.load().get("ai", True) is not False
+
+
 def generate_text(prompt, json_mode=False, mock=None):
-    """프롬프트 → 텍스트. json_mode면 JSON 문자열을 기대"""
-    if is_mock():
-        return mock() if callable(mock) else (mock or "(모의 모드) 생성된 텍스트")
+    """프롬프트 → 텍스트. json_mode면 JSON 문자열을 기대. AI 스위치가 꺼져 있거나 모의 모드면 mock(템플릿) 결과"""
+    if is_mock() or not ai_enabled():
+        return mock() if callable(mock) else (mock or "(AI 꺼짐) 템플릿 텍스트")
 
     from google.genai import types
 

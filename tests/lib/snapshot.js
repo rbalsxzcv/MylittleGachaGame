@@ -2,6 +2,19 @@
 // 엔진/데이터/밸런스가 바뀌면 결과가 달라짐 → 커밋 전에 바뀐 내용을 확인하고 일부러 바꾼 거면 스냅샷 갱신
 import { createBattle } from '../../js/battle/engine.js';
 import { REFERENCE_TEAMS, SNAPSHOT_SEEDS } from '../fixtures/teams.js';
+import { memoryPassives } from '../../js/systems/memories.js';
+import { GEAR_SLOTS } from '../../js/config.js';
+
+/** 기준 팀 멤버의 equip 설명 → extras (역할 기본 추억 + 장비 4칸) */
+function withExtras(m, data) {
+  if (!m.equip) return m;
+  const c = data.charMap.get(m.charId);
+  const mem = (data.memories || []).find((x) => x.kind === 'default' && x.role === c?.role);
+  const inst = { lv: m.equip.memoryLevel, r: m.equip.refine };
+  const extras = { gear: Object.fromEntries(GEAR_SLOTS.map((s) => [s, { ...m.equip.gear }])) };
+  if (mem) Object.assign(extras, { memory: { entity: mem, level: inst.lv, refine: inst.r }, passives: memoryPassives(mem, inst, m.charId, data.balance) });
+  return { charId: m.charId, level: m.level, breakthrough: m.breakthrough, extras };
+}
 
 export const SNAPSHOT_PATH = 'tests/snapshots/stages.json';
 
@@ -11,7 +24,7 @@ export function computeSnapshot(data) {
   for (const stage of data.stages) {
     const row = {};
     for (const team of REFERENCE_TEAMS) {
-      const members = team.members.filter((m) => data.charMap.has(m.charId));
+      const members = team.members.filter((m) => data.charMap.has(m.charId)).map((m) => withExtras(m, data));
       row[team.name] = SNAPSHOT_SEEDS.map((seed) => {
         const b = createBattle({ team: members, stage, data, seed });
         b.runToEnd();

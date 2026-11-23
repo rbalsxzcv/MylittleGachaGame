@@ -59,6 +59,7 @@ export function settingsTab(root, { onSaved } = {}) {
   const c = s.comfy;
 
   const aiPrompt = h('input', { type: 'checkbox', checked: s.aiPrompt });
+  const ai = h('input', { type: 'checkbox', checked: s.ai !== false });
   const theme = h('textarea', { rows: 2 }, s.theme);
 
   const url = h('input', { value: c.url, placeholder: 'http://127.0.0.1:8188' });
@@ -146,6 +147,7 @@ export function settingsTab(root, { onSaved } = {}) {
   async function save() {
     const data = {
       aiPrompt: aiPrompt.checked,
+      ai: ai.checked,
       theme: theme.value,
       comfy: { url: url.value, loader: loader.value, checkpoint: ckpt.value, unet: unet.value, weightDtype: weightDtype.value, clip: clip.value, clipType: clipType.value, vae: vae.value, resolution: resolution.value, steps: Number(steps.value), cfg: Number(cfg.value), sampler: sampler.value, scheduler: scheduler.value, quality: quality.value, negative: negative.value, loraProfiles: { char: charLora.get(), scene: sceneLora.get() } },
     };
@@ -166,6 +168,7 @@ export function settingsTab(root, { onSaved } = {}) {
         { class: 'card' },
         h('h2', {}, '그림 생성'),
         h('p', { class: 'muted small' }, '그림은 모두 ComfyUI(Anima)로 그려요. 프롬프트는 에셋 종류(캐릭터 / 배너 / 배경 / 아이콘 / 로고)마다 Anima에 맞춘 규칙으로 써요.'),
+        h('label', { class: 'inline', title: '끄면 소개 문구 · 키트 초안 · 챕터 팩 · 그림 프롬프트가 모두 템플릿으로 (키트 · 추억 · 적 · 튜너는 원래 AI 없이 동작)' }, ai, ' AI 사용 (Gemini) — 끄면 모든 AI 호출 대신 템플릿 문구'),
         h('label', { class: 'inline' }, aiPrompt, ' Gemini가 Anima용 그림 프롬프트를 작성 (끄면 에셋 종류별 기본 태그 + 입력값 사용)'),
         h('p', { class: 'muted small' }, 'Gemini는 Vertex AI 키(dev/.env)로 동작해요. 키가 없으면 기본 태그 프롬프트를 써요.'),
         h('label', { class: 'field' }, '게임 전체 분위기 (UI 에셋 프롬프트에 함께 들어가요)', theme),
