@@ -12,7 +12,9 @@ from . import config
 
 VOCAB_PATH = config.ROOT / "js" / "battle" / "vocab.json"
 ACTIONS = ("basic", "skill", "ultimate")
-STAT_LIMITS = {"atk": (0, 1e6), "def": (0, 1e6), "hp": (1, 1e7), "spd": (1, 1000), "critRate": (0, 1), "critDmg": (0, 10)}
+STAT_LIMITS = {"atk": (0, 1e6), "def": (0, 1e6), "hp": (1, 1e7), "spd": (1, 1000), "critRate": (0, 1), "critDmg": (0, 10), "energyRegen": (0, 10), "effectHit": (0, 5), "effectRes": (0, 1), "healBonus": (0, 10), "shieldBonus": (0, 10)}
+# 캐릭터 역할 (게임 js/config.js ROLES와 같음)
+CHAR_ROLES = ("attacker", "defender", "support", "healer")
 MAX_BREAKTHROUGHS = 5
 
 _cache = {"mtime": None, "vocab": None}

@@ -50,7 +50,69 @@
       }
     },
     "critRate": 0.05,
-    "critDmg": 0.5
+    "critDmg": 0.5,
+    "rarityMul": {
+      "1": 0.66,
+      "2": 0.72,
+      "3": 0.78,
+      "4": 0.88,
+      "5": 1
+    },
+    "roleTemplate": {
+      "attacker": {
+        "atk": 145,
+        "def": 46,
+        "hp": 1050,
+        "spd": 104,
+        "critRate": 0.05,
+        "critDmg": 0.5,
+        "energyRegen": 1,
+        "effectHit": 0,
+        "effectRes": 0,
+        "healBonus": 0,
+        "shieldBonus": 0
+      },
+      "defender": {
+        "atk": 100,
+        "def": 72,
+        "hp": 1500,
+        "spd": 96,
+        "critRate": 0.05,
+        "critDmg": 0.5,
+        "energyRegen": 1,
+        "effectHit": 0,
+        "effectRes": 0.1,
+        "healBonus": 0,
+        "shieldBonus": 0
+      },
+      "support": {
+        "atk": 115,
+        "def": 52,
+        "hp": 1150,
+        "spd": 110,
+        "critRate": 0.05,
+        "critDmg": 0.5,
+        "energyRegen": 1,
+        "effectHit": 0.1,
+        "effectRes": 0,
+        "healBonus": 0,
+        "shieldBonus": 0
+      },
+      "healer": {
+        "atk": 110,
+        "def": 52,
+        "hp": 1250,
+        "spd": 102,
+        "critRate": 0.05,
+        "critDmg": 0.5,
+        "energyRegen": 1,
+        "effectHit": 0,
+        "effectRes": 0,
+        "healBonus": 0,
+        "shieldBonus": 0
+      }
+    },
+    "tweakWarnPct": 10
   },
   "level": {
     "costBase": 10,
@@ -77,7 +139,12 @@
     "hp": 0.2,
     "spd": 2,
     "critRate": 300,
-    "critDmg": 100
+    "critDmg": 100,
+    "energyRegen": 200,
+    "effectHit": 100,
+    "effectRes": 100,
+    "healBonus": 120,
+    "shieldBonus": 120
   },
   "powerWarnPct": 15,
   "combat": {
@@ -147,5 +214,353 @@
         }
       ]
     }
+  },
+  "breakthrough": {
+    "statNodes": {
+      "attacker": [
+        {
+          "stat": "atk",
+          "pct": 8
+        },
+        {
+          "stat": "critRate",
+          "pct": 6
+        },
+        {
+          "stat": "atk",
+          "pct": 10
+        },
+        {
+          "stat": "critDmg",
+          "pct": 18
+        }
+      ],
+      "defender": [
+        {
+          "stat": "hp",
+          "pct": 8
+        },
+        {
+          "stat": "def",
+          "pct": 10
+        },
+        {
+          "stat": "hp",
+          "pct": 10
+        },
+        {
+          "stat": "def",
+          "pct": 12
+        }
+      ],
+      "support": [
+        {
+          "stat": "hp",
+          "pct": 8
+        },
+        {
+          "stat": "spd",
+          "pct": 6
+        },
+        {
+          "stat": "energyRegen",
+          "pct": 10
+        },
+        {
+          "stat": "spd",
+          "pct": 8
+        }
+      ],
+      "healer": [
+        {
+          "stat": "hp",
+          "pct": 8
+        },
+        {
+          "stat": "healBonus",
+          "pct": 10
+        },
+        {
+          "stat": "hp",
+          "pct": 10
+        },
+        {
+          "stat": "healBonus",
+          "pct": 15
+        }
+      ]
+    },
+    "lowRarityBoost": {
+      "1": 1.5,
+      "2": 1.4,
+      "3": 1.3,
+      "4": 1.15,
+      "5": 1
+    }
+  },
+  "kitBudget": {
+    "points": {
+      "damage": 100,
+      "heal": 90,
+      "shield": 80,
+      "dot": 85,
+      "buff": 1,
+      "debuff": 1.1,
+      "energy_gain": 0.8,
+      "sp_gain": 40,
+      "advance_action": 0.8,
+      "delay_action": 0.9,
+      "interrupt": 40,
+      "cleanse": 25,
+      "taunt": 20,
+      "stack_gain": 12,
+      "stack_spend": 0,
+      "mark": 15,
+      "mark_detonate": 100,
+      "follow_up": 100,
+      "counter": 100,
+      "transform": 30,
+      "charge": 100,
+      "summon": 60
+    },
+    "statWeight": {
+      "atk": 1,
+      "def": 0.6,
+      "hp": 0.6,
+      "spd": 1.5,
+      "critRate": 2,
+      "critDmg": 0.8,
+      "dmgDealt": 1.2,
+      "dmgTaken": 1.2,
+      "energyRegen": 1,
+      "effectHit": 0.8,
+      "effectRes": 0.6,
+      "healBonus": 0.8,
+      "shieldBonus": 0.6
+    },
+    "targetFactor": {
+      "single": 1,
+      "all": 1.8,
+      "randomPer": 0.7,
+      "self": 1,
+      "ally": 1,
+      "allyAll": 1.8
+    },
+    "caps": {
+      "basic": 100,
+      "skill": 220,
+      "ultimate": 420,
+      "talent": 150,
+      "bt2": 60,
+      "bt6": 140,
+      "signature": 120
+    },
+    "rarityFactor": {
+      "1": 0.55,
+      "2": 0.62,
+      "3": 0.7,
+      "4": 0.84,
+      "5": 1
+    },
+    "tolerancePct": 5
+  },
+  "memory": {
+    "maxLevel": 50,
+    "growth": 0.08,
+    "atkBase": {
+      "3": 24,
+      "4": 34,
+      "5": 46
+    },
+    "secondary": {
+      "3": 6,
+      "4": 9,
+      "5": 12
+    },
+    "secGrowth": 0.02,
+    "cost": {
+      "costBase": 5,
+      "costExp": 1.2,
+      "goldPerTicket": 10
+    },
+    "refineScale": [
+      1,
+      1.25,
+      1.5,
+      1.75,
+      2
+    ],
+    "overflowMaterial": {
+      "3": 5,
+      "4": 20,
+      "5": 80
+    },
+    "materialTickets": 10
+  },
+  "memoryGacha": {
+    "rates": {
+      "3": 88.5,
+      "4": 10,
+      "5": 1.5
+    },
+    "cost": {
+      "single": 100,
+      "ten": 1000
+    },
+    "pity": 60,
+    "tenGuaranteeMin": 4,
+    "pickupShare": 0.5
+  },
+  "gear": {
+    "tiers": 8,
+    "maxEnh": 5,
+    "slotBase": {
+      "hp": {
+        "hp": 160
+      },
+      "def": {
+        "def": 12
+      },
+      "crit": {
+        "critRate": 0.015,
+        "critDmg": 0.03
+      },
+      "atk": {
+        "atk": 18
+      }
+    },
+    "tierMul": 1.35,
+    "enhStep": 0.1,
+    "enhCost": {
+      "base": 20,
+      "tierExp": 1.3,
+      "enhExp": 1.2
+    },
+    "salvage": {
+      "base": 8,
+      "tierExp": 1.3,
+      "enhRefund": 0.5
+    },
+    "drop": {
+      "count": {
+        "normal": 1,
+        "boss": 2
+      },
+      "rates": {
+        "normal": {
+          "prev": 0.65,
+          "cur": 0.35
+        },
+        "boss": {
+          "prev": 0.3,
+          "cur": 0.7
+        }
+      },
+      "matPerClear": 10
+    },
+    "regionTier": {}
+  },
+  "stars": {
+    "star3Ratio": 0.5
+  },
+  "repeat": {
+    "maxRuns": 50
+  },
+  "enemy": {
+    "base": {
+      "atk": 60,
+      "def": 20,
+      "hp": 450,
+      "spd": 100
+    },
+    "archetypes": {
+      "grunt": {
+        "atk": 1,
+        "def": 1,
+        "hp": 1,
+        "spd": 1,
+        "effectRes": 0
+      },
+      "brute": {
+        "atk": 1.25,
+        "def": 1.3,
+        "hp": 1.8,
+        "spd": 0.88,
+        "effectRes": 0.05
+      },
+      "caster": {
+        "atk": 1.2,
+        "def": 0.8,
+        "hp": 0.85,
+        "spd": 1.04,
+        "effectRes": 0.05
+      },
+      "healer": {
+        "atk": 0.8,
+        "def": 0.9,
+        "hp": 1.1,
+        "spd": 1.02,
+        "effectRes": 0.05
+      },
+      "shielder": {
+        "atk": 0.85,
+        "def": 1.4,
+        "hp": 1.4,
+        "spd": 0.9,
+        "effectRes": 0.1
+      },
+      "assassin": {
+        "atk": 1.1,
+        "def": 0.8,
+        "hp": 0.9,
+        "spd": 1.12,
+        "effectRes": 0
+      },
+      "elite": {
+        "atk": 1.3,
+        "def": 1.3,
+        "hp": 2.2,
+        "spd": 1.02,
+        "effectRes": 0.15
+      },
+      "boss": {
+        "atk": 1.5,
+        "def": 1.6,
+        "hp": 5,
+        "spd": 1.02,
+        "effectRes": 0.2
+      }
+    }
+  },
+  "expected": {
+    "levelStart": 1,
+    "levelPerStage": 1.4,
+    "breakthrough": {
+      "1": 3,
+      "2": 3,
+      "3": 2,
+      "4": 1,
+      "5": 0
+    },
+    "memory": {
+      "rarity": 3,
+      "levelRatio": 0.8,
+      "refine": 1
+    },
+    "gearEnhPerStage": 0.25
+  },
+  "tuner": {
+    "targetWinRate": {
+      "normal": 0.9,
+      "elite": 0.75,
+      "boss": 0.6
+    },
+    "runs": 300,
+    "tolerance": 0.03,
+    "difficulty": {
+      "min": 0.2,
+      "max": 6
+    },
+    "maxIter": 14
   }
 }

@@ -1,7 +1,7 @@
 // js/config.js: 기본값, 예전 balance.json 형식 변환, 희귀도/큰 숫자 도우미
 import { describe, it, expect } from './lib/runner.js';
 import { loadJson } from './lib/load.js';
-import { loadConfig, DEFAULTS, normalizeRarity, formatBig, rarityLabel, overflowTickets, upgradeLegacyBalance } from '../js/config.js';
+import { loadConfig, DEFAULTS, normalizeRarity, formatBig, rarityLabel, overflowTickets, upgradeLegacyBalance, ROLES, ALL_STATS, ENEMY_ARCHETYPES, MAX_BREAKTHROUGH } from '../js/config.js';
 
 // 1단계 전의 data/balance.json 모양 (예전 형식)
 const LEGACY = {
@@ -98,6 +98,42 @@ describe('config: loadConfig', () => {
     expect(overflowTickets(4, c)).toBe(80);
     expect(overflowTickets(1, c)).toBe(30);
     expect(overflowTickets('SSR', c)).toBe(200);
+  });
+  it('키트/돌파/추억/장비/튜너 그룹 기본값 (계획서 숫자)', () => {
+    const c = loadConfig({});
+    expect(Object.keys(c.stats.roleTemplate).sort()).toEqual([...ROLES].sort());
+    for (const role of ROLES) expect(Object.keys(c.stats.roleTemplate[role]).sort(), role).toEqual([...ALL_STATS].sort());
+    expect(c.stats.rarityMul[5]).toBe(1);
+    expect(c.kitBudget.rarityFactor[3]).toBe(0.7); // 3★ ≈ 5★의 70%
+    for (const role of ROLES) expect(c.breakthrough.statNodes[role].length, role).toBe(4); // 돌파 1·3·4·5
+    expect(c.memoryGacha.rates).toEqual({ 3: 88.5, 4: 10, 5: 1.5 });
+    expect(c.memoryGacha.pity).toBe(60);
+    expect(c.gear.tiers).toBe(8);
+    expect(c.gear.maxEnh).toBe(5);
+    expect(c.tuner.targetWinRate).toEqual({ normal: 0.9, elite: 0.75, boss: 0.6 });
+    expect(c.tuner.runs).toBe(300);
+    expect(Object.keys(c.enemy.archetypes).sort()).toEqual([...ENEMY_ARCHETYPES].sort());
+  });
+  it('새 그룹: 모르는 능력치/잘못된 값은 기본값, 모르는 키는 버림, 확률 0이면 기본 확률', () => {
+    const warns = [];
+    const c = loadConfig(
+      {
+        breakthrough: { statNodes: { attacker: [{ stat: 'nope', pct: 3 }] } },
+        gear: { regionTier: { ch01: 2, ch02: 'x', ch03: 99 }, tierMul: -5, extra: 1 },
+        memoryGacha: { rates: { 3: 0, 4: 0, 5: 0 } },
+        essence: { maxBreakthrough: 9 },
+      },
+      null,
+      (m) => warns.push(m),
+    );
+    expect(c.breakthrough.statNodes.attacker[0]).toEqual({ stat: 'atk', pct: 3 });
+    expect(c.breakthrough.statNodes.attacker[1]).toEqual(DEFAULTS.breakthrough.statNodes.attacker[1]);
+    expect(c.gear.regionTier).toEqual({ ch01: 2 });
+    expect(c.gear.tierMul).toBe(0);
+    expect('extra' in c.gear).toBe(false);
+    expect(c.memoryGacha.rates).toEqual(DEFAULTS.memoryGacha.rates);
+    expect(c.essence.maxBreakthrough).toBe(MAX_BREAKTHROUGH);
+    expect(warns.length).toBe(1);
   });
   it('지금 data/balance.json이 새 형식이고 기본값과 같은 사양 숫자', async () => {
     const j = await loadJson('data/balance.json');

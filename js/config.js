@@ -54,6 +54,27 @@ export function formatBig(n) {
   return `${sign}${a.toLocaleString('ko-KR')}`;
 }
 
+/** 돌파 단계 상한 (balance.essence.maxBreakthrough가 이 안에서 정함) */
+export const MAX_BREAKTHROUGH = 6;
+
+// ── 역할 / 능력치 이름 ────────────────────────────────────
+/** 역할 (계획서의 dps/tank/support/healer = attacker/defender/support/healer) */
+export const ROLES = ['attacker', 'defender', 'support', 'healer'];
+/** 캐릭터 능력치 전부 (energyRegen = 기력 획득 배율(기본 1), effectHit/effectRes/healBonus/shieldBonus = 0~ 비율) */
+export const ALL_STATS = ['atk', 'def', 'hp', 'spd', 'critRate', 'critDmg', 'energyRegen', 'effectHit', 'effectRes', 'healBonus', 'shieldBonus'];
+/** 레벨에 따라 자라는 능력치 */
+export const LEVEL_STATS = ['atk', 'def', 'hp'];
+/** 비율 능력치 (보너스 pct를 % 포인트로 더함: +6 → +0.06) */
+export const RATIO_STATS = ['critRate', 'critDmg', 'energyRegen', 'effectHit', 'effectRes', 'healBonus', 'shieldBonus'];
+/** 장비 칸 (고정 주옵션) */
+export const GEAR_SLOTS = ['hp', 'def', 'crit', 'atk'];
+/** 적 아키타입 */
+export const ENEMY_ARCHETYPES = ['grunt', 'brute', 'caster', 'healer', 'shielder', 'assassin', 'elite', 'boss'];
+/** 스테이지 종류 (자동 튜너 목표 승률) */
+export const STAGE_TYPES = ['normal', 'elite', 'boss'];
+
+const roleStats = (atk, def, hp, spd, extra = {}) => ({ atk, def, hp, spd, critRate: 0.05, critDmg: 0.5, energyRegen: 1, effectHit: 0, effectRes: 0, healBonus: 0, shieldBonus: 0, ...extra });
+
 // ── 기본값 ────────────────────────────────────────────────
 export const DEFAULTS = {
   gacha: {
@@ -75,11 +96,109 @@ export const DEFAULTS = {
     },
     critRate: 0.05,
     critDmg: 0.5,
+    // 캐릭터 기본 능력치 = round(rarityMul[희귀도] × roleTemplate[역할][능력치] × 레벨 성장) — 캐릭터마다 손으로 정하지 않음
+    rarityMul: { 1: 0.66, 2: 0.72, 3: 0.78, 4: 0.88, 5: 1 },
+    roleTemplate: {
+      attacker: roleStats(145, 46, 1050, 104),
+      defender: roleStats(100, 72, 1500, 96, { effectRes: 0.1 }),
+      support: roleStats(115, 52, 1150, 110, { effectHit: 0.1 }),
+      healer: roleStats(110, 52, 1250, 102),
+    },
+    tweakWarnPct: 10, // 캐릭터 statTweak(%)가 이걸 넘으면 개발 도구 경고
   },
   level: { costBase: 10, costExp: 1.25, goldPerTicket: 10 }, // lv→lv+1 티켓 = ceil(costBase × lv^costExp), 골드 = 티켓 × goldPerTicket
   essence: { maxBreakthrough: 5, overflowTickets: { 1: 30, 2: 30, 3: 30, 4: 80, 5: 200 } },
   daily: { tickets: 30, gold: 3000 },
-  power: { atk: 2, def: 1.5, hp: 0.2, spd: 2, critRate: 300, critDmg: 100 }, // 전투력 가중치
+  // 전투력 가중치 (energyRegen은 1을 넘는 만큼만)
+  power: { atk: 2, def: 1.5, hp: 0.2, spd: 2, critRate: 300, critDmg: 100, energyRegen: 200, effectHit: 100, effectRes: 100, healBonus: 120, shieldBonus: 120 },
+  // 돌파 1·3·4·5 = 역할별 능력치 노드 (pct: atk/def/hp/spd는 %, 비율 능력치는 % 포인트) × 낮은 희귀도 보정. 2·6 = 캐릭터 데이터 bt2/bt6
+  breakthrough: {
+    statNodes: {
+      attacker: [{ stat: 'atk', pct: 8 }, { stat: 'critRate', pct: 6 }, { stat: 'atk', pct: 10 }, { stat: 'critDmg', pct: 18 }],
+      defender: [{ stat: 'hp', pct: 8 }, { stat: 'def', pct: 10 }, { stat: 'hp', pct: 10 }, { stat: 'def', pct: 12 }],
+      support: [{ stat: 'hp', pct: 8 }, { stat: 'spd', pct: 6 }, { stat: 'energyRegen', pct: 10 }, { stat: 'spd', pct: 8 }],
+      healer: [{ stat: 'hp', pct: 8 }, { stat: 'healBonus', pct: 10 }, { stat: 'hp', pct: 10 }, { stat: 'healBonus', pct: 15 }],
+    },
+    lowRarityBoost: { 1: 1.5, 2: 1.4, 3: 1.3, 4: 1.15, 5: 1 },
+  },
+  // 키트 예산 (개발 도구 생성기/검사): 점수 = points[효과] × 크기 × 대상 계수 × 지속 × 확률, 칸 상한 × 희귀도 계수
+  kitBudget: {
+    points: {
+      damage: 100, heal: 90, shield: 80, dot: 85, buff: 1, debuff: 1.1, energy_gain: 0.8, sp_gain: 40, advance_action: 0.8, delay_action: 0.9,
+      interrupt: 40, cleanse: 25, taunt: 20, stack_gain: 12, stack_spend: 0, mark: 15, mark_detonate: 100, follow_up: 100, counter: 100, transform: 30, charge: 100, summon: 60,
+    },
+    statWeight: { atk: 1, def: 0.6, hp: 0.6, spd: 1.5, critRate: 2, critDmg: 0.8, dmgDealt: 1.2, dmgTaken: 1.2, energyRegen: 1, effectHit: 0.8, effectRes: 0.6, healBonus: 0.8, shieldBonus: 0.6 },
+    targetFactor: { single: 1, all: 1.8, randomPer: 0.7, self: 1, ally: 1, allyAll: 1.8 },
+    caps: { basic: 100, skill: 220, ultimate: 420, talent: 150, bt2: 60, bt6: 140, signature: 120 },
+    rarityFactor: { 1: 0.55, 2: 0.62, 3: 0.7, 4: 0.84, 5: 1 },
+    tolerancePct: 5,
+  },
+  // 추억 (무기 대신): 기본 공격력 + 부옵션 1개 + 패시브. 레벨은 티켓(캐릭터와 다른 곡선), 재련 R1–R5는 중복으로
+  memory: {
+    maxLevel: 50,
+    growth: 0.08,
+    atkBase: { 3: 24, 4: 34, 5: 46 },
+    secondary: { 3: 6, 4: 9, 5: 12 }, // 부옵션 Lv.1 (%, 비율 능력치는 % 포인트)
+    secGrowth: 0.02,
+    cost: { costBase: 5, costExp: 1.2, goldPerTicket: 10 },
+    refineScale: [1, 1.25, 1.5, 1.75, 2], // R1..R5 패시브 숫자 배율
+    overflowMaterial: { 3: 5, 4: 20, 5: 80 }, // R5 넘는 중복 → 추억 재료 (레벨업 티켓 대신 씀)
+    materialTickets: 10, // 추억 재료 1 = 레벨업 티켓 10
+  },
+  memoryGacha: {
+    rates: { 3: 88.5, 4: 10, 5: 1.5 },
+    cost: { single: 100, ten: 1000 },
+    pity: 60,
+    tenGuaranteeMin: 4,
+    pickupShare: 0.5,
+  },
+  // 장비: 4칸 × 티어. 수치 = slotBase × tierMul^(티어−1) × (1 + enhStep × 강화), 무작위 없음
+  gear: {
+    tiers: 8,
+    maxEnh: 5,
+    slotBase: { hp: { hp: 160 }, def: { def: 12 }, crit: { critRate: 0.015, critDmg: 0.03 }, atk: { atk: 18 } },
+    tierMul: 1.35,
+    enhStep: 0.1,
+    enhCost: { base: 20, tierExp: 1.3, enhExp: 1.2 }, // 강화석 ceil(base × 티어^tierExp × (강화+1)^enhExp)
+    salvage: { base: 8, tierExp: 1.3, enhRefund: 0.5 }, // 분해 floor(base × 티어^tierExp) + 쓴 강화석 × enhRefund
+    drop: {
+      count: { normal: 1, boss: 2 },
+      rates: { normal: { prev: 0.65, cur: 0.35 }, boss: { prev: 0.3, cur: 0.7 } }, // 지역 티어 −1 / 지역 티어
+      matPerClear: 10, // × 지역 티어
+    },
+    regionTier: {}, // { 챕터 id: 티어 } — 없으면 챕터 순서 + 1
+  },
+  stars: { star3Ratio: 0.5 }, // ★1 승리 · ★2 쓰러진 아군 없음 · ★3 라운드 ≤ ceil(제한 × star3Ratio)
+  repeat: { maxRuns: 50 },
+  // 적: 기본(Lv.1) × 아키타입 배율 × 스테이지 난이도(difficulty, 튜너가 정함)
+  enemy: {
+    base: { atk: 60, def: 20, hp: 450, spd: 100 },
+    archetypes: {
+      grunt: { atk: 1, def: 1, hp: 1, spd: 1, effectRes: 0 },
+      brute: { atk: 1.25, def: 1.3, hp: 1.8, spd: 0.88, effectRes: 0.05 },
+      caster: { atk: 1.2, def: 0.8, hp: 0.85, spd: 1.04, effectRes: 0.05 },
+      healer: { atk: 0.8, def: 0.9, hp: 1.1, spd: 1.02, effectRes: 0.05 },
+      shielder: { atk: 0.85, def: 1.4, hp: 1.4, spd: 0.9, effectRes: 0.1 },
+      assassin: { atk: 1.1, def: 0.8, hp: 0.9, spd: 1.12, effectRes: 0 },
+      elite: { atk: 1.3, def: 1.3, hp: 2.2, spd: 1.02, effectRes: 0.15 },
+      boss: { atk: 1.5, def: 1.6, hp: 5, spd: 1.02, effectRes: 0.2 },
+    },
+  },
+  // 밸런스 툴킷: 스테이지마다 '그때쯤 플레이어 상태' 가정 → expectedPower, 기준 팀
+  expected: {
+    levelStart: 1,
+    levelPerStage: 1.4,
+    breakthrough: { 1: 3, 2: 3, 3: 2, 4: 1, 5: 0 },
+    memory: { rarity: 3, levelRatio: 0.8, refine: 1 },
+    gearEnhPerStage: 0.25, // 지역 안에서 n번째 스테이지 → 강화 floor(n × 이 값) (최대 maxEnh)
+  },
+  tuner: {
+    targetWinRate: { normal: 0.9, elite: 0.75, boss: 0.6 },
+    runs: 300,
+    tolerance: 0.03,
+    difficulty: { min: 0.2, max: 6 },
+    maxIter: 14,
+  },
   powerWarnPct: 15, // 같은 희귀도 평균 전투력보다 이만큼(%) 높으면 개발 도구 경고
   combat: {
     avBase: 10000, // 행동 수치 = avBase / spd
@@ -111,6 +230,38 @@ const int = (v, def, min, max) => Math.round(num(v, def, min, max));
 function rec(raw, def, min, max, round = true) {
   const out = {};
   for (const [k, v] of Object.entries(def)) out[k] = round ? int(raw?.[k], v, min, max) : num(raw?.[k], v, min, max);
+  return out;
+}
+/**
+ * def와 같은 모양으로 정리: 숫자는 0 이상(범위 밖은 자름), 문자열은 비어 있지 않으면 그대로,
+ * 배열은 def 길이만큼 칸마다, 객체는 def에 있는 키만. 모르는 키는 버림
+ */
+function like(raw, def, max = 1e9) {
+  if (typeof def === 'number') return num(raw, def, 0, max);
+  if (typeof def === 'string') return typeof raw === 'string' && raw.trim() ? raw.trim() : def;
+  if (Array.isArray(def)) return def.map((d, i) => like(Array.isArray(raw) ? raw[i] : undefined, d, max));
+  if (isObj(def)) {
+    const out = {};
+    for (const [k, d] of Object.entries(def)) out[k] = like(isObj(raw) ? raw[k] : undefined, d, max);
+    return out;
+  }
+  return def;
+}
+/** 확률표: 모두 0이면 기본 확률 (경고) */
+function normalizeRates(rates, def, warn, where) {
+  if (Object.values(rates).some((v) => v > 0)) return rates;
+  warn(`${where}: 확률이 모두 0이라 기본값을 써요`);
+  return { ...def };
+}
+/** 돌파 능력치 노드 [{stat, pct}] × 4 (모르는 능력치는 기본값) */
+function statNodes(raw, def) {
+  const out = {};
+  for (const role of ROLES) {
+    out[role] = def[role].map((d, i) => {
+      const r = Array.isArray(raw?.[role]) ? raw[role][i] : null;
+      return { stat: ALL_STATS.includes(r?.stat) ? r.stat : d.stat, pct: num(r?.pct, d.pct, 0, 1000) };
+    });
+  }
   return out;
 }
 /** 희귀도(1–5)별 값. 예전 키 R/SR/SSR도 받음 (→ 3/4/5★, 1·2★는 기본값) */
@@ -183,6 +334,9 @@ export function loadConfig(json, vocab = null, warn = () => {}) {
       byRarity: byRarity(st.byRarity, d.stats.byRarity, (v, def) => ({ ...rec(v, { atk: def.atk, def: def.def, hp: def.hp }, 1, 1e6), spd: int(v?.spd, def.spd, 1, 1000) })),
       critRate: num(st.critRate, d.stats.critRate, 0, 1),
       critDmg: num(st.critDmg, d.stats.critDmg, 0, 10),
+      rarityMul: byRarity(st.rarityMul, d.stats.rarityMul, (v, def) => num(v, def, 0.01, 10)),
+      roleTemplate: like(st.roleTemplate, d.stats.roleTemplate, 1e6),
+      tweakWarnPct: num(st.tweakWarnPct, d.stats.tweakWarnPct, 0, 100),
     },
     level: {
       costBase: num(j.level?.costBase, d.level.costBase, 0, 1e6),
@@ -190,7 +344,7 @@ export function loadConfig(json, vocab = null, warn = () => {}) {
       goldPerTicket: num(j.level?.goldPerTicket, d.level.goldPerTicket, 0, 1e4),
     },
     essence: {
-      maxBreakthrough: int(j.essence?.maxBreakthrough, d.essence.maxBreakthrough, 0, 5),
+      maxBreakthrough: int(j.essence?.maxBreakthrough, d.essence.maxBreakthrough, 0, MAX_BREAKTHROUGH),
       overflowTickets: byRarity(j.essence?.overflowTickets, d.essence.overflowTickets, (v, def) => int(v, def, 0, 1e6)),
     },
     daily: rec(j.daily, d.daily, 0, 1e8),
@@ -209,7 +363,44 @@ export function loadConfig(json, vocab = null, warn = () => {}) {
       },
       fx: rec(j.combat?.fx, d.combat.fx, 0, 10000),
     },
+    breakthrough: {
+      statNodes: statNodes(j.breakthrough?.statNodes, d.breakthrough.statNodes),
+      lowRarityBoost: byRarity(j.breakthrough?.lowRarityBoost, d.breakthrough.lowRarityBoost, (v, def) => num(v, def, 0, 10)),
+    },
+    kitBudget: {
+      ...like(j.kitBudget, d.kitBudget),
+      rarityFactor: byRarity(j.kitBudget?.rarityFactor, d.kitBudget.rarityFactor, (v, def) => num(v, def, 0.01, 10)),
+      tolerancePct: num(j.kitBudget?.tolerancePct, d.kitBudget.tolerancePct, 0.5, 50),
+    },
+    memory: {
+      ...like(j.memory, d.memory),
+      maxLevel: int(j.memory?.maxLevel, d.memory.maxLevel, 1, 1000),
+      refineScale: like(j.memory?.refineScale, d.memory.refineScale, 100),
+    },
+    memoryGacha: {
+      ...like(j.memoryGacha, d.memoryGacha),
+      pity: int(j.memoryGacha?.pity, d.memoryGacha.pity, 1, 1000),
+      tenGuaranteeMin: int(j.memoryGacha?.tenGuaranteeMin, d.memoryGacha.tenGuaranteeMin, 3, 5),
+      pickupShare: num(j.memoryGacha?.pickupShare, d.memoryGacha.pickupShare, 0, 1),
+    },
+    gear: {
+      ...like(j.gear, d.gear),
+      tiers: int(j.gear?.tiers, d.gear.tiers, 1, 30),
+      maxEnh: int(j.gear?.maxEnh, d.gear.maxEnh, 0, 20),
+      regionTier: Object.fromEntries(Object.entries(isObj(j.gear?.regionTier) ? j.gear.regionTier : {}).filter(([, v]) => Number.isInteger(v) && v >= 1 && v <= 30)),
+    },
+    stars: { star3Ratio: num(j.stars?.star3Ratio, d.stars.star3Ratio, 0.05, 1) },
+    repeat: { maxRuns: int(j.repeat?.maxRuns, d.repeat.maxRuns, 1, 500) },
+    enemy: like(j.enemy, d.enemy, 1e6),
+    expected: like(j.expected, d.expected, 1e6),
+    tuner: {
+      ...like(j.tuner, d.tuner),
+      targetWinRate: like(j.tuner?.targetWinRate, d.tuner.targetWinRate, 1),
+      runs: int(j.tuner?.runs, d.tuner.runs, 10, 100000),
+      maxIter: int(j.tuner?.maxIter, d.tuner.maxIter, 1, 100),
+    },
   };
+  out.memoryGacha.rates = normalizeRates(out.memoryGacha.rates, d.memoryGacha.rates, warn, 'balance.memoryGacha.rates');
   out.combat.energy.max = Math.max(1, out.combat.energy.max);
   out.combat.sp.max = Math.max(1, out.combat.sp.max);
   out.combat.sp.start = Math.min(out.combat.sp.start, out.combat.sp.max);

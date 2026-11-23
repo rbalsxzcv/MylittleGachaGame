@@ -39,17 +39,28 @@
 ### data/balance.json (형식 = `js/config.js` DEFAULTS, 예전 평평한 형식도 읽음)
 ```
 gacha:   { rates:{1..5: %}, cost:{single, ten}, pity, tenGuaranteeMin, pickupShare }
-stats:   { growth, byRarity:{1..5:{atk,def,hp,spd}}, critRate, critDmg }
+stats:   { growth, byRarity:{1..5:{atk,def,hp,spd}} (적/레거시 기본값), critRate, critDmg,
+           rarityMul:{1..5}, roleTemplate:{attacker|defender|support|healer: {능력치 11개}}, tweakWarnPct }
 level:   { costBase, costExp, goldPerTicket }
-essence: { maxBreakthrough, overflowTickets:{1..5} }
+essence: { maxBreakthrough (≤ MAX_BREAKTHROUGH 6), overflowTickets:{1..5} }
 daily:   { tickets, gold }
-power:   { atk, def, hp, spd, critRate, critDmg }      // 전투력 가중치
+power:   { atk, def, hp, spd, critRate, critDmg, energyRegen(1 넘는 만큼), effectHit, effectRes, healBonus, shieldBonus }  // 전투력 가중치
 powerWarnPct                                           // 같은 희귀도 평균보다 이 % 넘으면 개발 도구 경고 (15)
 combat:  { avBase, roundAv, queuePreview, maxRounds,
            energy:{max,basic,skill,hit,ultimateCost}, sp:{start,max,basicGain,skillCost},
            enemyLevel:{refPower, perLevel}, fx:{actionMs,cutinMs} }
 defaultKit: { basic, skill, ultimate }                  // 스킬이 없는 캐릭터용
+breakthrough: { statNodes:{역할: [{stat, pct} × 4] (돌파 1·3·4·5)}, lowRarityBoost:{1..5} }
+kitBudget:  { points:{효과: 점수}, statWeight, targetFactor, caps:{basic,skill,ultimate,talent,bt2,bt6,signature}, rarityFactor:{1..5}, tolerancePct }
+memory:     { maxLevel, growth, atkBase:{3..5}, secondary:{3..5}, secGrowth, cost:{costBase,costExp,goldPerTicket}, refineScale[5], overflowMaterial:{3..5}, materialTickets }
+memoryGacha:{ rates:{3..5: %}, cost, pity, tenGuaranteeMin, pickupShare }
+gear:       { tiers, maxEnh, slotBase:{hp|def|crit|atk: {능력치: 값}}, tierMul, enhStep, enhCost, salvage, drop:{count, rates, matPerClear}, regionTier:{챕터: 티어} }
+stars: { star3Ratio }   repeat: { maxRuns }
+enemy:      { base:{atk,def,hp,spd}, archetypes:{grunt|brute|caster|healer|shielder|assassin|elite|boss: 배율} }
+expected:   { levelStart, levelPerStage, breakthrough:{1..5}, memory:{rarity,levelRatio,refine}, gearEnhPerStage }
+tuner:      { targetWinRate:{normal,elite,boss}, runs, tolerance, difficulty:{min,max}, maxIter }
 ```
+- `loadConfig`의 새 묶음은 `like()`(기본값 모양만 남김, 숫자 0 이상)로 정리. 개발 도구 밸런스 탭은 이 묶음들을 JSON으로 편집.
 
 ### characters.json 항목
 ```

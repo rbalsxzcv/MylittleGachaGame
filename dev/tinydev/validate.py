@@ -547,14 +547,40 @@ def _check_balance(r, bal):
         for k, v in group.items():
             if isinstance(v, dict):
                 nums(f"{where}.{k}", v, lo)
+            elif isinstance(v, list):
+                for i, x in enumerate(v):
+                    if isinstance(x, dict):
+                        nums(f"{where}.{k}[{i}]", x, lo)
+                    elif not kit._is_num(x) or x < lo:
+                        r.error("balance", f"{where}.{k}[{i}]는 {lo} 이상의 숫자여야 해요: {x!r}")
             elif not kit._is_num(v) or v < lo:
                 r.error("balance", f"{where}.{k}는 {lo} 이상의 숫자여야 해요: {v!r}")
 
     legacy = [k for k in ("rarityStats", "levelCost", "essenceTickets", "energy", "dailyTickets") if k in bal]
     if legacy:
         r.warn("balance", f"예전 형식의 키가 있어요 ({', '.join(legacy)}). 게임은 읽을 수 있지만 밸런스 탭에서 다시 저장하면 새 형식으로 바뀌어요")
-    for group in ("gacha", "level", "essence", "daily", "power", "combat"):
+    for group in ("gacha", "level", "essence", "daily", "power", "combat", "kitBudget", "memory", "memoryGacha", "gear", "stars", "repeat", "enemy", "expected", "tuner"):
         nums(group, bal.get(group))
+    # 돌파 능력치 노드: {역할: [{stat, pct} × 4]} (돌파 1·3·4·5)
+    nodes = (bal.get("breakthrough") or {}).get("statNodes")
+    if nodes is not None:
+        if not isinstance(nodes, dict):
+            r.error("balance", "breakthrough.statNodes는 {역할: [...]} 객체여야 해요")
+        else:
+            for role, lst in nodes.items():
+                if role not in kit.CHAR_ROLES:
+                    r.error("balance", f"breakthrough.statNodes: 알 수 없는 역할 {role!r}")
+                    continue
+                if not isinstance(lst, list) or len(lst) != 4:
+                    r.error("balance", f"breakthrough.statNodes.{role}는 노드 4개(돌파 1·3·4·5) 목록이어야 해요")
+                    continue
+                for i, n in enumerate(lst):
+                    if not isinstance(n, dict) or n.get("stat") not in kit.STAT_LIMITS or not kit._is_num(n.get("pct")) or n["pct"] < 0:
+                        r.error("balance", f"breakthrough.statNodes.{role}[{i}]: {{stat: 능력치 이름, pct: 0 이상}}이어야 해요")
+    nums("breakthrough.lowRarityBoost", (bal.get("breakthrough") or {}).get("lowRarityBoost"))
+    mg = (bal.get("memoryGacha") or {}).get("rates")
+    if isinstance(mg, dict) and set(mg) - {"3", "4", "5"}:
+        r.error("balance", "memoryGacha.rates의 키는 3~5여야 해요 (추억은 3★~5★)")
     stats = bal.get("stats")
     if isinstance(stats, dict):
         for key in ("growth", "critRate", "critDmg"):

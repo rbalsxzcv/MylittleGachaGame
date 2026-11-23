@@ -210,6 +210,39 @@ export function balanceTab(root, { select } = {}) {
     }
 
     // ── balance.json 편집 ──
+    /** 큰 묶음은 JSON으로 (경로 'stats.roleTemplate' → work.stats.roleTemplate) */
+    const JSON_GROUPS = [
+      ['stats.rarityMul', '희귀도 배율 (캐릭터 기본 능력치)'],
+      ['stats.roleTemplate', '역할 템플릿 (5★ Lv.1 능력치)'],
+      ['breakthrough', '돌파 1·3·4·5 능력치 노드 + 낮은 희귀도 보정'],
+      ['kitBudget', '키트 예산 (점수 · 상한 · 희귀도 계수)'],
+      ['memory', '추억 (레벨 · 부옵션 · 재련)'],
+      ['memoryGacha', '추억 뽑기 (확률 · 천장)'],
+      ['gear', '장비 (티어 곡선 · 강화 · 분해 · 드롭)'],
+      ['stars', '별점 (소탕 조건)'],
+      ['repeat', '반복 전투'],
+      ['enemy', '적 기본 능력치 · 아키타입 배율'],
+      ['expected', '기대 성장 (밸런스 툴킷)'],
+      ['tuner', '자동 튜너 (목표 승률)'],
+    ];
+    function jsonGroup(work, path, label, errors) {
+      const keys = path.split('.');
+      const parent = keys.slice(0, -1).reduce((o, k) => o[k], work);
+      const last = keys[keys.length - 1];
+      const ta = h('textarea', { class: 'json-input', rows: 8, spellcheck: 'false' });
+      ta.value = JSON.stringify(parent[last], null, 2);
+      ta.addEventListener('input', () => {
+        try {
+          parent[last] = JSON.parse(ta.value);
+          errors.delete(path);
+          ta.classList.remove('is-error');
+        } catch {
+          errors.add(path);
+          ta.classList.add('is-error');
+        }
+      });
+      return h('details', {}, h('summary', {}, h('b', {}, label), h('span', { class: 'muted small' }, ` ${path}`)), ta);
+    }
     function balanceEditor() {
       const b = progression.validateBalance(state.data.balance, vocab, () => {});
       const work = structuredClone(b);
@@ -217,6 +250,7 @@ export function balanceTab(root, { select } = {}) {
       const field = (obj, key, label, step = 1) =>
         h('label', { class: 'bf-param' }, h('span', {}, label), h('input', { type: 'number', class: 'num-input', step, value: obj[key], oninput: (e) => (obj[key] = Number(e.target.value)) }));
       const issues = h('div');
+      const jsonErrors = new Set();
       const R = [5, 4, 3, 2, 1];
       box.append(
         h('h3', {}, '뽑기'),
@@ -236,6 +270,10 @@ export function balanceTab(root, { select } = {}) {
         h('div', { class: 'row wrap' }, ...R.map((r) => field(work.essence.overflowTickets, r, `${r}★`)), field(work.essence, 'maxBreakthrough', '최대 돌파')),
         h('h3', {}, '전투력 가중치'),
         h('div', { class: 'row wrap' }, field(work.power, 'atk', '공격', 0.1), field(work.power, 'def', '방어', 0.1), field(work.power, 'hp', 'HP', 0.05), field(work.power, 'spd', '속도', 0.1), field(work.power, 'critRate', '치명타 확률'), field(work.power, 'critDmg', '치명타 피해')),
+        h('div', { class: 'row wrap' }, field(work.power, 'energyRegen', '기력 회복 (1 넘는 만큼)'), field(work.power, 'effectHit', '효과 적중'), field(work.power, 'effectRes', '효과 저항'), field(work.power, 'healBonus', '치유 보너스'), field(work.power, 'shieldBonus', '보호막 보너스')),
+        h('h3', {}, '키트 · 돌파 · 추억 · 장비 · 적 · 튜너 (JSON)'),
+        h('p', { class: 'muted small' }, '묶음마다 JSON으로 고쳐요. 저장할 때 게임과 같은 규칙(js/config.js loadConfig)으로 정리돼요 — 모르는 키는 버리고 범위 밖 값은 잘라요.'),
+        ...JSON_GROUPS.map(([path, label]) => jsonGroup(work, path, label, jsonErrors)),
         h('details', {}, h('summary', {}, h('b', {}, '기본 스킬 (스킬이 없는 캐릭터용)')), h('div', { class: 'be-skills' }, ['basic', 'skill', 'ultimate'].map((a) => skillForm(work.defaultKit[a], a, { onChange: () => {} }).el))),
         issues,
         h(
@@ -246,6 +284,10 @@ export function balanceTab(root, { select } = {}) {
             {
               class: 'btn primary',
               onclick: async () => {
+                if (jsonErrors.size) {
+                  issues.replaceChildren(issueList([...jsonErrors].map((where) => ({ level: 'error', where: `balance.${where}`, message: 'JSON 형식이 잘못됐어요' }))));
+                  return;
+                }
                 try {
                   await api.put('/api/balance', work);
                 } catch (e) {

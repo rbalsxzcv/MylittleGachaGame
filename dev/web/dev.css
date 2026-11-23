@@ -237,6 +237,8 @@ pre.cmd, pre.git-log { background: #221d3a; color: #e9e4ff; padding: 12px; borde
 .prompt-step p { margin: 0; }
 .prompt-editor { display: grid; gap: 6px; }
 .prompt-editor textarea { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+.json-input { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+.json-input.is-error { outline: 2px solid var(--err); outline-offset: -1px; }
 a.chip { text-decoration: none; }
 
 /* ── UI 에셋 탭 ── */
