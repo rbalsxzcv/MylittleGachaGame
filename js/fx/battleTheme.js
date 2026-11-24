@@ -27,7 +27,7 @@ export const BT = Object.freeze({
     enemy: { w: 140, h: 196, gap: 20 },
     boss: { w: 184, h: 258, gap: 28 },
     crowd: { from: 5, scale: 0.85, gap: 14 }, // 적이 5~6명일 때
-    hand: { w: 112, h: 156, fan: 6, spread: 58 }, // spread = 두 카드 가운데 사이 간격
+    hand: { w: 112, h: 156, fan: 6, spread: 64, stagger: 22 }, // spread = 두 카드 가운데 사이 간격, stagger = 위아래 어긋남(왼쪽 카드 이름이 보이게)
     radius: 14,
     rarityLine: 2,
     artTop: 0.55, // 일러스트 위쪽 몇 %를 카드에 쓰는지
@@ -136,7 +136,7 @@ export const BT = Object.freeze({
   },
 
   // ── 9장: 행동 순서 ──
-  queue: { cur: 72, size: 56, gap: 10, count: 7, ring: 3, enterDy: 24, exitDy: 30, pulse: 1000 },
+  queue: { cur: 72, size: 56, gap: 10, count: 7, ring: 3, enterDy: 24, exitDy: 30, pulse: 1000, faceTop: 0.21, faceY: 0.06 },
 
   // ── 5장: 조작 ──
   press: { long: 400, ringDelay: 150, slop: 12, ringR: 30, ringW: 5 },
@@ -176,6 +176,9 @@ export const BT = Object.freeze({
     crack: 0xffffff,
   },
   radius: { card: 14, badge: 10, panel: 10 },
+
+  // 그리는 순서
+  depth: { bg: 0, arrows: 5, enemy: 10, ally: 20, queue: 30, hand: 40, fx: 50, numbers: 60, top: 80, band: 90, drag: 95, info: 1000, pause: 1100, end: 1200 },
 
   // ── 13-1장: 성능 ──
   particles: { burst: 16, max: 150 },

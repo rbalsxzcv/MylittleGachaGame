@@ -149,6 +149,12 @@ def fx_test():
     return send_from_directory(config.DEV, "fx-test.html")
 
 
+@app.get("/battle-ui-test")
+def battle_ui_test():
+    """전투 화면 연출 테스트 페이지 (dev/battle-ui-test.html, BATTLE_UI.md 14장) — 게임 모듈/데이터는 /preview/에서"""
+    return send_from_directory(config.DEV, "battle-ui-test.html")
+
+
 @app.get("/preview/<path:path>")
 def preview(path):
     """플레이어 게임을 그대로 띄우되, data/와 assets/는 작업 공간에서 제공

@@ -236,7 +236,8 @@
 
 ## 10. 정보창 (길게 누르기)
 
-- 전투 장면 위에 덮개로 열어요. 화면을 바꾸지 않아요. 열려 있는 동안 전투 연출은 일시정지(`tweens.pauseAll()`, `time.paused`).
+- 전투 장면 위에 덮개로 열어요. 화면을 바꾸지 않아요. 열려 있는 동안 전투 연출은 일시정지(`time.paused` + 돌고 있던 트윈만 `motion.freeze()`).
+  Phaser 3.90의 `tweens.pauseAll()`은 매니저 전체를 멈춰서 정보창 자신의 트윈까지 멈추므로 쓰지 않아요. 히트스톱 · 일시정지 화면도 같은 방법.
 - 열기:
   1. 배경 어둡게 0 → 0.72 (`fast`)
   2. 누른 카드가 제자리에서 화면 왼쪽 가운데로 날아가며 2.2배로 커짐 (`base`, Cubic.easeOut). 원래 카드 자리에는 빈 틀이 남아요.
@@ -291,6 +292,7 @@
 ## 13. 코드 구조 규칙
 
 - **`js/fx/battleTheme.js`**: 이 문서의 모든 숫자(배치, 크기, 색, 모션 토큰)를 한 객체로. 장면 코드에 숫자를 직접 쓰지 않아요.
+- **`js/fx/battleChoreo.js`** (순수, 테스트 `tests/battleUi.test.js`): 엔진 이벤트 → 장면 단위(`groupBeats`), 카드 줄 배치(`rowLayout`), 숫자 겹침(`floatOffset`), 순서 칩 짝 맞추기(`diffQueue`).
 - **`js/fx/motion.js`**: `tween(target, props, token, ease)` 도우미. 배속 나누기, 동작 줄이기, 이전 트윈 정리를 여기서 한 번에 처리해요. `hitStop(ms)`, `shake(level)`, `flash(target)`도 여기에.
 - **`js/fx/BattleCard.js`**: 카드 하나 = `Phaser.GameObjects.Container`. `setState('active' | 'targetable' | ...)`, `setHp(ratio)`, `setEnergy(ratio)`, `setEffects(list)`, `playHit(crit)`, `playDeath()` 같은 메서드만 밖에 보여 줘요.
 - **`js/fx/TargetArrow.js`**, **`js/fx/InfoOverlay.js`**, **`js/fx/TurnQueue.js`**: 각자 독립 컴포넌트.

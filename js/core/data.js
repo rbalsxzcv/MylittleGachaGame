@@ -86,6 +86,8 @@ const warnData = (msg) => console.warn(`[data] ${msg}`);
 // ── characters.json ───────────────────────────────────────
 export { ROLES };
 const colorOrNull = (v) => (typeof v === 'string' && /^#[0-9a-f]{3,8}$/i.test(v) ? v : null);
+/** 전투 카드 그림 크롭 { y: 위에서 내려 시작할 비율 0~0.5 } (얼굴이 잘릴 때, BATTLE_UI.md 2장) — 없으면 null */
+const cardCropOrNull = (v) => (v && typeof v === 'object' && Number.isFinite(v.y) ? { y: Math.max(0, Math.min(0.5, v.y)) } : null);
 
 // 필수: id, name, rarity(등급: 1–5 또는 'npc'. 예전 'R'/'SR'/'SSR'은 3/4/5, 예전 pullable: false는 'npc'로 읽음)
 // NPC 등급 = 뽑기/도감/육성/편성에 안 나옴 (스토리 화자, 적 연결용). pullable은 등급에서 계산 (NPC가 아니면 true)
@@ -114,6 +116,7 @@ export function validateCharacters(json, vocab) {
       image: str(raw.image).trim(),
       cutout: str(raw.cutout).trim(),
       themeColor: colorOrNull(raw.themeColor),
+      cardCrop: cardCropOrNull(raw.cardCrop),
       quote: str(raw.quote, '', 120).trim(),
       addedAt: str(raw.addedAt).trim(),
       pullable: rarity !== NPC, // NPC 등급이면 false (뽑기/도감/육성/편성에 안 나옴)
@@ -147,6 +150,7 @@ export function validateEnemies(json, vocab) {
       image: str(raw.image).trim(),
       boss: raw.boss === true,
       charId: idOk(raw.charId) ? raw.charId : null,
+      cardCrop: cardCropOrNull(raw.cardCrop),
       archetype: ENEMY_ARCHETYPES.includes(raw.archetype) ? raw.archetype : null,
       stats: cleanStats(raw.stats),
       resource: cleanResource(raw.resource),

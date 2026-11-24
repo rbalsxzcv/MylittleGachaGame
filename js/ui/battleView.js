@@ -49,6 +49,8 @@ export function mountBattle(host, { ctx, stage, team, background = null, onResul
     speed: settings.battleSpeed,
     auto: settings.battleAuto,
     reduced: prefersReducedMotion(),
+    // 개발 모드: 화면 구석에 fps (localhost + ?fps=1, BATTLE_UI.md 13-1장)
+    dev: ['localhost', '127.0.0.1'].includes(location.hostname) && new URLSearchParams(location.search).get('fps') === '1',
     onSettings(patch) {
       Object.assign(settings, patch);
       ctx.commit();

@@ -31,6 +31,71 @@ function starPoints(cx, cy, outer, inner, n = 5, rot = -Math.PI / 2) {
   return pts;
 }
 
+/** 부드러운 둥근 사각형 (가장자리로 갈수록 흐려짐) — 카드 그림자 · 바깥 빛을 미리 흐리게 만든 것 (postFX 블러 대신) */
+function softRect(g, w, h, pad, r) {
+  const steps = 14;
+  for (let i = 0; i < steps; i++) {
+    const t = i / (steps - 1); // 0 = 가장 바깥
+    const inset = pad * (1 - t);
+    g.fillStyle(0xffffff, 0.05 + t * 0.06);
+    g.fillRoundedRect(inset, inset, w + pad * 2 - inset * 2, h + pad * 2 - inset * 2, Math.max(2, r + pad * (1 - t)));
+  }
+}
+
+/**
+ * 전투 화면 전용 텍스처 (BATTLE_UI.md 13-1장: 장면 시작 때 한 번)
+ * sizes: { 이름: {w, h} } 카드 종류별 크기 → 'bfx-soft-<이름>' (그림자/빛 공용, tint로 색)
+ */
+export function ensureBattleTextures(scene, sizes, { pad = 26, radius = 14 } = {}) {
+  for (const [name, s] of Object.entries(sizes)) make(scene, `bfx-soft-${name}`, s.w + pad * 2, s.h + pad * 2, (g) => softRect(g, s.w, s.h, pad, radius));
+  // 화살표 꺾쇠 (오른쪽을 가리킴 → 회전해서 씀)
+  make(scene, 'bfx-chevron', 32, 32, (g) => {
+    g.fillStyle(0xffffff, 1);
+    g.fillPoints([{ x: 6, y: 4 }, { x: 18, y: 4 }, { x: 30, y: 16 }, { x: 18, y: 28 }, { x: 6, y: 28 }, { x: 18, y: 16 }], true);
+  });
+  // 금 간 선 (가운데에서 퍼짐)
+  make(scene, 'bfx-crack', 256, 256, (g) => {
+    g.lineStyle(4, 0xffffff, 1);
+    const arms = [[-0.2, 0.9], [0.5, 1], [1.4, 0.8], [2.2, 1], [3.0, 0.85], [3.9, 1], [4.6, 0.9], [5.4, 0.95]];
+    for (const [a, len] of arms) {
+      let x = 128;
+      let y = 128;
+      for (let k = 1; k <= 4; k++) {
+        const nx = 128 + Math.cos(a + (k % 2 ? 0.18 : -0.14)) * 30 * k * len;
+        const ny = 128 + Math.sin(a + (k % 2 ? 0.18 : -0.14)) * 30 * k * len;
+        g.lineStyle(Math.max(1, 5 - k), 0xffffff, 1);
+        g.lineBetween(x, y, nx, ny);
+        x = nx;
+        y = ny;
+      }
+    }
+  });
+  // 파편 (삼각형 조각)
+  make(scene, 'bfx-shard', 16, 16, (g) => {
+    g.fillStyle(0xffffff, 1);
+    g.fillTriangle(0, 2, 16, 0, 6, 16);
+  });
+  // 참격 띠 (가운데가 밝은 긴 띠)
+  make(scene, 'bfx-slash', 512, 64, (g) => {
+    for (let i = 0; i < 16; i++) {
+      const t = i / 15;
+      g.fillStyle(0xffffff, 0.06 + t * 0.12);
+      g.fillRect(0, 32 - 30 * (1 - t), 512, 60 * (1 - t) + 2);
+    }
+  });
+  // 비네트 (가장자리 어둡게)
+  if (!scene.textures.exists('bfx-vignette')) {
+    const tex = scene.textures.createCanvas('bfx-vignette', 640, 360);
+    const ctx = tex.getContext();
+    const grd = ctx.createRadialGradient(320, 180, 90, 320, 180, 380);
+    grd.addColorStop(0, 'rgba(0,0,0,0)');
+    grd.addColorStop(1, 'rgba(0,0,0,1)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, 640, 360);
+    tex.refresh();
+  }
+}
+
 export function ensureFxTextures(scene) {
   make(scene, 'fx-dot', 64, 64, (g) => softDot(g, 64));
   make(scene, 'fx-spark', 24, 24, (g) => {

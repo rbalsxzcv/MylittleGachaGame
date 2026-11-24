@@ -20,7 +20,6 @@ export function createMotion(scene, { speed = 1, reduced = false } = {}) {
     speed,
     reduced,
     instant: false,
-    stops: 0, // 진행 중인 히트스톱 수
 
     /**
      * 트윈 하나 → Promise (끝나거나 멈추면 resolve)
@@ -105,18 +104,35 @@ export function createMotion(scene, { speed = 1, reduced = false } = {}) {
       await Promise.all(all);
     },
 
-    /** 히트스톱: 모든 트윈을 잠깐 멈춤 (2배속은 ÷1.5만, 동작 줄이기/즉시 결과는 없음) */
+    /**
+     * 지금 돌고 있는 트윈만 멈춤 → 멈춘 목록 (thaw로 다시)
+     * tweens.pauseAll()은 매니저 전체를 멈춰서 그 뒤에 만든 트윈(정보창 · 일시정지 화면 · 타격 숫자)까지 멈추므로 쓰지 않음
+     */
+    freeze() {
+      const list = scene.tweens.getTweens().filter((t) => !t.paused && !t.isDestroyed?.());
+      for (const t of list) t.pause();
+      return list;
+    },
+    thaw(list) {
+      for (const t of list || []) {
+        try {
+          if (!t.isDestroyed?.() && t.paused) t.resume();
+        } catch {
+          // 그 사이 끝난 트윈
+        }
+      }
+    },
+
+    /** 히트스톱: 돌고 있는 트윈을 잠깐 멈춤 (2배속은 ÷1.5만, 동작 줄이기/즉시 결과는 없음) */
     hitStop(ms) {
       if (m.reduced || m.instant || ms <= 0) return Promise.resolve();
       const real = m.speed === 2 ? ms / BT.speed2HitStopDiv : ms;
       // 장면 시간은 speed배로 흐르므로 real ms가 되게 맞춤
       const sceneMs = real * scene.time.timeScale;
-      m.stops += 1;
-      scene.tweens.pauseAll();
+      const frozen = m.freeze();
       return new Promise((r) =>
         scene.time.delayedCall(sceneMs, () => {
-          m.stops -= 1;
-          if (m.stops <= 0 && !scene.time.paused) scene.tweens.resumeAll();
+          m.thaw(frozen);
           r();
         }),
       );

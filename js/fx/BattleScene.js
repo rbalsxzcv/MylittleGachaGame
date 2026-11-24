@@ -1,32 +1,29 @@
-// 전투 화면 (Phaser) — 규칙은 전부 js/battle/engine.js. 여기는 보여 주고 입력만 받음
+// 전투 화면 (Phaser) — 카드형 화면, 기준 문서 BATTLE_UI.md. 규칙은 전부 js/battle/engine.js
 //
-// 배치 (1280×720)
-//   위: 일시정지 · 스테이지 이름 · 웨이브 x/y · 라운드 | SP 점 | AUTO · 2x · 즉시 결과
-//   왼쪽: 행동 순서 (지금 차례 + 다음 7명)
-//   가운데: 적 정면 입상 (보스는 크게), HP 막대, 강화/약화, 예고 배지 (아이콘 + ⏱N + 대상 칸 또는 '광역') + 대상 초상까지 선
-//   아래: 아군 초상 5칸 (HP, 기력, 강화/약화, 역할). 궁극기 준비되면 빛남 → 탭하면 궁극기 (턴을 쓰지 않음)
-//         차례인 아군 위에 [기본 공격] [스킬 (SP)]
-// 연출: 행동마다 0.5초 이하, 떠오르는 피해 숫자(치명타는 크고 금색), 맞은 초상 흔들림 + 붉은 번쩍임,
-//       궁극기는 짧은 컷인(js/fx/CutIn.js, 탭하면 넘김), 쓰러지면 페이드 + 입자, 웨이브/승리/패배 배너. 2x = 시간 절반
+// 이 장면은 엔진을 부르고, 엔진이 돌려준 이벤트를 battleChoreo.groupBeats로 장면 단위로 묶어
+// 컴포넌트 메서드를 순서대로 await만 함 (숫자는 battleTheme, 움직임은 motion).
+//   BattleCard(카드) · TurnQueue(행동 순서) · ActionHand + SpGauge(손패 · SP) · TargetArrow/IntentArrows(화살표)
+//   InfoOverlay(정보창) · battleFx(입자 · 떠오르는 숫자 · 섬광 · 띠) · CutIn(궁극기 컷인)
+// 연출 중에는 입력 잠금 (건너뛰기 · 일시정지 · AUTO · 2배속 · 즉시 결과 · 정보창만)
 // 끝나면 data.finish({ summary, record, quit }) → HTML(js/ui/battleView.js)이 보상/결과 화면
 
 import { FONT, FX_W, FX_H, assetUrl, fxQuality, rarityColor, hexToInt } from './phaserHost.js';
-import { ensureFxTextures } from './textures.js';
+import { ensureFxTextures, ensureBattleTextures } from './textures.js';
 import { playCutIn, queueCharTexture, charTextureKey } from './CutIn.js';
+import { BT } from './battleTheme.js';
+import { createMotion } from './motion.js';
+import { groupBeats, rowLayout } from './battleChoreo.js';
+import { ensureBattleIcons, preloadBattleIcons, iconKey, statIcon, actionIcon } from './icons.js';
+import { ensureNumberFonts } from './numberFont.js';
+import { createBattleFx } from './battleFx.js';
+import { BattleCard } from './BattleCard.js';
+import { TurnQueue } from './TurnQueue.js';
+import { TargetArrow, IntentArrows } from './TargetArrow.js';
+import { ActionHand, SpGauge } from './ActionHand.js';
+import { InfoOverlay } from './InfoOverlay.js';
 
-const ICON = { attack: '⚔', aoe: '✸', buff: '▲', heal: '✚', debuff: '▼' };
-const ROLE = { attacker: '공', defender: '방', support: '지', healer: '치' };
-const STAT_SHORT = { atk: '공', def: '방', spd: '속', critRate: '치확', critDmg: '치피', dmgDealt: '주피', dmgTaken: '받피', energyRegen: '기회', effectHit: '적중', effectRes: '저항', healBonus: '치보', shieldBonus: '막보' };
-/** 타임라인 토큰 아이콘 (차지 / 소환물) */
-const TOKEN_ICON = { charge: '⚡', orb: '◉', bird: '✦', wolf: '✧', demon: '☠', turret: '▣' };
 const enemyKey = (id) => `enemy:${id}`;
-const hex = (n) => `#${n.toString(16).padStart(6, '0')}`;
-
-const PANEL_W = 196;
-const PANEL_H = 150;
-const PANEL_Y = 630; // 아군 초상 가운데
-const panelX = (slot) => 238 + slot * 210;
-const ENEMY_FEET = 438; // 적 입상 발 위치
+const COL = BT.color;
 
 export function createBattleScene(Phaser) {
   return class BattleScene extends Phaser.Scene {
@@ -36,7 +33,7 @@ export function createBattleScene(Phaser) {
 
     /**
      * @param {{battle:object, data:object, stage:object, background?:string|null, speed?:1|2, auto?:boolean, reduced?:boolean,
-     *          onSettings?:(patch:object)=>void, finish:(r:object)=>void}} data
+     *          dev?:boolean, onSettings?:(patch:object)=>void, onReady?:(scene)=>void, finish:(r:object)=>void}} data
      */
     init(data) {
       this.opts = data;
@@ -48,15 +45,19 @@ export function createBattleScene(Phaser) {
       this.instant = false;
       this.paused = false;
       this.ended = false;
-      this.allyViews = new Map();
-      this.enemyViews = new Map();
-      this.dispHp = new Map();
-      this.pick = null; // 대상 고르는 중: { kind:'act'|'ult', action, uid, uids }
+      this.playing = false;
+      this.finished = false;
+      this.endReady = false;
+      this.cards = new Map(); // uid → BattleCard
+      this.looks = new Map();
+      this.dispShield = new Map();
+      this.pick = null; // 궁극기 조준: { action:'ultimate', uid, uids }
       this.cutin = null;
+      this.press = null;
     }
 
     preload() {
-      this.load.on('loaderror', (file) => console.warn('[battle] 그림을 불러오지 못했어요:', file?.src));
+      this.load.on('loaderror', (file) => console.warn('[battle] 불러오지 못했어요:', file?.src));
       for (const u of this.battle.state.allies) queueCharTexture(this, { id: u.refId }, assetUrl(u.image));
       const seen = new Set();
       for (const wave of this.opts.stage.waves) {
@@ -68,442 +69,410 @@ export function createBattleScene(Phaser) {
         }
       }
       if (this.opts.background) this.load.image('battle-bg', assetUrl(this.opts.background));
+      preloadBattleIcons(this);
     }
 
     create() {
+      const C = BT.card;
       ensureFxTextures(this);
+      ensureBattleTextures(this, { ally: C.ally, enemy: C.enemy, boss: C.boss, hand: C.hand }, { pad: BT.shadow.pad, radius: C.radius });
+      ensureBattleIcons(this);
+      ensureNumberFonts(this);
       this.quality = fxQuality(this.game);
       this.applySpeed();
       this.cameras.main.setZoom(1).setScroll(0, 0);
+      this.m = createMotion(this, { speed: this.speed, reduced: this.reduced });
 
-      // 배경
-      this.add.rectangle(0, 0, FX_W, FX_H, 0x0b0812, 1).setOrigin(0);
+      // 배경: 밝기 60% + 비네트 (카드가 항상 더 밝게)
+      this.add.rectangle(0, 0, FX_W, FX_H, COL.bg, 1).setOrigin(0).setDepth(BT.depth.bg);
       if (this.textures.exists('battle-bg')) {
-        const bg = this.add.image(FX_W / 2, FX_H / 2, 'battle-bg');
+        const bg = this.add.image(FX_W / 2, FX_H / 2, 'battle-bg').setDepth(BT.depth.bg);
         const src = bg.texture.getSourceImage();
-        bg.setScale(Math.max(FX_W / src.width, FX_H / src.height)).setAlpha(0.55);
+        const v = Math.round(255 * BT.background.brightness);
+        bg.setScale(Math.max(FX_W / src.width, FX_H / src.height)).setTint((v << 16) | (v << 8) | v);
       }
-      this.add.rectangle(0, FX_H - 210, FX_W, 210, 0x000000, 0.45).setOrigin(0);
+      this.add.image(FX_W / 2, FX_H / 2, 'bfx-vignette').setDisplaySize(FX_W, FX_H).setAlpha(BT.background.vignette).setDepth(BT.depth.bg);
 
-      this.lines = this.add.graphics().setDepth(5);
-      this.enemyLayer = this.add.container(0, 0).setDepth(10);
-      this.allyLayer = this.add.container(0, 0).setDepth(20);
-      this.fxLayer = this.add.container(0, 0).setDepth(40);
-      this.uiLayer = this.add.container(0, 0).setDepth(60);
-
+      this.enemyLayer = this.add.container(0, 0).setDepth(BT.depth.enemy);
+      this.allyLayer = this.add.container(0, 0).setDepth(BT.depth.ally);
+      this.fx = createBattleFx(this, this.m, this.quality);
+      this.intentArrows = new IntentArrows(this, this.m);
+      this.arrow = new TargetArrow(this, this.m);
+      this.queue = new TurnQueue(this, this.m, {
+        info: (id) => this.look(id),
+        onTap: (uid) => this.cards.get(uid)?.pulse(),
+      });
+      this.sp = new SpGauge(this, this.m, this.battle.state.spMax, this.fx);
+      this.hand = new ActionHand(this, this.m, {
+        arrow: this.arrow,
+        canAct: () => this.mode === 'input' && !this.auto && !this.info.open,
+        targetsOf: (a) => this.targetsOf(a),
+        aimAt: (a, x, y) => this.aimAt(this.targetsOf(a).uids, x, y),
+        onArm: (a) => this.showTargets(a ? this.targetsOf(a).uids : null),
+        onCommit: (a, uid) => this.commit({ kind: 'act', action: a, target: uid }),
+        centerOf: (uid) => this.cards.get(uid)?.center() ?? { x: FX_W / 2, y: FX_H / 2 },
+      });
+      this.info = new InfoOverlay(this, this.m, { battle: this.battle, data: this.opts.data });
+      this.popIcons = Array.from({ length: 4 }, () => this.add.image(0, 0, iconKey(this, 'resist')).setDepth(BT.depth.numbers).setAlpha(0));
       this.makeTopBar();
-      this.makeQueue();
-      this.makeAllies();
-      this.makeEnemies();
-      this.makeActionButtons();
-      this.hint = this.add.text(FX_W / 2, 78, '', { fontFamily: FONT, fontSize: '17px', fontStyle: '700', color: '#ffe9a8', stroke: '#000', strokeThickness: 5 }).setOrigin(0.5).setDepth(70);
+      this.makeCards('ally', true);
+      this.makeCards('enemy', true);
+      this.makePressRing();
 
       this.input.on('pointerdown', (p, over) => {
+        if (p.rightButtonDown()) {
+          if (this.info.open) this.info.hide();
+          else this.cancelAim();
+          return;
+        }
         if (this.cutin && !over.some((o) => o.getData?.('ui'))) this.cutin.skip();
         if (this.mode === 'ended' && this.endReady) this.finish(false);
       });
+      this.input.on('pointermove', (p) => this.pressMove(p));
+      this.input.on('pointerup', () => this.pressUp());
       this.input.mouse?.disableContextMenu();
-      this.input.on('pointerdown', (p) => p.rightButtonDown() && this.cancelPick());
       this.input.keyboard?.on('keydown', (e) => this.onKey(e));
+      this.events.once('shutdown', () => this.cleanup());
 
-      this.refreshAll();
+      if (this.opts.dev) this.makeFps();
+      this.syncAll({ instant: true });
       if (this.battle.state.result) this.showEnd();
       else this.afterBatch();
+      this.opts.onReady?.(this);
     }
 
-    // ── 공통 도우미 ──
+    // ── 공통 ──
     applySpeed() {
       this.tweens.timeScale = this.speed;
       this.time.timeScale = this.speed;
+      if (this.m) this.m.speed = this.speed;
     }
-    wait(ms) {
-      if (this.instant) return Promise.resolve();
-      return new Promise((r) => this.time.delayedCall(ms, r));
+    text(x, y, str, size = BT.minText, color = COL.text, bold = true) {
+      return this.add.text(x, y, str, { fontFamily: FONT, fontSize: `${size}px`, fontStyle: bold ? BT.font.bold : BT.font.body, color });
     }
-    text(x, y, str, size = 18, color = '#ffffff', extra = {}) {
-      return this.add.text(x, y, str, { fontFamily: FONT, fontSize: `${size}px`, fontStyle: '700', color, ...extra });
+    unitOf(uid) {
+      return this.battle.unit(uid);
     }
-    /** 버튼 (Phaser 사각형 + 글자). ui 표시 → 화면 탭 처리에서 제외 */
-    button(x, y, w, h, label, onClick, { size = 18, color = 0x2b1f48, border = 0x8f78d6 } = {}) {
-      const c = this.add.container(x, y);
-      const bg = this.add.rectangle(0, 0, w, h, color, 0.92).setStrokeStyle(2, border);
-      const tx = this.text(0, 0, label, size).setOrigin(0.5);
-      c.add([bg, tx]);
-      c.setSize(w, h);
-      c.setInteractive({ useHandCursor: true });
-      c.setData('ui', true);
-      c.on('pointerdown', (p, lx, ly, ev) => {
-        ev?.stopPropagation?.();
-        if (c.getData('disabled')) return;
-        onClick();
-      });
-      const api = {
-        c,
-        bg,
-        tx,
-        setLabel: (s) => tx.setText(s),
-        setOn: (on) => bg.setFillStyle(on ? 0x6b4a1d : color, 0.92).setStrokeStyle(2, on ? 0xffc23d : border),
-        setEnabled: (on) => {
-          c.setData('disabled', !on);
-          c.setAlpha(on ? 1 : 0.4);
-        },
-      };
-      return api;
+    sideOf(uid) {
+      return this.battle.unit(uid)?.side ?? null;
     }
 
-    // ── 위쪽 바 ──
-    makeTopBar() {
-      const bar = this.add.container(0, 0).setDepth(80);
-      bar.add(this.add.rectangle(0, 0, FX_W, 58, 0x000000, 0.55).setOrigin(0));
-      const pause = this.button(36, 29, 48, 40, 'Ⅱ', () => this.togglePause(), { size: 20 });
-      this.stageText = this.text(72, 29, this.opts.stage.name || '전투', 20).setOrigin(0, 0.5);
-      this.waveText = this.text(72 + this.stageText.width + 18, 29, '', 17, '#d8c9ff').setOrigin(0, 0.5);
-      this.spPips = [];
-      const spMax = this.battle.state.spMax;
-      const sx = FX_W / 2 - ((spMax - 1) * 30) / 2;
-      bar.add(this.text(sx - 44, 29, 'SP', 17, '#ffe08a').setOrigin(0.5));
-      for (let i = 0; i < spMax; i++) {
-        const pip = this.add.circle(sx + i * 30, 29, 10, 0xffc23d).setStrokeStyle(2, 0xfff1c2);
-        this.spPips.push(pip);
-        bar.add(pip);
+    /** 유닛의 그림 · 색 정보 (카드 · 칩 · 손패 공용) */
+    look(uid) {
+      if (this.looks.has(uid)) return this.looks.get(uid);
+      const u = this.unitOf(uid);
+      if (!u) return null;
+      const d = this.opts.data;
+      let out;
+      if (u.side === 'ally') {
+        const ent = d.allCharMap?.get(u.refId) || d.charMap?.get(u.refId);
+        const sk = u.kit?.skill;
+        const types = new Set((sk?.effects || []).map((e) => e.type));
+        const skillIcon = types.has('heal') ? 'heal' : types.has('shield') ? 'shield' : /ally|self/.test(sk?.targeting || '') ? 'buff' : 'attack';
+        out = { refId: u.refId, side: 'ally', artKey: charTextureKey(u.refId), cropY: ent?.cardCrop?.y ?? 0, theme: hexToInt(u.themeColor, COL.ally), line: rarityColor(u.rarity || 3), skillIcon };
+      } else {
+        const ent = d.enemyMap.get(u.refId);
+        const own = enemyKey(u.refId);
+        const art = this.textures.exists(own) ? own : ent?.charId && this.textures.exists(charTextureKey(ent.charId)) ? charTextureKey(ent.charId) : null;
+        out = { refId: u.refId, side: 'enemy', artKey: art, cropY: ent?.cardCrop?.y ?? 0, theme: COL.enemy, line: u.boss ? COL.hpLow : 0x8a5a4a, skillIcon: 'attack' };
       }
-      this.autoBtn = this.button(FX_W - 306, 29, 92, 40, 'AUTO', () => this.toggleAuto());
-      this.speedBtn = this.button(FX_W - 204, 29, 92, 40, '2x', () => this.toggleSpeed());
-      this.instantBtn = this.button(FX_W - 82, 29, 136, 40, '즉시 결과', () => this.instantResult(), { size: 17 });
-      bar.add([pause.c, this.stageText, this.waveText, this.autoBtn.c, this.speedBtn.c, this.instantBtn.c]);
+      this.looks.set(uid, out);
+      return out;
+    }
+
+    // ── 위 막대 ──
+    makeTopBar() {
+      const T = BT.area.top;
+      const bar = (this.topBar = this.add.container(0, 0).setDepth(BT.depth.top));
+      bar.add(this.add.rectangle(T.x, T.y, T.w, T.h, 0x07040f, 0.62).setOrigin(0));
+      bar.add(this.add.rectangle(T.x, T.h, T.w, 1, 0xffffff, 0.1).setOrigin(0));
+      const cy = T.h / 2;
+      this.pauseBtn = this.iconButton(36, cy, 'pause', '', () => this.togglePause());
+      this.stageText = this.text(80, cy, this.opts.stage.name || '전투').setOrigin(0, 0.5);
+      this.waveText = this.text(80 + this.stageText.width + 20, cy, '', BT.minText, COL.textMid, false).setOrigin(0, 0.5);
+      this.autoBtn = this.iconButton(FX_W - 330, cy, 'auto', 'AUTO', () => this.toggleAuto());
+      this.speedBtn = this.iconButton(FX_W - 220, cy, 'speed', '2x', () => this.toggleSpeed());
+      this.instantBtn = this.iconButton(FX_W - 86, cy, 'skip', '즉시 결과', () => this.instantResult());
+      bar.add([this.pauseBtn.c, this.stageText, this.waveText, this.autoBtn.c, this.speedBtn.c, this.instantBtn.c]);
       this.autoBtn.setOn(this.auto);
       this.speedBtn.setOn(this.speed === 2);
     }
-
-    // ── 행동 순서 (왼쪽) ──
-    makeQueue() {
-      this.queueLayer = this.add.container(0, 0).setDepth(30);
-      this.queueLayer.add(this.text(52, 72, '순서', 15, '#c9b8f2').setOrigin(0.5));
+    /** 아이콘 버튼 (터치 영역 88px 이상) */
+    iconButton(x, y, icon, label, onClick) {
+      const c = this.add.container(x, y);
+      const tx = label ? this.text(14, 0, label, BT.minText).setOrigin(0, 0.5) : null;
+      const w = Math.max(48, 44 + (tx ? tx.width + 10 : 0));
+      const bgOff = this.add.graphics().fillStyle(0x231a3a, 0.92).fillRoundedRect(-w / 2, -20, w, 40, BT.radius.badge).lineStyle(2, 0x5a4b80, 1).strokeRoundedRect(-w / 2, -20, w, 40, BT.radius.badge);
+      const bgOn = this.add.graphics().fillStyle(0x17405a, 0.95).fillRoundedRect(-w / 2, -20, w, 40, BT.radius.badge).lineStyle(2, COL.ally, 1).strokeRoundedRect(-w / 2, -20, w, 40, BT.radius.badge).setAlpha(0);
+      const ic = this.add.image(tx ? -w / 2 + 22 : 0, 0, iconKey(this, icon)).setDisplaySize(22, 22);
+      if (tx) tx.setX(-w / 2 + 40);
+      c.add([bgOff, bgOn, ic, ...(tx ? [tx] : [])]);
+      const zone = this.add.zone(0, 0, Math.max(w, BT.minTouch), BT.minTouch).setInteractive({ useHandCursor: true });
+      zone.setData('ui', true);
+      zone.on('pointerdown', (p, lx, ly, ev) => {
+        ev?.stopPropagation?.();
+        if (p.rightButtonDown()) return;
+        this.m.tween(c, { scale: BT.state.pressScale }, 'instant').then(() => this.m.tween(c, { scale: 1 }, 'fast', 'pop'));
+        onClick();
+      });
+      c.add(zone);
+      return { c, setOn: (on) => this.m.tween(bgOn, { alpha: on ? 1 : 0 }, 'fast') };
     }
-    portraitOf(unit, size) {
-      const c = this.add.container(0, 0);
-      const color = unit.side === 'ally' ? 0x4f9dff : 0xff5d6c;
-      c.add(this.add.circle(0, 0, size / 2 + 3, color));
-      const key = unit.side === 'ally' ? charTextureKey(unit.refId) : enemyKey(unit.refId);
-      if (this.textures.exists(key)) {
-        const img = this.add.image(0, 0, key).setOrigin(0, 0);
-        const src = img.texture.getSourceImage();
-        // 얼굴 쪽(가운데 위)을 정사각형으로 잘라 동그랗게 — 잘린 칸의 가운데가 (0,0)
-        const cw = src.width * 0.5;
-        const cx = (src.width - cw) / 2;
-        const cy = src.height * 0.04;
-        const s = size / cw;
-        img.setCrop(cx, cy, cw, cw).setScale(s).setPosition(-(cx + cw / 2) * s, -(cy + cw / 2) * s);
-        const mask = this.make.graphics({}, false).fillCircle(0, 0, size / 2);
-        img.setMask(mask.createGeometryMask());
-        c.add(img);
-        c.setData('mask', mask);
-      } else {
-        c.add(this.add.circle(0, 0, size / 2, 0x2a1f45));
-        c.add(this.text(0, 0, unit.name.slice(0, 1), size * 0.45).setOrigin(0.5));
-      }
-      return c;
-    }
-    refreshQueue() {
-      for (const ch of this.queueLayer.list.slice(1)) {
-        ch.getData?.('mask')?.destroy();
-      }
-      this.queueLayer.removeBetween(1, undefined, true);
-      const cur = this.battle.current() || (this.battle.state.actorUid && this.battle.unit(this.battle.state.actorUid));
-      let y = 120;
-      if (cur) {
-        const p = this.portraitOf(cur, 66);
-        p.setPosition(52, y);
-        // 마스크는 화면 좌표 → 컨테이너 위치에 맞춤
-        p.getData('mask')?.setPosition(52, y);
-        this.queueLayer.add(p);
-        this.queueLayer.add(this.text(52, y + 44, '지금', 13, '#ffe08a').setOrigin(0.5));
-        y += 92;
-      }
-      for (const item of this.battle.queueItems(Math.max(1, this.opts.data.balance.combat.queuePreview - 1))) {
-        if (item.kind === 'token') {
-          // 차지/소환 토큰: 아이콘 동그라미 (큰 차지는 빨간 테두리)
-          const c = this.add.container(52, y);
-          const owner = this.battle.unit(item.owner);
-          c.add(this.add.circle(0, 0, 20, item.big ? 0xff4d5e : owner?.side === 'ally' ? 0x4f9dff : 0xff5d6c));
-          c.add(this.add.circle(0, 0, 17, 0x221838));
-          c.add(this.text(0, 0, TOKEN_ICON[item.icon] || '◉', 18, '#ffe08a').setOrigin(0.5));
-          this.queueLayer.add(c);
-          y += 50;
-        } else {
-          const u = this.battle.unit(item.id);
-          if (!u) continue;
-          const p = this.portraitOf(u, 46);
-          p.setPosition(52, y);
-          p.getData('mask')?.setPosition(52, y);
-          this.queueLayer.add(p);
-          y += 58;
-        }
-        if (y > 560) break;
+    updateTopBar() {
+      const st = this.battle.state;
+      const s = `웨이브 ${st.wave + 1}/${st.waveCount} · 라운드 ${st.round}${st.roundLimit ? `/${st.roundLimit}` : ''}`;
+      if (this.waveText.text === s) return;
+      this.waveText.setText(s);
+      if (!this.m.instant) {
+        this.waveText.setAlpha(0.3);
+        this.m.tween(this.waveText, { alpha: 1 }, 'fast');
       }
     }
 
-    // ── 아군 초상 (아래) ──
-    makeAllies() {
-      for (const u of this.battle.state.allies) {
-        const x = panelX(u.slot);
-        const c = this.add.container(x, PANEL_Y);
-        const col = rarityColor(u.rarity || 3);
-        const glow = this.add.rectangle(0, 0, PANEL_W + 14, PANEL_H + 14, 0xffc23d, 0).setStrokeStyle(4, 0xffc23d, 0);
-        const frame = this.add.rectangle(0, 0, PANEL_W, PANEL_H, 0x140d22, 0.95).setStrokeStyle(3, col);
-        c.add([glow, frame]);
-        const key = charTextureKey(u.refId);
-        if (this.textures.exists(key)) {
-          // 가슴 위(bust) 부분만
-          const img = this.add.image(0, 0, key).setOrigin(0, 0);
-          const src = img.texture.getSourceImage();
-          const iw = PANEL_W - 8;
-          const ih = PANEL_H - 52;
-          const cropW = src.width * 0.62;
-          const s = iw / cropW;
-          const cropH = Math.min(src.height, ih / s);
-          const cx = (src.width - cropW) / 2;
-          const cy = src.height * 0.03;
-          img.setScale(s).setCrop(cx, cy, cropW, cropH).setPosition(-iw / 2 - cx * s, -PANEL_H / 2 + 4 - cy * s);
-          c.add(img);
-        } else {
-          c.add(this.text(0, -24, u.name, 26).setOrigin(0.5));
+    // ── 카드 ──
+    cardKind(u) {
+      return u.side === 'ally' ? 'ally' : u.boss ? 'boss' : 'enemy';
+    }
+    makeCard(u, slot) {
+      const lk = this.look(u.uid);
+      const kind = this.cardKind(u);
+      const size = BT.card[kind];
+      const card = new BattleCard(this, this.m, u, {
+        layer: u.side === 'ally' ? this.allyLayer : this.enemyLayer,
+        x: slot.x,
+        y: slot.y,
+        scale: slot.scale,
+        kind,
+        w: size.w,
+        h: size.h,
+        artKey: lk.artKey,
+        artTop: u.side === 'ally' ? BT.card.artTop : BT.card.artTopEnemy,
+        cropY: lk.cropY,
+        theme: lk.theme,
+        line: lk.line,
+        role: u.side === 'ally' ? `role_${u.role || 'attacker'}` : null,
+        fx: this.fx,
+        idle: !this.reduced && this.quality >= 0.5,
+      });
+      this.wireCard(card);
+      this.cards.set(u.uid, card);
+      this.dispShield.set(u.uid, u.shield?.value || 0);
+      return card;
+    }
+    /** 한 진영의 카드 만들기 (적은 웨이브가 바뀌면 다시) */
+    makeCards(side, instant = false) {
+      const st = this.battle.state;
+      const units = (side === 'ally' ? st.allies : st.enemies).filter((u) => u.alive);
+      if (side === 'enemy') {
+        for (const [uid, c] of this.cards) {
+          if (c.side !== 'enemy') continue;
+          c.destroy();
+          this.cards.delete(uid);
         }
-        c.add(this.add.rectangle(0, PANEL_H / 2 - 24, PANEL_W - 4, 46, 0x000000, 0.72));
-        const name = this.text(-PANEL_W / 2 + 10, PANEL_H / 2 - 44, u.name, 16).setOrigin(0, 0);
-        const role = this.text(PANEL_W / 2 - 10, -PANEL_H / 2 + 8, ROLE[u.role] || '공', 14, '#ffffff', { backgroundColor: hex(col), padding: { x: 5, y: 1 } }).setOrigin(1, 0);
-        const slotNo = this.text(-PANEL_W / 2 + 8, -PANEL_H / 2 + 6, String(u.slot + 1), 18, '#ffe08a', { stroke: '#000', strokeThickness: 4 });
-        const hpBg = this.add.rectangle(-PANEL_W / 2 + 10, PANEL_H / 2 - 17, PANEL_W - 20, 9, 0x3a1020).setOrigin(0, 0.5);
-        const hpFill = this.add.rectangle(-PANEL_W / 2 + 10, PANEL_H / 2 - 17, PANEL_W - 20, 9, 0x5fd38a).setOrigin(0, 0.5);
-        const shieldFill = this.add.rectangle(-PANEL_W / 2 + 10, PANEL_H / 2 - 21, 0, 3, 0x9fd8ff).setOrigin(0, 0.5);
-        const enBg = this.add.rectangle(-PANEL_W / 2 + 10, PANEL_H / 2 - 7, PANEL_W - 20, 5, 0x1d1733).setOrigin(0, 0.5);
-        const enFill = this.add.rectangle(-PANEL_W / 2 + 10, PANEL_H / 2 - 7, 0, 5, 0xffc23d).setOrigin(0, 0.5);
-        const hpText = this.text(PANEL_W / 2 - 10, PANEL_H / 2 - 44, '', 13, '#cfe8d8').setOrigin(1, 0);
-        const status = this.text(-PANEL_W / 2 + 8, -PANEL_H / 2 + 32, '', 12, '#ffffff', { backgroundColor: 'rgba(0,0,0,0.55)', padding: { x: 4, y: 2 }, wordWrap: { width: PANEL_W - 16 } });
-        const ult = this.text(0, -PANEL_H / 2 - 16, '궁극기 준비! (탭)', 14, '#ffe08a', { stroke: '#000', strokeThickness: 4 }).setOrigin(0.5).setVisible(false);
-        const flash = this.add.rectangle(0, 0, PANEL_W, PANEL_H, 0xff2a3d, 0);
-        c.add([name, role, slotNo, hpBg, hpFill, shieldFill, enBg, enFill, hpText, status, ult, flash]);
-        c.setSize(PANEL_W, PANEL_H).setInteractive({ useHandCursor: true });
-        c.setData('ui', true);
-        c.on('pointerdown', (p, lx, ly, ev) => {
-          ev?.stopPropagation?.();
-          this.onAllyTap(u.uid);
-        });
-        this.allyLayer.add(c);
-        this.allyViews.set(u.uid, { c, glow, frame, hpFill, shieldFill, enFill, hpText, status, ult, flash, x, y: PANEL_Y });
-        this.dispHp.set(u.uid, u.hp);
       }
+      const slots = rowLayout(units, side);
+      const made = units.map((u, i) => this.makeCard(u, slots[i]));
+      if (!instant) for (const c of made) c.root.setAlpha(0);
+      return made;
+    }
+    /** 쓰러진 뒤 남은 카드가 빈자리를 메움 (base, 30ms 시차) */
+    reflow(side) {
+      const list = (side === 'ally' ? this.battle.state.allies : this.battle.state.enemies).filter((u) => this.cards.get(u.uid)?.alive);
+      const slots = rowLayout(list, side);
+      return Promise.all(list.map((u, i) => this.cards.get(u.uid).moveTo(slots[i].x, slots[i].y, slots[i].scale, 'base', 'out', i * BT.death.reflowStagger)));
+    }
+    livingCards() {
+      return [...this.cards.values()].filter((c) => c.alive);
     }
 
-    // ── 적 (가운데) ──
-    makeEnemies() {
-      for (const v of this.enemyViews.values()) v.c.destroy(true);
-      this.enemyViews.clear();
-      const list = this.battle.state.enemies;
-      const n = list.length;
-      const gap = Math.min(240, 1000 / Math.max(1, n));
-      list.forEach((u, i) => {
-        const x = 700 + (i - (n - 1) / 2) * gap;
-        const c = this.add.container(x, ENEMY_FEET);
-        const H = u.boss ? 290 : 240;
-        let sprite;
-        const key = enemyKey(u.refId);
-        if (this.textures.exists(key)) {
-          sprite = this.add.image(0, 0, key).setOrigin(0.5, 1);
-          const src = sprite.texture.getSourceImage();
-          sprite.setScale(Math.min(H / src.height, (u.boss ? 300 : 190) / src.width));
-        } else {
-          sprite = this.add.container(0, 0);
-          sprite.add(this.add.rectangle(0, -H / 2, u.boss ? 220 : 150, H, 0x3a2140, 0.9).setStrokeStyle(3, 0xff5d6c));
-          sprite.add(this.text(0, -H / 2, u.name.slice(0, 2), u.boss ? 54 : 40).setOrigin(0.5));
-        }
-        const name = this.text(0, 14, u.name + (u.boss ? ' (보스)' : ''), u.boss ? 18 : 15, u.boss ? '#ffb4b4' : '#ffffff', { stroke: '#000', strokeThickness: 4 }).setOrigin(0.5, 0);
-        const barW = u.boss ? 240 : 160;
-        const hpBg = this.add.rectangle(-barW / 2, 44, barW, 10, 0x3a1020).setOrigin(0, 0.5).setStrokeStyle(1, 0x000000);
-        const hpFill = this.add.rectangle(-barW / 2, 44, barW, 10, 0xff5d6c).setOrigin(0, 0.5);
-        const shieldFill = this.add.rectangle(-barW / 2, 38, 0, 3, 0x9fd8ff).setOrigin(0, 0.5);
-        const status = this.text(0, 54, '', 12, '#ffffff', { backgroundColor: 'rgba(0,0,0,0.5)', padding: { x: 4, y: 1 } }).setOrigin(0.5, 0);
-        // 예고 배지
-        const badge = this.add.container(0, -H - 34);
-        const badgeBg = this.add.rectangle(0, 0, 150, 46, 0x1b1030, 0.92).setStrokeStyle(2, 0xff8a8a);
-        const badgeTop = this.text(0, -10, '', 15).setOrigin(0.5);
-        const badgeBottom = this.text(0, 11, '', 15, '#ffd0d0').setOrigin(0.5);
-        badge.add([badgeBg, badgeTop, badgeBottom]);
-        const ring = this.add.image(0, -H / 2, 'fx-ring').setScale((u.boss ? 1.6 : 1.2) * 1).setTint(0xffe08a).setAlpha(0).setBlendMode('ADD');
-        c.add([ring, sprite, name, hpBg, hpFill, shieldFill, status, badge]);
-        const hit = this.add.zone(0, -H / 2, u.boss ? 260 : 180, H + 40).setInteractive({ useHandCursor: true });
-        hit.setData('ui', true);
-        hit.on('pointerdown', (p, lx, ly, ev) => {
-          ev?.stopPropagation?.();
-          this.onEnemyTap(u.uid);
-        });
-        c.add(hit);
-        this.enemyLayer.add(c);
-        this.enemyViews.set(u.uid, { c, sprite, hpFill, shieldFill, barW, status, badge, badgeBg, badgeTop, badgeBottom, ring, x, H });
-        this.dispHp.set(u.uid, u.hp);
+    // ── 탭 · 길게 누르기 (5장) ──
+    makePressRing() {
+      this.ring = this.add.graphics().setDepth(BT.depth.drag);
+    }
+    wireCard(card) {
+      const z = card.zone;
+      z.on('pointerover', (p) => {
+        if (!p.wasTouch && card.alive) card.setState({ hover: true });
+        this.hovered = card;
+      });
+      z.on('pointerout', () => {
+        card.setState({ hover: false });
+        if (this.hovered === card) this.hovered = null;
+      });
+      z.on('pointerdown', (p, lx, ly, ev) => {
+        ev?.stopPropagation?.();
+        if (this.info.open || !card.alive) return;
+        if (p.rightButtonDown()) return this.openInfo(card);
+        this.pressDown(card, p);
       });
     }
-
-    // ── 행동 버튼 ──
-    makeActionButtons() {
-      this.actBasic = this.button(0, 0, 150, 46, '기본 공격', () => this.chooseAction('basic'), { size: 18 });
-      this.actSkill = this.button(0, 0, 150, 46, '스킬', () => this.chooseAction('skill'), { size: 17, color: 0x24324f, border: 0x7fb0ff });
-      this.actBasic.c.setDepth(75);
-      this.actSkill.c.setDepth(75);
+    /** 실제 ms → 장면 시간 (배속과 무관하게 길게 누르기 400ms) */
+    realMs(ms) {
+      return ms * this.time.timeScale;
+    }
+    pressDown(card, p) {
+      this.pressCancel();
+      card.setState({ press: true });
+      const P = BT.press;
+      const pr = (this.press = { card, x: p.x, y: p.y, long: false, cancelled: false, timers: [] });
+      pr.timers.push(
+        this.time.delayedCall(this.realMs(P.ringDelay), () => {
+          // 150ms 지나면 진행 원이 차오르기 시작 (그 전에 떼면 안 보임 → 탭할 때 깜빡이지 않음)
+          const prog = { t: 0 };
+          pr.ringTween = this.tweens.add({
+            targets: prog,
+            t: 1,
+            duration: this.realMs(P.long - P.ringDelay),
+            ease: BT.ease.linear, // 진행 표시 (예외)
+            onUpdate: () => this.drawRing(card, prog.t),
+          });
+        }),
+      );
+      pr.timers.push(
+        this.time.delayedCall(this.realMs(P.long), () => {
+          pr.long = true;
+          this.ring.clear();
+          card.setState({ press: false });
+          this.openInfo(card);
+        }),
+      );
+    }
+    drawRing(card, t) {
+      const c = card.center();
+      const P = BT.press;
+      this.ring.clear();
+      this.ring.lineStyle(P.ringW, 0xffffff, 0.25).strokeCircle(c.x, c.y, P.ringR);
+      this.ring.lineStyle(P.ringW, 0xffffff, 1).beginPath();
+      this.ring.arc(c.x, c.y, P.ringR, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * t);
+      this.ring.strokePath();
+    }
+    pressMove(p) {
+      const pr = this.press;
+      if (!pr || pr.cancelled) return;
+      if (Math.hypot(p.x - pr.x, p.y - pr.y) > BT.press.slop) {
+        // 12px 넘게 움직이면 길게 누르기 취소 (탭도 아님)
+        pr.cancelled = true;
+        this.pressCancel();
+      }
+    }
+    pressUp() {
+      const pr = this.press;
+      if (!pr) return;
+      const tap = !pr.long && !pr.cancelled;
+      this.pressCancel();
+      if (tap) this.onCardTap(pr.card);
+    }
+    pressCancel() {
+      const pr = this.press;
+      if (!pr) return;
+      for (const t of pr.timers) t.remove(false);
+      pr.ringTween?.remove();
+      this.ring.clear();
+      pr.card.setState({ press: false });
+      this.press = null;
+    }
+    openInfo(card) {
+      if (!card || this.cutin || this.ended || this.paused) return;
+      this.pressCancel();
+      this.info.show(card);
     }
 
-    // ── 화면 갱신 ──
-    statusText(u) {
-      const parts = [];
-      if (u.shield) parts.push(`보호막 ${u.shield.value}`);
-      for (const s of u.statuses) parts.push(`${STAT_SHORT[s.stat] || s.stat}${(s.kind === 'buff') !== (s.stat === 'dmgTaken') ? '↑' : '↓'}${s.turns}`);
-      if (u.dots.length) parts.push(`지속${Math.max(...u.dots.map((d) => d.turns))}`);
-      if (u.taunt) parts.push(`도발${u.taunt.turns}`);
-      if (u.res) parts.unshift(`◆${u.res.name} ${u.res.value}/${u.res.cap}`);
-      const marks = (u.marks || []).reduce((n, m) => n + m.n, 0);
-      if (marks) parts.push(`표식${marks}`);
-      if (u.transform) parts.push(`변신${u.transform.turns}`);
-      return parts.join(' ');
+    // ── 대상 고르기 ──
+    targetsOf(action, uid = null) {
+      const t = this.battle.targets(action, uid);
+      if (!t) return { none: true, uids: [] };
+      const uids = t.uids.filter((x) => this.cards.get(x)?.alive);
+      return { none: false, uids, single: uids.length === 1, support: t.pick === 'ally' };
     }
-
-    refreshAll() {
-      const st = this.battle.state;
-      this.waveText.setText(`웨이브 ${st.wave + 1}/${st.waveCount} · 라운드 ${st.round}${st.roundLimit ? `/${st.roundLimit}` : ''}`);
-      this.spPips.forEach((p, i) => p.setFillStyle(i < st.sp.ally ? 0xffc23d : 0x2a2140).setStrokeStyle(2, i < st.sp.ally ? 0xfff1c2 : 0x5a4b80));
+    /** 대상 표시: 가능 = 맥박, 불가 = 어둡게, null = 끔 */
+    showTargets(uids) {
+      for (const c of this.livingCards()) c.setState({ target: !uids ? 'none' : uids.includes(c.uid) ? 'ok' : 'no' });
+    }
+    /** 손가락 근처(카드 + 20px)의 대상 → 조준 표시 */
+    aimAt(uids, x, y) {
+      let hit = null;
+      for (const uid of uids) {
+        const c = this.cards.get(uid);
+        if (c?.alive && c.contains(x, y, BT.arrow.snap)) {
+          hit = uid;
+          break;
+        }
+      }
+      for (const uid of uids) this.cards.get(uid)?.setState({ target: uid === hit ? 'aim' : 'ok' });
+      return hit;
+    }
+    onCardTap(card) {
+      if (!card.alive) return;
       const inputOn = this.mode === 'input' || this.mode === 'target';
-      for (const u of st.allies) {
-        const v = this.allyViews.get(u.uid);
-        if (!v) continue;
-        const hp = this.dispHp.get(u.uid) ?? u.hp;
-        v.hpFill.width = Math.max(0, (PANEL_W - 20) * (hp / u.maxHp));
-        v.shieldFill.width = Math.min(PANEL_W - 20, (PANEL_W - 20) * ((u.shield?.value || 0) / u.maxHp));
-        v.enFill.width = (PANEL_W - 20) * Math.min(1, u.energy / Math.max(1, u.ultCost));
-        v.hpText.setText(`${Math.max(0, Math.round(hp)).toLocaleString('ko-KR')}`);
-        v.status.setText(this.statusText(u)).setVisible(!!this.statusText(u));
-        const ready = u.alive && u.kit.ultimate && u.energy >= u.ultCost;
-        v.ult.setVisible(ready && inputOn && !this.auto);
-        v.glow.setStrokeStyle(4, 0xffc23d, ready ? 1 : 0);
-        if (ready && !v.glowTween && !this.reduced) v.glowTween = this.tweens.add({ targets: v.glow, alpha: { from: 1, to: 0.35 }, duration: 520, yoyo: true, repeat: -1 });
-        if (!ready && v.glowTween) {
-          v.glowTween.remove();
-          v.glowTween = null;
-          v.glow.setAlpha(1);
-        }
-        const picking = this.mode === 'target' && this.pick?.uids.includes(u.uid);
-        v.frame.setStrokeStyle(picking ? 5 : 3, picking ? 0x7dffb0 : rarityColor(u.rarity || 3));
-        v.c.setAlpha(u.alive ? 1 : 0.38);
-        const isCur = st.pendingUid === u.uid || st.actorUid === u.uid;
-        v.c.y = PANEL_Y - (isCur ? 10 : 0);
+      if (!inputOn || this.auto) return;
+      // 궁극기 조준 중 → 대상
+      if (this.mode === 'target' && this.pick) {
+        if (this.pick.uids.includes(card.uid)) return this.commit({ kind: 'ult', uid: this.pick.uid, target: card.uid });
+        return this.cancelAim();
       }
-      const intents = new Map(this.battle.intents().map((it) => [it.uid, it]));
-      this.lines.clear();
-      for (const u of st.enemies) {
-        const v = this.enemyViews.get(u.uid);
-        if (!v) continue;
-        const hp = this.dispHp.get(u.uid) ?? u.hp;
-        v.hpFill.width = Math.max(0, v.barW * (hp / u.maxHp));
-        v.shieldFill.width = Math.min(v.barW, v.barW * ((u.shield?.value || 0) / u.maxHp));
-        const s = this.statusText(u);
-        v.status.setText(s).setVisible(!!s);
-        const it = intents.get(u.uid);
-        v.badge.setVisible(!!it && u.alive);
-        if (it && u.alive) {
-          const cut = it.interrupted;
-          v.badgeTop.setText(`${ICON[it.icon] || '⚔'} ${it.name}`);
-          v.badgeBottom.setText(cut ? '흐트러짐 예정' : `⏱${it.eta ?? '-'}  →  ${it.aoe ? '광역' : it.targetSlot ? `${it.targetSlot}번` : '자신'}`);
-          const w = Math.max(130, v.badgeTop.width + 24, v.badgeBottom.width + 24);
-          v.badgeBg.setSize(w, 46).setFillStyle(cut ? 0x2a2a2a : it.big ? 0x5a0f1c : 0x1b1030, 0.92).setStrokeStyle(it.big ? 3 : 2, cut ? 0x888888 : it.big ? 0xff3d55 : 0xff8a8a);
-          if (it.big && !cut && !v.badgeTween && !this.reduced) v.badgeTween = this.tweens.add({ targets: v.badge, scale: { from: 1, to: 1.08 }, duration: 420, yoyo: true, repeat: -1 });
-          if ((!it.big || cut) && v.badgeTween) {
-            v.badgeTween.remove();
-            v.badgeTween = null;
-            v.badge.setScale(1);
-          }
-          // 대상 초상까지 선
-          const tv = it.targetUid && this.allyViews.get(it.targetUid);
-          if (tv && !cut && !it.aoe) {
-            this.lines.lineStyle(it.big ? 4 : 2, it.big ? 0xff3d55 : 0xff8a8a, 0.55);
-            this.lines.lineBetween(v.x, ENEMY_FEET - v.H - 10, tv.x, PANEL_Y - PANEL_H / 2 - 6);
-          }
-        }
-        const picking = this.mode === 'target' && this.pick?.uids.includes(u.uid);
-        v.ring.setAlpha(picking ? 0.9 : 0);
-        v.c.setAlpha(u.alive ? 1 : 0);
+      // 손패 행동 조준 중 → 대상
+      if (this.hand.armed) {
+        const t = this.targetsOf(this.hand.armed);
+        if (t.uids.includes(card.uid)) return this.hand.commit(this.hand.armed, card.uid);
+        return this.cancelAim();
       }
-      this.refreshQueue();
-      this.refreshButtons();
-    }
-
-    refreshButtons() {
-      const cur = this.battle.current();
-      const show = !!cur && (this.mode === 'input' || this.mode === 'target') && !this.auto;
-      this.actBasic.c.setVisible(show);
-      this.actSkill.c.setVisible(show);
-      if (!show) return this.hint.setText(this.auto && cur && !this.ended ? 'AUTO 진행 중' : '');
-      const v = this.allyViews.get(cur.uid);
-      const opt = this.battle.options();
-      this.actBasic.c.setPosition(v.x - 78, PANEL_Y - PANEL_H / 2 - 44);
-      this.actSkill.c.setPosition(v.x + 78, PANEL_Y - PANEL_H / 2 - 44);
-      this.actBasic.setLabel(`기본 공격 (SP+)`);
-      this.actSkill.setLabel(`${opt.skill?.name || '스킬'} (SP ${opt.skill?.cost ?? 1})`);
-      this.actSkill.setEnabled(!!opt.skill?.ok);
-      this.actBasic.setOn(this.pick?.action === 'basic');
-      this.actSkill.setOn(this.pick?.action === 'skill');
-      if (this.mode === 'target') this.hint.setText(this.pick.kind === 'ult' ? '궁극기 대상을 고르세요 (취소: 우클릭 / Esc)' : '대상을 고르세요 (취소: 우클릭 / Esc)');
-      else this.hint.setText(`${cur.name}의 차례 — 1 기본 공격 · 2 스킬 · 빛나는 초상 = 궁극기`);
-    }
-
-    // ── 입력 ──
-    chooseAction(action) {
-      if (!(this.mode === 'input' || this.mode === 'target') || this.auto) return;
-      const t = this.battle.targets(action);
-      if (!t) return this.commit({ kind: 'act', action, target: null });
-      // 대상이 하나뿐이면 바로
-      if (t.uids.length === 1) return this.commit({ kind: 'act', action, target: t.uids[0] });
-      this.pick = { kind: 'act', action, uids: t.uids };
+      // 아군 카드: 궁극기 준비됐으면 궁극기
+      const u = this.unitOf(card.uid);
+      if (u?.side !== 'ally' || !u.kit?.ultimate || u.energy < u.ultCost) return;
+      const t = this.targetsOf('ultimate', u.uid);
+      if (t.none) return this.commit({ kind: 'ult', uid: u.uid, target: null });
+      if (t.single) return this.commit({ kind: 'ult', uid: u.uid, target: t.uids[0] });
+      this.pick = { action: 'ultimate', uid: u.uid, uids: t.uids };
       this.mode = 'target';
-      this.refreshAll();
+      this.hand.cancel(true);
+      this.showTargets(t.uids);
     }
-    onAllyTap(uid) {
-      if (this.mode === 'target' && this.pick?.uids.includes(uid)) return this.commit({ ...this.pick, target: uid });
-      if (!(this.mode === 'input' || this.mode === 'target') || this.auto) return;
-      const u = this.battle.unit(uid);
-      if (!u?.alive || !u.kit.ultimate || u.energy < u.ultCost) return;
-      const t = this.battle.targets('ultimate', uid);
-      if (!t) return this.commit({ kind: 'ult', uid, target: null });
-      if (t.uids.length === 1) return this.commit({ kind: 'ult', uid, target: t.uids[0] });
-      this.pick = { kind: 'ult', action: 'ultimate', uid, uids: t.uids };
-      this.mode = 'target';
-      this.refreshAll();
-    }
-    onEnemyTap(uid) {
-      if (this.mode === 'target' && this.pick?.uids.includes(uid)) this.commit({ ...this.pick, target: uid });
-    }
-    cancelPick() {
-      if (this.mode !== 'target') return false;
+    cancelAim() {
+      const had = !!this.pick || !!this.hand.armed || !!this.hand.press;
       this.pick = null;
-      this.mode = 'input';
-      this.refreshAll();
-      return true;
+      if (this.mode === 'target') this.mode = 'input';
+      this.hand.cancel(true);
+      this.showTargets(null);
+      return had;
+    }
+    /** 키보드 1/2: 손패 카드 누른 것과 같음 */
+    chooseAction(action) {
+      if (this.mode !== 'input' || this.auto) return;
+      const opt = this.battle.options();
+      if (!opt?.[action]?.ok) return this.hand.shake(this.hand.cards[action]);
+      const t = this.targetsOf(action);
+      if (t.none) return this.commit({ kind: 'act', action, target: null });
+      if (t.single) return this.commit({ kind: 'act', action, target: t.uids[0] });
+      this.hand.cancel(true);
+      this.hand.armed = action;
+      this.hand.lift(this.hand.cards[action], true);
+      this.showTargets(t.uids);
     }
     commit(choice) {
       this.pick = null;
       this.mode = 'busy';
+      this.hand.armed = null;
       const events = choice.kind === 'ult' ? this.battle.ultimate({ uid: choice.uid, target: choice.target }) : this.battle.act({ action: choice.action, target: choice.target });
       this.play(events);
     }
 
+    // ── 키보드 ──
     onKey(e) {
       if (this.ended) {
         if (this.endReady && ['Space', 'Enter', 'Escape'].includes(e.code)) this.finish(false);
         return;
       }
+      if (this.info.open) {
+        if (['Escape', 'KeyI', 'Space', 'Enter'].includes(e.code)) this.info.hide();
+        return;
+      }
       if (e.code === 'Escape') {
         if (this.cutin) return this.cutin.skip();
-        if (!this.cancelPick()) this.togglePause();
+        if (!this.cancelAim()) this.togglePause();
         return;
       }
       if (this.paused) return;
+      if (e.code === 'KeyI') return this.openInfo(this.hovered || this.cards.get(this.battle.state.pendingUid || this.battle.state.actorUid));
       if (e.code === 'KeyA') return this.toggleAuto();
       if (e.code === 'KeyR') return this.instantResult();
       if (e.code === 'KeyX') return this.toggleSpeed();
@@ -511,9 +480,12 @@ export function createBattleScene(Phaser) {
       const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
       if (!m) return;
       const n = Number(m[1]);
-      if (this.mode === 'target') {
-        const uid = this.pick.uids[n - 1];
-        if (uid) this.commit({ ...this.pick, target: uid });
+      const aiming = this.pick?.uids || (this.hand.armed && this.targetsOf(this.hand.armed).uids);
+      if (aiming) {
+        const uid = aiming[n - 1];
+        if (!uid) return;
+        if (this.pick) this.commit({ kind: 'ult', uid: this.pick.uid, target: uid });
+        else this.hand.commit(this.hand.armed, uid);
       } else if (this.mode === 'input') {
         if (n === 1) this.chooseAction('basic');
         if (n === 2) this.chooseAction('skill');
@@ -525,11 +497,11 @@ export function createBattleScene(Phaser) {
       this.autoBtn.setOn(this.auto);
       this.opts.onSettings?.({ battleAuto: this.auto });
       if (this.auto && (this.mode === 'input' || this.mode === 'target')) {
-        this.pick = null;
+        this.cancelAim();
+        this.hand.hide();
         this.mode = 'busy';
         this.stepAuto();
-      }
-      this.refreshAll();
+      } else if (!this.auto && !this.playing) this.afterBatch();
     }
     toggleSpeed() {
       this.speed = this.speed === 2 ? 1 : 2;
@@ -538,276 +510,461 @@ export function createBattleScene(Phaser) {
       this.opts.onSettings?.({ battleSpeed: this.speed });
     }
     togglePause() {
-      if (this.ended) return;
+      if (this.ended || this.info.open) return;
       this.paused = !this.paused;
       if (this.paused) {
-        this.tweens.pauseAll();
+        this.pressCancel();
+        this.pauseFrozen = this.m.freeze();
         this.time.paused = true;
-        const c = (this.pauseLayer = this.add.container(0, 0).setDepth(900));
-        c.add(this.add.rectangle(0, 0, FX_W, FX_H, 0x000000, 0.66).setOrigin(0).setInteractive());
+        const c = (this.pauseLayer = this.add.container(0, 0).setDepth(BT.depth.pause).setAlpha(0));
+        const dim = this.add.rectangle(0, 0, FX_W, FX_H, 0x000000, 0.66).setOrigin(0).setInteractive();
+        dim.setData('ui', true);
+        c.add(dim);
         c.add(this.text(FX_W / 2, 250, '일시정지', 44).setOrigin(0.5));
-        const resume = this.button(FX_W / 2 - 110, 360, 190, 56, '계속하기', () => this.togglePause(), { size: 20 });
-        const quit = this.button(FX_W / 2 + 110, 360, 190, 56, '포기하기', () => this.finish(true), { size: 20, color: 0x4a1622, border: 0xff7a8a });
-        c.add([resume.c, quit.c]);
+        const resume = this.panelButton(FX_W / 2 - 120, 360, '계속하기', () => this.togglePause(), COL.ally);
+        const quit = this.panelButton(FX_W / 2 + 120, 360, '포기하기', () => this.finish(true), COL.hpLow);
+        c.add([resume, quit]);
+        this.tweens.add({ targets: c, alpha: 1, duration: BT.motion.fast, ease: BT.ease.out });
       } else {
-        this.tweens.resumeAll();
         this.time.paused = false;
-        this.pauseLayer?.destroy(true);
+        this.m.thaw(this.pauseFrozen);
+        this.pauseFrozen = null;
+        const c = this.pauseLayer;
         this.pauseLayer = null;
+        this.m.tween(c, { alpha: 0 }, 'fast').then(() => c?.destroy(true));
       }
+    }
+    panelButton(x, y, label, onClick, color) {
+      const c = this.add.container(x, y);
+      const w = 200;
+      const h = 60;
+      c.add(this.add.graphics().fillStyle(0x1d1530, 0.96).fillRoundedRect(-w / 2, -h / 2, w, h, BT.radius.panel).lineStyle(2, color, 1).strokeRoundedRect(-w / 2, -h / 2, w, h, BT.radius.panel));
+      c.add(this.text(0, 0, label, 22).setOrigin(0.5));
+      const z = this.add.zone(0, 0, w, Math.max(h, BT.minTouch)).setInteractive({ useHandCursor: true });
+      z.setData('ui', true);
+      z.on('pointerdown', (p, lx, ly, ev) => {
+        ev?.stopPropagation?.();
+        onClick();
+      });
+      c.add(z);
+      return c;
     }
 
     // ── 진행 ──
     afterBatch() {
-      this.syncDisplay();
+      this.syncAll({ instant: this.instant });
       if (this.battle.state.result) return this.showEnd();
-      if (this.battle.current()) {
-        this.mode = this.auto ? 'busy' : 'input';
-        this.refreshAll();
-        if (this.auto) this.time.delayedCall(260, () => this.stepAuto());
-      } else this.refreshAll();
+      const cur = this.battle.current();
+      this.setActive(cur?.uid ?? null);
+      if (!cur) return;
+      if (this.auto) {
+        this.mode = 'busy';
+        this.hand.hide();
+        this.time.delayedCall(BT.motion.slow, () => this.stepAuto());
+        return;
+      }
+      this.mode = 'input';
+      const opt = this.battle.options();
+      this.hand.showFor(cur, this.look(cur.uid), opt);
     }
     stepAuto() {
       if (!this.auto || this.ended || this.mode !== 'busy' || !this.battle.current() || this.playing) return;
       this.play(this.battle.auto());
     }
-    syncDisplay() {
-      for (const u of [...this.battle.state.allies, ...this.battle.state.enemies]) this.dispHp.set(u.uid, u.hp);
+    setActive(uid) {
+      for (const c of this.cards.values()) if (c.alive) c.setState({ active: c.uid === uid });
     }
 
     async play(events) {
       this.playing = true;
       this.mode = 'busy';
-      this.refreshAll();
-      for (const ev of events) {
-        if (this.ended) break;
-        await this.playEvent(ev);
+      this.hand.hide();
+      this.showTargets(null);
+      const beats = groupBeats(events, (uid) => this.sideOf(uid));
+      for (const beat of beats) {
+        if (this.ended || this.instant) break;
+        await this.playBeat(beat);
       }
+      // 즉시 결과를 눌렀으면 끝까지 돌리고 최종 상태로
+      if (this.instant && !this.battle.state.result) this.battle.runToEnd();
       this.playing = false;
       if (!this.ended) this.afterBatch();
     }
 
     instantResult() {
-      if (this.ended) return;
+      if (this.ended || this.instant) return;
       this.instant = true;
+      this.m.instant = true;
       this.cutin?.destroy();
-      this.pick = null;
+      this.cutin = null;
+      this.cancelAim();
+      this.hand.hide();
+      if (this.info.open) this.info.hide();
       if (!this.playing) {
         this.battle.runToEnd();
         this.afterBatch();
-      } else {
-        // 재생 중이면 남은 연출을 건너뛰고 끝까지
-        this.time.delayedCall(0, () => {
-          this.battle.runToEnd();
-          this.afterBatch();
-        });
       }
     }
 
-    // ── 이벤트 하나 연출 ──
-    async playEvent(ev) {
-      const fast = this.instant;
+    // ── 장면 하나 ──
+    async playBeat(beat) {
+      if (beat.kind === 'action') return this.playAction(beat);
+      if (beat.kind === 'turn') {
+        const uid = beat.head.uid;
+        if (this.cards.get(uid)?.alive) {
+          this.queue.advance(uid);
+          this.setActive(uid);
+        }
+        return this.applyEvents(beat.events);
+      }
+      if (beat.kind === 'wave') return this.playWave(beat);
+      return this.applyEvents(beat.events);
+    }
+
+    /** 행동 (기본 공격 · 스킬 · 궁극기 · 반응 · 토큰) — 7장 시간표 */
+    async playAction(beat) {
+      const card = this.cards.get(beat.actor);
+      const u = this.unitOf(beat.actor);
+      if (!card || !u) return this.applyEvents(beat.events);
+      const lk = this.look(beat.actor);
+      const isUlt = beat.action === 'ultimate';
+      if (!beat.reaction && !beat.token && !isUlt) {
+        this.queue.advance(beat.actor);
+        this.setActive(beat.actor);
+      } else card.glint();
+
+      if (isUlt && u.side === 'ally') {
+        // 궁극기: 컷인 → 흰 섬광 + 히트스톱 100 + 흔들림 + 참격 띠
+        this.cutin = playCutIn(this, { id: u.refId, name: u.name, nameEn: u.nameEn, title: u.title, themeColor: u.themeColor, rarity: u.rarity }, { short: true, label: beat.name, reduced: this.reduced, quality: this.quality });
+        await this.cutin.done;
+        this.cutin = null;
+        if (this.instant) return;
+        this.fx.screenFlash();
+        this.m.shake(BT.ult.shake, BT.ult.shakeDur);
+        this.fx.slash(lk.theme);
+        await this.m.hitStop(BT.ult.stop);
+      } else if (beat.action === 'skill' && u.side === 'ally' && !beat.reaction) {
+        // 스킬: 카드가 가운데로 → 빛 입자로 흩어지며 공격자에게
+        const img = await this.hand.flyToCenter(u, lk, beat.name, this.battle.options()?.skill?.cost ?? 1);
+        const to = card.center();
+        this.m.tween(img, { alpha: 0, scale: img.scale * 0.8 }, BT.skill.absorb, 'in').then(() => img.destroy());
+        await this.fx.streak({ x: img.x, y: img.y }, to, lk.theme);
+      } else if (u.side === 'enemy') await this.intentArrows.flash(beat.actor);
+
+      const consumed = new Set(beat.hits);
+      if (beat.targets.length === 1 && !isUlt) await this.strikeSingle(card, beat);
+      else if (beat.targets.length) await this.strikeMany(card, beat, isUlt);
+      else if (beat.supportTargets.length) {
+        // 아군 대상: 돌진 없이 빛 줄기
+        const from = card.center();
+        await this.m.stagger(beat.supportTargets, (uid, i) => this.fx.beam(from, this.cards.get(uid)?.center() ?? from, u.side === 'ally' ? lk.theme : COL.enemy), BT.hit.aoeStagger);
+      }
+      await this.applyEvents(beat.events.filter((e) => !consumed.has(e)));
+      if (isUlt && beat.total > 0) this.fx.number(null, FX_W / 2, FX_H / 2 - 40, beat.total, 'total');
+    }
+
+    /** 단일 대상: 물러남 → 돌진 → 타격(히트스톱) → 복귀 */
+    async strikeSingle(card, beat) {
+      const tgt = this.cards.get(beat.targets[0]);
+      if (!tgt) return;
+      const a = card.center();
+      const b = tgt.center();
+      const len = Math.max(1, Math.hypot(b.x - a.x, b.y - a.y));
+      const dir = { x: (b.x - a.x) / len, y: (b.y - a.y) / len };
+      await card.windup(dir.x, dir.y);
+      await card.dash(b.x, b.y);
+      const hits = beat.hitsByTarget.get(tgt.uid) || [];
+      for (let i = 0; i < hits.length; i++) {
+        const last = i === hits.length - 1;
+        await this.hitOne(tgt, hits[i], dir, last);
+        if (!last) await this.m.wait(BT.hit.multiGap);
+      }
+      card.goHome();
+      await this.m.wait(BT.hit.ret * 0.6);
+    }
+
+    /** 광역 / 궁극기: 진영 가운데 앞으로 → 충격파 → 왼쪽부터 40ms 시차 */
+    async strikeMany(card, beat, isUlt) {
+      const targets = beat.targets.map((uid) => this.cards.get(uid)).filter(Boolean).sort((p, q) => p.root.x - q.root.x);
+      if (!targets.length) return;
+      const a = card.center();
+      const side = targets[0].side;
+      const area = BT.area[side];
+      const front = { x: area.x + area.w / 2, y: card.root.y + (card.side === 'ally' ? -BT.aoe.forward : BT.aoe.forward) };
+      if (!isUlt) await card.stepForward(front.x, front.y);
+      const rowY = targets[0].root.y;
+      this.fx.shockwave(area.x + area.w / 2, rowY, area.w / 2, card.side === 'ally' ? this.look(card.uid).theme : COL.enemy);
+      let stopped = isUlt;
+      await this.m.stagger(
+        targets,
+        async (tgt) => {
+          const b = tgt.center();
+          const len = Math.max(1, Math.hypot(b.x - a.x, b.y - a.y));
+          const dir = { x: (b.x - a.x) / len, y: (b.y - a.y) / len };
+          const hits = beat.hitsByTarget.get(tgt.uid) || [];
+          for (let i = 0; i < hits.length; i++) {
+            const last = i === hits.length - 1;
+            // 히트스톱은 한 번만 (궁극기는 컷인 끝에 이미)
+            const stop = last && !stopped;
+            if (stop) stopped = true;
+            await this.hitOne(tgt, hits[i], dir, stop);
+            if (!last) await this.m.wait(BT.hit.multiGap);
+          }
+        },
+        BT.hit.aoeStagger,
+      );
+      if (!isUlt) await card.goHome();
+    }
+
+    /** 타격 하나: HP · 숫자 · 번쩍 · 불꽃 · 밀림 (+ 마지막이면 히트스톱 · 흔들림) */
+    async hitOne(tgt, e, dir, stop) {
+      const u = this.unitOf(tgt.uid);
+      const H = BT.hit;
+      const c = tgt.center();
+      const absorbed = e.absorbed || 0;
+      const dmg = Math.max(0, (e.amount || 0) - absorbed);
+      tgt.setHp(e.hp / Math.max(1, u?.maxHp || 1));
+      const top = c.y - (tgt.h * tgt.root.scale) / 2 + 20;
+      if (absorbed) {
+        this.fx.number(tgt.uid, c.x, top, absorbed, 'absorb');
+        const left = (this.dispShield.get(tgt.uid) || 0) - absorbed;
+        this.dispShield.set(tgt.uid, Math.max(0, left));
+        if (left <= 0) tgt.setShield(false);
+      }
+      if (dmg) this.fx.number(tgt.uid, c.x, top, dmg, e.crit ? 'crit' : 'dmg');
+      this.fx.sparks(c.x - dir.x * tgt.h * 0.3, c.y - dir.y * tgt.h * 0.3, e.crit);
+      tgt.playHit(dir.x, dir.y);
+      if (stop) {
+        this.m.shake(e.crit ? H.critShake : H.shake);
+        await this.m.hitStop(e.crit ? H.critStop : H.stop);
+      } else await this.m.wait(H.flash);
+    }
+
+    /** 웨이브 전환: 띠 → 새 적이 위에서 떨어짐 (60ms 시차) */
+    async playWave(beat) {
+      const ev = beat.head;
+      if (ev.wave > 1) {
+        this.intentArrows.clear();
+        await this.fx.band(`WAVE ${ev.wave}/${ev.total}`);
+        const made = this.makeCards('enemy', this.instant);
+        if (!this.instant) await this.m.stagger(made, (c, i) => c.dropIn(0), BT.wave.stagger);
+        this.updateTopBar();
+      }
+      await this.applyEvents(beat.events);
+    }
+
+    // ── 나머지 이벤트 (순서대로, 짧게) ──
+    async applyEvents(list) {
+      for (const ev of list) {
+        if (this.instant || this.ended) return;
+        await this.applyEvent(ev);
+      }
+    }
+    async applyEvent(ev) {
+      const card = this.cards.get(ev.tgt || ev.uid);
+      const u = this.unitOf(ev.tgt || ev.uid);
       switch (ev.t) {
-        case 'action': {
-          const u = this.battle.unit(ev.uid);
-          if (!u || fast) return;
-          if (ev.action === 'ultimate' && u.side === 'ally') {
-            this.cutin = playCutIn(this, { id: u.refId, name: u.name, nameEn: u.nameEn, title: u.title, themeColor: u.themeColor, rarity: u.rarity }, { short: true, label: ev.name, reduced: this.reduced, quality: this.quality });
-            await this.cutin.done;
-            this.cutin = null;
-          }
-          this.banner(`${u.name} · ${ev.name}`, u.side === 'ally' ? '#bfe0ff' : '#ffc0c0');
-          if (u.side === 'enemy') {
-            const v = this.enemyViews.get(u.uid);
-            if (v && !this.reduced) this.tweens.add({ targets: v.c, y: ENEMY_FEET + 16, duration: 90, yoyo: true });
-          } else {
-            const v = this.allyViews.get(u.uid);
-            if (v && !this.reduced) this.tweens.add({ targets: v.c, y: PANEL_Y - 26, duration: 90, yoyo: true });
-          }
-          return this.wait(180);
-        }
         case 'damage': {
-          this.dispHp.set(ev.tgt, ev.hp);
-          if (fast) return;
-          this.hitFx(ev.tgt, ev.amount, ev.crit, ev.dot);
-          this.refreshBars(ev.tgt);
-          return this.wait(ev.dot ? 120 : 90);
-        }
-        case 'heal':
-          this.dispHp.set(ev.tgt, ev.hp);
-          if (fast || !ev.amount) return;
-          this.floatText(ev.tgt, `+${ev.amount.toLocaleString('ko-KR')}`, '#7dffb0', 26);
-          this.refreshBars(ev.tgt);
-          return this.wait(60);
-        case 'shield':
-          if (fast) return;
-          this.floatText(ev.tgt, `보호막 ${ev.amount}`, '#9fd8ff', 20);
-          return this.wait(50);
-        case 'status':
-          if (fast) return;
-          this.floatText(ev.tgt, `${STAT_SHORT[ev.stat] || ev.stat}${ev.value > 0 === (ev.stat !== 'dmgTaken') ? '↑' : '↓'}`, ev.kind === 'buff' ? '#ffe08a' : '#d7a6ff', 18, 18);
-          return this.wait(40);
-        case 'interrupt':
-          if (fast || !ev.ok) return;
-          this.floatText(ev.tgt, '차단!', '#ffffff', 30);
-          return this.wait(200);
-        case 'stagger':
-          if (fast) return;
-          this.floatText(ev.uid, '흐트러짐!', '#cccccc', 28);
-          return this.wait(260);
-        case 'av':
-          if (fast) return;
-          this.floatText(ev.tgt, ev.pct < 0 ? '행동 ▲' : '행동 ▼', ev.pct < 0 ? '#9fffcf' : '#ffb08a', 18, 30);
-          return this.wait(60);
-        case 'death':
-          if (fast) return;
-          this.deathFx(ev.uid);
-          return this.wait(240);
-        case 'wave':
-          if (ev.wave > 1) {
-            this.syncDisplay();
-            if (!fast) {
-              this.bigBanner('웨이브 클리어!', '#ffe08a');
-              await this.wait(520);
-            }
-            this.makeEnemies();
-            this.refreshAll();
-            if (!fast) {
-              this.bigBanner(`WAVE ${ev.wave}/${ev.total}`, '#ffffff');
-              await this.wait(420);
-            }
+          if (!card || !u) return;
+          const c = card.center();
+          const top = c.y - (card.h * card.root.scale) / 2 + 20;
+          card.setHp(ev.hp / Math.max(1, u.maxHp));
+          const absorbed = ev.absorbed || 0;
+          if (absorbed) {
+            this.fx.number(card.uid, c.x, top, absorbed, 'absorb');
+            const left = (this.dispShield.get(card.uid) || 0) - absorbed;
+            this.dispShield.set(card.uid, Math.max(0, left));
+            if (left <= 0) card.setShield(false);
           }
-          return;
-        case 'phase':
-          if (fast) return;
-          this.bigBanner(ev.name, '#ff9a9a');
-          return this.wait(520);
-        case 'enrage':
-          if (fast) return;
-          this.bigBanner('광폭화!', '#ff4d5e');
-          this.cameras.main.shake(260 / this.speed, 0.006);
-          return this.wait(420);
-        case 'stack':
-          if (fast || ev.delta < 0) return;
-          this.floatText(ev.tgt, `◆${ev.name} ${ev.value}/${ev.cap}`, '#ffd27a', 18, 36);
-          return this.wait(30);
-        case 'mark':
-          if (fast) return;
-          this.floatText(ev.tgt, `표식 ${ev.n}`, '#ff9ad5', 18, 24);
-          return this.wait(40);
-        case 'detonate':
-          if (fast) return;
-          this.floatText(ev.tgt, `표식 폭발 ×${ev.n}`, '#ff6fb5', 24);
-          return this.wait(120);
-        case 'resist':
-          if (fast) return;
-          this.floatText(ev.tgt, '저항', '#cfd8ff', 20, 20);
-          return this.wait(60);
-        case 'transform':
-          if (fast) return;
-          this.floatText(ev.uid, '변신!', '#ffb3ff', 30);
-          return this.wait(260);
-        case 'transform_end':
-          if (fast) return;
-          this.floatText(ev.uid, '변신 해제', '#cccccc', 20);
-          return this.wait(120);
-        case 'token_add':
-          if (fast) return;
-          this.floatText(ev.owner, `${TOKEN_ICON[ev.icon] || '◉'} ${ev.name}`, ev.big ? '#ff8a8a' : '#ffe08a', 20, 40);
-          return this.wait(120);
-        case 'token_act': {
-          if (fast) return;
-          const u = this.battle.unit(ev.owner);
-          if (u) this.banner(`${u.name} · ${ev.name}`, u.side === 'ally' ? '#bfe0ff' : '#ffc0c0');
-          return this.wait(180);
+          const dmg = Math.max(0, ev.amount - absorbed);
+          if (ev.dot) {
+            card.shakeIcons();
+            this.fx.number(card.uid, c.x, top, dmg, 'dot');
+            return this.m.wait('fast');
+          }
+          this.fx.number(card.uid, c.x, top, dmg, ev.crit ? 'crit' : 'dmg');
+          card.playHit(0, card.side === 'ally' ? 1 : -1);
+          return this.m.wait('fast');
         }
-        case 'round':
-        case 'intent':
+        case 'heal': {
+          if (!card || !u || !ev.amount) return;
+          const c = card.center();
+          card.setHp(ev.hp / Math.max(1, u.maxHp), { heal: true });
+          this.fx.healRise(c.x, c.y + (card.h * card.root.scale) / 2 - 10, card.w * card.root.scale);
+          this.fx.number(card.uid, c.x, c.y - (card.h * card.root.scale) / 2 + 20, ev.amount, 'heal');
+          return this.m.wait('fast');
+        }
+        case 'shield':
+          if (!card) return;
+          this.dispShield.set(card.uid, ev.amount);
+          card.setShield(true);
+          return this.m.wait('instant');
+        case 'status':
+          if (!card || !u) return;
+          if (ev.kind === 'buff') card.flashBuff();
+          else card.smoke();
+          card.setEffects(this.effectsOf(u));
+          return this.m.wait('instant');
+        case 'dot':
+          if (!card || !u) return;
+          card.smoke();
+          card.setEffects(this.effectsOf(u));
+          return this.m.wait('instant');
+        case 'mark':
+        case 'cleanse':
+          if (card && u) card.setEffects(this.effectsOf(u));
+          return;
+        case 'detonate': {
+          if (!card) return;
+          const c = card.center();
+          this.fx.shards(c.x, c.y, 0xff6fb5);
+          if (u) card.setEffects(this.effectsOf(u));
+          return this.m.wait('fast');
+        }
+        case 'taunt':
+          card?.setTaunt(true);
+          if (card && u) card.setEffects(this.effectsOf(u));
+          return;
+        case 'stack':
+          card?.setResource(ev.value, ev.cap);
+          return;
+        case 'energy':
+          if (card && u && u.side === 'ally' && ev.n < 0) card.setEnergy(0, !!u.kit?.ultimate);
+          return;
         case 'sp':
-        case 'token_end':
+          this.sp.set(ev.sp);
+          return;
+        case 'transform':
+          return card?.setTransformed(true);
+        case 'transform_end':
+          return card?.setTransformed(false);
+        case 'interrupt':
+          if (!ev.ok || !card) return;
+          return card.breakBadge();
+        case 'stagger': {
+          if (!card) return;
+          card.setState({ stun: true });
+          await this.m.wait('slow');
+          card.setState({ stun: false });
+          return;
+        }
+        case 'resist':
+          return this.popIcon(card, 'resist', 0xcfd8ff);
+        case 'passive':
+          card?.glint();
+          return;
+        case 'token_add':
+          this.cards.get(ev.owner)?.glint();
+          return;
+        case 'death': {
+          if (!card?.alive) return;
+          if (this.press?.card === card) this.pressCancel();
+          await card.playDeath();
+          await this.reflow(card.side);
+          return;
+        }
+        case 'intent': {
+          const it = this.unitOf(ev.uid)?.actions?.[ev.action];
+          const c = this.cards.get(ev.uid);
+          if (c && it) c.setIntent({ icon: actionIcon(it.icon), big: ev.big, eta: c.lastEta ?? null });
+          return;
+        }
+        case 'phase':
+          return this.fx.band(ev.name || '', '#ff9a9a');
+        case 'enrage':
+          this.m.shake(BT.hit.critShake, BT.ult.shakeDur);
+          return this.fx.band('광폭화', '#ff6070');
+        case 'round':
+          this.updateTopBar();
           return;
         default:
           return;
       }
     }
 
-    refreshBars(uid) {
-      const u = this.battle.unit(uid);
-      const hp = this.dispHp.get(uid) ?? u?.hp ?? 0;
-      const av = this.allyViews.get(uid);
-      if (av && u) av.hpFill.width = Math.max(0, (PANEL_W - 20) * (hp / u.maxHp));
-      const ev = this.enemyViews.get(uid);
-      if (ev && u) ev.hpFill.width = Math.max(0, ev.barW * (hp / u.maxHp));
+    /** 저항 등: 카드 위에 아이콘이 팝 */
+    popIcon(card, name, tint) {
+      if (!card || this.m.instant) return;
+      const img = this.popIcons.find((x) => x.alpha === 0) || this.popIcons[0];
+      const c = card.center();
+      img.setTexture(iconKey(this, name)).setTint(tint).setPosition(c.x, c.y - 20).setAlpha(1).setScale(0);
+      const s = 40 / 64;
+      return this.m
+        .tween(img, { scale: s * 1.2 }, 'fast', 'pop')
+        .then(() => this.m.tween(img, { scale: s }, 'instant'))
+        .then(() => this.m.tween(img, { alpha: 0, y: img.y - 20 }, 'slow', 'out'));
     }
 
-    /** 유닛 위 좌표 (숫자 띄우는 곳) */
-    posOf(uid) {
-      const av = this.allyViews.get(uid);
-      if (av) return { x: av.x, y: PANEL_Y - PANEL_H / 2 - 10 };
-      const ev = this.enemyViews.get(uid);
-      if (ev) return { x: ev.x, y: ENEMY_FEET - ev.H * 0.6 };
-      return { x: FX_W / 2, y: FX_H / 2 };
+    /** 카드 효과 아이콘 목록 (변신 · 도발 · 강화/약화 · 지속 피해 · 표식) */
+    effectsOf(u) {
+      const list = [];
+      if (u.transform) list.push({ key: 'transform', icon: 'transform', kind: 'buff', dots: u.transform.turns });
+      if (u.taunt) list.push({ key: 'taunt', icon: 'taunt', kind: 'buff', dots: u.taunt.turns });
+      const buffs = (u.statuses || []).filter((s) => s.kind === 'buff');
+      const debuffs = (u.statuses || []).filter((s) => s.kind !== 'buff');
+      for (const s of [...buffs, ...debuffs]) list.push({ key: s.key || `${s.kind}:${s.stat}`, icon: statIcon(s.stat), kind: s.kind === 'buff' ? 'buff' : 'debuff', dots: s.turns });
+      if (u.dots?.length) list.push({ key: 'dot', icon: 'dot', kind: 'debuff', dots: Math.max(...u.dots.map((d) => d.turns)) });
+      const marks = (u.marks || []).reduce((n, m) => n + m.n, 0);
+      if (marks) list.push({ key: 'mark', icon: 'mark', kind: 'debuff', dots: marks });
+      return list;
     }
 
-    floatText(uid, str, color, size = 28, dy = 0) {
-      const p = this.posOf(uid);
-      const t = this.text(p.x + (Math.random() * 30 - 15), p.y - dy, str, size, color, { stroke: '#000', strokeThickness: 6 }).setOrigin(0.5).setDepth(90);
-      this.tweens.add({ targets: t, y: t.y - 60, alpha: 0, duration: 760, ease: 'Cubic.out', onComplete: () => t.destroy() });
-    }
-
-    hitFx(uid, amount, crit, dot) {
-      const str = `${crit ? '치명! ' : ''}${amount.toLocaleString('ko-KR')}`;
-      const ally = this.allyViews.get(uid);
-      this.floatText(uid, str, crit ? '#ffc23d' : dot ? '#d7a6ff' : ally ? '#ff8a8a' : '#ffffff', crit ? 40 : 28);
-      if (this.reduced) return;
-      if (ally) {
-        ally.flash.setFillStyle(0xff2a3d, 0.45);
-        this.tweens.add({ targets: ally.flash, fillAlpha: 0, duration: 260 });
-        this.tweens.add({ targets: ally.c, x: ally.x + 8, duration: 40, yoyo: true, repeat: 2, onComplete: () => ally.c.setX(ally.x) });
-        return;
-      }
-      const ev = this.enemyViews.get(uid);
-      if (!ev) return;
-      this.tweens.add({ targets: ev.c, x: ev.x + 10, duration: 40, yoyo: true, repeat: 2, onComplete: () => ev.c.setX(ev.x) });
-      if (ev.sprite.setTintFill) {
-        ev.sprite.setTintFill(0xffffff);
-        this.time.delayedCall(70, () => ev.sprite.clearTint?.());
-      }
-      if (this.quality > 0.3) {
-        const p = this.posOf(uid);
-        const burst = this.add.particles(p.x, p.y + 40, 'fx-spark', { speed: { min: 80, max: crit ? 320 : 200 }, lifespan: 380, scale: { start: crit ? 0.9 : 0.6, end: 0 }, tint: crit ? [0xffc23d, 0xffffff] : [0xffffff, 0xffb0b0], blendMode: 'ADD', emitting: false }).setDepth(85);
-        burst.explode(crit ? 18 : 8);
-        this.time.delayedCall(500, () => burst.destroy());
-      }
-    }
-
-    deathFx(uid) {
-      const ev = this.enemyViews.get(uid);
-      if (ev) {
-        if (!this.reduced && this.quality > 0.3) {
-          const p = this.posOf(uid);
-          const burst = this.add.particles(p.x, p.y, 'fx-dot', { speed: { min: 40, max: 160 }, lifespan: 700, scale: { start: 0.6, end: 0 }, alpha: { start: 0.8, end: 0 }, tint: [0x8a7a99, 0xffffff], emitting: false }).setDepth(85);
-          burst.explode(24);
-          this.time.delayedCall(800, () => burst.destroy());
+    // ── 엔진 상태에 맞추기 (한 묶음이 끝날 때) ──
+    syncAll({ instant = false } = {}) {
+      const st = this.battle.state;
+      // 웨이브가 바뀌었는데 카드가 없음 (즉시 결과) → 적 카드 다시
+      if (st.enemies.some((u) => u.alive && !this.cards.has(u.uid))) this.makeCards('enemy', true);
+      let reflow = new Set();
+      for (const u of [...st.allies, ...st.enemies]) {
+        const card = this.cards.get(u.uid);
+        if (!card) continue;
+        if (!u.alive) {
+          if (card.alive) {
+            card.playDeath();
+            reflow.add(card.side);
+          }
+          continue;
         }
-        this.tweens.add({ targets: ev.c, alpha: 0, y: ENEMY_FEET + 24, duration: 360 });
-        return;
+        card.setHp(u.hp / Math.max(1, u.maxHp), { instant });
+        if (u.side === 'ally') card.setEnergy(u.energy / Math.max(1, u.ultCost), !!u.kit?.ultimate);
+        card.setEffects(this.effectsOf(u));
+        card.setShield(!!u.shield, { instant });
+        this.dispShield.set(u.uid, u.shield?.value || 0);
+        card.setTaunt(!!u.taunt);
+        card.setTransformed(!!u.transform, { instant });
+        if (u.res) card.setResource(u.res.value, u.res.cap);
       }
-      const av = this.allyViews.get(uid);
-      if (av) this.tweens.add({ targets: av.c, alpha: 0.38, duration: 300 });
+      for (const side of reflow) this.reflow(side);
+      this.sp.set(st.sp.ally, { animate: !instant });
+      this.updateTopBar();
+      this.updateIntents();
+      this.updateQueue(instant);
     }
-
-    banner(str, color) {
-      this.bannerText?.destroy();
-      const t = (this.bannerText = this.text(FX_W / 2 + 40, 505, str, 22, color, { backgroundColor: 'rgba(0,0,0,0.6)', padding: { x: 16, y: 6 } }).setOrigin(0.5).setDepth(85));
-      this.tweens.add({ targets: t, alpha: { from: 0, to: 1 }, duration: 90 });
-      this.time.delayedCall(700, () => t.active && this.tweens.add({ targets: t, alpha: 0, duration: 200, onComplete: () => t.destroy() }));
+    updateQueue(instant = false) {
+      const st = this.battle.state;
+      const cur = this.battle.current() || (st.actorUid && this.unitOf(st.actorUid));
+      const items = this.battle.queueItems(BT.queue.count - (cur ? 1 : 0));
+      this.queue.set([...(cur?.alive ? [{ kind: 'unit', id: cur.uid }] : []), ...items], { instant });
     }
-
-    bigBanner(str, color) {
-      const t = this.text(FX_W / 2, 300, str, 54, color, { stroke: '#000', strokeThickness: 8 }).setOrigin(0.5).setDepth(95).setAlpha(0).setScale(1.3);
-      this.tweens.add({ targets: t, alpha: 1, scale: 1, duration: 200, ease: 'Back.out' });
-      this.time.delayedCall(620, () => this.tweens.add({ targets: t, alpha: 0, duration: 200, onComplete: () => t.destroy() }));
+    updateIntents() {
+      const intents = this.battle.intents();
+      const byUid = new Map(intents.map((it) => [it.uid, it]));
+      const etas = intents.map((it) => it.eta).filter((x) => x != null);
+      const nextEta = etas.length ? Math.min(...etas) : null;
+      const list = [];
+      for (const c of this.cards.values()) {
+        if (c.side !== 'enemy' || !c.alive) continue;
+        const it = byUid.get(c.uid);
+        c.lastEta = it?.eta ?? null;
+        c.setIntent(it ? { icon: actionIcon(it.icon), big: it.big, eta: it.eta, interrupted: it.interrupted } : null);
+        if (!it || it.interrupted) continue;
+        const tc = it.targetUid && this.cards.get(it.targetUid);
+        const b = c.bounds();
+        const from = { x: b.x + b.w / 2, y: b.y + b.h + 4 };
+        const to = tc?.alive ? (() => { const tb = tc.bounds(); return { x: tb.x + tb.w / 2, y: tb.y - 6 }; })() : null;
+        list.push({ uid: c.uid, from, to: it.aoe ? null : to, aoe: !!it.aoe, live: it.eta != null && it.eta === nextEta, big: it.big });
+      }
+      this.intentArrows.set(list);
     }
 
     // ── 끝 ──
@@ -815,31 +972,35 @@ export function createBattleScene(Phaser) {
       if (this.mode === 'ended') return;
       this.mode = 'ended';
       this.ended = true;
-      this.syncDisplay();
-      this.refreshAll();
-      this.hint.setText('');
+      this.cancelAim();
+      this.hand.hide();
+      this.setActive(null);
+      if (this.info.open) this.info.hide();
       const st = this.battle.state;
       const win = st.result === 'win';
-      const c = this.add.container(0, 0).setDepth(950);
-      c.add(this.add.rectangle(0, 0, FX_W, FX_H, 0x000000, 0.55).setOrigin(0));
-      const title = this.text(FX_W / 2, 300, win ? '승리!' : '패배', 96, win ? '#ffd36b' : '#ff8a9a', { stroke: '#000', strokeThickness: 10 }).setOrigin(0.5);
-      const sub = this.text(FX_W / 2, 390, win ? `${st.round}라운드 만에 클리어` : st.reason === 'timeout' ? `라운드 제한(${st.roundLimit || st.maxRounds})을 넘겼어요` : '아군이 모두 쓰러졌어요', 24).setOrigin(0.5);
-      const tap = this.text(FX_W / 2, 470, '탭하여 계속', 20, '#d8c9ff').setOrigin(0.5).setAlpha(0);
+      const c = this.add.container(0, 0).setDepth(BT.depth.end).setAlpha(0);
+      c.add(this.add.rectangle(0, 0, FX_W, FX_H, 0x000000, 0.68).setOrigin(0));
+      const title = this.text(FX_W / 2, 250, win ? '승리!' : '패배', 96, win ? '#ffd36b' : '#ff8a9a').setOrigin(0.5).setStroke(COL.textStroke, 10);
+      const sub = this.text(FX_W / 2, 338, win ? `${st.round}라운드 만에 클리어` : st.reason === 'timeout' ? `라운드 제한(${st.roundLimit || st.maxRounds})을 넘겼어요` : '아군이 모두 쓰러졌어요', 24, COL.textMid, false).setOrigin(0.5);
+      const tap = this.text(FX_W / 2, 386, '탭하여 계속', BT.minText, COL.textMid, false).setOrigin(0.5).setAlpha(0);
       c.add([title, sub, tap]);
-      if (win && !this.reduced && this.quality > 0.3) {
-        const conf = this.add.particles(FX_W / 2, 280, 'fx-spark', { speed: { min: 120, max: 520 }, angle: { min: 200, max: 340 }, gravityY: 400, lifespan: 1600, scale: { start: 1, end: 0.2 }, tint: [0xffc23d, 0xffffff, 0x7dc8ff], emitting: false });
+      if (win && !this.reduced && !this.instant && this.quality > 0.3) {
+        const conf = this.add.particles(FX_W / 2, 230, 'fx-spark', { speed: { min: 120, max: 520 }, angle: { min: 200, max: 340 }, gravityY: 400, lifespan: 1600, scale: { start: 1, end: 0.2 }, tint: [0xffc23d, 0xffffff, 0x7dc8ff], emitting: false });
         c.add(conf);
-        conf.explode(Math.round(70 * this.quality));
+        conf.explode(Math.min(BT.particles.max / 2, Math.round(70 * this.quality)));
       }
-      if (!this.instant && !this.reduced) {
-        title.setScale(1.6).setAlpha(0);
-        this.tweens.add({ targets: title, scale: 1, alpha: 1, duration: 320, ease: 'Back.out' });
+      const quick = this.instant;
+      this.m.instant = false; // 끝 화면은 짧게라도 보여 줌
+      this.m.tween(c, { alpha: 1 }, 'fast');
+      if (!quick && !this.reduced) {
+        title.setScale(1.6);
+        this.m.tween(title, { scale: 1 }, 'dramatic', 'pop');
       }
-      this.time.delayedCall(this.instant ? 150 : 700, () => {
+      this.time.delayedCall(quick ? 150 : 700, () => {
         this.endReady = true;
-        tap.setAlpha(1);
+        this.m.tween(tap, { alpha: 1 }, 'base');
       });
-      this.time.delayedCall(this.instant ? 900 : 2600, () => this.finish(false));
+      this.time.delayedCall(quick ? 900 : 2600, () => this.finish(false));
     }
 
     finish(quit) {
@@ -848,6 +1009,19 @@ export function createBattleScene(Phaser) {
       this.cutin?.destroy();
       this.time.paused = false;
       this.opts.finish?.({ quit, summary: this.battle.summary(), record: this.battle.record() });
+    }
+
+    cleanup() {
+      for (const c of this.cards.values()) c.destroy();
+      this.cards.clear();
+      this.arrow?.hide();
+      this.fpsTimer?.remove();
+    }
+
+    // ── 개발 모드: FPS ──
+    makeFps() {
+      const t = this.text(FX_W - 8, FX_H - 8, '', BT.minText, '#7dffb0', false).setOrigin(1, 1).setDepth(BT.depth.end + 1);
+      this.fpsTimer = this.time.addEvent({ delay: 500, loop: true, callback: () => t.setText(`${Math.round(this.game.loop.actualFps)} fps`) });
     }
   };
 }

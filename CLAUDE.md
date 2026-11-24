@@ -27,10 +27,12 @@
 - 브라우저: 게임 폴더를 로컬 서버로 열고(`python -m http.server`) `tests/index.html` → 자동 실행. `?filter=gacha`로 일부만.
   개발 도구에서는 `http://127.0.0.1:5050/preview/tests/index.html` (작업 공간 데이터로 실행, 스냅샷 갱신 버튼이 파일로 저장).
 - Node(설치했다면): `node tests/run.js [이름 일부] [--update]` (`npm test`). `--update` = 회귀 스냅샷 갱신.
-- 파일: `config` / `stats`(능력치 모델) / `kitgen`(아키타입 생성기 · 번들 분리) / `memory`(추억) / `gear`(장비 · 드롭 · 반복/소탕) / `tuner`(적 아키타입 · 기대 성장 · 튜너) / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀) / `deletion`(캐릭터 삭제 정리) / `aliases`(id 별칭으로 세이브 옮기기 + 지금 id가 규칙대로인지) / `npc`(NPC 등급 ↔ 1–5 전환 시 가챠 풀/플레이어 화면/적 연결).
+- 파일: `battleUi`(전투 화면 순수 부분: 장면 묶기 · 카드 배치 · 숫자 위치 · 순서 칩) / `config` / `stats`(능력치 모델) / `kitgen`(아키타입 생성기 · 번들 분리) / `memory`(추억) / `gear`(장비 · 드롭 · 반복/소탕) / `tuner`(적 아키타입 · 기대 성장 · 튜너) / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀) / `deletion`(캐릭터 삭제 정리) / `aliases`(id 별칭으로 세이브 옮기기 + 지금 id가 규칙대로인지) / `npc`(NPC 등급 ↔ 1–5 전환 시 가챠 풀/플레이어 화면/적 연결).
 - 새 테스트 파일은 `tests/all.js`에 한 줄. 러너 `tests/lib/runner.js`, 실제 데이터 로더 `tests/lib/gameData.js`, 전투 픽스처 `js/battle/testkit.js`, 샘플 `tests/fixtures/`.
 - **회귀 스냅샷** `tests/snapshots/stages.json`: 모든 스테이지 × 기준 팀(`tests/fixtures/teams.js`) × 시드 1~3 자동 전투 (`승패 라운드 피해/…`). 다르면 실패 + 바뀐 줄 목록 → 의도한 변경이면 갱신.
 - 연출 확인: `dev/fx-test.html` (정적 서버) 또는 개발 도구 `/fx-test` — 희귀도 조합 강제, 2배속, 모션 줄이기, `?auto=5&fake=1` 자동 실행.
+  전투 화면: `dev/battle-ui-test.html` 또는 개발 도구 `/battle-ui-test` — 연출별 반복(`js/fx/battleDemo.js`, 엔진 상태는 안 바뀜), 2배속/동작 줄이기, 1280×720 ↔ 844×390, fps,
+  `?auto=all[&speed=2&reduced=1&end=1]` = 전부 차례로 → `#result`에 오류 목록 (자동 확인용), `?stage=<id>`, `?demo=<이름>`.
 - 게임 미리보기 주소 옵션 (localhost만): `?preview=1` (분리된 세이브, 재화 넉넉히), `&ownAll=1`, `?screen=adventure|growth|team|collection|gacha`, `?battle=stage_0004`, `?banner=<id>`, `?story=<id>`, `?now=<ISO 시각>`.
 - 콘솔: `__tg.simulate(100000[, 배너])`, `__tg.sim(스테이지, N)`, `__tg.battleTest()`.
 
@@ -67,6 +69,7 @@ tuner:      { targetWinRate:{normal,elite,boss}, runs, tolerance, difficulty:{mi
 id, name, rarity: 1–5 | "npc" (예전 'R'/'SR'/'SSR' → 3/4/5, 예전 pullable:false → "npc"), title, description, image, addedAt,
 retired (true = 뽑기 제외, 보유 유지),            // 게임 데이터의 pullable은 계산값 (= NPC 아님). 파일에는 쓰지 않음
 nameEn, role (attacker|defender|support|healer, 기본 attacker), cutout, themeColor, quote,   // 컷인/전투 초상용, 선택
+cardCrop { y: 0–0.5 } (전투 카드 그림을 위에서 얼마나 내려 자를지 — 얼굴이 잘릴 때, 선택. 적도 같음),
 statTweak { 능력치: % } (±10% 넘으면 경고), stats { 능력치 11개 } (절대값 — 있으면 역할 템플릿 대신),
 archetype, kitGen { archetype, variants, seed, version } (생성기 기록), resource { name, cap, start },
 kit { basic, skill, ultimate:{…, cost?}, transformed? } (없으면 defaultKit), talents [상시 패시브 ≤4], bt2, bt6 (돌파 2·6),
@@ -188,7 +191,14 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
 ### 연출 (`js/fx/`)
 - `phaserHost.js`: Phaser.Game 하나(1280×720 FIT, `#fx-layer` — CSS 확대되는 #stage 밖), 글꼴 Pretendard(FontFace)를 먼저 불러옴, 끝나면 레이어 숨기고 루프 재움. 레이어가 떠 있으면 `main.js` 키 처리는 Phaser에 양보.
 - `GachaFxScene.js`: 진입 → 희귀도 암시(5★ 30% 보라→금, 4★+ 흔들림/진동) → 폭발(섬광·빛줄기·충격파·Bloom) → 카드(1회 자동 / 10회 탭으로 모두, Shine/Glow, 별 찍기) → 컷인(모든 5★ + 새 4★) → `gachaFxComplete`. SKIP/탭/2배속/모션 줄이기.
-- `CutIn.js`: 재사용 컷인 (가챠 full, 전투 궁극기 short ≤1초). `BattleScene.js`: 전투 화면 (사양 배치), 행동 연출 ≤0.5초, 2x는 timeScale.
+- `CutIn.js`: 재사용 컷인 (가챠 full, 전투 궁극기 short ≤1초).
+- **전투 화면 = 카드형, 기준 문서 `BATTLE_UI.md`** (배치 · 카드 구조 · 모션 토큰 · 시간표 · 금지 목록). 숫자는 전부 `battleTheme.js`, 트윈은 전부 `motion.js`
+  (토큰 instant/fast/base/slow/dramatic, 같은 속성 트윈 정리, 히트스톱 2x ÷1.5, `freeze/thaw` — `tweens.pauseAll()`은 매니저 전체를 멈춰 새 트윈도 멈추므로 쓰지 않음).
+  `BattleScene.js`는 엔진 이벤트 → `battleChoreo.groupBeats`(순수, 행동 · 대상 · 광역 · 다단히트를 이벤트 src로) → 컴포넌트 메서드를 await만:
+  `BattleCard`(구운 캔버스 앞면 + 회색판, HP 잔상 막대 · 기력 · 효과 아이콘 4+n · 보호막 · 도발 · 변신 · 예고 배지, 앞면에 숫자 없음) · `TurnQueue`(칩 짝 맞추기 `diffQueue`로 미끄러짐) ·
+  `ActionHand`+`SpGauge`(손패 끌기/탭 조준, SP 크리스털) · `TargetArrow`/`IntentArrows` · `InfoOverlay`(길게 누르기 400ms · 우클릭 · I) · `battleFx`(입자 이미터 · 숫자 BitmapText 풀 `numberFont.js` · 섬광 · 띠).
+  아이콘은 `icons.js`가 코드로 그린 텍스처 `bicon:<이름>` — `assets/ui/icons/<이름>.png`을 넣고 `assets/ui/icons/index.json`에 이름을 넣으면 그 그림이 이김. 이모지/유니코드 기호 아이콘 금지.
+  연출 중 입력 잠금(건너뛰기 · 일시정지 · AUTO · 2배속 · 즉시 결과 · 정보창만). 2x는 timeScale. 게임 `?fps=1`(localhost) = fps 표시.
 - HTML 쪽: `ui/gachaView.js revealScreen`(연출 → 결과 격자), `ui/battleView.js mountBattle`(장면 → 결과/보상), 실패하면 연출 없이 결과만.
 
 ## 키트 생성기 (`tools/kitgen/`, 게임은 import 안 함 — `tests/kitgen.test.js`가 검사)

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>전투 화면 연출 테스트</title>
+  <script>
+    // 정적 서버(/dev/battle-ui-test.html)면 게임 루트(../), 개발 도구(/battle-ui-test)면 /preview/ (작업 공간 데이터)
+    // → 게임의 데이터 로더(상대 경로 fetch)가 그대로 동작하도록 <base>를 게임 루트로
+    window.GAME_ROOT = location.pathname.includes('/dev/') ? new URL('../', location.href).href : `${location.origin}/preview/`;
+    document.write(`<base href="${window.GAME_ROOT}">`);
+  </script>
+  <style>
+    body { margin: 0; font: 14px/1.5 -apple-system, "Malgun Gothic", "Noto Sans KR", sans-serif; background: #15101f; color: #eee; }
+    #stagebox { position: relative; background: #07040f; margin: 0 auto; }
+    main { max-width: 1280px; margin: 0 auto; padding: 12px 16px 24px; }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    h2 { font-size: 14px; margin: 14px 0 6px; color: #cdb8ff; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    button { font: inherit; font-weight: 700; padding: 7px 12px; border-radius: 10px; border: 1px solid #4b3a78; background: #2a1f45; color: #fff; cursor: pointer; }
+    button:hover { background: #3a2b60; }
+    label { display: inline-flex; gap: 6px; align-items: center; margin-right: 12px; }
+    select { font: inherit; }
+    #log { margin-top: 12px; padding: 10px; background: #0c0816; border-radius: 10px; min-height: 60px; max-height: 220px; overflow: auto; white-space: pre-wrap; font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: #b8f5c8; }
+    .muted { color: #9a90b0; }
+    .check li { margin: 2px 0; }
+  </style>
+</head>
+<body>
+  <div id="stagebox"></div>
+  <main>
+    <h1>전투 화면 연출 테스트 (BattleScene · BATTLE_UI.md 14장)</h1>
+    <p class="muted">실제 데이터의 스테이지와 상위 5명으로 전투를 열고, 연출 버튼으로 같은 연출을 반복해요. 엔진 상태는 바뀌지 않아요(연출만). 직접 조작도 돼요: 손패 끌기/탭, 카드 길게 누르기 = 정보창.</p>
+    <div class="row">
+      <label>스테이지 <select id="stage"></select></label>
+      <label>크기 <select id="size"><option value="1280x720">1280×720</option><option value="844x390">844×390 (휴대폰 가로)</option></select></label>
+      <label><input type="checkbox" id="speed2"> 2배속</label>
+      <label><input type="checkbox" id="reduced"> 동작 줄이기</label>
+      <label><input type="checkbox" id="auto"> AUTO</label>
+      <button id="open">전투 열기 / 다시</button>
+    </div>
+    <h2>연출</h2>
+    <div class="row" id="demos"></div>
+    <div class="row" style="margin-top:8px"><button id="all">전부 차례로</button><button id="instant">즉시 결과</button></div>
+    <h2>체크리스트</h2>
+    <ul class="check muted">
+      <li>어떤 요소도 순간이동하거나 깜빡이며 나타나지 않는다</li>
+      <li>타격 순간에 멈칫(히트스톱)이 느껴진다 · 2배속에서도 타격감이 남아 있다</li>
+      <li>카드 앞면에 숫자가 없다 (떠오르는 피해·회복 숫자 제외) · 떠오르는 숫자가 서로 겹치지 않는다</li>
+      <li>이모지·유니코드 기호가 화면에 하나도 없다</li>
+      <li>탭과 길게 누르기가 섞이지 않는다 (탭할 때 진행 원이 깜빡이지 않는다)</li>
+      <li>동작 줄이기에서 정보가 빠지지 않는다 · 휴대폰 크기에서 글자가 읽힌다</li>
+    </ul>
+    <div id="log">준비 중…</div>
+  </main>
+  <script type="module">
+    const ROOT = window.GAME_ROOT;
+    const logEl = document.getElementById('log');
+    const log = (msg) => (logEl.textContent = `${new Date().toLocaleTimeString()}  ${msg}\n${logEl.textContent}`.slice(0, 6000));
+    const errors = [];
+    window.addEventListener('error', (e) => { errors.push(String(e.message)); log(`오류: ${e.message}`); });
+    window.addEventListener('unhandledrejection', (e) => { errors.push(String(e.reason?.stack || e.reason)); log(`오류: ${e.reason?.stack || e.reason}`); });
+
+    const [{ loadGameData, splitCharacters, linkEnemyNpcs }, { createBattle }, host, { createBattleScene }, { runDemo, DEMOS }] = await Promise.all([
+      import(`${ROOT}js/core/data.js`),
+      import(`${ROOT}js/battle/engine.js`),
+      import(`${ROOT}js/fx/phaserHost.js`),
+      import(`${ROOT}js/fx/BattleScene.js`),
+      import(`${ROOT}js/fx/battleDemo.js`),
+    ]);
+    const data = await loadGameData();
+    Object.assign(data, splitCharacters(data.characters));
+    data.enemies = linkEnemyNpcs(data.enemies, data.allCharMap);
+    data.enemyMap = new Map(data.enemies.map((e) => [e.id, e]));
+    data.stageMap = new Map(data.stages.map((s) => [s.id, s]));
+    const team = data.characters.filter((c) => c.pullable !== false && !c.retired).sort((a, b) => (b.rarity || 0) - (a.rarity || 0)).slice(0, 5).map((c) => ({ charId: c.id, level: 30, breakthrough: 1 }));
+    log(`데이터: 캐릭터 ${data.characters.length} · 적 ${data.enemies.length} · 스테이지 ${data.stages.length}`);
+
+    const q = new URLSearchParams(location.search);
+    const stageSel = document.getElementById('stage');
+    for (const s of data.stages) stageSel.append(new Option(`${s.id} ${s.name || ''}${s.waves.length > 1 ? ` (웨이브 ${s.waves.length})` : ''}`, s.id));
+    // 기본: 웨이브가 여럿인 스테이지 (웨이브 전환 확인)
+    stageSel.value = q.get('stage') || data.stages.find((s) => s.waves.length > 1 && s.waves.some((w) => w.length >= 3))?.id || data.stages[0].id;
+    if (q.get('size')) document.getElementById('size').value = q.get('size');
+    if (q.get('speed') === '2') document.getElementById('speed2').checked = true;
+    if (q.get('reduced') === '1') document.getElementById('reduced').checked = true;
+
+    const game = (window.__game = await host.getGame());
+    let scene = null;
+    function fitLayer() {
+      const [w, h] = document.getElementById('size').value.split('x').map(Number);
+      const box = document.getElementById('stagebox');
+      box.style.width = `${w}px`;
+      box.style.height = `${h}px`;
+      const layer = document.getElementById('fx-layer');
+      box.append(layer);
+      Object.assign(layer.style, { position: 'absolute', inset: '0', width: `${w}px`, height: `${h}px`, zIndex: '1' });
+      game.scale.refresh();
+    }
+    document.getElementById('size').onchange = fitLayer;
+
+    function open() {
+      const stage = data.stageMap.get(stageSel.value);
+      const battle = createBattle({ team, stage, data, seed: 12345 });
+      scene = null;
+      fitLayer();
+      host
+        .runScene('Battle', createBattleScene, {
+          battle,
+          data,
+          stage,
+          background: null,
+          speed: document.getElementById('speed2').checked ? 2 : 1,
+          auto: document.getElementById('auto').checked,
+          reduced: document.getElementById('reduced').checked,
+          dev: true,
+          onReady: (s) => {
+            scene = window.__scene = s;
+            log(`전투 열림: ${stage.id} (적 ${battle.state.enemies.length}명)`);
+          },
+          onSettings: (p) => log(`설정 ${JSON.stringify(p)}`),
+        })
+        .then((out) => log(`전투 끝: ${JSON.stringify(out?.summary?.result ?? out)}`));
+      fitLayer();
+    }
+    document.getElementById('open').onclick = open;
+    document.getElementById('instant').onclick = () => scene?.instantResult();
+
+    const demos = document.getElementById('demos');
+    for (const [k, label] of Object.entries(DEMOS)) {
+      const b = Object.assign(document.createElement('button'), { textContent: label });
+      b.onclick = async () => {
+        if (!scene) return log('먼저 전투를 여세요');
+        if (k === 'info' && scene.info.open) return scene.info.hide();
+        const ok = await runDemo(scene, k);
+        log(`${label}: ${ok ? '끝' : '지금은 못 함'}`);
+      };
+      demos.append(b);
+    }
+    async function runAll() {
+      for (const k of Object.keys(DEMOS)) {
+        if (!scene) break;
+        const ok = await runDemo(scene, k);
+        if (k === 'info') {
+          await new Promise((r) => setTimeout(r, 900));
+          await scene.info.hide();
+        }
+        log(`${DEMOS[k]}: ${ok ? '끝' : '건너뜀'}`);
+        await new Promise((r) => setTimeout(r, 150));
+      }
+    }
+    document.getElementById('all').onclick = runAll;
+
+    open();
+    // ?auto=all → 열자마자 전부 차례로 → 끝나면 결과를 #result에 (자동 확인용). &shot=<연출>: 그 연출 도중에 멈춤
+    const until = () => new Promise((r) => { const t = setInterval(() => scene && (clearInterval(t), r()), 50); });
+    if (q.get('auto') === 'all') {
+      await until();
+      await runAll();
+      if (q.get('end') === '1') {
+        scene.instantResult();
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+      const res = document.createElement('pre');
+      res.id = 'result';
+      res.textContent = JSON.stringify({ ok: errors.length === 0, errors, cards: scene ? scene.cards.size : 0, queue: scene?.queue.ids() });
+      document.body.append(res);
+      window.__done = true;
+    } else if (q.get('demo')) {
+      await until();
+      runDemo(scene, q.get('demo'));
+    }
+  </script>
+</body>
+</html>
