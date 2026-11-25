@@ -5,6 +5,7 @@
 """
 import copy
 import json
+import re
 import threading
 
 from . import config, store
@@ -17,6 +18,9 @@ DEFAULTS = {
     "ai": True,  # AI 스위치: False면 모든 AI 호출(문구/키트 초안/챕터 팩/그림 프롬프트)을 끄고 템플릿만 씀
     "aiPrompt": True,  # True면 Gemini가 Anima용 그림 프롬프트를 작성 (ai가 꺼지면 같이 꺼짐)
     "theme": "아기자기한 판타지 마법 세계, 밤하늘과 별빛, 파스텔 보라·분홍 톤",  # UI 에셋 공통 분위기
+    # 글 생성 모델 목록 [{id, label, provider, model}] + 작업별 기본 모델 id (비어 있으면 TG_TEXT_MODEL)
+    "textModels": [],
+    "textModelFor": {"story": "", "review": "", "recap": "", "profile": "", "describe": "", "imagePrompt": ""},
     "comfy": {
         "url": "http://127.0.0.1:8188",
         "loader": "checkpoint",  # 'checkpoint'(한 파일) | 'split'(확산 모델 + 텍스트 인코더 + VAE 따로)
@@ -51,6 +55,20 @@ DEFAULTS = {
 }
 
 LORA_MAX = 8  # 프로필 하나에 넣을 수 있는 LoRA 수
+
+# 글 생성 작업 (작업마다 기본 모델을 고름 — CHARACTER_PROFILE.md 5-1장)
+TEXT_TASKS = [
+    ("story", "스토리 초안"),
+    ("review", "스토리 퇴고 · 검수"),
+    ("recap", "장 요약"),
+    ("profile", "캐릭터 프로필"),
+    ("describe", "도감 소개문"),
+    ("imagePrompt", "그림 프롬프트 쓰기"),
+]
+TEXT_PROVIDERS = ("gemini",)  # 제공자별 호출 함수는 genai._PROVIDERS (키는 dev/.env에만)
+TEXT_MODEL_MAX = 20
+MODEL_ID_RE = re.compile(r"^[a-z0-9_-]{1,32}$")
+ENV_MODEL_ID = "env"  # 예약: 환경 변수 TG_TEXT_MODEL (설정이 없을 때의 기본)
 
 
 def _strength(v, default=1.0):
@@ -98,6 +116,7 @@ def clean(s):
     s["ai"] = s.get("ai") is not False
     s["aiPrompt"] = bool(s.get("aiPrompt")) and s["ai"]
     s["theme"] = str(s.get("theme") or "")[:500]
+    s["textModels"], s["textModelFor"] = clean_text_models(s.get("textModels"), s.get("textModelFor"))
     c = s["comfy"]
     url = str(c.get("url") or d["comfy"]["url"]).strip().rstrip("/")
     # 보안: ComfyUI는 내 컴퓨터(또는 같은 네트워크)의 http 주소만
@@ -138,6 +157,25 @@ def clean(s):
     lp = c.get("loraProfiles") if isinstance(c.get("loraProfiles"), dict) else {}
     c["loraProfiles"] = {k: _clean_lora_profile(lp.get(k)) for k in d["comfy"]["loraProfiles"]}
     return s
+
+
+def clean_text_models(models, model_for):
+    """글 모델 목록 정리: id 슬러그(중복 · 예약 'env' 제외), 제공자는 구현된 것만. 작업별 기본은 목록에 있는 id만"""
+    out, seen = [], set()
+    for m in models if isinstance(models, list) else []:
+        if not isinstance(m, dict):
+            continue
+        mid = str(m.get("id") or "").strip().lower()
+        model = str(m.get("model") or "").strip()[:120]
+        provider = m.get("provider") if m.get("provider") in TEXT_PROVIDERS else TEXT_PROVIDERS[0]
+        if not MODEL_ID_RE.match(mid) or mid in seen or mid == ENV_MODEL_ID or not model:
+            continue
+        seen.add(mid)
+        out.append({"id": mid, "label": str(m.get("label") or "").strip()[:60] or model, "provider": provider, "model": model})
+        if len(out) >= TEXT_MODEL_MAX:
+            break
+    mf = model_for if isinstance(model_for, dict) else {}
+    return out, {k: (mf.get(k) if mf.get(k) in seen else "") for k, _ in TEXT_TASKS}
 
 
 def save(new):

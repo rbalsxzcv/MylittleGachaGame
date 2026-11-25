@@ -54,9 +54,62 @@ function loraEditor(title, desc, profile, files) {
   };
 }
 
+/** 글 생성 모델 편집기: 모델 목록 {id, 이름, 제공자, 모델 이름} + 작업별 기본 모델 */
+function textModelEditor(s) {
+  const tasks = state.status?.ai?.textTasks || [];
+  const envLabel = `기본 (환경 변수 TG_TEXT_MODEL = ${state.status?.ai?.textModel || '?'})`;
+  const rows = h('div', { class: 'tm-rows' });
+  const taskSelects = {};
+  const ids = () => [...rows.children].map((r) => r._get()).filter((m) => m.id && m.model);
+  const refreshTasks = () => {
+    for (const [key, sel] of Object.entries(taskSelects)) {
+      const cur = sel.value;
+      sel.replaceChildren(h('option', { value: '' }, envLabel), ...ids().map((m) => h('option', { value: m.id }, `${m.label || m.model} (${m.id})`)));
+      sel.value = ids().some((m) => m.id === cur) ? cur : '';
+    }
+  };
+  function addRow(m = { id: '', label: '', provider: 'gemini', model: '' }) {
+    const id = h('input', { value: m.id, placeholder: 'flash', title: '영문 소문자/숫자/-/_ (요청에 쓰는 이름)' });
+    const label = h('input', { value: m.label, placeholder: 'Gemini Flash (빠름)' });
+    const provider = h('select', {}, h('option', { value: 'gemini' }, 'gemini'));
+    provider.value = m.provider || 'gemini';
+    const model = h('input', { value: m.model, placeholder: 'gemini-3.8-flash' });
+    const row = h('div', { class: 'tm-row' }, id, label, provider, model, h('button', { class: 'btn small', title: '빼기', onclick: () => (row.remove(), refreshTasks()) }, '✕'));
+    row._get = () => ({ id: id.value.trim().toLowerCase(), label: label.value.trim(), provider: provider.value, model: model.value.trim() });
+    for (const inp of [id, label, model]) inp.addEventListener('change', refreshTasks);
+    rows.append(row);
+  }
+  (s.textModels || []).forEach(addRow);
+  const taskBox = h(
+    'div',
+    { class: 'grid2' },
+    tasks.map((t) => {
+      const sel = h('select', {});
+      taskSelects[t.key] = sel;
+      sel.append(h('option', { value: s.textModelFor?.[t.key] || '' }, s.textModelFor?.[t.key] || envLabel));
+      sel.value = s.textModelFor?.[t.key] || '';
+      return h('label', { class: 'field' }, `${t.label} (${t.key})`, sel);
+    }),
+  );
+  refreshTasks();
+  for (const t of tasks) taskSelects[t.key].value = (s.textModels || []).some((m) => m.id === s.textModelFor?.[t.key]) ? s.textModelFor[t.key] : '';
+  const el = h(
+    'div',
+    {},
+    h('div', { class: 'tm-row tm-head muted small' }, h('span', {}, 'id'), h('span', {}, '이름'), h('span', {}, '제공자'), h('span', {}, '모델 이름'), h('span', {})),
+    rows,
+    h('button', { class: 'btn small', onclick: () => (addRow(), refreshTasks()) }, '+ 모델 추가'),
+    h('h3', {}, '작업별 기본 모델'),
+    h('p', { class: 'muted small' }, '스토리 탭 · 캐릭터 탭 · 검수 탭의 생성 버튼 옆에서 이번 한 번만 다른 모델로 바꿀 수 있어요. 비워 두면 환경 변수 TG_TEXT_MODEL을 써요.'),
+    taskBox,
+  );
+  return { el, get: () => ({ textModels: ids(), textModelFor: Object.fromEntries(Object.entries(taskSelects).map(([k, sel]) => [k, sel.value])) }) };
+}
+
 export function settingsTab(root, { onSaved } = {}) {
   const s = structuredClone(state.settings);
   const c = s.comfy;
+  const textModels = textModelEditor(s);
 
   const aiPrompt = h('input', { type: 'checkbox', checked: s.aiPrompt });
   const ai = h('input', { type: 'checkbox', checked: s.ai !== false });
@@ -149,6 +202,7 @@ export function settingsTab(root, { onSaved } = {}) {
       aiPrompt: aiPrompt.checked,
       ai: ai.checked,
       theme: theme.value,
+      ...textModels.get(),
       comfy: { url: url.value, loader: loader.value, checkpoint: ckpt.value, unet: unet.value, weightDtype: weightDtype.value, clip: clip.value, clipType: clipType.value, vae: vae.value, resolution: resolution.value, steps: Number(steps.value), cfg: Number(cfg.value), sampler: sampler.value, scheduler: scheduler.value, quality: quality.value, negative: negative.value, loraProfiles: { char: charLora.get(), scene: sceneLora.get() } },
     };
     const r = await tryApi(() => api.put('/api/settings', data));
@@ -191,6 +245,14 @@ export function settingsTab(root, { onSaved } = {}) {
         h('label', { class: 'field' }, '기본 네거티브 프롬프트 (모든 생성에 붙어요 · CFG 1이면 적용되지 않아요)', negative),
         h('button', { class: 'btn primary', onclick: save }, '저장'),
       ),
+    ),
+    h(
+      'section',
+      { class: 'card' },
+      h('h2', {}, '글 생성 모델'),
+      h('p', { class: 'muted small' }, '스토리 · 검수 · 요약 · 프로필 · 소개문 · 그림 프롬프트를 쓸 AI 모델이에요. 지금은 제공자 gemini만 (Vertex AI, 키는 dev/.env에만 — 여기에는 넣지 않아요).'),
+      textModels.el,
+      h('button', { class: 'btn primary', onclick: save }, '저장'),
     ),
     h(
       'section',

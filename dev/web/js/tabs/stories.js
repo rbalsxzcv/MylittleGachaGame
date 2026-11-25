@@ -5,6 +5,7 @@ import { state, saveList, reloadData } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
 import { openPreview } from '../preview.js';
 import { promptStep } from '../promptStep.js';
+import { modelPicker } from '../modelPicker.js';
 
 const KINDS = [
   ['main', '메인'],
@@ -514,6 +515,7 @@ export function storiesTab(root, { select } = {}) {
     const picks = state.data.characters.map((c) => ({ c, cb: h('input', { type: 'checkbox', checked: used.has(c.id) }) }));
     const stagesOk = (state.data.stages || []).length > 0;
     const allowBattles = h('input', { type: 'checkbox' });
+    const model = modelPicker('story');
     const out = h('div');
     let lastDraft = null;
     let lastOutline = '';
@@ -544,6 +546,7 @@ export function storiesTab(root, { select } = {}) {
         allowBattles: stagesOk && allowBattles.checked,
         feedback: feedback || '',
         previous: feedback ? lastDraft : null,
+        model: model.value,
       };
       if (!feedback) lastOutline = text;
       const r = await busy(feedback ? '수정 요청을 반영해서 다시 쓰는 중…' : '세계관과 앞 장을 읽고 이번 장을 쓰는 중…', () => tryApi(() => api.post('/api/stories/draft', body)));
@@ -565,7 +568,7 @@ export function storiesTab(root, { select } = {}) {
           { class: 'draft-view' },
           h('h3', {}, `초안: ${d.title || '(제목 없음)'}`),
           d.summary && h('p', { class: 'muted' }, `한 줄 소개: ${d.summary}`),
-          h('p', { class: 'muted small' }, `장면 ${d.scenes.length}개 · 대사 ${lineCount}줄 · 참고: ${ctx.world ? '세계관, ' : ''}앞 장 요약 ${ctx.previous.length}개${ctx.previousScript ? `, ${ctx.previousScript} 대본` : ''}${ctx.recapsMade ? ` (요약 ${ctx.recapsMade}개 새로 만듦)` : ''}`),
+          h('p', { class: 'muted small' }, `장면 ${d.scenes.length}개 · 대사 ${lineCount}줄 · 참고: ${ctx.world ? '세계관, ' : ''}앞 장 요약 ${ctx.previous.length}개${ctx.previousScript ? `, ${ctx.previousScript} 대본` : ''}${ctx.recapsMade ? ` (요약 ${ctx.recapsMade}개 새로 만듦)` : ''}${ctx.model ? ` · 모델 ${ctx.model.label}${ctx.model.mock ? ' (모의)' : ''}` : ''}`),
           d.recap && h('div', { class: 'card inner small' }, h('b', {}, '이 장 요약 (다음 장 참고용) '), d.recap),
           warnings.length > 0 && h('ul', { class: 'warn-list' }, warnings.map((w) => h('li', { class: 'warn' }, w))),
           d.scenes.map((sc) =>
@@ -637,6 +640,7 @@ export function storiesTab(root, { select } = {}) {
           { class: 'row wrap' },
           length,
           stagesOk && h('label', { class: 'inline' }, allowBattles, '어울리는 곳에 전투 장면 넣기'),
+          model.el,
           h('button', { class: 'btn primary', onclick: () => request('') }, '이 장 생성'),
         ),
         out,

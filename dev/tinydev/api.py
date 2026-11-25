@@ -13,7 +13,7 @@ from pathlib import Path
 
 from flask import Flask, abort, jsonify, redirect, request, send_from_directory
 
-from . import batch, bible, comfy, pack, config, cutout, genai, imaging, jobs, kit, prompts, publish, settings, store, uislots
+from . import batch, bible, comfy, pack, config, cutout, genai, imaging, jobs, kit, prompts, publish, settings, store, texthist, uislots
 from . import rarity as rarity_mod
 from .genai import GenError
 from .timeutil import now_iso, parse
@@ -194,6 +194,19 @@ def get_settings():
 @app.put("/api/settings")
 def put_settings():
     return jsonify(settings.save(body()))
+
+
+@app.get("/api/text-models")
+def text_models_get():
+    """글 생성 모델: 고를 수 있는 목록(기본 = 환경 변수 포함) + 작업별 기본 모델"""
+    s = settings.load()
+    return jsonify(models=genai.text_models(s), tasks=[{"key": k, "label": label, "model": genai.resolve_text_model(k, s=s)["id"]} for k, label in settings.TEXT_TASKS])
+
+
+@app.get("/api/text-history")
+def text_history():
+    target = request.args.get("target") or None
+    return jsonify(records=texthist.list_records(target))
 
 
 @app.post("/api/comfy/check")
@@ -493,8 +506,13 @@ def char_describe():
         "feedback": text(data, "feedback", 1000),
     }
     examples = [c for c in store.read_list("characters") if c.get("description")]
-    result = genai.generate_text(prompts.describe(inp, examples), mock=lambda: prompts.mock_describe(inp))
-    return jsonify(description=result.strip().strip('"'))
+    cid = data.get("charId") if store.valid_id(data.get("charId")) else None
+    me = next((c for c in examples if c.get("id") == cid), None) if cid else None
+    if me is None and cid:
+        me = next((c for c in store.read_list("characters") if c.get("id") == cid), None)
+    inp["profile"] = (me or {}).get("profile") if isinstance((me or {}).get("profile"), dict) else None
+    result, used = genai.generate_text_ex(prompts.describe(inp, [c for c in examples if c.get("id") != cid]), mock=lambda: prompts.mock_describe(inp), task="describe", model=data.get("model"), record=cid or inp["name"])
+    return jsonify(description=result.strip().strip('"'), model=used)
 
 
 @app.post("/api/char/approve")
@@ -1108,7 +1126,7 @@ def _make_recap(sid, title, story_body, world):
     script = prompts.script_text(story_body, _names(), _stage_names(), limit=12000)
     if not script.strip():
         return ""
-    recap = genai.generate_text(prompts.recap_prompt(world, title, script), mock=lambda: prompts.mock_recap(title, script)).strip()
+    recap = genai.generate_text(prompts.recap_prompt(world, title, script), mock=lambda: prompts.mock_recap(title, script), task="recap").strip()
     bible.set_chapter(sid, recap=recap)
     return recap
 
@@ -1132,7 +1150,7 @@ def story_recap(sid):
     return jsonify(recap=recap)
 
 
-def draft_chapter(meta, outline, length="auto", character_ids=(), allow_battles=False, feedback="", previous=None, pack=None, required_stage=None):
+def draft_chapter(meta, outline, length="auto", character_ids=(), allow_battles=False, feedback="", previous=None, pack=None, required_stage=None, model=None):
     """장 개요 → 대본 (챕터 팩 생성에서도 씀). 반환: (draft, warnings, context)"""
     meta = {
         "id": meta.get("id") if store.valid_id(meta.get("id")) else None,
@@ -1187,7 +1205,7 @@ def draft_chapter(meta, outline, length="auto", character_ids=(), allow_battles=
         "feedback": feedback or "",
         "previous": previous if isinstance(previous, dict) else None,
     }
-    raw = genai.generate_text(prompts.chapter_draft(ctx), json_mode=True, mock=lambda: prompts.mock_chapter(ctx))
+    raw, used = genai.generate_text_ex(prompts.chapter_draft(ctx), json_mode=True, mock=lambda: prompts.mock_chapter(ctx), task="story", model=model, record=meta["id"] or f"{meta['kind']}-{meta['chapter']}")
     stage_ids = {s["id"] for s in stages} | ({required_stage["id"]} if required_stage else set())
     draft, warnings = clean_draft(genai.parse_json_text(raw), set(chars_all), stage_ids, {x["name"] for x in backgrounds})
     if required_stage and not any(sc.get("type") == "battle" and sc.get("stageId") == required_stage["id"] for sc in draft["scenes"]):
@@ -1195,13 +1213,14 @@ def draft_chapter(meta, outline, length="auto", character_ids=(), allow_battles=
         draft["scenes"].insert(max(0, len(draft["scenes"]) - 1), {"id": "b1" if not any(x["id"] == "b1" for x in draft["scenes"]) else "battle_1", "type": "battle", "stageId": required_stage["id"]})
         warnings.append("AI가 전투 장면을 빠뜨려서 마지막 장면 앞에 넣었어요")
     if meta["id"]:
-        bible.set_chapter(meta["id"], outline=outline)
+        bible.set_chapter(meta["id"], outline=outline, model=used)
     context = {
         "world": bool(b["world"].strip()),
         "style": bool(b["style"].strip()),
         "previous": [{"id": p["id"], "chapter": p["chapter"], "title": p["title"], "hasRecap": bool(p["recap"])} for p in prev],
         "previousScript": group[-1]["id"] if group and prev_script else None,
         "recapsMade": made,
+        "model": used,
     }
     return draft, warnings, context
 
@@ -1219,6 +1238,7 @@ def story_draft():
         allow_battles=bool(data.get("allowBattles")),
         feedback=text(data, "feedback", 1500),
         previous=data.get("previous"),
+        model=data.get("model") or None,
     )
     return jsonify(draft=draft, warnings=warnings, context=context)
 

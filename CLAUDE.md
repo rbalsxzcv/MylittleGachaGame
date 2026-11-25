@@ -243,6 +243,9 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
   스테이지 전투 배경 = 작업 종류 `stagebg`(`POST /api/stagebg/generate`, 승인 → `assets/battle/<id>.jpg` + `stage.background`, `GET /api/stages/<id>/background` = 실제로 쓰일 배경), 일괄 생성 묶음 `stagebg`.
 - 웹: 캐릭터 전투 편집(`web/js/battleEditor.js` + `battleForm.js`), 적 편집(행동/패턴/페이즈/광폭화), 스테이지(챕터/연결 스토리/자동 레벨/전투 배경), 밸런스(전투 시뮬, 가챠 시뮬, 전투력 표, balance.json 편집), `/fx-test`, `/preview/tests/`.
 - 개발 도구 웹은 `/preview/js/...`로 게임 모듈을 그대로 import (progression, schema, data, sim, gacha).
+- 글 생성 모델(`settings.json textModels [{id,label,provider,model}]` + `textModelFor {story,review,recap,profile,describe,imagePrompt}`, 설정 탭):
+  `genai.generate_text(…, task=, model=)` → `resolve_text_model` = 지정 id > 작업별 기본 > 환경 변수 `TG_TEXT_MODEL`(id `env`), 목록에 없는 id는 400.
+  제공자별 함수 `genai._PROVIDERS`(지금 gemini만, 키는 `dev/.env`에만). 생성 버튼 옆 `web/js/modelPicker.js`. 기록 `dev/history/text-…/record.json`(`texthist`) + 장 초안은 설정집 장 정보 `model`.
 - 배경 제거 `tinydev/cutout.py`: RMBG에서는 마스크만 → 원본 W×H로 LANCZOS 확대 → 1px 깎기 + 1px 부드럽게(`config.CUTOUT_*`) → **칠하지 않은 원본**에 알파로 적용(크기 다르면 오류) → 투명 여백 자르기.
   캐릭터/적은 줄이지 않음(원본 해상도), 소품 384 · UI 아이콘 256 · 로고 640만 줄임. 예전 512px 그림 다시 만들기: `python -m tinydev.recut [--dry-run]`.
 

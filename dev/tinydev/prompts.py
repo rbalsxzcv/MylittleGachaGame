@@ -11,6 +11,7 @@ import json
 import re
 
 from . import config, rarity
+from .profile import FACT_FIELDS as PROFILE_FACTS
 
 _RARITY_HINT = {
     1: "plain simple outfit, few details, relaxed natural pose",
@@ -422,6 +423,17 @@ def describe(inp, examples):
 - 외형 키워드: {inp.get('keywords', '')}
 - 설정 메모: {inp.get('lore', '')}
 """
+    prof = inp.get("profile") if isinstance(inp.get("profile"), dict) else {}
+    personality = (prof.get("voice") or {}).get("personality") if isinstance(prof.get("voice"), dict) else ""
+    facts = prof.get("facts") if isinstance(prof.get("facts"), dict) else {}
+    if personality or facts:
+        text += "\n프로필 (소개가 이것과 어긋나지 않게)\n"
+        if personality:
+            text += f"- 성격: {personality}\n"
+        for key, label, _ in PROFILE_FACTS:
+            v = facts.get(key)
+            if v:
+                text += f"- {label}: {', '.join(v) if isinstance(v, list) else v}\n"
     if ex:
         text += f"\n기존 캐릭터 소개 (말투를 맞춰 주세요)\n{ex}\n"
     if inp.get("current"):

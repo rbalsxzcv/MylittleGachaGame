@@ -340,7 +340,7 @@ def clean_plan(raw, arc):
 
 def make_plan(outline, arc, feedback="", previous=None):
     ex = _existing()
-    raw = genai.generate_text(plan_prompt(outline, arc, ex, feedback, previous), json_mode=True, mock=lambda: mock_plan(outline, arc))
+    raw = genai.generate_text(plan_prompt(outline, arc, ex, feedback, previous), json_mode=True, mock=lambda: mock_plan(outline, arc), task="story")
     plan, warnings = clean_plan(genai.parse_json_text(raw), arc)
     plan["outline"] = outline
     bible.set_pack(arc, {"plan": plan, "updatedAt": now_iso(), "status": "draft"})

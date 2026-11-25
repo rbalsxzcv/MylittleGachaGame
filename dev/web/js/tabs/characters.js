@@ -6,6 +6,7 @@ import { jobPanel } from '../jobPanel.js';
 import { openPreview } from '../preview.js';
 import { promptStep } from '../promptStep.js';
 import { openCharBattleEditor } from '../battleEditor.js';
+import { modelPicker } from '../modelPicker.js';
 
 const ROLE_SHORT = { attacker: '딜', defender: '탱', support: '지', healer: '치' };
 
@@ -68,6 +69,7 @@ export function charactersTab(root) {
       feedback: h('input', { placeholder: '소개문 수정 요청 (예: 더 귀엽게, 존댓말로)' }),
       addedAt: h('input', { type: 'datetime-local', value: isoToLocal(existing?.addedAt || nowIso()) }),
     };
+    const descModel = modelPicker('describe');
 
     const writeDesc = async (withFeedback) => {
       const r = await busy('소개문 쓰는 중…', () =>
@@ -80,6 +82,8 @@ export function charactersTab(root) {
             lore: inp.lore,
             current: withFeedback ? a.description.value : '',
             feedback: withFeedback ? a.feedback.value : '',
+            charId: existing?.id,
+            model: descModel.value,
           }),
         ),
       );
@@ -105,6 +109,7 @@ export function charactersTab(root) {
         h('button', { class: 'btn small', onclick: () => writeDesc(false) }, 'AI로 소개문 쓰기'),
         a.feedback,
         h('button', { class: 'btn small', onclick: () => writeDesc(true) }, '요청 반영해서 다시 쓰기'),
+        descModel.el,
       ),
       h('label', { class: 'field' }, '공개 시각 addedAt (KST) — 이 시각 전에는 게임에 안 나옴 (픽업 데뷔용)', a.addedAt),
     );
@@ -232,9 +237,10 @@ export function charactersTab(root) {
       feedback: h('input', { placeholder: '수정 요청 (예: 더 짧게)' }),
       addedAt: h('input', { type: 'datetime-local', value: isoToLocal(c.addedAt) }),
     };
+    const descModel = modelPicker('describe');
     const rewrite = async () => {
       const r = await busy('소개문 다시 쓰는 중…', () =>
-        tryApi(() => api.post('/api/char/describe', { name: e.name.value, rarity: rarOf(e.rarity.value), title: e.title.value, current: e.description.value, feedback: e.feedback.value })),
+        tryApi(() => api.post('/api/char/describe', { name: e.name.value, rarity: rarOf(e.rarity.value), title: e.title.value, current: e.description.value, feedback: e.feedback.value, charId: c.id, model: descModel.value })),
       );
       if (r) e.description.value = r.description;
     };
@@ -245,7 +251,7 @@ export function charactersTab(root) {
         {},
         h('div', { class: 'grid2' }, h('label', { class: 'field' }, '이름', e.name), h('label', { class: 'field' }, '등급', e.rarity), h('label', { class: 'field' }, '칭호', e.title), h('label', { class: 'field' }, '공개 시각 (KST)', e.addedAt)),
         h('label', { class: 'field' }, '소개문', e.description),
-        h('div', { class: 'row' }, e.feedback, h('button', { class: 'btn small', onclick: rewrite }, 'AI로 다시 쓰기')),
+        h('div', { class: 'row' }, e.feedback, descModel.el, h('button', { class: 'btn small', onclick: rewrite }, 'AI로 다시 쓰기')),
       ),
       buttons: [
         { label: '취소', value: null },

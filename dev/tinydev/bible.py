@@ -42,8 +42,8 @@ def chapter(sid):
     return load()["chapters"].get(sid) or {}
 
 
-def set_chapter(sid, outline=None, recap=None):
-    """장 개요/요약 저장 (None은 그대로 둠)"""
+def set_chapter(sid, outline=None, recap=None, model=None):
+    """장 개요/요약 저장 (None은 그대로 둠). model = 이 장 초안을 쓴 글 모델 항목 (비교용 기록)"""
     if not store.valid_id(sid):
         raise ValueError("잘못된 스토리 id")
     data = load()
@@ -53,6 +53,9 @@ def set_chapter(sid, outline=None, recap=None):
     if recap is not None:
         ch["recap"] = str(recap)[:RECAP_LIMIT]
         ch["recapAt"] = now_iso()
+    if isinstance(model, dict):
+        ch["model"] = {k: model.get(k) for k in ("id", "label", "model", "mock") if k in model}
+        ch["modelAt"] = now_iso()
     save(data)
     return ch
 

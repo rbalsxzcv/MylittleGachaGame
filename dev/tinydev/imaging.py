@@ -99,7 +99,7 @@ def write_prompt(kind, inp, engine=None, reasons=(), previous=None):
     if not s["aiPrompt"] or genai.is_mock():
         prompt, negative = prompts.template_prompt(pkind, inp, slot, chars, list(reasons))
         return {"prompt": prompt, "negative": negative, "source": "template" if not s["aiPrompt"] else "mock", "engine": ENGINE, "brief": brief}
-    raw = genai.generate_text(prompts.writer_prompt(pkind, brief, prompts.style_for(pkind), list(reasons), previous), json_mode=True)
+    raw = genai.generate_text(prompts.writer_prompt(pkind, brief, prompts.style_for(pkind), list(reasons), previous), json_mode=True, task="imagePrompt")
     data = genai.parse_json_text(raw)
     prompt = str((data or {}).get("prompt") or "").strip() if isinstance(data, dict) else ""
     if not prompt:

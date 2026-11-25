@@ -342,6 +342,10 @@ a.chip { text-decoration: none; }
 .lora-profile h3 { margin-top: 4px; }
 .lora-row { display: grid; grid-template-columns: 36px 1fr 84px 84px 36px; gap: 6px; align-items: center; margin-bottom: 6px; }
 .lora-row select, .lora-row input[type='number'] { min-width: 0; width: 100%; }
+.tm-row { display: grid; grid-template-columns: 110px 1fr 90px 1fr 36px; gap: 6px; align-items: center; margin-bottom: 6px; }
+.tm-row input, .tm-row select { min-width: 0; width: 100%; }
+.model-pick { gap: 6px; }
+.model-picker { max-width: 240px; }
 .lora-head { margin-bottom: 2px; }
 
 /* 키트 일괄 */

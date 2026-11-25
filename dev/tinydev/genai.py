@@ -33,6 +33,8 @@ def status():
         "location": config.GCP_LOCATION,
         "imageModel": config.IMAGE_MODEL,
         "textModel": config.TEXT_MODEL,
+        "textModels": text_models(),
+        "textTasks": [{"key": k, "label": label, "model": resolve_text_model(k)["id"]} for k, label in _settings().TEXT_TASKS],
     }
 
 
@@ -106,24 +108,78 @@ def ai_enabled():
     return settings.load().get("ai", True) is not False
 
 
-def generate_text(prompt, json_mode=False, mock=None):
-    """프롬프트 → 텍스트. json_mode면 JSON 문자열을 기대. AI 스위치가 꺼져 있거나 모의 모드면 mock(템플릿) 결과"""
-    if is_mock() or not ai_enabled():
-        return mock() if callable(mock) else (mock or "(AI 꺼짐) 템플릿 텍스트")
+def _settings():
+    from . import settings
 
+    return settings
+
+
+def env_model():
+    """설정에 모델이 없을 때 쓰는 기본 (환경 변수 TG_TEXT_MODEL — 예전 동작)"""
+    return {"id": _settings().ENV_MODEL_ID, "label": f"기본 ({config.TEXT_MODEL})", "provider": "gemini", "model": config.TEXT_MODEL}
+
+
+def text_models(s=None):
+    """고를 수 있는 글 모델: 기본(환경 변수) + 설정의 모델 목록"""
+    s = s or _settings().load()
+    return [env_model(), *(s.get("textModels") or [])]
+
+
+def resolve_text_model(task=None, override=None, s=None):
+    """이번 생성에 쓸 모델 항목. override(모델 목록 id) > 작업별 기본(textModelFor) > 환경 변수 TG_TEXT_MODEL
+    목록에 없는 id를 지정하면 ValueError (API는 400)"""
+    s = s or _settings().load()
+    by_id = {m["id"]: m for m in text_models(s)}
+    if override not in (None, ""):
+        if override not in by_id:
+            raise ValueError(f"목록에 없는 글 모델이에요: {override}")
+        return by_id[override]
+    mid = (s.get("textModelFor") or {}).get(task or "")
+    return by_id.get(mid) or env_model()
+
+
+def _gemini_text(model, prompt, json_mode):
     from google.genai import types
 
     cfg = types.GenerateContentConfig(response_mime_type="application/json") if json_mode else None
     try:
-        resp = _get_client().models.generate_content(model=config.TEXT_MODEL, contents=prompt, config=cfg)
+        resp = _get_client().models.generate_content(model=model, contents=prompt, config=cfg)
     except GenError:
         raise
     except Exception as e:
         raise GenError(f"텍스트 생성 요청 실패: {e}") from e
-    text = (resp.text or "").strip()
-    if not text:
-        raise GenError("텍스트가 생성되지 않았어요 (안전 필터 등)")
-    return text
+    return resp.text or ""
+
+
+# 제공자별 글 생성 함수 (model 이름, 프롬프트, json_mode) → 텍스트. 다른 회사 모델은 여기에 함수 하나 + settings.TEXT_PROVIDERS
+_PROVIDERS = {"gemini": _gemini_text}
+
+
+def generate_text_ex(prompt, json_mode=False, mock=None, task=None, model=None, record=None):
+    """프롬프트 → (텍스트, 쓴 모델 항목). AI 스위치가 꺼져 있거나 모의 모드면 mock(템플릿) 결과
+    task: 작업 키(settings.TEXT_TASKS) → 그 작업의 기본 모델 / model: 이번 한 번만 쓸 모델 id
+    record: 생성 시도 기록(dev/history/text-…)에 남길 대상 이름 (예: 'story_0013')"""
+    entry = resolve_text_model(task, model)
+    if is_mock() or not ai_enabled():
+        text = mock() if callable(mock) else (mock or "(AI 꺼짐) 템플릿 텍스트")
+        entry = {**entry, "mock": True}
+    else:
+        fn = _PROVIDERS.get(entry.get("provider"))
+        if not fn:
+            raise GenError(f"아직 지원하지 않는 제공자예요: {entry.get('provider')}")
+        text = (fn(entry["model"], prompt, json_mode) or "").strip()
+        if not text:
+            raise GenError("텍스트가 생성되지 않았어요 (안전 필터 등)")
+    if record:
+        from . import texthist
+
+        texthist.record(task, entry, record, prompt, text)
+    return text, entry
+
+
+def generate_text(prompt, json_mode=False, mock=None, task=None, model=None, record=None):
+    """프롬프트 → 텍스트 (generate_text_ex에서 모델 정보만 뺀 것)"""
+    return generate_text_ex(prompt, json_mode, mock, task, model, record)[0]
 
 
 def parse_json_text(text):
