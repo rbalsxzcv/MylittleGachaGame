@@ -5,6 +5,7 @@
 import { cleanKit, cleanStats, cleanPassiveList, cleanPassive, cleanEnemyBehavior, cleanResource, cleanTweak, STAT_KEYS } from '../battle/schema.js';
 import { loadConfig, normalizeRarity, normalizeGrade, isNpc, NPC, RARITIES, ROLES, ENEMY_ARCHETYPES, STAGE_TYPES } from '../config.js';
 import { validateAliases } from './aliases.js';
+import { cleanProfile, emptyProfile, quoteOf } from '../systems/profile.js';
 
 export { RARITIES, normalizeRarity, normalizeGrade, isNpc, NPC };
 export const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
@@ -92,6 +93,7 @@ const cardCropOrNull = (v) => (v && typeof v === 'object' && Number.isFinite(v.y
 // 필수: id, name, rarity(등급: 1–5 또는 'npc'. 예전 'R'/'SR'/'SSR'은 3/4/5, 예전 pullable: false는 'npc'로 읽음)
 // NPC 등급 = 뽑기/도감/육성/편성에 안 나옴 (스토리 화자, 적 연결용). pullable은 등급에서 계산 (NPC가 아니면 true)
 // 표시(선택): nameEn, role, cutout, themeColor, quote — 가챠 컷인/전투 초상에 씀
+// 프로필(선택): profile {facts, stories, lines, relations, voice} — 도감/육성 프로필 패널 (systems/profile.js, voice는 게임이 안 씀)
 // 전투(선택): role → 역할 템플릿 능력치 (stats 절대값이 있으면 그게 우선), statTweak {능력치: %} 손조정,
 //   archetype + kitGen {archetype, variants, seed, version} (개발 도구 생성기 기록), resource {name, cap, start} (자원/스택),
 //   kit {basic, skill, ultimate, transformed?}, talents [상시 패시브], bt2 / bt6 (돌파 2·6 능력, 1·3·4·5는 balance 공식),
@@ -117,7 +119,7 @@ export function validateCharacters(json, vocab) {
       cutout: str(raw.cutout).trim(),
       themeColor: colorOrNull(raw.themeColor),
       cardCrop: cardCropOrNull(raw.cardCrop),
-      quote: str(raw.quote, '', 120).trim(),
+      quote: quoteOf(raw), // 비어 있으면 profile.lines.obtain
       addedAt: str(raw.addedAt).trim(),
       pullable: rarity !== NPC, // NPC 등급이면 false (뽑기/도감/육성/편성에 안 나옴)
       retired: raw.retired === true,
@@ -131,6 +133,8 @@ export function validateCharacters(json, vocab) {
       bt2: vocab && raw.bt2 ? cleanPassive(raw.bt2, vocab, warnData, `${where}.bt2`) : null,
       bt6: vocab && raw.bt6 ? cleanPassive(raw.bt6, vocab, warnData, `${where}.bt6`) : null,
       breakthroughs: vocab ? cleanPassiveList(raw.breakthroughs, vocab, warnData, `${where}.breakthroughs`, 6) : [],
+      // 프로필 (보여 주는 부분만 — voice는 작가용). NPC는 facts/stories/lines를 쓰지 않음
+      profile: rarity === NPC ? emptyProfile() : cleanProfile(raw.profile),
     };
   });
 }

@@ -7,6 +7,7 @@ import { createBattle } from '../js/battle/engine.js';
 import { buildPools, isPoolEmpty } from '../js/systems/gacha.js';
 import { adventureIssues, storyBattleBackground, battleBackgrounds } from '../js/systems/adventure.js';
 import { validateStages } from '../js/core/data.js';
+import { profileIssues } from '../js/systems/profile.js';
 
 const d = await loadGameData({ stories: true });
 
@@ -20,6 +21,11 @@ describe('data: 실제 데이터 파일', () => {
       expect(typeof c.rarity === 'number' || c.rarity === NPC, `${c.id} 파일 안의 등급: ${c.rarity}`).toBe(true);
       expect('pullable' in c, `${c.id}: 예전 pullable 필드 (등급 npc로)`).toBe(false);
     }
+  });
+  it('캐릭터 프로필: 길이 제한 · 형식 · relations/address id 규칙 (CHARACTER_PROFILE.md 1장)', async () => {
+    const raw = await loadJson('data/characters.json');
+    const ids = new Set(raw.map((c) => c.id));
+    for (const c of raw) expect(profileIssues(c.profile, ids), c.id).toEqual([]);
   });
   it('배너 로테이션 희귀도도 숫자, 상시 배너 풀이 비어 있지 않음', () => {
     for (const b of d.banners) if (b.rotation) expect(b.rotation.rarity).toBe(5);

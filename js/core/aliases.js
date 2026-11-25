@@ -57,6 +57,7 @@ export function remapSaveIds(raw, aliases) {
   out.knownIds = uniqueList(raw.knownIds, ch);
   out.newIds = uniqueList(raw.newIds, ch);
   if (typeof raw.featuredId === 'string') out.featuredId = ch(raw.featuredId);
+  out.profileSeen = remapKeys(raw.profileSeen, ch, (a, b) => [...new Set([...(Array.isArray(a) ? a : []), ...(Array.isArray(b) ? b : [])])]);
   if (raw.teams && Array.isArray(raw.teams.presets)) {
     out.teams = {
       ...raw.teams,

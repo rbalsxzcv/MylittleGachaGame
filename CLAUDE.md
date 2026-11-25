@@ -27,7 +27,8 @@
 - 브라우저: 게임 폴더를 로컬 서버로 열고(`python -m http.server`) `tests/index.html` → 자동 실행. `?filter=gacha`로 일부만.
   개발 도구에서는 `http://127.0.0.1:5050/preview/tests/index.html` (작업 공간 데이터로 실행, 스냅샷 갱신 버튼이 파일로 저장).
 - Node(설치했다면): `node tests/run.js [이름 일부] [--update]` (`npm test`). `--update` = 회귀 스냅샷 갱신.
-- 파일: `battleUi`(전투 화면 순수 부분: 장면 묶기 · 카드 배치 · 숫자 위치 · 순서 칩) / `config` / `stats`(능력치 모델) / `kitgen`(아키타입 생성기 · 번들 분리) / `memory`(추억) / `gear`(장비 · 드롭 · 반복/소탕) / `tuner`(적 아키타입 · 기대 성장 · 튜너) / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀) / `deletion`(캐릭터 삭제 정리) / `aliases`(id 별칭으로 세이브 옮기기 + 지금 id가 규칙대로인지) / `npc`(NPC 등급 ↔ 1–5 전환 시 가챠 풀/플레이어 화면/적 연결).
+- 파일: `battleUi`(전투 화면 순수 부분: 장면 묶기 · 카드 배치 · 숫자 위치 · 순서 칩) / `config` / `stats`(능력치 모델) / `kitgen`(아키타입 생성기 · 번들 분리) / `memory`(추억) / `gear`(장비 · 드롭 · 반복/소탕) / `tuner`(적 아키타입 · 기대 성장 · 튜너) / `save`(마이그레이션) / `progression` / `gacha`(10만 회 시드 통계) / `data`(실제 데이터 + 모험 연결) / `effects`(효과마다) / `battle`(`js/battle/selftest.js` 검사 하나씩) / `snapshot`(회귀) / `deletion`(캐릭터 삭제 정리) / `aliases`(id 별칭으로 세이브 옮기기 + 지금 id가 규칙대로인지) / `npc`(NPC 등급 ↔ 1–5 전환 시 가챠 풀/플레이어 화면/적 연결) / `profile`(프로필 정리 · 검사 · 해금 · 화면 데이터 · profileSeen).
+- 개발 도구 파이썬 테스트: `dev/.venv/Scripts/python -m unittest discover -s dev/tests -t dev` (프로필 검사, 글 모델 고르기, 프롬프트 내용, 검수 구조 잠금).
 - 새 테스트 파일은 `tests/all.js`에 한 줄. 러너 `tests/lib/runner.js`, 실제 데이터 로더 `tests/lib/gameData.js`, 전투 픽스처 `js/battle/testkit.js`, 샘플 `tests/fixtures/`.
 - **회귀 스냅샷** `tests/snapshots/stages.json`: 모든 스테이지 × 기준 팀(`tests/fixtures/teams.js`) × 시드 1~3 자동 전투 (`승패 라운드 피해/…`). 다르면 실패 + 바뀐 줄 목록 → 의도한 변경이면 갱신.
 - 연출 확인: `dev/fx-test.html` (정적 서버) 또는 개발 도구 `/fx-test` — 희귀도 조합 강제, 2배속, 모션 줄이기, `?auto=5&fake=1` 자동 실행.
@@ -73,8 +74,13 @@ cardCrop { y: 0–0.5 } (전투 카드 그림을 위에서 얼마나 내려 자�
 statTweak { 능력치: % } (±10% 넘으면 경고), stats { 능력치 11개 } (절대값 — 있으면 역할 템플릿 대신),
 archetype, kitGen { archetype, variants, seed, version } (생성기 기록), resource { name, cap, start },
 kit { basic, skill, ultimate:{…, cost?}, transformed? } (없으면 defaultKit), talents [상시 패시브 ≤4], bt2, bt6 (돌파 2·6),
-breakthroughs [패시브 ≤6] (예전 방식)
+breakthroughs [패시브 ≤6] (예전 방식),
+profile { facts{age,height,origin,affiliation,likes[],dislikes[],hobby}, stories[{title,text,unlock:{breakthrough 1–6}} ≤3],
+          lines{obtain,team,levelUp,breakthrough,battleStart,ultimate,idle[]}, relations[{id,label,note} ≤6], voice{…}, version }   // CHARACTER_PROFILE.md
 ```
+- 프로필(`js/systems/profile.js`, 순수): 게임은 facts/stories/lines/relations만 읽음(`cleanProfile`, 길이 제한 `PROFILE_LIMITS`), `voice`(작가용 말투 카드)는 배포 때 빠짐(`profile.strip_voice`).
+  NPC는 voice만. `quote`가 비어 있으면 `lines.obtain`(`quoteOf`). 해금: 보유 = facts · lines, 돌파 = `stories[].unlock.breakthrough`(기본 1/3/6), 관계 = 상대도 보유(NPC 상대는 바로).
+  검사: 게임 `profileIssues` = 개발 도구 `tinydev/profile.py issues`(같은 규칙). 배포 검사 오류 = 길이 · 형식 · relations id · voice.address 키(캐릭터 id 또는 `protagonist`) · unlock 1~6, 경고 = 프로필 없음 / voice 없음 / weakness · never 빈 칸.
 - Skill = `{ name, description, targeting, count?, effects[], useIf?[조건] }` — **cooldown 없음** (스킬은 팀 SP. 예전 cooldown은 경고 후 무시)
 - Effect = `{ type, ...params, target?, chance? }` / Passive = `{ name, description, trigger?, pct?, conditions[], targeting, count?, effects[], modifiers[], limit?, perRound? }`
 
@@ -135,7 +141,7 @@ genKey (생성기 항목: generic:<key> | signature:<캐릭터 id>), theme[] (�
 v, gems, tickets, gold, scrolls, createdAt, lastLoginDate,
 owned { id: { level, essence, breakthrough(0–6), count, firstAt } },
 pity { standard, pickup, memory, memoryPickup }, guaranteed { pickup, memoryPickup }, teams { active, presets[3] { name, slots[5] } },
-stages { id: { clears, firstClaimed, bestRounds, stars } }, readStories, claimedMail, hiddenNotices, …,
+stages { id: { clears, firstClaimed, bestRounds, stars } }, readStories, profileSeen { 캐릭터 id: [읽은 프로필 이야기 번호] }, claimedMail, hiddenNotices, …,
 settings { fxSpeed: 1|2, fxSkip, battleSpeed: 1|2, battleAuto },
 memories [{ u: 'm<n>', id, lv, r }], memSeq, memMat, memGranted[], gear { '<칸>.<티어>.<강화>': { n, lock } }, gearMat,
 equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<강화>' | null } } }

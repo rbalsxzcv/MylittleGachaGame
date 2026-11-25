@@ -6,6 +6,7 @@ error가 하나라도 있으면 배포할 수 없습니다.
 import re
 
 from . import kit, rarity
+from . import profile as profile_mod
 from .store import valid_id, deleted_ids, is_auto_id, ID_KINDS
 from .timeutil import parse
 
@@ -192,6 +193,24 @@ def check_shop(r, shop, asset_exists):
         r.warn("shop.vip", "VIP 단계는 작은 금액부터 순서대로 적어 주세요 (게임에서 정렬됨)")
 
 
+def _check_profile(r, where, c, char_ids, is_npc):
+    """프로필 (CHARACTER_PROFILE.md 6장): 길이 · 형식 · id 규칙은 오류, 빠진 프로필 / 약점 · 금지어 빈 칸은 경고"""
+    p = c.get("profile")
+    if p is None:
+        if not is_npc and not c.get("retired"):
+            r.warn(where, "프로필이 없어요 (캐릭터 탭 → 프로필 / 프로필 일괄 생성)")
+        return
+    for msg in profile_mod.issues(p, char_ids):
+        r.error(where, f"프로필 {msg}")
+    if isinstance(p, dict) and is_npc and any(k in p for k in ("facts", "stories", "lines", "relations")):
+        r.warn(where, "NPC는 프로필의 facts / stories / lines / relations를 쓰지 않아요 (voice만)")
+    if isinstance(p, dict) and isinstance(p.get("voice"), dict):
+        for msg in profile_mod.voice_warnings(p["voice"]):
+            r.warn(where, msg)
+    elif not is_npc:
+        r.warn(where, "말투 카드(voice)가 없어요 — 스토리 생성이 소개문만 보고 써요")
+
+
 def validate(content, asset_exists, held=None):
     """content: {characters, banners, storyIndex, notices, mail, enemies, stages, balance, ui, stories: {id: body}}
     held: 이번 배포에서 보류된 항목 id 집합 (참조 오류 메시지를 친절하게 하기 위해)
@@ -230,6 +249,7 @@ def validate(content, asset_exists, held=None):
             r.warn(where, "addedAt(추가 시각)이 없어요")
         if vocab and c["id"] not in npc_ids:  # NPC는 동료로 싸우지 않음 (적으로 나올 때는 적 데이터)
             kit.check_character_battle(r, where, c, vocab)
+        _check_profile(r, where, c, char_ids, c["id"] in npc_ids)
 
     # ── 적 / 스테이지 ──
     enemies = _check_ids(r, "enemies", content.get("enemies") or [])

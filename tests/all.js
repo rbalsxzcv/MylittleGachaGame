@@ -16,3 +16,4 @@ import './memory.test.js';
 import './gear.test.js';
 import './tuner.test.js';
 import './battleUi.test.js';
+import './profile.test.js';

@@ -10,6 +10,7 @@ import shutil
 import subprocess
 
 from . import config, rarity, store, uislots, validate
+from . import profile as profile_mod
 from .timeutil import now_iso, parse
 
 LIST_KEYS = ("characters", "banners", "storyIndex", "notices", "mail", "enemies", "stages", "memories")
@@ -179,6 +180,8 @@ def plan(cutoff=None):
     # ── 2) 검사 ──
     report = validate.validate(out, store.asset_exists_ws, held)
     issues = syntax + report.items
+    # 말투 카드(profile.voice)는 작가용 — 검사한 뒤 공개 파일에서는 뺌 (게임이 안 씀, 약점/욕망 = 스포일러)
+    out["characters"] = [profile_mod.strip_voice(c) for c in out["characters"]]
 
     # ── 3) 바뀐 파일 ──
     targets = {}  # 공개 경로 → ('json', 객체) | ('asset', 작업공간 경로)

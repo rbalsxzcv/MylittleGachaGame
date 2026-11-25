@@ -69,6 +69,7 @@ export function createNewSave(t = now()) {
     pity: { standard: 0, pickup: 0, memory: 0, memoryPickup: 0 }, // 배너 종류별 천장 카운트 (상시/픽업/추억 상시/추억 픽업 따로)
     guaranteed: { pickup: false, memoryPickup: false }, // 픽업 50% 실패 → 다음 5★은 픽업 확정
     readStories: {}, // 스토리 id → 처음 다 읽은 시각
+    profileSeen: {}, // 캐릭터 id → 읽은 프로필 이야기 번호 [0..2] (도감 빨간 점)
     claimedMail: [], // 받은 우편 id
     hiddenNotices: [], // "다시 보지 않기" 한 공지 id
     seenContentVersion: 0, // 마지막으로 확인한 업데이트 버전
@@ -318,6 +319,15 @@ export function sanitize(raw) {
     }
   }
 
+  const profileSeen = {};
+  if (raw.profileSeen && typeof raw.profileSeen === 'object' && !Array.isArray(raw.profileSeen)) {
+    for (const [id, list] of Object.entries(raw.profileSeen).slice(0, MAX_IDS)) {
+      if (!ID_PATTERN.test(id) || !Array.isArray(list)) continue;
+      const idx = [...new Set(list.filter((i) => Number.isInteger(i) && i >= 0 && i < 10))].sort((a, b) => a - b);
+      if (idx.length) profileSeen[id] = idx;
+    }
+  }
+
   const save = {
     v: SAVE_VERSION,
     gems: int(raw.gems, 0, MAX_GEMS, 0),
@@ -330,6 +340,7 @@ export function sanitize(raw) {
     pity,
     guaranteed,
     readStories,
+    profileSeen,
     claimedMail: idList(raw.claimedMail),
     hiddenNotices: idList(raw.hiddenNotices),
     seenContentVersion: int(raw.seenContentVersion, 0, 1_000_000, 0),
