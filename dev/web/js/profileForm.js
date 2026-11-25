@@ -1,4 +1,5 @@
 // 캐릭터 프로필 편집 (CHARACTER_PROFILE.md 4-1장): facts · stories · lines · relations · voice 폼 + AI 초안(전체 / 이야기만 / 대사만 / 말투 카드만)
+// 탭: 폼 · JSON 원본 · 직접 만들기(AI 프롬프트 그대로 복사 → 외부 AI 답 붙여넣기)
 // AI 결과는 폼에 채우기만 하고 저장은 '저장' 버튼으로. 목록 칸은 줄바꿈으로 구분. 주인공은 voice만 (설정집 protagonist.voice)
 import { h, toast, modal, busy } from './ui.js';
 import { api, tryApi } from './api.js';
@@ -60,6 +61,18 @@ export function parseProfileJson(text, selfId) {
     data = data.profile;
   }
   return { profile: data, notes };
+}
+
+/** 클립보드 복사 (권한이 없으면 글을 선택해 둠) */
+async function copyText(text, area, ok) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(ok, 'success');
+  } catch {
+    area.focus();
+    area.select();
+    toast('복사 권한이 없어요 — 선택해 뒀으니 Ctrl+C', 'error');
+  }
 }
 
 const toLines = (v) => (Array.isArray(v) ? v.join('\n') : v || '');
@@ -207,11 +220,15 @@ export function profileEditor({ target, profile = {}, npc = false }) {
       tryApi(() => api.post('/api/char/profile', { id: selfId, part, feedback: feedback.value, current: get(), model: model.value })),
     );
     if (!r) return;
-    fill(r.profile);
+    showDraft(r.profile, r.warnings, `모델: ${r.model.label}${r.model.mock ? ' (모의)' : ''}`);
+  }
+  /** AI 초안 · 직접 만들기 결과를 폼에 채우고 경고 표시 */
+  function showDraft(p, warnings, source) {
+    fill(p);
     syncJson(true);
     warnBox.replaceChildren(h('div', {},
-      h('p', { class: 'muted small' }, `모델: ${r.model.label}${r.model.mock ? ' (모의)' : ''} · 아직 저장 안 됨 — 고친 뒤 저장`),
-      r.warnings.length > 0 && h('ul', { class: 'warn-list' }, r.warnings.map((w) => h('li', { class: 'warn' }, w))),
+      h('p', { class: 'muted small' }, `${source} · 아직 저장 안 됨 — 고친 뒤 저장`),
+      warnings.length > 0 && h('ul', { class: 'warn-list' }, warnings.map((w) => h('li', { class: 'warn' }, w))),
     ));
     toast('초안을 채웠어요. 고친 뒤 저장해 주세요', 'success');
   }
@@ -291,6 +308,76 @@ export function profileEditor({ target, profile = {}, npc = false }) {
       jsonInfo.replaceChildren(h('p', { class: 'error small' }, e.message));
     }
   });
+  // ── 직접 만들기 탭: AI 버튼이 보낼 프롬프트를 그대로 복사 → 외부 AI → 답을 붙여넣으면 AI 초안과 같은 방식으로 폼에 채움 ──
+  const PART_LABEL = { all: '전체 프로필', stories: '이야기만', lines: '대사만', voice: '말투 카드만' };
+  const manPart = h('select', {}, (voiceOnly ? ['voice'] : ['all', 'stories', 'lines', 'voice']).map((k) => h('option', { value: k }, PART_LABEL[k])));
+  const manFeedback = h('input', { placeholder: feedback.placeholder });
+  feedback.addEventListener('input', () => (manFeedback.value = feedback.value));
+  manFeedback.addEventListener('input', () => (feedback.value = manFeedback.value));
+  const promptArea = h('textarea', { class: 'pf-json', rows: 16, readonly: true, spellcheck: 'false' });
+  const promptInfo = h('p', { class: 'muted small' });
+  const replyArea = h('textarea', { class: 'pf-json', rows: 12, spellcheck: 'false', placeholder: '외부 AI의 답(JSON)을 그대로 붙여넣기 — ```json 감싸기나 앞뒤 설명 문장이 붙어 있어도 괜찮아요' });
+  const manInfo = h('div', { class: 'pf-json-info' });
+  let manPrompted = null; // 마지막으로 만든 프롬프트의 part (응답을 합칠 때 같은 기준)
+  async function buildPrompt() {
+    let current;
+    try {
+      current = get();
+    } catch (e) {
+      manInfo.replaceChildren(h('p', { class: 'error small' }, `JSON 원본 탭의 편집을 적용하지 못했어요: ${e.message}`));
+      return false;
+    }
+    promptInfo.textContent = '프롬프트 만드는 중…';
+    const r = await tryApi(() => api.post('/api/char/profile/prompt', { id: selfId, part: manPart.value, feedback: manFeedback.value, current }));
+    if (!r) {
+      promptInfo.textContent = '프롬프트를 만들지 못했어요';
+      return false;
+    }
+    promptArea.value = r.prompt;
+    manPrompted = r.part;
+    promptInfo.textContent = `${r.prompt.length.toLocaleString()}자 · ${PART_LABEL[r.part]} · 지금 폼 내용과 수정 요청이 '현재 프로필'로 들어가 있어요. 개발 도구 AI는 이 글을 JSON 응답 모드로 보내요 (외부 AI에는 "JSON만 답해 줘"를 따로 붙이지 않아도 프롬프트 끝에 적혀 있어요).`;
+    return true;
+  }
+  manPart.addEventListener('change', buildPrompt);
+  manFeedback.addEventListener('change', buildPrompt);
+  async function applyReply() {
+    if (!replyArea.value.trim()) {
+      manInfo.replaceChildren(h('p', { class: 'error small' }, '외부 AI의 답을 먼저 붙여넣어 주세요'));
+      return;
+    }
+    if (!manPrompted && !(await buildPrompt())) return;
+    let current;
+    try {
+      current = get();
+    } catch (e) {
+      manInfo.replaceChildren(h('p', { class: 'error small' }, e.message));
+      return;
+    }
+    const r = await tryApi(() => api.post('/api/char/profile/import', { id: selfId, part: manPrompted, current, text: replyArea.value }));
+    if (!r) return;
+    manInfo.replaceChildren(h('p', { class: 'ok-text small' }, `✓ ${PART_LABEL[r.part]}을(를) 폼에 채웠어요 (아직 저장 안 됨)`));
+    showDraft(r.profile, r.warnings, `직접 만들기 (외부 AI) · ${PART_LABEL[r.part]}`);
+    showTab('form');
+  }
+  const manualPane = h(
+    'div',
+    { class: 'pf-manual-pane', hidden: true },
+    h('p', { class: 'muted small' }, 'AI 버튼이 모델에 보내는 프롬프트를 글자 하나 다르지 않게 보여 줘요. 복사해서 외부 AI(웹 채팅 등)에 넣고, 받은 답을 아래에 붙여넣으면 AI 초안과 똑같이 합쳐서 폼에 채워요 — 저장은 아래 저장 버튼으로.'),
+    h('div', { class: 'row wrap' }, h('span', { class: 'small' }, '만들 부분'), manPart, manFeedback),
+    h(
+      'div',
+      { class: 'row wrap' },
+      h('button', { class: 'btn primary small', onclick: () => copyText(promptArea.value, promptArea, '프롬프트를 복사했어요') }, '① 프롬프트 복사'),
+      h('button', { class: 'btn small', title: '폼을 고쳤으면 다시 만들어 주세요', onclick: buildPrompt }, '프롬프트 새로 만들기'),
+    ),
+    promptInfo,
+    promptArea,
+    h('h3', { class: 'small' }, '② 외부 AI의 답 붙여넣기'),
+    replyArea,
+    h('div', { class: 'row wrap' }, h('button', { class: 'btn primary small', onclick: applyReply }, '③ 폼에 채우기'), h('button', { class: 'btn small', onclick: () => ((replyArea.value = ''), manInfo.replaceChildren()) }, '답 지우기')),
+    manInfo,
+  );
+
   const fileName = `${isProt ? 'protagonist' : target.id}-profile.json`;
   const jsonPane = h(
     'div',
@@ -318,15 +405,7 @@ export function profileEditor({ target, profile = {}, npc = false }) {
         'button',
         {
           class: 'btn small',
-          onclick: async () => {
-            try {
-              await navigator.clipboard.writeText(jsonArea.value);
-              toast('JSON을 복사했어요', 'success');
-            } catch {
-              jsonArea.select();
-              toast('복사 권한이 없어요 — 선택해 뒀으니 Ctrl+C', 'error');
-            }
-          },
+          onclick: () => copyText(jsonArea.value, jsonArea, 'JSON을 복사했어요'),
         },
         '복사',
       ),
@@ -396,6 +475,7 @@ export function profileEditor({ target, profile = {}, npc = false }) {
 
   const tabForm = h('button', { class: ['tab-s', 'active'], type: 'button', onclick: () => showTab('form') }, '폼');
   const tabJson = h('button', { class: 'tab-s', type: 'button', onclick: () => showTab('json') }, 'JSON 원본');
+  const tabManual = h('button', { class: 'tab-s', type: 'button', title: '외부 AI용 프롬프트 복사 → 답 붙여넣기', onclick: () => showTab('manual') }, '직접 만들기');
   function showTab(which) {
     if (which === 'json') syncJson();
     else if (jsonDirty) {
@@ -408,10 +488,13 @@ export function profileEditor({ target, profile = {}, npc = false }) {
     }
     formPane.hidden = which !== 'form';
     jsonPane.hidden = which !== 'json';
+    manualPane.hidden = which !== 'manual';
     tabForm.classList.toggle('active', which === 'form');
     tabJson.classList.toggle('active', which === 'json');
+    tabManual.classList.toggle('active', which === 'manual');
+    if (which === 'manual') buildPrompt(); // 지금 폼 내용으로 매번 새로
   }
-  const el = h('div', { class: 'profile-form' }, h('div', { class: 'row pf-tabs' }, tabForm, tabJson), formPane, jsonPane);
+  const el = h('div', { class: 'profile-form' }, h('div', { class: 'row pf-tabs' }, tabForm, tabJson, tabManual), formPane, jsonPane, manualPane);
 
   /** 저장 · 승인에 쓸 값: JSON 탭에 적용 안 한 편집이 있으면 먼저 적용 (문법 오류면 예외) */
   function get() {

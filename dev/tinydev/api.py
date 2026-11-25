@@ -647,6 +647,38 @@ def char_profile_draft():
     return jsonify(profile=prof, model=used, warnings=warnings)
 
 
+def _profile_request(data):
+    tid = data.get("id")
+    if tid != profile_mod.PROTAGONIST and not store.valid_id(tid):
+        raise ValueError("캐릭터 id가 필요해요")
+    return profile_mod.draft_request(
+        tid,
+        part=data.get("part") or "all",
+        feedback=text(data, "feedback", 1000),
+        current=data.get("current") if isinstance(data.get("current"), dict) else None,
+    )
+
+
+@app.post("/api/char/profile/prompt")
+def char_profile_prompt():
+    """직접 만들기: AI 초안 버튼이 모델에 보낼 프롬프트 그대로 (호출 안 함) → 외부 AI에 붙여넣기용"""
+    req = _profile_request(body())
+    return jsonify(prompt=req["prompt"], part=req["part"])
+
+
+@app.post("/api/char/profile/import")
+def char_profile_import():
+    """직접 만들기: 외부 AI 응답 글 → AI 초안과 같은 방식으로 합치고 정리 (저장 안 함 → 폼에 채움).
+    id · part · feedback · current는 프롬프트를 만들 때 보낸 값 그대로"""
+    data = body()
+    req = _profile_request(data)
+    parsed = profile_mod.parse_pasted(data.get("text"))
+    if not isinstance(parsed, dict):
+        raise ValueError("응답이 JSON 객체({ … })가 아니에요")
+    prof, warnings = profile_mod.apply_response(req, parsed)
+    return jsonify(profile=prof, warnings=warnings, part=req["part"])
+
+
 @app.post("/api/char/profile/check")
 def char_profile_check():
     """붙여넣은 프로필 JSON 검사 (저장 안 함): 오류 · 경고 · 모르는 키"""

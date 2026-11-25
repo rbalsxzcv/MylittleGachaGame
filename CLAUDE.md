@@ -255,6 +255,8 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
   → `POST /api/char/profile`(저장 안 함) → 폼(`web/js/profileForm.js`, 캐릭터 탭 '프로필' / 스토리 탭 '주인공 말투 카드') → `PUT /api/characters/<id>/profile` · `PUT /api/story-bible/protagonist`.
   폼의 'JSON 원본' 탭 = 지금 폼 내용을 JSON으로(빈 칸 생략) 보기 · 복사 · 파일로 내려받기/불러오기, 밖에서 고친 JSON(프로필 / `{profile}` / 캐릭터 항목 / ```json 감싸기)을 붙여넣어 폼에 적용
   → `POST /api/char/profile/check`(`profile.check_raw`: 오류 · 경고 · 모르는 키)로 바로 표시. 저장은 정리 전에 검사해서 길이를 넘으면 거부(자르지 않음).
+  '직접 만들기' 탭 = AI 버튼이 보낼 프롬프트 그대로(`profile.draft_request`, `POST /api/char/profile/prompt`, 지금 폼 = 현재 프로필) 복사 → 외부 AI 답 붙여넣기
+  → `POST /api/char/profile/import`(`parse_pasted`: ```json · 앞뒤 설명 허용 → `apply_response` = AI 초안과 같은 합치기 · 정리 · 경고) → 폼에 채움(저장 안 함).
   주인공 카드는 `story_bible.json protagonist {name, voice}`.
   일괄 생성 `tinydev/profilebatch.py`(캐릭터 탭 위 패널 `web/js/profileBatch.js`): 주인공 → 캐릭터(높은 등급 → NPC) 한 명씩, 앞에서 만든 카드(승인 전 포함)를 다음 요청 요약에 넣음,
   결과는 대기 → 캐릭터별 승인 / 다시 만들기 / 건너뛰기. 상태 `dev/history/profile-batch/state.json`(재시작해도 검토 이어서).

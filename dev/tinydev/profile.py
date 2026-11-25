@@ -5,6 +5,7 @@ profile = {facts, stories, lines, relations, voice, version}
 - voice: 작가용 말투 카드 (화면에 안 나옴, 배포 때 빠짐). 스토리 생성 · 검수 프롬프트에 들어감
 - NPC는 voice만 / 주인공(단장)은 캐릭터 데이터가 없어서 dev/story_bible.json의 protagonist.voice
 """
+import json
 import re
 
 LIMITS = {
@@ -328,10 +329,10 @@ def target_info(tid):
     return target, (c.get("profile") if isinstance(c.get("profile"), dict) else {})
 
 
-def draft(tid, part="all", feedback="", current=None, model=None, extra_voices=None):
-    """프로필 초안 (저장하지 않음) → (profile, 쓴 모델, 경고 목록)
-    part: all | stories | lines | voice — all이 아니면 그 부분만 새로 만들어 현재 프로필에 합침. NPC · 주인공은 voice만"""
-    from . import bible, genai, prompts, store
+def draft_request(tid, part="all", feedback="", current=None, extra_voices=None):
+    """AI에게 보낼 요청 준비 (호출 안 함) → {prompt, ctx, kind, part, base, ids}
+    part: all | stories | lines | voice. NPC · 주인공은 voice만. '직접 만들기'(외부 AI)도 이 프롬프트를 그대로 씀"""
+    from . import bible, prompts, store
 
     if part not in PARTS:
         raise ValueError("part는 all / stories / lines / voice")
@@ -360,10 +361,42 @@ def draft(tid, part="all", feedback="", current=None, model=None, extra_voices=N
         "current": base or None,
         "feedback": feedback or "",
     }
-    raw, used = genai.generate_text_ex(prompts.profile_draft(ctx), json_mode=True, mock=lambda: prompts.mock_profile(ctx), task="profile", model=model, record=tid)
-    data = genai.parse_json_text(raw)
+    return {"prompt": prompts.profile_draft(ctx), "ctx": ctx, "kind": kind, "part": part, "base": base, "ids": {c["id"] for c in chars}}
+
+
+def parse_pasted(text):
+    """외부 AI 응답 글 → JSON 객체. ```json 감싸기, 앞뒤 설명 문장이 붙은 것도 받음 (첫 '{' ~ 마지막 '}')"""
+    from . import genai
+
+    t = str(text or "").strip()
+    if not t:
+        raise ValueError("응답이 비어 있어요")
+    try:
+        return genai.parse_json_text(t)
+    except genai.GenError:
+        pass
+    m = re.search(r"```(?:json)?\s*\n(.*?)```", t, re.S)
+    if m:
+        try:
+            return json.loads(m.group(1))
+        except json.JSONDecodeError:
+            pass
+    i, j = t.find("{"), t.rfind("}")
+    if i >= 0 and j > i:
+        try:
+            return json.loads(t[i : j + 1])
+        except json.JSONDecodeError as e:
+            raise ValueError(f"응답을 JSON으로 읽지 못했어요: {e}") from e
+    raise ValueError("응답에서 JSON 객체({ … })를 찾지 못했어요")
+
+
+def apply_response(req, data):
+    """AI 응답(JSON 객체) → (정리한 프로필, 경고 목록). draft_request 결과(req)의 part · 현재 프로필 기준으로 합침"""
+    from . import genai
+
     if not isinstance(data, dict):
         raise genai.GenError("AI 응답이 프로필 형식이 아니에요")
+    kind, part, base = req["kind"], req["part"], req["base"]
     if kind != "char" or part == "voice":
         new = {**(base or {}), "voice": data.get("voice") if isinstance(data.get("voice"), dict) else data}
     elif part == "all":
@@ -373,8 +406,18 @@ def draft(tid, part="all", feedback="", current=None, model=None, extra_voices=N
     profile = clean_profile(new, npc=kind == "npc")
     if kind == "protagonist":
         profile = {"voice": profile.get("voice", {})}
-    ids = {c["id"] for c in chars}
-    warnings = issues(profile, ids) + voice_warnings(profile.get("voice"))
+    warnings = issues(profile, req["ids"]) + voice_warnings(profile.get("voice"))
+    return profile, warnings
+
+
+def draft(tid, part="all", feedback="", current=None, model=None, extra_voices=None):
+    """프로필 초안 (저장하지 않음) → (profile, 쓴 모델, 경고 목록)
+    part: all | stories | lines | voice — all이 아니면 그 부분만 새로 만들어 현재 프로필에 합침. NPC · 주인공은 voice만"""
+    from . import genai, prompts
+
+    req = draft_request(tid, part, feedback, current, extra_voices)
+    raw, used = genai.generate_text_ex(req["prompt"], json_mode=True, mock=lambda: prompts.mock_profile(req["ctx"]), task="profile", model=model, record=tid)
+    profile, warnings = apply_response(req, genai.parse_json_text(raw))
     return profile, used, warnings
 
 

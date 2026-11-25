@@ -412,3 +412,5 @@ a.chip { text-decoration: none; }
 .profile-form .pf-tabs { gap: 6px; margin-bottom: 10px; }
 .profile-form .pf-json { width: 100%; font-family: ui-monospace, Consolas, monospace; font-size: 13px; line-height: 1.5; tab-size: 2; white-space: pre-wrap; word-break: break-all; }
 .profile-form .pf-json-info { margin: 6px 0; }
+.profile-form .pf-manual-pane .row > input { flex: 1; min-width: 220px; }
+.profile-form .pf-manual-pane h3 { margin: 12px 0 4px; }
