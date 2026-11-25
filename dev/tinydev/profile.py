@@ -378,14 +378,46 @@ def draft(tid, part="all", feedback="", current=None, model=None, extra_voices=N
     return profile, used, warnings
 
 
+KNOWN_KEYS = {
+    "": {"facts", "stories", "lines", "relations", "voice", "version"},
+    "facts": {k for k, _l, _i in FACT_FIELDS},
+    "lines": {k for k, _l, _i in LINE_FIELDS},
+    "voice": set(VOICE_TEXT) | set(VOICE_LISTS) | {"address"},
+}
+
+
+def check_raw(raw, char_ids, voice_only=False):
+    """붙여넣은 JSON(정리 전) 검사 → {issues: 오류(길이 · 형식 · id), warnings: 경고, unknown: 모르는 키(저장할 때 빠짐)}
+    길이를 넘는 글은 저장할 때 자르지 않고 거부하므로 여기서 먼저 알려 줌"""
+    if not isinstance(raw, dict):
+        return {"issues": ["profile: 객체여야 해요"], "warnings": [], "unknown": []}
+    unknown = [k for k in raw if k not in KNOWN_KEYS[""]]
+    for sec in ("facts", "lines", "voice"):
+        if isinstance(raw.get(sec), dict):
+            unknown += [f"{sec}.{k}" for k in raw[sec] if k not in KNOWN_KEYS[sec]]
+    warnings = []
+    if voice_only:
+        dropped = [k for k in ("facts", "stories", "lines", "relations") if raw.get(k)]
+        if dropped:
+            warnings.append(f"말투 카드만 저장해요 — {', '.join(dropped)}는 빠져요")
+    if isinstance(raw.get("voice"), dict):
+        warnings += voice_warnings(raw["voice"])
+    elif not voice_only or "voice" in raw:
+        warnings.append("voice(말투 카드)가 없어요")
+    return {"issues": issues(raw, char_ids), "warnings": warnings, "unknown": unknown}
+
+
 def save_profile(cid, raw):
-    """캐릭터 프로필 저장 (정리 → 오류가 있으면 ValueError). 반환: 저장된 프로필"""
+    """캐릭터 프로필 저장 (오류가 있으면 ValueError — 길이를 넘는 글은 자르지 않고 거부). 반환: 저장된 프로필"""
     from . import rarity, store
 
     chars = store.read_list("characters")
     c = next((x for x in chars if x.get("id") == cid), None)
     if not c:
         raise FileNotFoundError("캐릭터가 없어요")
+    errs = issues(raw, {x["id"] for x in chars})  # 정리 전에 검사 (조용히 잘리지 않게)
+    if errs:
+        raise ValueError("프로필을 저장할 수 없어요: " + " / ".join(errs[:5]))
     p = clean_profile(raw, npc=rarity.is_npc(c))
     errs = issues(p, {x["id"] for x in chars})
     if errs:
@@ -401,8 +433,12 @@ def save_profile(cid, raw):
 def save_protagonist(raw_voice, name=None):
     from . import bible, store
 
+    ids = {c["id"] for c in store.read_list("characters")}
+    errs = voice_issues(raw_voice, ids) if isinstance(raw_voice, dict) else []  # 정리 전에 검사 (조용히 잘리지 않게)
+    if errs:
+        raise ValueError("말투 카드를 저장할 수 없어요: " + " / ".join(errs[:5]))
     voice = clean_voice(raw_voice)
-    errs = voice_issues(voice, {c["id"] for c in store.read_list("characters")})
+    errs = voice_issues(voice, ids)
     if errs:
         raise ValueError("말투 카드를 저장할 수 없어요: " + " / ".join(errs[:5]))
     return bible.set_protagonist(voice, name)

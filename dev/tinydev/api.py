@@ -647,6 +647,21 @@ def char_profile_draft():
     return jsonify(profile=prof, model=used, warnings=warnings)
 
 
+@app.post("/api/char/profile/check")
+def char_profile_check():
+    """붙여넣은 프로필 JSON 검사 (저장 안 함): 오류 · 경고 · 모르는 키"""
+    data = body()
+    tid = data.get("id")
+    voice_only = tid == profile_mod.PROTAGONIST
+    if not voice_only:
+        c = next((x for x in store.read_list("characters") if x.get("id") == tid), None)
+        if not c:
+            raise FileNotFoundError("캐릭터가 없어요")
+        voice_only = rarity_mod.is_npc(c)
+    ids = {c["id"] for c in store.read_list("characters")}
+    return jsonify(profile_mod.check_raw(data.get("profile"), ids, voice_only))
+
+
 @app.put("/api/characters/<cid>/profile")
 def char_profile_put(cid):
     data = body()

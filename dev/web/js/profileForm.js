@@ -27,6 +27,41 @@ const LINES = [
 ];
 const PROTAGONIST = 'protagonist';
 
+/** JSON 보기용: 빈 문자열 · 빈 목록 · 빈 객체는 뺌 */
+function prune(v) {
+  if (Array.isArray(v)) return v.map(prune).filter((x) => x !== undefined);
+  if (v && typeof v === 'object') {
+    const out = {};
+    for (const [k, x] of Object.entries(v)) {
+      const p = prune(x);
+      if (p === undefined || p === '' || (Array.isArray(p) && !p.length) || (p && typeof p === 'object' && !Array.isArray(p) && !Object.keys(p).length)) continue;
+      out[k] = p;
+    }
+    return out;
+  }
+  return v;
+}
+
+/** 붙여넣은 글 → 프로필 객체. 프로필 그대로 / {profile: …} / 캐릭터 항목({id, name, profile}) / ```json 감싸기 모두 받음 */
+export function parseProfileJson(text, selfId) {
+  let t = String(text || '').trim();
+  if (t.startsWith('```')) t = t.replace(/^```[a-z]*\s*/i, '').replace(/```\s*$/, '');
+  if (!t) throw new Error('JSON이 비어 있어요');
+  let data;
+  try {
+    data = JSON.parse(t);
+  } catch (e) {
+    throw new Error(`JSON 문법 오류: ${e.message}`);
+  }
+  if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('JSON 객체({ … })여야 해요');
+  const notes = [];
+  if (data.profile && typeof data.profile === 'object') {
+    if (data.id && data.id !== selfId) notes.push(`다른 캐릭터(${data.id})의 항목이에요 — 프로필만 가져왔어요`);
+    data = data.profile;
+  }
+  return { profile: data, notes };
+}
+
 const toLines = (v) => (Array.isArray(v) ? v.join('\n') : v || '');
 const fromLines = (v) => v.split('\n').map((x) => x.trim()).filter(Boolean);
 
@@ -141,7 +176,7 @@ export function profileEditor({ target, profile = {}, npc = false }) {
     setVal(v.address, addressToText(vo.address));
   }
 
-  function get() {
+  function getForm() {
     const { address, bad } = addressFromText(v.address.value);
     if (bad.length) toast(`호칭 대상을 찾지 못했어요: ${bad.join(', ')} (주인공 / 캐릭터 이름 / id)`, 'error');
     const voice = {
@@ -173,6 +208,7 @@ export function profileEditor({ target, profile = {}, npc = false }) {
     );
     if (!r) return;
     fill(r.profile);
+    syncJson(true);
     warnBox.replaceChildren(h('div', {},
       h('p', { class: 'muted small' }, `모델: ${r.model.label}${r.model.mock ? ' (모의)' : ''} · 아직 저장 안 됨 — 고친 뒤 저장`),
       r.warnings.length > 0 && h('ul', { class: 'warn-list' }, r.warnings.map((w) => h('li', { class: 'warn' }, w))),
@@ -181,7 +217,13 @@ export function profileEditor({ target, profile = {}, npc = false }) {
   }
 
   async function save() {
-    const p = get();
+    let p;
+    try {
+      p = get();
+    } catch (e) {
+      toast(e.message, 'error');
+      return false;
+    }
     const r = isProt
       ? await tryApi(() => api.put('/api/story-bible/protagonist', { voice: p.voice }))
       : await tryApi(() => api.put(`/api/characters/${target.id}/profile`, { profile: p }));
@@ -202,9 +244,118 @@ export function profileEditor({ target, profile = {}, npc = false }) {
     h('div', { class: 'grid2' }, field('절대 안 하는 말', v.never), field('예시 대사 (3~5개)', v.samples)),
     h('div', { class: 'grid2' }, field('약한 부분', v.weakness, L.voiceText), field('원하는 것', v.desire, L.voiceText)),
   );
-  const el = h(
+  // ── JSON 원본 탭: 지금 폼 내용을 JSON으로 보기 · 복사 · 내려받기, 밖에서 고친 JSON을 붙여넣어 폼에 적용 ──
+  const jsonArea = h('textarea', { class: 'pf-json', rows: 28, spellcheck: 'false' });
+  const jsonInfo = h('div', { class: 'pf-json-info' });
+  const fileInput = h('input', { type: 'file', accept: '.json,application/json,text/plain', hidden: true });
+  let jsonDirty = false; // 붙여넣거나 고쳤는데 아직 폼에 적용 안 함
+  jsonArea.addEventListener('input', () => {
+    jsonDirty = true;
+    jsonInfo.replaceChildren(h('p', { class: 'muted small' }, '고친 내용은 아직 폼에 적용 안 됨 — "폼에 적용"을 누르거나 그대로 저장하면 적용돼요'));
+  });
+  /** 폼 → JSON (force가 아니면 적용 안 한 편집은 덮어쓰지 않음) */
+  function syncJson(force = false) {
+    if (jsonDirty && !force) return;
+    jsonArea.value = JSON.stringify(prune(getForm()), null, 2);
+    jsonDirty = false;
+  }
+  /** JSON → 폼 (문법 오류면 예외). 서버 검사 결과(길이 · 형식 · 모르는 키)는 비동기로 아래에 표시 */
+  function applyJson() {
+    let { profile: p, notes } = parseProfileJson(jsonArea.value, selfId);
+    // 말투 카드만 쓰는 대상(NPC · 주인공)은 voice 객체만 붙여넣어도 받음
+    if (voiceOnly && !p.voice && ['personality', 'speech', 'samples', 'never'].some((k) => k in p)) p = { voice: p };
+    fill(voiceOnly ? { voice: p.voice || {} } : p);
+    jsonDirty = false;
+    jsonArea.value = JSON.stringify(prune(getForm()), null, 2);
+    jsonInfo.replaceChildren(h('p', { class: 'muted small' }, '폼에 적용했어요 (아직 저장 안 됨)'), ...notes.map((n) => h('p', { class: 'warn small' }, n)));
+    tryApi(() => api.post('/api/char/profile/check', { id: selfId, profile: p })).then((r) => {
+      if (!r) return;
+      const rows = [
+        ...r.issues.map((x) => h('li', { class: 'error' }, `저장 안 됨: ${x}`)),
+        ...r.warnings.map((x) => h('li', { class: 'warn' }, x)),
+        ...(r.unknown.length ? [h('li', { class: 'warn' }, `모르는 키라서 빠져요: ${r.unknown.join(', ')}`)] : []),
+      ];
+      jsonInfo.append(rows.length ? h('ul', { class: 'warn-list' }, rows) : h('p', { class: 'ok-text small' }, '✓ 형식 · 길이 문제 없음'));
+    });
+    return p;
+  }
+  fileInput.addEventListener('change', async () => {
+    const f = fileInput.files?.[0];
+    fileInput.value = '';
+    if (!f) return;
+    jsonArea.value = await f.text();
+    try {
+      applyJson();
+    } catch (e) {
+      jsonDirty = true;
+      jsonInfo.replaceChildren(h('p', { class: 'error small' }, e.message));
+    }
+  });
+  const fileName = `${isProt ? 'protagonist' : target.id}-profile.json`;
+  const jsonPane = h(
     'div',
-    { class: 'profile-form' },
+    { class: 'pf-json-pane', hidden: true },
+    h('p', { class: 'muted small' }, '지금 폼 내용을 JSON으로 보여 줘요 (빈 칸은 생략). 밖에서 고친 JSON을 통째로 붙여넣고 "폼에 적용"을 누르면 폼이 바뀌어요 — 저장은 아래 저장 버튼으로. 프로필 객체, {"profile": …}, 캐릭터 항목 그대로 모두 받아요.'),
+    h(
+      'div',
+      { class: 'row wrap' },
+      h(
+        'button',
+        {
+          class: 'btn primary small',
+          onclick: () => {
+            try {
+              applyJson();
+              toast('폼에 적용했어요. 확인 후 저장해 주세요', 'success');
+            } catch (e) {
+              jsonInfo.replaceChildren(h('p', { class: 'error small' }, e.message));
+            }
+          },
+        },
+        '폼에 적용',
+      ),
+      h(
+        'button',
+        {
+          class: 'btn small',
+          onclick: async () => {
+            try {
+              await navigator.clipboard.writeText(jsonArea.value);
+              toast('JSON을 복사했어요', 'success');
+            } catch {
+              jsonArea.select();
+              toast('복사 권한이 없어요 — 선택해 뒀으니 Ctrl+C', 'error');
+            }
+          },
+        },
+        '복사',
+      ),
+      h(
+        'button',
+        {
+          class: 'btn small',
+          onclick: () => {
+            const url = URL.createObjectURL(new Blob([jsonArea.value], { type: 'application/json' }));
+            const a = h('a', { href: url, download: fileName });
+            document.body.append(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+          },
+        },
+        '파일로 내려받기',
+      ),
+      h('button', { class: 'btn small', onclick: () => fileInput.click() }, '파일 불러오기'),
+      h('button', { class: 'btn small', title: '적용 안 한 편집을 버리고 지금 폼 내용으로', onclick: () => (syncJson(true), jsonInfo.replaceChildren()) }, '폼 내용으로 되돌리기'),
+      fileInput,
+    ),
+    jsonInfo,
+    jsonArea,
+  );
+
+  const formPane = h(
+    'div',
+    { class: 'pf-form-pane' },
     h(
       'div',
       { class: 'row wrap pf-ai' },
@@ -242,6 +393,31 @@ export function profileEditor({ target, profile = {}, npc = false }) {
     !voiceOnly && h('section', { class: 'pf-section' }, h('h3', {}, '관계 (둘 다 보유하면 보임, 최대 6)'), relRows, relAdd),
     voiceSection,
   );
+
+  const tabForm = h('button', { class: ['tab-s', 'active'], type: 'button', onclick: () => showTab('form') }, '폼');
+  const tabJson = h('button', { class: 'tab-s', type: 'button', onclick: () => showTab('json') }, 'JSON 원본');
+  function showTab(which) {
+    if (which === 'json') syncJson();
+    else if (jsonDirty) {
+      try {
+        applyJson(); // 붙여넣은 JSON을 폼으로 가져가면서 탭 전환
+      } catch (e) {
+        jsonInfo.replaceChildren(h('p', { class: 'error small' }, `${e.message} — 고치거나 "폼 내용으로 되돌리기"를 눌러 주세요`));
+        return;
+      }
+    }
+    formPane.hidden = which !== 'form';
+    jsonPane.hidden = which !== 'json';
+    tabForm.classList.toggle('active', which === 'form');
+    tabJson.classList.toggle('active', which === 'json');
+  }
+  const el = h('div', { class: 'profile-form' }, h('div', { class: 'row pf-tabs' }, tabForm, tabJson), formPane, jsonPane);
+
+  /** 저장 · 승인에 쓸 값: JSON 탭에 적용 안 한 편집이 있으면 먼저 적용 (문법 오류면 예외) */
+  function get() {
+    if (jsonDirty) applyJson();
+    return getForm();
+  }
   fill(profile);
   return { el, get, save, fill };
 }

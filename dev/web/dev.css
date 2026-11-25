@@ -407,3 +407,8 @@ a.chip { text-decoration: none; }
 .rv-table { border-collapse: collapse; }
 .rv-table td, .rv-table th { padding: 2px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); text-align: right; }
 .rv-table td:first-child, .rv-table th:first-child { text-align: left; }
+
+/* 프로필 JSON 원본 탭 */
+.profile-form .pf-tabs { gap: 6px; margin-bottom: 10px; }
+.profile-form .pf-json { width: 100%; font-family: ui-monospace, Consolas, monospace; font-size: 13px; line-height: 1.5; tab-size: 2; white-space: pre-wrap; word-break: break-all; }
+.profile-form .pf-json-info { margin: 6px 0; }

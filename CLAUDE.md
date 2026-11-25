@@ -253,6 +253,8 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
   제공자별 함수 `genai._PROVIDERS`(지금 gemini만, 키는 `dev/.env`에만). 생성 버튼 옆 `web/js/modelPicker.js`. 기록 `dev/history/text-…/record.json`(`texthist`) + 장 초안은 설정집 장 정보 `model`.
 - 프로필(`tinydev/profile.py`): `draft(id | 'protagonist', part all|stories|lines|voice)` = `prompts.profile_draft`(다른 캐릭터 말투 요약 · 주인공 카드 · 대본 발췌 ≤3000자 · 문체 지침)
   → `POST /api/char/profile`(저장 안 함) → 폼(`web/js/profileForm.js`, 캐릭터 탭 '프로필' / 스토리 탭 '주인공 말투 카드') → `PUT /api/characters/<id>/profile` · `PUT /api/story-bible/protagonist`.
+  폼의 'JSON 원본' 탭 = 지금 폼 내용을 JSON으로(빈 칸 생략) 보기 · 복사 · 파일로 내려받기/불러오기, 밖에서 고친 JSON(프로필 / `{profile}` / 캐릭터 항목 / ```json 감싸기)을 붙여넣어 폼에 적용
+  → `POST /api/char/profile/check`(`profile.check_raw`: 오류 · 경고 · 모르는 키)로 바로 표시. 저장은 정리 전에 검사해서 길이를 넘으면 거부(자르지 않음).
   주인공 카드는 `story_bible.json protagonist {name, voice}`.
   일괄 생성 `tinydev/profilebatch.py`(캐릭터 탭 위 패널 `web/js/profileBatch.js`): 주인공 → 캐릭터(높은 등급 → NPC) 한 명씩, 앞에서 만든 카드(승인 전 포함)를 다음 요청 요약에 넣음,
   결과는 대기 → 캐릭터별 승인 / 다시 만들기 / 건너뛰기. 상태 `dev/history/profile-batch/state.json`(재시작해도 검토 이어서).

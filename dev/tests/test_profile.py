@@ -81,5 +81,17 @@ class ValidateProfileTest(unittest.TestCase):
         self.assertTrue(any("char_0013" in w and "weakness" in w for w in warns))
 
 
+
+class PastedJsonTest(unittest.TestCase):
+    def test_check_raw_reports_lengths_unknown_keys_and_voice_only(self):
+        raw = {**GOOD, "facts": {"age": "가" * 41, "blood": "A"}, "extra": 1, "voice": {**GOOD["voice"], "mood": "x"}}
+        r = profile.check_raw(raw, IDS)
+        self.assertTrue(any("facts.age" in i for i in r["issues"]))
+        self.assertEqual(set(r["unknown"]), {"extra", "facts.blood", "voice.mood"})
+        npc = profile.check_raw(GOOD, IDS, voice_only=True)
+        self.assertTrue(any("말투 카드만" in w for w in npc["warnings"]))
+        self.assertEqual(profile.check_raw([], IDS)["issues"], ["profile: 객체여야 해요"])
+
+
 if __name__ == "__main__":
     unittest.main()
