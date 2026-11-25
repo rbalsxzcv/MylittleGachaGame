@@ -5,7 +5,8 @@ import { loadGameData } from './lib/gameData.js';
 import { RARITIES, NPC } from '../js/config.js';
 import { createBattle } from '../js/battle/engine.js';
 import { buildPools, isPoolEmpty } from '../js/systems/gacha.js';
-import { adventureIssues } from '../js/systems/adventure.js';
+import { adventureIssues, storyBattleBackground, battleBackgrounds } from '../js/systems/adventure.js';
+import { validateStages } from '../js/core/data.js';
 
 const d = await loadGameData({ stories: true });
 
@@ -73,5 +74,43 @@ describe('data: 모험 (스테이지 = 스토리 1 + 전투 1)', () => {
       b.runToEnd();
       expect(['win', 'lose'].includes(b.state.result), `${stage.id}: ${b.state.result}`).toBe(true);
     }
+  });
+});
+
+describe('data: 전투 배경', () => {
+  const img = (value) => ({ type: 'image', value });
+  const story = {
+    scenes: [
+      { id: 'a', type: 'dialogue', background: img('assets/bg/bg_0001.jpg'), lines: [] },
+      { id: 'b', type: 'dialogue', background: { type: 'color', value: '#000' }, lines: [] },
+      { id: 'c', type: 'battle', stageId: 'stage_0100', background: { type: 'color', value: '#000' } },
+      { id: 'd', type: 'dialogue', background: img('assets/bg/bg_0002.jpg'), lines: [] },
+    ],
+  };
+  it('스토리 배경: 전투 장면 그림 → 가장 가까운 앞 장면 → 뒤 장면', () => {
+    expect(storyBattleBackground(story, 'stage_0100')).toBe('assets/bg/bg_0001.jpg');
+    const own = { scenes: story.scenes.map((s) => (s.id === 'c' ? { ...s, background: img('assets/bg/bg_0009.jpg') } : s)) };
+    expect(storyBattleBackground(own, 'stage_0100')).toBe('assets/bg/bg_0009.jpg');
+    const after = { scenes: story.scenes.filter((s) => s.id !== 'a') };
+    expect(storyBattleBackground(after, 'stage_0100')).toBe('assets/bg/bg_0002.jpg');
+    expect(storyBattleBackground({ scenes: [{ id: 'x', type: 'dialogue', lines: [] }] }, 'stage_0100')).toBe(null);
+    expect(storyBattleBackground(null, 'stage_0100')).toBe(null);
+  });
+  it('후보 순서: 스테이지 전용 → 스토리 배경 → 기본 배경 (중복/빈 값 없음)', () => {
+    const ui = { backgrounds: { battle: 'assets/ui/bg_battle.jpg' } };
+    const stage = { id: 'stage_0100', background: 'assets/battle/stage_0100.jpg' };
+    expect(battleBackgrounds({ stage, story, ui })).toEqual(['assets/battle/stage_0100.jpg', 'assets/bg/bg_0001.jpg', 'assets/ui/bg_battle.jpg']);
+    expect(battleBackgrounds({ stage: { id: 'stage_0100', background: null }, story, ui })).toEqual(['assets/bg/bg_0001.jpg', 'assets/ui/bg_battle.jpg']);
+    expect(battleBackgrounds({ stage: { id: 'stage_0100' }, story: null, ui })).toEqual(['assets/ui/bg_battle.jpg']);
+    expect(battleBackgrounds({ stage: { id: 'stage_0100' } })).toEqual([]);
+  });
+  it('스테이지 background는 assets/ 경로만 남김', () => {
+    const base = { id: 'stage_0100', waves: [[{ enemyId: 'enemy_0001' }]] };
+    const [ok, bad] = validateStages({ chapter: 'ch01', stages: [{ ...base, background: 'assets/battle/stage_0100.jpg' }, { ...base, id: 'stage_0101', background: '../x.jpg' }] });
+    expect(ok.background).toBe('assets/battle/stage_0100.jpg');
+    expect(bad.background).toBe(null);
+  });
+  it('실제 데이터: 스테이지 배경 경로가 assets/ 안', () => {
+    for (const st of d.stages) if (st.background) expect(st.background.startsWith('assets/'), st.id).toBe(true);
   });
 });

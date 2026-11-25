@@ -29,7 +29,7 @@ export const BT = Object.freeze({
     crowd: { from: 5, scale: 0.85, gap: 14 }, // 적이 5~6명일 때
     hand: { w: 112, h: 156, fan: 6, spread: 64, stagger: 22 }, // spread = 두 카드 가운데 사이 간격, stagger = 위아래 어긋남(왼쪽 카드 이름이 보이게)
     radius: 14,
-    rarityLine: 2,
+    glass: { color: 0x000000, alpha: 0.45 }, // 카드 바탕: 반투명 검정 (테두리 없음 — 뒤 배경이 비침)
     artTop: 0.55, // 일러스트 위쪽 몇 %를 카드에 쓰는지
     artTopEnemy: 0.62,
     shade: 0.4, // 아래 어두운 그라데이션 높이 비율
@@ -80,6 +80,7 @@ export const BT = Object.freeze({
     dimTint: 0x777777,
     stunTint: 0x8a8a8a,
     aimSpin: 2400, // 조준 표시 한 바퀴
+    activeEdge: { blur: 6, alpha: 0.85 }, // 지금 차례: 카드 가장자리 흐릿한 흰 테두리 (blur = 번지는 폭 px)
   },
   shadow: { dy: 8, alpha: 0.45, liftDy: 20, liftAlpha: 0.3, liftScale: 1.12, pad: 26 },
   glow: { pad: 30 },
@@ -165,7 +166,6 @@ export const BT = Object.freeze({
     hpBg: 0x1a1226,
     trail: 0xffffff,
     energyBg: 0x140e22,
-    cardBg: 0x1b1430,
     panel: 0x161026,
     panelLine: 0x4b3a78,
     stone: 0x9a8f80, // 도발 프레임

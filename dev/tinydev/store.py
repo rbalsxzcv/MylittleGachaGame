@@ -27,7 +27,7 @@ LIST_FILES = {
     "props": "props.json",  # 소품 그림 목록 (개발 도구 전용 — 배포하지 않음, 그림만 상점 등에서 참조)
     "memories": "memories.json",  # 추억 카드 (무기 대신, 추억 뽑기)
 }
-ASSET_DIRS = ("chars", "banners", "bg", "ui", "enemies", "props", "memories")
+ASSET_DIRS = ("chars", "banners", "bg", "battle", "ui", "enemies", "props", "memories")
 UI_FILE = "ui.json"  # 게임 화면 에셋(배경/아이콘) 연결 정보 — 목록이 아니라 객체
 BALANCE_FILE = "balance.json"  # 전투/육성 숫자 (객체)
 SHOP_FILE = "shop.json"  # 골드 상점 / 가상 캐시 상점 상품 (객체)

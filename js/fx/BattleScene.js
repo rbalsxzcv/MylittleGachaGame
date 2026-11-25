@@ -23,6 +23,7 @@ import { ActionHand, SpGauge } from './ActionHand.js';
 import { InfoOverlay } from './InfoOverlay.js';
 
 const enemyKey = (id) => `enemy:${id}`;
+const BG_KEY = 'battle-bg';
 const COL = BT.color;
 
 export function createBattleScene(Phaser) {
@@ -32,7 +33,8 @@ export function createBattleScene(Phaser) {
     }
 
     /**
-     * @param {{battle:object, data:object, stage:object, background?:string|null, speed?:1|2, auto?:boolean, reduced?:boolean,
+     * backgrounds: 전투 배경 후보 (앞에서부터, 못 불러오면 다음 — adventure.battleBackgrounds)
+     * @param {{battle:object, data:object, stage:object, backgrounds?:string[], speed?:1|2, auto?:boolean, reduced?:boolean,
      *          dev?:boolean, onSettings?:(patch:object)=>void, onReady?:(scene)=>void, finish:(r:object)=>void}} data
      */
     init(data) {
@@ -68,14 +70,23 @@ export function createBattleScene(Phaser) {
           this.load.image(enemyKey(ent.id), assetUrl(ent.image));
         }
       }
-      if (this.opts.background) this.load.image('battle-bg', assetUrl(this.opts.background));
+      // 배경: 첫 후보를 불러오고, 실패하면 다음 후보 (스테이지 전용 → 스토리 배경 → 기본 배경)
+      // (텍스처는 게임 전체가 같이 쓰므로 지난 전투의 배경을 먼저 지움)
+      if (this.textures.exists(BG_KEY)) this.textures.remove(BG_KEY);
+      const bgs = (this.opts.backgrounds || []).filter(Boolean);
+      let bgAt = 0;
+      const tryBg = () => bgAt < bgs.length && this.load.image(BG_KEY, assetUrl(bgs[bgAt++]));
+      if (this.bgRetry) this.load.off('loaderror', this.bgRetry);
+      this.bgRetry = (file) => file?.key === BG_KEY && tryBg();
+      this.load.on('loaderror', this.bgRetry);
+      tryBg();
       preloadBattleIcons(this);
     }
 
     create() {
       const C = BT.card;
       ensureFxTextures(this);
-      ensureBattleTextures(this, { ally: C.ally, enemy: C.enemy, boss: C.boss, hand: C.hand }, { pad: BT.shadow.pad, radius: C.radius });
+      ensureBattleTextures(this, { ally: C.ally, enemy: C.enemy, boss: C.boss, hand: C.hand }, { pad: BT.shadow.pad, radius: C.radius, edgeBlur: BT.state.activeEdge.blur });
       ensureBattleIcons(this);
       ensureNumberFonts(this);
       this.quality = fxQuality(this.game);
@@ -85,8 +96,8 @@ export function createBattleScene(Phaser) {
 
       // 배경: 밝기 60% + 비네트 (카드가 항상 더 밝게)
       this.add.rectangle(0, 0, FX_W, FX_H, COL.bg, 1).setOrigin(0).setDepth(BT.depth.bg);
-      if (this.textures.exists('battle-bg')) {
-        const bg = this.add.image(FX_W / 2, FX_H / 2, 'battle-bg').setDepth(BT.depth.bg);
+      if (this.textures.exists(BG_KEY)) {
+        const bg = this.add.image(FX_W / 2, FX_H / 2, BG_KEY).setDepth(BT.depth.bg);
         const src = bg.texture.getSourceImage();
         const v = Math.round(255 * BT.background.brightness);
         bg.setScale(Math.max(FX_W / src.width, FX_H / src.height)).setTint((v << 16) | (v << 8) | v);

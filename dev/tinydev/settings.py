@@ -32,9 +32,9 @@ DEFAULTS = {
         "sampler": "euler_ancestral",
         "scheduler": "normal",
         "quality": "masterpiece, best quality, safe",  # Anima 품질/등급 태그 (프롬프트 맨 앞)
-        # 추억 카드: 832x1216에서 latent 확대(hires) 한 번 더 → 카드 WebP. img2img: 승인한 컷아웃을 대충 그린 배경에 합성해서 시작
-        "hiresScale": 1.5,
-        "hiresDenoise": 0.5,
+        # 추억 카드: 기본은 832x1216 1차만 → 카드 WebP. 시도별 '하이레스로 다듬기'를 누르면 그 원본을 scale배로 키워
+        # steps스텝 img2img를 한 번 더 (1차 28스텝은 다시 안 돎). img2img: 승인한 컷아웃을 대충 그린 배경에 합성해서 시작
+        "memoryHires": {"scale": 1.25, "steps": 13, "denoise": 0.4},
         "memoryImg2img": False,
         "img2imgDenoise": 0.55,
         "negative": "worst quality, low quality, lowres, blurry, jpeg artifacts, bad anatomy, bad hands, extra fingers, missing fingers, text, watermark, signature, artist name, nsfw",
@@ -119,11 +119,20 @@ def clean(s):
     c["sampler"] = str(c.get("sampler") or d["comfy"]["sampler"])[:60]
     c["scheduler"] = str(c.get("scheduler") or d["comfy"]["scheduler"])[:60]
     c["quality"] = str(c.get("quality") or "")[:300]
-    for key, lo, hi in (("hiresScale", 1.0, 2.0), ("hiresDenoise", 0.1, 0.9), ("img2imgDenoise", 0.3, 0.8)):
+    try:
+        c["img2imgDenoise"] = round(max(0.3, min(0.8, float(c.get("img2imgDenoise")))), 2)
+    except (TypeError, ValueError):
+        c["img2imgDenoise"] = d["comfy"]["img2imgDenoise"]
+    mh = c.get("memoryHires") if isinstance(c.get("memoryHires"), dict) else {}
+    mh_d = d["comfy"]["memoryHires"]
+    out = {}
+    for key, lo, hi, conv in (("scale", 1.0, 2.0, float), ("steps", 1, 50, int), ("denoise", 0.1, 0.9, float)):
         try:
-            c[key] = round(max(lo, min(hi, float(c.get(key)))), 2)
+            v = max(lo, min(hi, conv(mh.get(key))))
+            out[key] = round(v, 2) if conv is float else v
         except (TypeError, ValueError):
-            c[key] = d["comfy"][key]
+            out[key] = mh_d[key]
+    c["memoryHires"] = out
     c["memoryImg2img"] = c.get("memoryImg2img") is True
     c["negative"] = str(c.get("negative") or "")[:2000]
     lp = c.get("loraProfiles") if isinstance(c.get("loraProfiles"), dict) else {}

@@ -8,5 +8,15 @@
     "startAt": null,
     "endAt": null,
     "id": "mail_0001"
+  },
+  {
+    "title": "사료",
+    "body": "",
+    "rewards": {
+      "gems": 10000
+    },
+    "startAt": "2026-11-25T10:14:00+09:00",
+    "endAt": null,
+    "id": "mail_0002"
   }
 ]

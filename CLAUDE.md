@@ -99,6 +99,8 @@ ch01.json:  { chapter: "ch01", title, stages: [ { id, name, storyId, recommended
 - **스테이지 1개 = 메인 스토리 1개(storyId) = 그 스토리 안의 전투 장면 `{type:"battle", stageId}` 1개.** 메인 스토리마다 전투 장면은 정확히 1개. 선택지가 전투 장면을 건너뛰면 안 됨. (`js/systems/adventure.js adventureIssues`, `dev/tinydev/validate.py _check_adventure`, `tests/data.test.js`)
 - 챕터 제목: 스토리 목록의 `arcTitle`은 제목만 (게임이 "챕터 N · "을 붙임, `store.strip_chapter_prefix`), 챕터 파일 `title`은 "챕터 N: 제목" (`store.chapter_title` — "챕터 ch02" 같은 임시 제목은 없는 것으로 봄).
 - 스토리 파일 이름 = 안의 `id` = 목록 id (`data/stories/<id>.json`). 손으로 이름을 바꾸지 않음.
+- 전투 배경 `background?`(스테이지 전용 그림, 개발 도구가 `assets/battle/<스테이지 id>.jpg`로 저장, 장면 설명 메모 `backgroundPrompt`는 배포 때 빠짐).
+  게임은 `adventure.battleBackgrounds({stage, story, ui})` = 스테이지 전용 → 스토리 배경(`storyBattleBackground`: 전투 장면 그림 → 가까운 앞 장면 → 뒤 장면) → `ui.json backgrounds.battle`(기본, 선술집 테이블) 순서로 시도.
 - `level`이 없으면 `config.enemyLevelFor`: `max(1, round(1 + (추천 전투력 ÷ 5 − refPower) ÷ perLevel))`.
 - 개발 도구 안에서는 모든 챕터를 한 목록(항목마다 `chapter`)으로 다룸: `store.read_list("stages")` / `write_list("stages")`가 챕터 파일로 나눠 저장. 예전 `data/stages.json`도 읽음.
 
@@ -116,7 +118,8 @@ genKey (생성기 항목: generic:<key> | signature:<캐릭터 id>), theme[] (�
 - 추억 뽑기: 배너 `category: 'memory'`, `gacha.rulesFor`(balance.memoryGacha, 1·2★ 0%), 천장 키 memory / memoryPickup, `pickupFrom`(캐릭터 픽업 배너 → 그 픽업의 전용 추억),
   진행 중인 추억 상시 배너가 없으면 `STANDARD_MEMORY_BANNER`. 뽑기 화면 캐릭터/추억 탭.
 - 그림: 개발 도구 job 종류 `memory` — 등장 캐릭터 외형 슬롯(`characters.appearance {body, hair, eyes, outfit, props}`, 승인할 때 저장 / 없으면 승인 그림 프롬프트에서 한 번 만듦)
-  을 프롬프트 맨 앞에 그대로 + AI(또는 theme 태그 템플릿)는 장면만 → 832×1216 → hires(`comfy.hiresScale`) → 카드 WebP 높이 1024 + 썸네일 256. 선택 img2img(컷아웃 합성).
+  을 프롬프트 맨 앞에 그대로 + AI(또는 theme 태그 템플릿)는 장면만 → 832×1216(1차만) → 카드 WebP 높이 1024 + 썸네일 256.
+  하이레스는 선택: 검토 패널 '하이레스로 다듬기' = 그 시도 원본을 `comfy.memoryHires`(1.25× · 13스텝 · denoise 0.4)로 img2img 한 번 → 새 시도 (`imaging.hires_attempt`, `POST /api/jobs/<id>/hires`). 선택 img2img(컷아웃 합성).
   seed는 시도마다 기록, 입력 `seed`로 다시 그리기. 테두리는 게임 CSS(`.mem-card.rar-N`).
 
 ### 장비 (`js/systems/gear.js`, 클리어 처리 `js/systems/farming.js`)
@@ -199,7 +202,8 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
   `ActionHand`+`SpGauge`(손패 끌기/탭 조준, SP 크리스털) · `TargetArrow`/`IntentArrows` · `InfoOverlay`(길게 누르기 400ms · 우클릭 · I) · `battleFx`(입자 이미터 · 숫자 BitmapText 풀 `numberFont.js` · 섬광 · 띠).
   아이콘은 `icons.js`가 코드로 그린 텍스처 `bicon:<이름>` — `assets/ui/icons/<이름>.png`을 넣고 `assets/ui/icons/index.json`에 이름을 넣으면 그 그림이 이김. 이모지/유니코드 기호 아이콘 금지.
   연출 중 입력 잠금(건너뛰기 · 일시정지 · AUTO · 2배속 · 즉시 결과 · 정보창만). 2x는 timeScale. 게임 `?fps=1`(localhost) = fps 표시.
-- HTML 쪽: `ui/gachaView.js revealScreen`(연출 → 결과 격자), `ui/battleView.js mountBattle`(장면 → 결과/보상), 실패하면 연출 없이 결과만.
+- 전투 배경 후보는 장면 `backgrounds[]`(못 불러오면 다음).
+- HTML 쪽: `ui/gachaView.js revealScreen`(연출 → 결과 격자), `ui/battleView.js mountBattle`(장면 → 결과/보상, 스토리 본문을 받아 배경 후보 계산), 실패하면 연출 없이 결과만.
 
 ## 키트 생성기 (`tools/kitgen/`, 게임은 import 안 함 — `tests/kitgen.test.js`가 검사)
 - `archetypes.js`: 아키타입 10종(1 스택 폭발 · 2 표식 사냥 · 3 추가 공격 · 4 반격 탱커 · 5 타임라인 조작 · 6 보호막 전환 · 7 지속 치유 ·
@@ -229,7 +233,9 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
 
 ## 개발 도구 (dev/)
 - 희귀도 `tinydev/rarity.py`, 전투 검사 `tinydev/kit.py`(vocab 기반, 적 actions/pattern/phases/enrage), 콘텐츠 검사 `tinydev/validate.py`(모험 규칙 포함), 배포 `publish.py`(스테이지 챕터 파일, 밸런스 변경 요약 패치노트).
-- 웹: 캐릭터 전투 편집(`web/js/battleEditor.js` + `battleForm.js`), 적 편집(행동/패턴/페이즈/광폭화), 스테이지(챕터/연결 스토리/자동 레벨), 밸런스(전투 시뮬, 가챠 시뮬, 전투력 표, balance.json 편집), `/fx-test`, `/preview/tests/`.
+- UI 에셋 칸 `tinydev/uislots.py` (ui.json `backgrounds` · `icons`): 화면 배경 + 전투 기본 배경(`backgrounds.battle`, 프롬프트 종류 `battle_bg`).
+  스테이지 전투 배경 = 작업 종류 `stagebg`(`POST /api/stagebg/generate`, 승인 → `assets/battle/<id>.jpg` + `stage.background`, `GET /api/stages/<id>/background` = 실제로 쓰일 배경), 일괄 생성 묶음 `stagebg`.
+- 웹: 캐릭터 전투 편집(`web/js/battleEditor.js` + `battleForm.js`), 적 편집(행동/패턴/페이즈/광폭화), 스테이지(챕터/연결 스토리/자동 레벨/전투 배경), 밸런스(전투 시뮬, 가챠 시뮬, 전투력 표, balance.json 편집), `/fx-test`, `/preview/tests/`.
 - 개발 도구 웹은 `/preview/js/...`로 게임 모듈을 그대로 import (progression, schema, data, sim, gacha).
 - 배경 제거 `tinydev/cutout.py`: RMBG에서는 마스크만 → 원본 W×H로 LANCZOS 확대 → 1px 깎기 + 1px 부드럽게(`config.CUTOUT_*`) → **칠하지 않은 원본**에 알파로 적용(크기 다르면 오류) → 투명 여백 자르기.
   캐릭터/적은 줄이지 않음(원본 해상도), 소품 384 · UI 아이콘 256 · 로고 640만 줄임. 예전 512px 그림 다시 만들기: `python -m tinydev.recut [--dry-run]`.
@@ -265,4 +271,5 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
 - 새 캐릭터 AI 문구 다듬기(이름/설명) 버튼은 아직 없음 — 키트 생성기 이름 후보 + 한 줄 설명 템플릿을 씀 (AI로 다시 쓰기는 전투 편집기에 있음).
 - 스테이지 난이도는 자동 튜너로 맞춤 (reports/의 마지막 tune/eval 보고서 참고). 평가에서 안나(치유) 돌파 효과가 작고, 1★ 탱커는 보스 칸에서 약함.
 - `enemy_0006`(광휘교단 이단 사냥꾼, 1-7 적) 그림은 작업 공간에만 있음 → 배포하면 공개됨.
+- 전투 기본 배경(선술집 테이블)은 작업 공간에만 있음 → 배포하면 공개됨. 스테이지 전용 전투 배경은 칸만 있고 그림은 아직 없음 → 개발 도구 스테이지 탭 / 일괄 생성으로 뽑기.
 - 1-1/1-2/1-3/1-5/1-7 스토리의 전투 장면과 도입 대사(b0)는 초안 — 스토리 탭에서 다듬기.

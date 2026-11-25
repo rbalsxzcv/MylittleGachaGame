@@ -1,9 +1,13 @@
-// 스테이지 탭 (모험): 챕터, 연결 스토리(storyId), 웨이브 편집(적 + 레벨), 라운드 제한, 보상/첫 클리어 보상, 권장 전투력
+// 스테이지 탭 (모험): 챕터, 연결 스토리(storyId), 웨이브 편집(적 + 레벨), 라운드 제한, 보상/첫 클리어 보상, 권장 전투력, 전투 배경
 // 모험 규칙: 스테이지 1개 = 메인 스토리 1개 + 그 스토리 안의 전투 장면 1개
-import { h, toast, confirmBox, idBadge } from '../ui.js';
+// 전투 배경: 스테이지 전용(background) → 비우면 스토리 배경 → 그것도 없으면 기본 배경(UI 에셋 「전투 기본 배경」)
+import { h, toast, confirmBox, idBadge, modal, wsImage } from '../ui.js';
 import { api, tryApi, newId } from '../api.js';
 import { state, reloadData } from '../state.js';
 import { loadBattleKit, cleanEntity } from '../battleForm.js';
+import { openAssetGenerator } from './assets.js';
+
+const BG_SOURCE = { stage: '스테이지 전용', story: '스토리 배경', default: '기본 배경', none: '배경 없음 (단색)' };
 
 const MAX_PER_WAVE = 6;
 
@@ -141,6 +145,99 @@ export function stagesTab(root, { select } = {}) {
     };
     renderWaves();
 
+    // ── 전투 배경 ──
+    const bgBox = h('div', { class: 'stage-bg' });
+    let bgInfo = { story: '', default: '' }; // 서버가 알려 준 스토리 배경 · 기본 배경
+    const renderBg = () => {
+      const [src, path] = v.background ? ['stage', v.background] : bgInfo.story ? ['story', bgInfo.story] : bgInfo.default ? ['default', bgInfo.default] : ['none', ''];
+      bgBox.replaceChildren(
+        h(
+          'div',
+          { class: 'slot-preview' },
+          path ? h('img', { src: wsImage(path), alt: '전투 배경', onerror: (e) => e.target.replaceWith(h('span', { class: 'muted' }, '파일 없음')) }) : h('span', { class: 'muted small' }, '그림 없음'),
+          h('span', { class: 'bg-source' }, BG_SOURCE[src]),
+        ),
+        h(
+          'div',
+          {},
+          h('div', { class: 'muted small' }, v.background ? `전용 배경: ${v.background}` : '전용 배경 없음 (빈 칸) → ' + (src === 'story' ? `스토리 배경 ${path}` : src === 'default' ? `기본 배경 ${path}` : 'UI 에셋 탭에서 「전투 기본 배경」을 뽑아 주세요')),
+          h('div', { class: 'muted small' }, `스토리 배경: ${bgInfo.story || '없음'} · 기본 배경: ${bgInfo.default || '없음'}`),
+          h(
+            'div',
+            { class: 'row wrap' },
+            h('button', { class: 'btn small primary', onclick: generateBg }, v.background ? '다시 뽑기 (ComfyUI)' : '전용 배경 뽑기 (ComfyUI)'),
+            h('button', { class: 'btn small', onclick: pickBg }, '있는 그림에서 고르기'),
+            v.background && h('button', { class: 'btn small danger-outline', onclick: () => ((v.background = null), mark(), renderBg()) }, '비우기 (스토리/기본 배경 쓰기)'),
+          ),
+          h('p', { class: 'muted small' }, '고르기/비우기는 「저장」을 눌러야 반영돼요. 뽑은 그림을 승인하면 바로 저장돼요 (assets/battle/<스테이지 id>.jpg).'),
+        ),
+      );
+    };
+    const loadBgInfo = async () => {
+      if (editing.isNew || !v.id) return renderBg();
+      const r = await tryApi(() => api.get(`/api/stages/${v.id}/background`));
+      if (r) bgInfo = { story: r.story || '', default: r.default || '' };
+      renderBg();
+    };
+    function generateBg() {
+      if (editing.isNew || !v.id) return toast('먼저 스테이지를 저장해 주세요 (그림 파일 이름 = 스테이지 id)', 'error');
+      const scene = h('textarea', { rows: 3, placeholder: '어디서 싸우는지 (한국어 OK, 비우면 스토리 배경 설명을 참고) 예: 비 내리는 밤, 무너진 성벽 아래 진흙탕 전장' }, v.backgroundPrompt || '');
+      const extra = h('input', { placeholder: '추가 요청 (선택) 예: 더 어둡게, 붉은 노을' });
+      openAssetGenerator({
+        kind: 'stagebg',
+        title: `전투 배경 — ${v.name || v.id}`,
+        note: '공통 스타일: dev/style_bg.txt (인물 · 적 없이 장소만) · 1280×720 JPG로 assets/battle/<스테이지 id>.jpg 에 저장하고 이 스테이지의 전투 배경으로 연결해요. 카드가 위아래를 덮고 게임이 60% 밝기로 어둡게 깔아요.',
+        fields: [h('label', { class: 'field' }, '장면 설명 (스테이지에 메모로도 남아요)', scene), h('label', { class: 'field' }, '추가 요청', extra)],
+        getInput: () => ({ stageId: v.id, scene: scene.value.trim(), extra: extra.value.trim() }),
+        endpoint: '/api/stagebg/generate',
+        approveLabel: '승인 → 이 스테이지의 전투 배경으로',
+        onApproved: async (path, input) => {
+          v.background = path;
+          if (input.scene) v.backgroundPrompt = input.scene;
+          await reloadData();
+          renderList();
+          renderBg();
+        },
+      });
+    }
+    async function pickBg() {
+      const [battle, bg] = await Promise.all([tryApi(() => api.get('/api/assets?dir=battle')), tryApi(() => api.get('/api/assets?dir=bg'))]);
+      const files = [...(battle || []), ...(bg || [])];
+      if (!files.length) return toast('고를 그림이 없어요. 먼저 뽑아 주세요', 'error');
+      modal({
+        title: '전투 배경 고르기',
+        wide: true,
+        body: (close) =>
+          h(
+            'div',
+            {},
+            h('p', { class: 'muted small' }, 'assets/battle (스테이지 전투 배경) · assets/bg (스토리 배경) 중에서 골라요.'),
+            h(
+              'div',
+              { class: 'bg-pick-grid' },
+              files.map((f) =>
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    class: [f === v.background && 'active'],
+                    onclick: () => {
+                      v.background = f;
+                      mark();
+                      renderBg();
+                      close(f);
+                    },
+                  },
+                  h('img', { src: wsImage(f), alt: f, loading: 'lazy' }),
+                  h('span', {}, f.replace(/^assets\//, '')),
+                ),
+              ),
+            ),
+          ),
+      });
+    }
+    loadBgInfo();
+
     const refsBox = h('div', { class: 'muted small' }, '불러오는 중…');
     if (!isNew) {
       tryApi(() => api.get(`/api/stages/${v.id}/refs`)).then((refs) => {
@@ -175,6 +272,7 @@ export function stagesTab(root, { select } = {}) {
       dirty = false;
       editing.isNew = false;
       renderList();
+      loadBgInfo();
       toast('스테이지를 저장했어요 (작업 공간)', 'success');
     }
 
@@ -227,6 +325,8 @@ export function stagesTab(root, { select } = {}) {
         h('div', { class: 'grid2' }, h('label', { class: 'field' }, '챕터 (모험 탭 묶음, 예: ch01)', chapterSel, chapterList), h('label', { class: 'field' }, '연결 스토리 (이 스토리 안에 이 스테이지 전투 장면을 넣어요)', storySel)),
         h('div', { class: 'grid2' }, h('label', { class: 'field' }, '권장 전투력', rec, powerHint), h('label', { class: 'field' }, '라운드 제한 (비우면 없음)', turnLimit)),
         h('div', { class: 'grid2' }, h('label', { class: 'field', title: '적 공격력 · HP에 곱함 (자동 튜너가 정함)' }, '난이도 배율', difficulty), h('label', { class: 'field' }, '종류 (튜너 목표 승률)', stageType)),
+        h('h3', {}, '전투 배경 (스테이지 전용 → 스토리 배경 → 기본 배경)'),
+        bgBox,
         h('h3', {}, '웨이브 (앞 웨이브를 모두 쓰러뜨리면 다음 웨이브)'),
         wavesBox,
         h('h3', {}, '보상'),

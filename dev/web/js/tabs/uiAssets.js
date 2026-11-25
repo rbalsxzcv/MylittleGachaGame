@@ -1,4 +1,4 @@
-// UI 에셋 탭: 게임 화면 배경 / 로고 / 아이콘을 AI로 뽑아서 적용 (data/ui.json)
+// UI 에셋 탭: 게임 화면 배경(전투 기본 배경 포함) / 로고 / 아이콘을 AI로 뽑아서 적용 (data/ui.json)
 // 그림이 없는 칸은 게임에서 CSS 기본 디자인으로 보여요.
 import { h, toast, modal, confirmBox, wsImage } from '../ui.js';
 import { api, tryApi } from '../api.js';
@@ -8,7 +8,7 @@ import { promptStep } from '../promptStep.js';
 import { openPreview } from '../preview.js';
 
 const GROUPS = [
-  ['bg', '화면 배경 (1280×720)', '게임 화면 뒤에 깔리는 그림. 인물 없이 풍경만, UI가 올라가니 차분하게.'],
+  ['bg', '화면 배경 (1280×720)', '게임 화면 뒤에 깔리는 그림. 인물 없이 풍경만, UI가 올라가니 차분하게. 「전투 기본 배경」은 스테이지 전용 배경도 스토리 배경도 없을 때 전투 화면에 깔려요.'],
   ['icon', '로고 · 아이콘 (투명 PNG)', '흰 배경으로 뽑은 뒤 배경을 지워서 투명 PNG로 저장해요.'],
 ];
 

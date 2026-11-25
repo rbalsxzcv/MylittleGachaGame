@@ -9,7 +9,7 @@ import json
 import shutil
 import subprocess
 
-from . import config, rarity, store, validate
+from . import config, rarity, store, uislots, validate
 from .timeutil import now_iso, parse
 
 LIST_KEYS = ("characters", "banners", "storyIndex", "notices", "mail", "enemies", "stages", "memories")
@@ -25,7 +25,7 @@ PUBLIC_FILE = {
 }
 BATTLE_FIELDS = ("role", "statTweak", "stats", "resource", "kit", "talents", "bt2", "bt6", "breakthroughs", "archetype", "kitGen")
 # 개발 도구 전용 메모 (외형 키워드, 작가용 설정 — 스포일러가 있을 수 있음) → 공개 파일에는 넣지 않음
-DEV_ONLY_FIELDS = {"characters": ("keywords", "lore", "appearance"), "enemies": ("keywords", "memo"), "memories": ("theme", "scene")}
+DEV_ONLY_FIELDS = {"characters": ("keywords", "lore", "appearance"), "enemies": ("keywords", "memo"), "memories": ("theme", "scene"), "stages": ("backgroundPrompt",)}
 
 
 def _start_of(kind, item):
@@ -70,7 +70,7 @@ def _load_workspace():
     try:
         content["ui"] = store.read_ui()
     except store.JsonError as e:
-        content["ui"] = {"backgrounds": {}, "icons": {}}
+        content["ui"] = uislots.empty_ui()
         syntax.append({"level": "error", "where": store.UI_FILE, "message": str(e)})
     try:
         content["balance"] = store.read_balance()
@@ -110,6 +110,7 @@ def _public_content():
         "characters": lst(PUBLIC_FILE["characters"]),
         "banners": lst(PUBLIC_FILE["banners"]),
         "enemies": lst(PUBLIC_FILE["enemies"]),
+        "stages": _public_stages(),
         "stories": stories,
         "ui": ui if isinstance(ui, dict) else {},
         "shop": shop if isinstance(shop, dict) else {},
@@ -136,7 +137,10 @@ def _referenced_assets(content):
             bg = (sc or {}).get("background") or {}
             if bg.get("type") == "image" and bg.get("value"):
                 paths.add(bg["value"])
-    for group in ("backgrounds", "icons"):
+    for st in content.get("stages") or []:
+        if isinstance(st, dict) and st.get("background"):
+            paths.add(st["background"])  # 스테이지 전투 배경 (assets/battle/)
+    for group in uislots.GROUPS:
         paths.update(v for v in (content.get("ui", {}).get(group) or {}).values() if v)
     shop = content.get("shop") or {}
     for tab in ("gold", "cash"):

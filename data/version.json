@@ -1,6 +1,14 @@
 {
-  "contentVersion": 13,
+  "contentVersion": 14,
   "patchNotes": [
+    {
+      "version": 14,
+      "date": "2026-11-25T12:45:07+09:00",
+      "notes": [
+        "우편 선물: 사료",
+        "화면 디자인 변경: 전투 기본 배경 (선술집 테이블)"
+      ]
+    },
     {
       "version": 13,
       "date": "2026-11-24T23:57:59+09:00",

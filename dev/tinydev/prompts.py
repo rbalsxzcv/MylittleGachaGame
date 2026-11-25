@@ -32,7 +32,7 @@ class _HintMap(dict):
 RARITY_HINT = _HintMap()
 
 # 에셋 종류(pkind)별 공통 스타일 파일
-STYLE_FILE = {"char": "style.txt", "banner": "style_banner.txt", "bg": "style_bg.txt", "ui_bg": "style_bg.txt", "ui_icon": "style_icon.txt", "logo": "style_icon.txt", "enemy": "style.txt", "prop": "style_icon.txt", "memory": "style.txt"}
+STYLE_FILE = {"char": "style.txt", "banner": "style_banner.txt", "bg": "style_bg.txt", "ui_bg": "style_bg.txt", "ui_icon": "style_icon.txt", "logo": "style_icon.txt", "enemy": "style.txt", "prop": "style_icon.txt", "memory": "style.txt", "battle_bg": "style_bg.txt"}
 
 # 에셋 종류별로 항상 붙는 네거티브 (Anima 태그)
 KIND_NEGATIVE = {
@@ -45,6 +45,7 @@ KIND_NEGATIVE = {
     "enemy": "cropped, multiple views, reference sheet, scenery, detailed background, floor, cast shadow, frame, border, cute, chibi",
     "prop": "multiple objects, scenery, detailed background, hand, person, cropped, frame, border, drop shadow, text",
     "memory": "letters, logo, title, speech bubble, frame, border, multiple views, reference sheet, cropped head, split screen",
+    "battle_bg": "people, 1girl, 1boy, character, silhouette, monster, ui, frame, border, letterboxing, cluttered, high contrast",
 }
 
 
@@ -91,6 +92,7 @@ REQUIRED = {
     "enemy": ("solo, full body", "One single enemy drawn only once, alone."),
     "prop": ("no humans, object focus, still life", "One single item only."),
     "memory": ("", ""),
+    "battle_bg": ("no humans, scenery", "An empty place with nobody in it."),
 }
 
 
@@ -109,7 +111,7 @@ def enforce(kind, prompt):
             continue
         low = t.lower()
         bad = False
-        if kind in ("bg", "ui_bg", "ui_icon", "logo", "prop"):
+        if kind in ("bg", "ui_bg", "battle_bg", "ui_icon", "logo", "prop"):
             bad = low != "no humans" and bool(_HUMAN.search(t) or (kind != "logo" and _UI_WORDS.search(t)))
         elif kind == "char":
             if _COUNT.match(low):
@@ -163,6 +165,18 @@ def brief(kind, inp, chars=(), theme="", slot=None):
             f"Screen: {slot['label']} — {slot['subject']}",
             "UI elements will be drawn on top, so keep it soft and not too detailed.",
         ]
+    elif kind == "battle_bg":
+        lines = ["Background art for a turn-based card battle screen (scenery only, no people, no monsters, no text)."]
+        if slot:
+            lines.append(f"Default battle background: {slot['label']} — {slot['subject']}")
+        else:
+            lines.append(f"Stage: {inp.get('name', '')}")
+            lines.append(f"Where the fight happens (Korean ok): {inp.get('scene') or '(none given — infer a fitting place from the stage name)'}")
+            if inp.get("storyBg"):
+                lines.append(f"The story scene right before this fight takes place here (match the place and mood): {inp['storyBg']}")
+            if inp.get("enemies"):
+                lines.append(f"Enemies fought here (do NOT draw them; only use them to set the mood): {', '.join(inp['enemies'])}")
+        lines.append("Character cards cover the upper and lower thirds; the game dims the picture to 60% brightness, so keep it calm and low in contrast.")
     elif kind == "logo":
         lines = [
             "Game title logo emblem asset, a single isolated emblem, centered.",
@@ -272,6 +286,11 @@ KIND_RULES = {
 - A detailed, story-like background that matches the theme; cinematic lighting, depth of field.
 - One character only (the featured one) unless the theme clearly needs a crowd in the far background. No text, letters, UI or frames.
 - If there is no featured character: 'no humans', a scene / object / place that fits the card name.""",
+    "battle_bg": """ASSET: 16:9 backdrop for a turn-based card battle. Rows of character cards cover the upper and lower thirds, a turn-order strip sits on the left and skill cards on the right; the game dims it to 60% brightness.
+- 'no humans', 'scenery', the place described, time of day, weather and lighting tags; eye-level or slightly high angle, 'wide shot' (or a high-angle tabletop view when the request says so).
+- Keep it calm: low contrast, soft focus or 'depth of field', no single strong focal object in the middle; put the interesting detail at the edges. The mood should suit a fight in this place.
+- FORBIDDEN: any person, character, silhouette, crowd, monster, enemy, statue of a person, UI, frames, text. Describe only the place, objects, architecture, nature and light.
+- The sentence part must describe only the place. Never mention cards, characters, enemies, UI or text in it.""",
     "prop": """ASSET: game item illustration (shop goods, rewards, story items). The background will be removed automatically; shown at about 120-200px.
 - 'no humans', 'object focus', exactly one item (a bundle, chest or pouch counts as one item), 'centered', fills most of the frame, slight three-quarter view.
 - Clean outline, rich but readable detail, soft cel shading with a glossy highlight; materials described concretely (leather, brass, parchment, wax seal ...).
@@ -290,6 +309,7 @@ KIND_TEMPLATE = {
     "enemy": "solo, full body, fighting stance, glaring, simple background, white background",
     "prop": "no humans, object focus, still life, centered, simple background, white background",
     "memory": "cowboy shot, dynamic angle, detailed background, cinematic lighting, depth of field, looking at viewer",
+    "battle_bg": "no humans, scenery, wide shot, depth of field, soft lighting, low contrast",
 }
 
 
@@ -356,6 +376,8 @@ def template_prompt(kind, inp, slot, chars, reasons):
         subject = ", ".join(x for x in ((look or "1girl") if chars else "no humans, scenery", ", ".join(inp.get("theme") or []), inp.get("name", "")) if x)
     elif kind == "prop":
         subject = ", ".join(x for x in (inp.get("prompt"), inp.get("label")) if x)
+    elif kind == "battle_bg" and not slot:
+        subject = inp.get("scene") or inp.get("storyBg") or inp.get("name", "")
     else:
         subject = slot["subject"] if slot else ""
     prompt = merge_tags(KIND_TEMPLATE[kind], subject, inp.get("extra", ""))

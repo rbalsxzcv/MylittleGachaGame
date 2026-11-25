@@ -9,10 +9,11 @@ from .genai import GenError
 
 ENGINE = "comfy"  # 그림은 ComfyUI로만
 # 캐릭터는 세로로 긴 2:3 (가로 여유가 적을수록 정면+후면 같은 설정화가 덜 나옴, 배경 제거 후 여백은 잘라냄)
-ASPECT = {"char": "2:3", "banner": "16:9", "bg": "16:9", "ui_bg": "16:9", "ui_icon": "1:1", "logo": "3:2", "enemy": "1:1", "prop": "1:1", "memory": "2:3"}
+ASPECT = {"char": "2:3", "banner": "16:9", "bg": "16:9", "ui_bg": "16:9", "ui_icon": "1:1", "logo": "3:2", "enemy": "1:1", "prop": "1:1", "memory": "2:3", "battle_bg": "16:9"}
 SLOT_PKIND = {"bg": "ui_bg", "icon": "ui_icon", "logo": "logo"}
+JOB_PKIND = {"stagebg": "battle_bg"}  # 작업 종류 ≠ 프롬프트 규칙 종류일 때
 # 에셋 종류 → LoRA 프로필 (설정 탭에서 캐릭터용 / 배경·소품용을 따로 설정)
-LORA_PROFILE = {"char": "char", "banner": "char", "enemy": "char", "bg": "scene", "ui_bg": "scene", "ui_icon": "scene", "logo": "scene", "prop": "scene", "memory": "char"}
+LORA_PROFILE = {"char": "char", "banner": "char", "enemy": "char", "bg": "scene", "ui_bg": "scene", "ui_icon": "scene", "logo": "scene", "prop": "scene", "memory": "char", "battle_bg": "scene"}
 
 
 def lora_profile(pkind, c):
@@ -33,9 +34,9 @@ def _context(kind, inp, s):
         slot = uislots.SLOT_BY_KEY.get(inp.get("slot"))
         if not slot:
             raise ValueError("알 수 없는 UI 칸이에요")
-        pkind = SLOT_PKIND[slot["kind"]]
+        pkind = slot.get("pkind") or SLOT_PKIND[slot["kind"]]
     else:
-        pkind = kind
+        pkind = JOB_PKIND.get(kind, kind)
     chars = []
     if kind == "banner":
         by_id = {c["id"]: c for c in store.read_list("characters")}
@@ -107,21 +108,14 @@ def write_prompt(kind, inp, engine=None, reasons=(), previous=None):
     return {"prompt": prompt, "negative": negative, "source": "ai", "engine": ENGINE, "brief": brief}
 
 
-def render(kind, inp, core_prompt, negative, cancel=None):
-    """프롬프트 → 그림. returns {image, fullPrompt, negative, seed, engine, warning, loras}"""
-    s = settings.load()
+def _assemble(kind, inp, core_prompt, negative, s):
+    """핵심 프롬프트 → 실제로 보낼 프롬프트/네거티브/LoRA (생성 · 하이레스 다듬기 공용)"""
     pkind, _, ratio, slot, chars = _context(kind, inp, s)
     c = s["comfy"]
     core, removed = prompts.enforce(pkind, core_prompt)
-    hires, init, denoise = 1.0, None, 1.0
-    if pkind == "memory":
+    if pkind == "memory" and chars:
         # 외형 슬롯은 AI가 쓴 프롬프트와 상관없이 맨 앞에 그대로 (merge_tags가 중복은 하나로)
-        if chars:
-            core = prompts.merge_tags(prompts.appearance_text(chars[0].get("appearance")), core)
-        hires = c["hiresScale"]
-        if (inp.get("img2img") if inp.get("img2img") is not None else c["memoryImg2img"]) and not config.FORCE_MOCK:
-            init = _memory_init(inp, chars, c)
-            denoise = c["img2imgDenoise"] if init else 1.0
+        core = prompts.merge_tags(prompts.appearance_text(chars[0].get("appearance")), core)
     _, lp = lora_profile(pkind, c)
     loras = comfy.active_loras(lp["loras"])
     full = prompts.merge_tags(c["quality"], lp["trigger"] if loras else "", core, prompts.style_for(pkind))
@@ -131,16 +125,76 @@ def render(kind, inp, core_prompt, negative, cancel=None):
         notes.append(f"용도에 안 맞는 태그를 뺐어요: {', '.join(removed)[:200]}")
     if c["cfg"] <= 1.0:
         notes.append("CFG 1이라 네거티브는 적용되지 않아요 (용도별 필수 태그로 대신 막아요)")
+    lora_text = ", ".join(f"{l['name']} (model {l['model']:g} / clip {l['clip']:g})" for l in loras)
+    return {"pkind": pkind, "ratio": ratio, "slot": slot, "chars": chars, "full": full, "neg": neg, "loras": loras, "loraText": lora_text, "notes": notes}
+
+
+def render(kind, inp, core_prompt, negative, cancel=None):
+    """프롬프트 → 그림. returns {image, fullPrompt, negative, seed, engine, warning, loras}
+    추억 카드도 1차만 (하이레스는 hires_attempt로 시도마다 따로)"""
+    s = settings.load()
+    c = s["comfy"]
+    a = _assemble(kind, inp, core_prompt, negative, s)
+    pkind, ratio, full, neg, notes = a["pkind"], a["ratio"], a["full"], a["neg"], a["notes"]
+    init, denoise = None, 1.0
+    if pkind == "memory" and (inp.get("img2img") if inp.get("img2img") is not None else c["memoryImg2img"]) and not config.FORCE_MOCK:
+        init = _memory_init(inp, a["chars"], c)
+        denoise = c["img2imgDenoise"] if init else 1.0
     warning = " · ".join(notes) or None
     if config.FORCE_MOCK:
-        label = inp.get("name") or inp.get("label") or inp.get("title") or inp.get("bgName") or (slot or {}).get("label") or ""
+        label = inp.get("name") or inp.get("label") or inp.get("title") or inp.get("bgName") or (a["slot"] or {}).get("label") or ""
         mock_kind = "char" if pkind in ("char", "ui_icon", "logo", "enemy", "prop", "memory") else ("banner" if pkind == "banner" else "bg")
         image, seed = genai._mock_image(full, ratio, mock_kind, label), None
         warning = " · ".join(notes + ["모의 모드 그림이에요 (TG_MOCK=1)"])
     else:
-        image, seed = comfy.generate(full, neg, ratio, c, cancel=cancel, loras=loras, seed=inp.get("seed"), hires=hires, init_image=init, denoise=denoise)
-    lora_text = ", ".join(f"{l['name']} (model {l['model']:g} / clip {l['clip']:g})" for l in loras)
-    return {"image": image, "fullPrompt": full, "negative": neg, "seed": seed, "engine": ENGINE, "warning": warning, "loras": lora_text}
+        image, seed = comfy.generate(full, neg, ratio, c, cancel=cancel, loras=a["loras"], seed=inp.get("seed"), init_image=init, denoise=denoise)
+    return {"image": image, "fullPrompt": full, "negative": neg, "seed": seed, "engine": ENGINE, "warning": warning, "loras": a["loraText"]}
+
+
+def _with_meta(full, neg, lora_text):
+    """시도 기록용 프롬프트 텍스트 (네거티브 · LoRA 포함)"""
+    return full + (f"\n\nNEGATIVE: {neg}" if neg else "") + (f"\n\nLORA: {lora_text}" if lora_text else "")
+
+
+def hires_attempt(job, n, cancel=None):
+    """추억 카드: 고른 시도의 원본을 하이레스로 다듬어 새 시도로 추가 (설정 comfy.memoryHires: scale배 · steps스텝 · denoise)
+    1차 생성은 다시 안 돎 → 원본 PNG를 확대해서 img2img 한 번만"""
+    if job["kind"] != "memory":
+        raise ValueError("하이레스 다듬기는 추억 카드 작업에서만 할 수 있어요")
+    src = jobs.get_attempt(job, n)
+    if src.get("hires"):
+        raise ValueError("이미 하이레스로 다듬은 시도예요 (원래 시도에서 다시 해 주세요)")
+    s = settings.load()
+    c, hr = s["comfy"], s["comfy"]["memoryHires"]
+    core, negative = src.get("corePrompt") or src["prompt"], src.get("negative") or ""
+    a = _assemble(job["kind"], job["input"], core, negative, s)
+    original = (jobs.job_dir(job["id"]) / src["original"]).read_bytes()
+    notes = list(a["notes"])
+    if config.FORCE_MOCK:
+        from PIL import Image
+        import io as _io
+
+        img = Image.open(_io.BytesIO(original)).convert("RGB")
+        img = img.resize((round(img.width * hr["scale"]), round(img.height * hr["scale"])), Image.LANCZOS)
+        buf = _io.BytesIO()
+        img.save(buf, "PNG")
+        image, seed = buf.getvalue(), src.get("seed")
+        notes.append("모의 모드: 확대만 했어요 (TG_MOCK=1)")
+    else:
+        if cancel is not None and cancel.is_set():
+            raise comfy.Cancelled("중단했어요")
+        image, seed = comfy.refine(a["full"], a["neg"], original, c, hr, cancel=cancel, loras=a["loras"], seed=src.get("seed"))
+    meta = {
+        "corePrompt": core,
+        "negative": negative,
+        "engine": ENGINE,
+        "seed": seed,
+        "promptSource": src.get("promptSource") or "manual",
+        "genWarning": " · ".join(notes) or None,
+        "hires": {"of": src["n"], "scale": hr["scale"], "steps": hr["steps"], "denoise": hr["denoise"]},
+    }
+    jobs.add_attempt(job, _with_meta(a["full"], a["neg"], a["loraText"]), image, meta)
+    return job
 
 
 def generate_attempt(job, prompt=None, negative="", source="manual", rewrite=False, cancel=None):
@@ -161,7 +215,7 @@ def generate_attempt(job, prompt=None, negative="", source="manual", rewrite=Fal
     if cancel is not None and cancel.is_set():
         raise comfy.Cancelled("중단했어요")
     r = render(job["kind"], job["input"], prompt, negative or "", cancel=cancel)
-    full = r["fullPrompt"] + (f"\n\nNEGATIVE: {r['negative']}" if r["negative"] else "") + (f"\n\nLORA: {r['loras']}" if r["loras"] else "")
+    full = _with_meta(r["fullPrompt"], r["negative"], r["loras"])
     meta = {"corePrompt": prompt, "negative": negative or "", "engine": r["engine"], "seed": r["seed"], "promptSource": source, "genWarning": r["warning"]}
     jobs.add_attempt(job, full, r["image"], meta)
     return job

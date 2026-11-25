@@ -172,7 +172,7 @@ export function settingsTab(root, { onSaved } = {}) {
         h('label', { class: 'inline' }, aiPrompt, ' Gemini가 Anima용 그림 프롬프트를 작성 (끄면 에셋 종류별 기본 태그 + 입력값 사용)'),
         h('p', { class: 'muted small' }, 'Gemini는 Vertex AI 키(dev/.env)로 동작해요. 키가 없으면 기본 태그 프롬프트를 써요.'),
         h('label', { class: 'field' }, '게임 전체 분위기 (UI 에셋 프롬프트에 함께 들어가요)', theme),
-        h('p', { class: 'muted small' }, '공통 스타일 문구 파일: dev/style.txt (캐릭터), style_banner.txt (배너), style_bg.txt (배경), style_icon.txt (아이콘)'),
+        h('p', { class: 'muted small' }, '공통 스타일 문구 파일: dev/style.txt (캐릭터), style_banner.txt (배너), style_bg.txt (배경 · 전투 배경), style_icon.txt (아이콘 · 소품)'),
         h('button', { class: 'btn primary', onclick: save }, '저장'),
       ),
       h(

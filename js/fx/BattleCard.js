@@ -1,8 +1,8 @@
 // 전투 카드 하나 (BATTLE_UI.md 2장 · 4장 · 7장) — 장면은 아래 메서드만 부름
 //
 // 층: root(배치 자리) → act(돌진 · 밀림, 그림자 포함) → bob(떠 있음) → lift(차례 들림 · 크기) → flip(변신 뒤집기) → 내용
-// 변하지 않는 앞면(배경 · 크롭 그림 · 아래 그라데이션 · 이름 · 역할 아이콘 · 희귀도 선)은 캔버스 텍스처 한 장으로 구움(+ 회색 한 장)
-// 바뀌는 것: HP(앞 막대 + 잔상), 기력, 효과 아이콘 줄, 보호막 막, 테두리들(대상/낮은 HP/강화/도발/변신/궁극기 준비), 예고 배지(적)
+// 변하지 않는 앞면(반투명 검정 바탕 · 크롭 그림 · 아래 그라데이션 · 이름 · 역할 아이콘)은 캔버스 텍스처 한 장으로 구움(+ 회색 한 장)
+// 바뀌는 것: HP(앞 막대 + 잔상), 기력, 효과 아이콘 줄, 보호막 막, 테두리들(차례/대상/낮은 HP/강화/도발/변신/궁극기 준비), 예고 배지(적)
 // 카드 앞면에는 숫자가 없음 (효과가 4개를 넘을 때의 '+n'만)
 import { FONT } from './phaserHost.js';
 import { BT } from './battleTheme.js';
@@ -64,7 +64,7 @@ function grayCopy(scene, key, srcCanvas, W, H) {
 
 /**
  * 카드 앞면 굽기 → { key, grayKey }
- * o: { id, w, h, artKey, artTop, cropY, accent, line, name, role (아이콘 이름 | null) }
+ * o: { id, w, h, artKey, artTop, cropY, line, name, role (아이콘 이름 | null) }
  */
 export function bakeCard(scene, o) {
   const R = C.res;
@@ -76,13 +76,8 @@ export function bakeCard(scene, o) {
   ctx.save();
   roundRect(ctx, 0, 0, W, H, C.radius * R);
   ctx.clip();
-  ctx.fillStyle = css(COL.cardBg); // 불투명 바탕 먼저 (그라데이션만 깔면 위쪽이 비침)
-  ctx.fillRect(0, 0, W, H);
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, rgba(o.accent, 0.5));
-  bg.addColorStop(0.55, css(COL.cardBg));
-  bg.addColorStop(1, css(COL.cardBg));
-  ctx.fillStyle = bg;
+  // 바탕: 반투명 검정 (글래스 — 아군/적 색 없이, 뒤 전투 배경이 어둡게 비침)
+  ctx.fillStyle = rgba(C.glass.color, C.glass.alpha);
   ctx.fillRect(0, 0, W, H);
   const src = o.artKey && scene.textures.exists(o.artKey) ? scene.textures.get(o.artKey).getSourceImage() : null;
   if (src?.width) drawCrop(ctx, src, W, H, o.artTop, o.cropY);
@@ -101,13 +96,7 @@ export function bakeCard(scene, o) {
   ctx.fillStyle = sh;
   ctx.fillRect(0, top, W, H - top);
   ctx.restore();
-
-  // 희귀도 색 안쪽 선 2px
-  ctx.lineWidth = C.rarityLine * R;
-  ctx.strokeStyle = css(o.line);
-  const inset = C.rarityLine * R * 0.5 + R;
-  roundRect(ctx, inset, inset, W - inset * 2, H - inset * 2, (C.radius - 1) * R);
-  ctx.stroke();
+  // 카드 테두리는 그리지 않음 (상태 테두리만 위에 따로)
 
   // 이름: 20px 800, 흰색 + 어두운 외곽선 3px (넘치면 조금 줄임)
   let size = C.nameSize;
@@ -175,7 +164,7 @@ export class BattleCard {
     this.effectKeys = [];
     this.home = { x: o.x, y: o.y, scale: o.scale };
 
-    const baked = bakeCard(scene, { id: unit.uid, w: o.w, h: o.h, artKey: o.artKey, artTop: o.artTop, cropY: o.cropY, accent: o.theme, line: o.line, name: unit.name, role: o.role });
+    const baked = bakeCard(scene, { id: unit.uid, w: o.w, h: o.h, artKey: o.artKey, artTop: o.artTop, cropY: o.cropY, line: o.line, name: unit.name, role: o.role });
     this.texKeys = [baked.key, baked.grayKey];
     const w = o.w;
     const h = o.h;
@@ -194,7 +183,8 @@ export class BattleCard {
     this.lift.add(this.flip);
 
     const soft = `bfx-soft-${o.kind}`;
-    this.glowActive = add.image(0, 0, soft).setTint(o.theme).setAlpha(0).setBlendMode('ADD');
+    // 지금 차례: 흐릿한 흰 테두리 (미리 만든 텍스처, 카드 위에 덮음)
+    this.glowActive = add.image(0, 0, `bfx-edge-${o.kind}`).setAlpha(0);
     this.glowReady = add.image(0, 0, soft).setTint(o.theme).setAlpha(0).setBlendMode('ADD');
     this.body = add.image(0, 0, baked.key).setScale(1 / C.res);
     this.gray = add.image(0, 0, baked.grayKey).setScale(1 / C.res).setAlpha(0);
@@ -226,7 +216,7 @@ export class BattleCard {
     this.hpTrail = add.rectangle(hx, hy, barW, C.hpH, COL.trail, 0.85).setOrigin(0, 0.5);
     this.hpFront = add.rectangle(hx, hy, barW, C.hpH, this.hpColor(1)).setOrigin(0, 0.5);
 
-    const parts = [this.glowActive, this.glowReady, this.body, this.gray, this.dim, this.shieldBox, this.bTaunt, this.bTransform, this.bReady, this.bDanger, this.bGold, this.bTarget, this.crack, this.hpBg, this.hpTrail, this.hpFront];
+    const parts = [this.glowReady, this.body, this.gray, this.dim, this.glowActive, this.shieldBox, this.bTaunt, this.bTransform, this.bReady, this.bDanger, this.bGold, this.bTarget, this.crack, this.hpBg, this.hpTrail, this.hpFront];
 
     // 기력 (아군, 위 4px)
     if (unit.side === 'ally') {
@@ -343,7 +333,7 @@ export class BattleCard {
       const S = BT.shadow;
       this.m.tween(this.lift, { y: lifted ? -ST.activeLift : 0 }, 'base', lifted ? 'pop' : 'out');
       this.m.tween(this.shadow, { y: lifted ? S.liftDy : S.dy, alpha: lifted ? S.liftAlpha : S.alpha, scale: lifted ? S.liftScale : 1 }, 'base', 'out');
-      this.m.tween(this.glowActive, { alpha: lifted ? 0.75 : 0 }, 'base', 'out');
+      this.m.tween(this.glowActive, { alpha: lifted ? ST.activeEdge.alpha : 0 }, 'base', 'out');
     }
     if (s.target !== prev.target) {
       this.stopLoop('target');
@@ -628,8 +618,8 @@ export class BattleCard {
   }
   /** 패시브 발동 등: 짧은 반짝임 */
   glint() {
-    this.glowActive.setAlpha(0.9);
-    return this.m.tween(this.glowActive, { alpha: this.st.active ? 0.75 : 0 }, 'slow', 'out');
+    this.glowActive.setAlpha(1);
+    return this.m.tween(this.glowActive, { alpha: this.st.active ? ST.activeEdge.alpha : 0 }, 'slow', 'out');
   }
 
   /** 쓰러짐: 번쩍 → 금 → 회색으로 30px 떨어지며 사라짐 + 조각 */

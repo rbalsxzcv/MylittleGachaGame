@@ -401,7 +401,7 @@ def prompt_write():
     """생성 전에 Gemini가 쓴 프롬프트를 먼저 보고 고칠 수 있게"""
     data = body()
     kind = data.get("kind")
-    inputs = {"char": _char_input, "banner": _banner_input, "bg": _bg_input, "ui": _ui_input, "enemy": _enemy_input, "prop": _prop_input, "memory": _memory_input}
+    inputs = {"char": _char_input, "banner": _banner_input, "bg": _bg_input, "ui": _ui_input, "enemy": _enemy_input, "prop": _prop_input, "memory": _memory_input, "stagebg": _stagebg_input}
     if kind not in inputs:
         raise ValueError("잘못된 종류")
     inp = inputs[kind](data.get("input") or {})
@@ -448,6 +448,13 @@ def recut_job(job_id):
         raise ValueError("색은 #ffffff 형식이어야 해요")
     jobs.redo_cutout(job, data.get("attempt"), flatten)
     return jsonify(job)
+
+
+@app.post("/api/jobs/<job_id>/hires")
+def hires_job(job_id):
+    """추억 카드: 고른 시도를 하이레스로 다듬어 새 시도로 (1.25× · 13스텝 img2img 한 번, 설정 comfy.memoryHires)"""
+    data = body()
+    return jsonify(imaging.hires_attempt(jobs.load(job_id), data.get("attempt")))
 
 
 # ─────────────────────────────────────────────────────────
@@ -765,6 +772,15 @@ def _ui_input(data):
     return {"slot": slot, "extra": text(data, "extra", 1000)}
 
 
+def _stagebg_input(data):
+    sid = data.get("stageId")
+    st = next((x for x in store.read_list("stages") if x.get("id") == sid), None) if store.valid_id(sid or "") else None
+    if not st:
+        raise ValueError("스테이지를 먼저 저장해 주세요 (전투 배경은 저장된 스테이지에 연결돼요)")
+    # 장면 설명은 'scene' ('prompt'는 개발자가 확인/수정한 그림 프롬프트)
+    return batch.stage_bg_input(st, text(data, "scene", 1000), text(data, "extra", 1000))
+
+
 def _enemy_input(data):
     eid = data.get("enemyId")
     e = next((x for x in store.read_list("enemies") if x.get("id") == eid), None) if store.valid_id(eid) else None
@@ -794,7 +810,8 @@ def _memory_input(data):
 
 @app.post("/api/memory/generate")
 def memory_generate():
-    """추억 카드 그림: 장면 프롬프트(AI 또는 테마 태그 템플릿) + 주인 캐릭터 외형 슬롯 그대로 → hires → WebP 카드/썸네일 (승인은 approve-image)"""
+    """추억 카드 그림: 장면 프롬프트(AI 또는 테마 태그 템플릿) + 주인 캐릭터 외형 슬롯 그대로 → 1차만 → WebP 카드/썸네일
+    (하이레스는 시도마다 /api/jobs/<id>/hires, 승인은 approve-image)"""
     data = body()
     return jsonify(_create_and_generate("memory", _memory_input(data), data))
 
@@ -815,6 +832,26 @@ def prop_generate():
 def banner_generate():
     data = body()
     return jsonify(_create_and_generate("banner", _banner_input(data), data))
+
+
+@app.post("/api/stagebg/generate")
+def stagebg_generate():
+    """스테이지 전투 배경 (1280x720 JPG → 승인하면 assets/battle/<스테이지 id>.jpg + stage.background)"""
+    data = body()
+    return jsonify(_create_and_generate("stagebg", _stagebg_input(data), data))
+
+
+@app.get("/api/stages/<sid>/background")
+def stage_background(sid):
+    """이 스테이지 전투에 실제로 쓰일 배경: 스테이지 전용 → 스토리 배경 → 기본 배경 (게임 adventure.battleBackgrounds와 같은 순서)"""
+    st = next((x for x in store.read_list("stages") if x.get("id") == sid), None)
+    if not st:
+        raise FileNotFoundError("스테이지를 찾을 수 없어요")
+    own = st.get("background") or ""
+    story = batch.story_bg_of(st)
+    default = uislots.get_path(store.read_ui(), "backgrounds.battle")
+    used = next(((src, p) for src, p in (("stage", own), ("story", story), ("default", default)) if p and store.asset_exists_ws(p)), (None, ""))
+    return jsonify(stage=own, story=story, default=default, source=used[0], path=used[1])
 
 
 @app.post("/api/bg/generate")
@@ -854,8 +891,8 @@ def ui_set():
 
 @app.post("/api/jobs/<job_id>/approve-image")
 def approve_image(job_id):
-    """배너/배경/UI/적/소품 그림 승인 → assets/banners/<id>.jpg, assets/bg/<이름>.jpg, assets/ui/<칸>.png|jpg,
-    assets/enemies/<id>.png, assets/props/<id>.png"""
+    """배너/배경/UI/적/소품/스테이지 전투 배경 그림 승인 → assets/banners/<id>.jpg, assets/bg/<이름>.jpg, assets/ui/<칸>.png|jpg,
+    assets/enemies/<id>.png, assets/props/<id>.png, assets/battle/<스테이지 id>.jpg"""
     data = body()
     job = jobs.load(job_id)
     if job["kind"] == "char":

@@ -1,6 +1,7 @@
 // 추억 탭: 추억 카드 목록 / 편집(이름 · 희귀도 · 종류 · 주인 · 부옵션 · 패시브) / 생성기로 다시 만들기 / 카드 그림(ComfyUI)
 // 일반 라이브러리 + 5★ 전용 추억은 tools/memgen(결정론, AI 없음)이 만들고 genKey로 같은 항목에 다시 붙음 (id · 그림 · 공개 시각 유지)
-// 그림: 장면 프롬프트(AI 또는 테마 태그) + 주인 캐릭터 외형 슬롯 그대로 → hires → 카드 WebP(높이 1024) + 썸네일(256)
+// 그림: 장면 프롬프트(AI 또는 테마 태그) + 주인 캐릭터 외형 슬롯 그대로 → 1차만 → 카드 WebP(높이 1024) + 썸네일(256)
+//       마음에 드는 시도만 '하이레스로 다듬기'(검토 패널, 1.25× · 13스텝 img2img 한 번)
 import { h, toast, confirmBox, busy, wsImage, idBadge, rarLabel } from '../ui.js';
 import { api, tryApi, newId } from '../api.js';
 import { state, reloadData } from '../state.js';
@@ -219,7 +220,7 @@ export function memoriesTab(root, { select } = {}) {
         passiveForm(v.passive.generic, { onChange: mark, preview: preview(() => v.passive.generic), title: '일반 (누가 장착해도)' }).el,
         ownerBox,
         h('h3', {}, '카드 그림'),
-        h('p', { class: 'muted small' }, '832×1216 → hires → 카드 WebP(높이 1024) + 썸네일(256). 등장 캐릭터가 있으면 그 캐릭터 승인 그림의 외형 태그(머리/눈/옷/소품)를 그대로 넣고, AI는 장면만 써요. 테두리는 게임 화면이 그려요.'),
+        h('p', { class: 'muted small' }, '832×1216 한 번만 그려요 → 카드 WebP(높이 1024) + 썸네일(256). 마음에 드는 시도는 검토 패널의 「하이레스로 다듬기」로 키워서 짧게 한 번 더 그릴 수 있어요. 등장 캐릭터가 있으면 그 캐릭터 승인 그림의 외형 태그(머리/눈/옷/소품)를 그대로 넣고, AI는 장면만 써요. 테두리는 게임 화면이 그려요.'),
         h('div', { class: 'row wrap' }, extra, h('label', { class: 'inline', title: '승인한 컷아웃을 대충 그린 배경에 합성해서 시작 (denoise는 설정 탭)' }, img2img, '컷아웃으로 시작 (img2img)')),
         artStep.el,
         jobArea,

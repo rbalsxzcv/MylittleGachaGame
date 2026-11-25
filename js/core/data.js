@@ -265,6 +265,8 @@ export function validateStages(json, ch = {}) {
       roundLimit: (raw.roundLimit ?? raw.turnLimit) == null || (raw.roundLimit ?? raw.turnLimit) === '' ? null : int(raw.roundLimit ?? raw.turnLimit, 1, 999, 20),
       rewards: cleanRewards(raw.rewards),
       firstClearRewards: cleanRewards(raw.firstClearRewards),
+      // 전투 배경 (스테이지 전용, 없으면 스토리 배경 → 기본 배경 — adventure.battleBackgrounds)
+      background: assetPathOrNull(raw.background),
     };
   });
 }
@@ -428,8 +430,10 @@ export const SHOP_CATEGORIES = ['featured', 'package', 'growth', 'gems', 'pass']
 export const SHOP_TIERS = ['normal', 'rare', 'legend', 'truck'];
 export const SHOP_ICONS = ['gem', 'ticket', 'gold', 'scroll', 'gift', 'chest', 'cart', 'crown', 'moon', 'sprout'];
 
-/** 'assets/...' 그림 경로만 통과 (validateUi와 같은 규칙) */
-const assetPathOrNull = (p) => (typeof p === 'string' && p.startsWith('assets/') && !p.includes('..') ? p : null);
+/** 'assets/...' 그림 경로만 통과, 아니면 null (validateUi와 같은 규칙) */
+function assetPathOrNull(p) {
+  return typeof p === 'string' && p.startsWith('assets/') && !p.includes('..') ? p : null;
+}
 
 function cleanLimit(l) {
   if (!l || typeof l !== 'object' || !SHOP_LIMIT_PERS.includes(l.per)) return null;

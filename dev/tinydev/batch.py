@@ -1,4 +1,4 @@
-"""일괄 생성: 그림이 필요한 항목(캐릭터 / 배너 / 스토리 배경 / 적 / 소품 / UI 화면 배경 / 아이콘·로고)을 ComfyUI로 한 번에 뽑기.
+"""일괄 생성: 그림이 필요한 항목(캐릭터 / 배너 / 스토리 배경 / 스테이지 전투 배경 / 적 / 소품 / UI 화면 배경 / 아이콘·로고)을 ComfyUI로 한 번에 뽑기.
 
 - 한 번에 하나의 일괄 작업만, 서버의 백그라운드 스레드에서 차례대로 실행
 - 항목마다 생성 작업(job)을 하나 만들고 시도 1회를 뽑음 → 결과는 각 작업 기록(dev/history)에 남음
@@ -15,7 +15,17 @@ from .genai import GenError
 from .timeutil import now_iso, stamp
 
 MAX_RETRY = 2
-GROUPS = [("char", "캐릭터"), ("banner", "배너"), ("memory", "추억 카드"), ("bg", "스토리 배경"), ("enemy", "적"), ("prop", "소품"), ("ui_bg", "화면 배경"), ("ui_icon", "로고 · 아이콘")]
+GROUPS = [
+    ("char", "캐릭터"),
+    ("banner", "배너"),
+    ("memory", "추억 카드"),
+    ("bg", "스토리 배경"),
+    ("stagebg", "스테이지 전투 배경"),
+    ("enemy", "적"),
+    ("prop", "소품"),
+    ("ui_bg", "화면 배경"),
+    ("ui_icon", "로고 · 아이콘"),
+]
 
 _lock = threading.Lock()
 _cancel = threading.Event()
@@ -59,11 +69,76 @@ def targets():
         out.append({"key": f"memory:{m['id']}", "group": "memory", "label": f"{m.get('name', m['id'])} ({m.get('rarity', '?')}★)", "path": m.get("image") or "", "has": _exists(m.get("image"))})
     for p in store.read_list("props"):
         out.append({"key": f"prop:{p['id']}", "group": "prop", "label": p.get("label") or p["id"], "path": p.get("image") or "", "has": _exists(p.get("image"))})
+    # 스테이지 전투 배경: 비어 있으면 게임이 스토리 배경 → 기본 배경을 씀 (그래서 '없음'이어도 괜찮음)
+    for st in store.read_list("stages"):
+        if st.get("retired"):
+            continue
+        path = st.get("background") or ""
+        fallback = "" if path else (story_bg_of(st) and " — 지금은 스토리 배경 사용" or " — 지금은 기본 배경 사용")
+        out.append({"key": f"stagebg:{st['id']}", "group": "stagebg", "label": f"{st.get('name') or st['id']} ({st['id']}){fallback}", "path": path, "has": _exists(path)})
     ui = store.read_ui()
     for s in uislots.SLOTS:
         path = uislots.get_path(ui, s["key"])
         out.append({"key": f"ui:{s['key']}", "group": "ui_bg" if s["kind"] == "bg" else "ui_icon", "label": s["label"], "path": path, "has": _exists(path)})
     return out
+
+
+def story_battle_background(story, stage_id):
+    """스토리 본문 → 이 스테이지 전투에 쓸 배경 그림 경로 | '' (게임 js/systems/adventure.js storyBattleBackground와 같은 규칙)
+    전투 장면의 그림 배경 → 가장 가까운 앞 장면 → 가장 가까운 뒤 장면"""
+    scenes = [sc for sc in ((story or {}).get("scenes") or []) if isinstance(sc, dict)]
+
+    def img(sc):
+        bg = sc.get("background") if isinstance(sc.get("background"), dict) else {}
+        return bg.get("value") if bg.get("type") == "image" and isinstance(bg.get("value"), str) else ""
+
+    at = next((i for i, sc in enumerate(scenes) if sc.get("type") == "battle" and sc.get("stageId") == stage_id), -1)
+    if at < 0:
+        at = next((i for i, sc in enumerate(scenes) if sc.get("type") == "battle"), -1)
+    if at < 0:
+        return ""
+    for i in [at, *range(at - 1, -1, -1), *range(at + 1, len(scenes))]:
+        if img(scenes[i]):
+            return img(scenes[i])
+    return ""
+
+
+def story_bg_of(stage):
+    """스테이지의 연결 스토리 배경 경로 | ''"""
+    sid = stage.get("storyId")
+    if not store.valid_id(sid or ""):
+        return ""
+    try:
+        return story_battle_background(store.read_story(sid), stage.get("id"))
+    except (ValueError, store.JsonError):
+        return ""
+
+
+def stage_bg_input(st, scene="", extra=""):
+    """스테이지 → 전투 배경 생성 입력값 (장면 설명이 없으면 스토리 배경의 설정집 설명을 참고로)"""
+    from . import bible
+
+    story_bg = ""
+    path = story_bg_of(st)
+    if path:
+        name = path.rsplit("/", 1)[-1].rsplit(".", 1)[0]
+        bg = bible.load().get("backgrounds", {}).get(name) or {}
+        story_bg = ", ".join(x for x in (bg.get("label"), bg.get("prompt")) if x)
+    enemies = {e.get("id"): e.get("name") or e.get("id") for e in store.read_list("enemies")}
+    names = []
+    for wave in st.get("waves") or []:
+        for en in wave or []:
+            n = enemies.get((en or {}).get("enemyId"))
+            if n and n not in names:
+                names.append(n)
+    return {
+        "stageId": st["id"],
+        "name": st.get("name") or st["id"],
+        "scene": scene if scene is not None else st.get("backgroundPrompt", ""),
+        "storyBg": story_bg,
+        "enemies": names[:6],
+        "extra": extra,
+    }
 
 
 def _job_input(key, extra):
@@ -105,6 +180,11 @@ def _job_input(key, extra):
         return "prop", {"propId": ident, "label": p.get("label") or ident, "prompt": p.get("prompt", ""), "extra": extra}
     if kind == "ui" and ident in uislots.SLOT_BY_KEY:
         return "ui", {"slot": ident, "extra": extra}
+    if kind == "stagebg":
+        st = next((x for x in store.read_list("stages") if x.get("id") == ident), None)
+        if not st:
+            raise ValueError("스테이지가 없어요")
+        return "stagebg", stage_bg_input(st, st.get("backgroundPrompt", ""), extra)
     if kind == "bg":
         from . import bible
 
@@ -167,7 +247,8 @@ def upsert_prop(pid, label=None, prompt=None, image=None):
 # ── 결과 적용 (승인) ────────────────────────────────────────
 def apply_job(job, n):
     """시도 n의 결과를 작업 공간에 저장하고 데이터에 연결 → 저장 경로
-    배너 assets/banners/<id>.jpg · 배경 assets/bg/<이름>.jpg · UI assets/ui/<칸> · 기존 캐릭터 assets/chars/<id>.png
+    배너 assets/banners/<id>.jpg · 배경 assets/bg/<이름>.jpg · 스테이지 전투 배경 assets/battle/<스테이지 id>.jpg
+    UI assets/ui/<칸> · 기존 캐릭터 assets/chars/<id>.png
     적 assets/enemies/<id>.png · 소품 assets/props/<id>.png
     """
     kind, inp = job["kind"], job["input"]
@@ -189,6 +270,10 @@ def apply_job(job, n):
         rel = f"assets/memories/{inp['memoryId']}.webp"
         if not any(m.get("id") == inp["memoryId"] for m in store.read_list("memories")):
             raise ValueError("추억이 지워졌어요")
+    elif kind == "stagebg":
+        rel = f"assets/battle/{inp['stageId']}.jpg"
+        if not any(x.get("id") == inp["stageId"] for x in store.read_list("stages")):
+            raise ValueError("스테이지가 지워졌어요")
     else:
         raise ValueError("새 캐릭터는 캐릭터 탭에서 승인해 주세요")
     if kind == "char" and not any(c.get("id") == inp["charId"] for c in store.read_list("characters")):
@@ -205,6 +290,15 @@ def apply_job(job, n):
         store.write_list("banners", banners)
     elif kind == "ui":
         store.write_ui(uislots.set_path(store.read_ui(), inp["slot"], rel))
+    elif kind == "stagebg":
+        # 장면 설명은 다음에 다시 뽑을 때 이어받도록 스테이지에 메모 (backgroundPrompt — 개발 도구 전용, 배포 때 빠짐)
+        stages = store.read_list("stages")
+        for x in stages:
+            if x.get("id") == inp["stageId"]:
+                x["background"] = rel
+                if inp.get("scene"):
+                    x["backgroundPrompt"] = inp["scene"]
+        store.write_list("stages", stages)
     elif kind == "enemy":
         enemies = store.read_list("enemies")
         for e in enemies:

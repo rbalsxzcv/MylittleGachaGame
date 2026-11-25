@@ -196,12 +196,11 @@ export function storyScreen(ctx) {
           nodeEl.hidden = false;
           nodeEl.render();
         };
-        const bg = scene()?.background;
         battleUi = mountBattle(host, {
           ctx,
           stage,
           team: teamMembers(ctx),
-          background: bg?.type === 'image' ? bg.value : null,
+          story, // 전투 배경: 스테이지 전용 → 이 스토리의 배경 → 기본 배경
           onResult(summary) {
             if (summary.result !== 'win') return null;
             const r = clearStage(ctx, stage, summary, Math.random); // 별점 + 보상 + 장비 드롭

@@ -353,3 +353,13 @@ a.chip { text-decoration: none; }
 /* 추억 탭 */
 .mem-preview { width: 180px; aspect-ratio: 832 / 1216; border-radius: 12px; overflow: hidden; background: #241a3a; display: grid; place-items: center; flex: none; }
 .mem-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+/* 스테이지 전투 배경 칸 */
+.stage-bg { display: grid; grid-template-columns: minmax(200px, 320px) 1fr; gap: 12px; align-items: start; }
+.stage-bg .slot-preview { position: relative; }
+.stage-bg .bg-source { position: absolute; left: 6px; top: 6px; padding: 2px 8px; border-radius: 6px; background: rgba(0, 0, 0, 0.65); color: #fff; font-size: 12px; }
+.bg-pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; max-height: 60vh; overflow: auto; }
+.bg-pick-grid button { padding: 0; border: 2px solid transparent; border-radius: 8px; overflow: hidden; background: none; cursor: pointer; }
+.bg-pick-grid button:hover, .bg-pick-grid button.active { border-color: #6a4cff; }
+.bg-pick-grid img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.bg-pick-grid span { display: block; font-size: 11px; padding: 2px 4px; text-align: left; }

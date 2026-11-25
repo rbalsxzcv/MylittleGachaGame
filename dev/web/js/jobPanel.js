@@ -1,12 +1,16 @@
 // 생성 작업 검토 패널 (캐릭터 / 배너 그림 / 배경 그림 공용)
 // - 원본 vs 결과(캐릭터는 배경 제거본을 체크무늬 + 어두운 배경 두 가지로)
 // - 승인 / 거절(사유 → 프롬프트에 합쳐 다시 생성) / 다시 생성 / 배경 제거만 다시
+// - 추억 카드: 시도별 '하이레스로 다듬기' (원본 확대 → 짧은 img2img 한 번 → 새 시도)
 // - 시도 기록 썸네일, 두 시도 나란히 비교
 import { h, toast, modal, promptBox, busy } from './ui.js';
 import { api, tryApi } from './api.js';
 import { ENGINE_LABEL, negativeNote } from './promptStep.js';
+import { state } from './state.js';
 
-const KIND_LABEL = { char: '캐릭터', banner: '배너 그림', bg: '배경 그림', ui: 'UI 에셋', enemy: '적 그림', prop: '소품 그림' };
+const KIND_LABEL = { char: '캐릭터', banner: '배너 그림', bg: '배경 그림', ui: 'UI 에셋', enemy: '적 그림', prop: '소품 그림', memory: '추억 카드', stagebg: '스테이지 전투 배경' };
+// 설정 탭에 없는 값 — dev/settings.json comfy.memoryHires (서버 기본값과 같게)
+const hiresConf = () => state.settings?.comfy?.memoryHires || { scale: 1.25, steps: 13, denoise: 0.4 };
 const SOURCE_LABEL = { ai: 'Gemini가 쓴 프롬프트', mock: '모의 모드 프롬프트', template: '기본 틀 프롬프트', manual: '직접 수정한 프롬프트' };
 const img = (job, name) => (name ? `/history/${job.id}/${name}` : '');
 
@@ -70,13 +74,14 @@ export function jobPanel(job, { onApprove, approveLabel = '승인', approveExtra
               h('figure', { class: 'checker' }, h('figcaption', {}, '배경 제거 (체크무늬)'), h('img', { src: img(current, a.result), alt: '결과' })),
               h('figure', { class: 'darkbg' }, h('figcaption', {}, '배경 제거 (어두운 배경)'), h('img', { src: img(current, a.result), alt: '결과' })),
             ]
-          : h('figure', {}, h('figcaption', {}, '결과 (1280×720)'), h('img', { src: img(current, a.result), alt: '결과' })),
+          : h('figure', {}, h('figcaption', {}, current.kind === 'memory' ? '카드 (높이 1024)' : '결과 (1280×720)'), h('img', { src: img(current, a.result), alt: '결과' })),
       ),
       h(
         'div',
         { class: 'attempt-meta' },
         a.engine && h('span', { class: 'chip' }, ENGINE_LABEL[a.engine] || a.engine),
         a.seed != null && h('span', { class: 'chip' }, `seed ${a.seed}`),
+        a.hires && h('span', { class: 'chip ok' }, `하이레스 (#${a.hires.of}에서 ${a.hires.scale}× · ${a.hires.steps}스텝 · denoise ${a.hires.denoise})`),
         a.promptSource && h('span', { class: 'chip' }, SOURCE_LABEL[a.promptSource] || a.promptSource),
         a.check && h('span', { class: 'chip error' }, `자동 검사: ${a.check}`),
         a.genWarning && h('span', { class: 'chip warn' }, a.genWarning),
@@ -111,6 +116,14 @@ export function jobPanel(job, { onApprove, approveLabel = '승인', approveExtra
         h('button', { class: 'btn', onclick: regenerate }, '같은 프롬프트로 다시 뽑기'),
         h('button', { class: 'btn', onclick: () => editAndRegenerate(a) }, '프롬프트 직접 고쳐서 다시 생성'),
       ),
+      current.kind === 'memory' &&
+        !a.hires &&
+        h(
+          'div',
+          { class: 'row wrap' },
+          h('button', { class: 'btn', onclick: () => hires(a.n) }, `하이레스로 다듬기 (${hiresConf().scale}× · ${hiresConf().steps}스텝)`),
+          h('span', { class: 'muted small' }, '이 시도의 원본을 키워서 짧게 한 번 더 그려요 → 새 시도로 추가 (처음부터 다시 그리지 않음)'),
+        ),
       isChar &&
         h(
           'div',
@@ -170,6 +183,14 @@ export function jobPanel(job, { onApprove, approveLabel = '승인', approveExtra
     const job = await busy('그리는 중…', () =>
       tryApi(() => api.post(`/api/jobs/${current.id}/regenerate`, { prompt: prompt.value, negative: negative.value, promptSource: 'manual' })),
     );
+    if (job) {
+      selected = job.attempts.at(-1).n;
+      update(job);
+    }
+  }
+
+  async function hires(n) {
+    const job = await busy('하이레스로 다듬는 중…', () => tryApi(() => api.post(`/api/jobs/${current.id}/hires`, { attempt: n })));
     if (job) {
       selected = job.attempts.at(-1).n;
       update(job);

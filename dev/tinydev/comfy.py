@@ -26,7 +26,9 @@ class Cancelled(GenError):
     """개발자가 중단함"""
 
 
-TIMEOUT_SEC = 600  # 큰 모델/느린 PC 대비 최대 10분 대기
+# 시간 제한 없음: ComfyUI 대기열에 작업이 남아 있는 동안은 계속 기다림 (느린 PC · 큰 모델은 10분 넘게 걸리기도 함)
+# 작업이 대기열 · 기록 어디에도 없으면(ComfyUI를 다시 켰거나 대기열에서 지움) 오류. 연결이 끊기면 ConnectError
+QUEUE_CHECK_SEC = 10
 
 # 비율 → (가로, 세로). 8의 배수, SDXL은 약 100만 픽셀, SD1.5는 512 기준
 SIZES = {
@@ -164,18 +166,16 @@ def model_label(cfg):
     return name.replace("\\", "/").rsplit("/", 1)[-1]
 
 
-def build_workflow(prompt, negative, width, height, seed, cfg, loras=(), hires=1.0, init_image=None, denoise=1.0):
-    """텍스트→이미지 워크플로 (ComfyUI 'API 형식'). loras: [{name, model, clip, on}]
-    hires > 1: 1차 결과 latent를 hires배로 키워 한 번 더 (cfg hiresDenoise) — 추억 카드용
-    init_image: ComfyUI input 폴더의 그림 이름 → img2img (denoise 0.45~0.6 권장)
-    """
+def _base_nodes(prompt, negative, cfg, loras):
+    """모델 불러오기 + LoRA + 프롬프트 인코딩 → (노드, sampler(latent, denoise, seed, steps=None), vae)
+    노드 번호: 4 / 10–12 = 모델 불러오기, 20번대 = LoRA, 40번대 = 시작 그림 (겹치면 덮어써짐)"""
     nodes, model, clip, vae = _loaders(cfg)
     model, clip = _apply_loras(nodes, model, clip, loras)
 
-    def sampler(latent, d, s):
+    def sampler(latent, d, s, steps=None):
         return {
             "class_type": "KSampler",
-            "inputs": {"seed": s, "steps": cfg["steps"], "cfg": cfg["cfg"], "sampler_name": cfg["sampler"], "scheduler": cfg["scheduler"], "denoise": d, "model": model, "positive": ["6", 0], "negative": ["7", 0], "latent_image": latent},
+            "inputs": {"seed": s, "steps": steps or cfg["steps"], "cfg": cfg["cfg"], "sampler_name": cfg["sampler"], "scheduler": cfg["scheduler"], "denoise": d, "model": model, "positive": ["6", 0], "negative": ["7", 0], "latent_image": latent},
         }
 
     wf = {
@@ -183,6 +183,20 @@ def build_workflow(prompt, negative, width, height, seed, cfg, loras=(), hires=1
         "6": {"class_type": "CLIPTextEncode", "inputs": {"text": prompt, "clip": clip}},
         "7": {"class_type": "CLIPTextEncode", "inputs": {"text": negative, "clip": clip}},
     }
+    return wf, sampler, vae
+
+
+def _finish(wf, vae):
+    wf["8"] = {"class_type": "VAEDecode", "inputs": {"samples": ["3", 0], "vae": vae}}
+    wf["9"] = {"class_type": "SaveImage", "inputs": {"filename_prefix": "tinygacha", "images": ["8", 0]}}
+    return wf
+
+
+def build_workflow(prompt, negative, width, height, seed, cfg, loras=(), init_image=None, denoise=1.0):
+    """텍스트→이미지 워크플로 (ComfyUI 'API 형식'). loras: [{name, model, clip, on}]
+    init_image: ComfyUI input 폴더의 그림 이름 → img2img (denoise 0.45~0.6 권장)
+    """
+    wf, sampler, vae = _base_nodes(prompt, negative, cfg, loras)
     if init_image:
         wf["40"] = {"class_type": "LoadImage", "inputs": {"image": init_image}}
         wf["41"] = {"class_type": "ImageScale", "inputs": {"image": ["40", 0], "upscale_method": "lanczos", "width": width, "height": height, "crop": "center"}}
@@ -191,14 +205,18 @@ def build_workflow(prompt, negative, width, height, seed, cfg, loras=(), hires=1
     else:
         wf["5"] = {"class_type": "EmptyLatentImage", "inputs": {"width": width, "height": height, "batch_size": 1}}
         wf["3"] = sampler(["5", 0], 1.0, seed)
-    last = "3"
-    if hires and hires > 1.0:
-        wf["10"] = {"class_type": "LatentUpscaleBy", "inputs": {"samples": ["3", 0], "upscale_method": "nearest-exact", "scale_by": hires}}
-        wf["11"] = sampler(["10", 0], cfg.get("hiresDenoise", 0.5), seed)
-        last = "11"
-    wf["8"] = {"class_type": "VAEDecode", "inputs": {"samples": [last, 0], "vae": vae}}
-    wf["9"] = {"class_type": "SaveImage", "inputs": {"filename_prefix": "tinygacha", "images": ["8", 0]}}
-    return wf
+    return _finish(wf, vae)
+
+
+def build_hires_workflow(prompt, negative, image_name, seed, cfg, loras=(), scale=1.25, steps=13, denoise=0.4):
+    """하이레스 다듬기: 이미 그린 그림(ComfyUI input 폴더) → scale배 lanczos 확대 → steps스텝 img2img 한 번
+    (1차 생성은 다시 안 돎. ComfyUI KSampler의 steps = 실제로 도는 스텝 수)"""
+    wf, sampler, vae = _base_nodes(prompt, negative, cfg, loras)
+    wf["40"] = {"class_type": "LoadImage", "inputs": {"image": image_name}}
+    wf["41"] = {"class_type": "ImageScaleBy", "inputs": {"image": ["40", 0], "upscale_method": "lanczos", "scale_by": scale}}
+    wf["5"] = {"class_type": "VAEEncode", "inputs": {"pixels": ["41", 0], "vae": vae}}
+    wf["3"] = sampler(["5", 0], denoise, seed, steps)
+    return _finish(wf, vae)
 
 
 def upload_image(cfg, png_bytes, name):
@@ -219,6 +237,12 @@ def upload_image(cfg, png_bytes, name):
     return f"{sub}/{out['name']}" if sub else out["name"]
 
 
+def _in_queue(base, prompt_id):
+    """작업이 아직 ComfyUI 대기열(실행 중 · 대기 중)에 있는지"""
+    q = _json(f"{base}/queue")
+    return any(isinstance(item, list) and len(item) > 1 and item[1] == prompt_id for key in ("queue_running", "queue_pending") for item in q.get(key) or [])
+
+
 def interrupt(cfg, prompt_id):
     """이 프롬프트만 대기열에서 빼고, 그리는 중이면 멈추기 (실패해도 무시)"""
     base = cfg["url"]
@@ -229,19 +253,37 @@ def interrupt(cfg, prompt_id):
             pass
 
 
-def generate(prompt, negative, aspect_ratio, cfg, cancel=None, loras=(), seed=None, hires=1.0, init_image=None, denoise=1.0):
-    """그림 한 장 생성 → (PNG 바이트, seed)
-    loras: 이번 그림에 적용할 LoRA 목록 (캐릭터용 / 배경·소품용 프로필에서 고른 것)
-    cancel: threading.Event — 켜지면 ComfyUI 작업을 멈추고 Cancelled 발생
-    """
+def _ready(cfg, cancel):
     if cancel is not None and cancel.is_set():
         raise Cancelled("중단했어요")
     problem = missing_model(cfg)
     if problem:
         raise GenError(problem)
+
+
+def generate(prompt, negative, aspect_ratio, cfg, cancel=None, loras=(), seed=None, init_image=None, denoise=1.0):
+    """그림 한 장 생성 → (PNG 바이트, seed)
+    loras: 이번 그림에 적용할 LoRA 목록 (캐릭터용 / 배경·소품용 프로필에서 고른 것)
+    cancel: threading.Event — 켜지면 ComfyUI 작업을 멈추고 Cancelled 발생
+    """
+    _ready(cfg, cancel)
     width, height = SIZES[cfg["resolution"]].get(aspect_ratio, SIZES[cfg["resolution"]]["1:1"])
     seed = int(seed) if seed else random.randint(1, 2**48)  # 다시 그리기: 기록해 둔 seed 그대로
-    workflow = build_workflow(prompt, negative, width, height, seed, cfg, loras, hires=hires, init_image=init_image, denoise=denoise)
+    workflow = build_workflow(prompt, negative, width, height, seed, cfg, loras, init_image=init_image, denoise=denoise)
+    return _run(workflow, cfg, cancel), seed
+
+
+def refine(prompt, negative, png_bytes, cfg, hires, cancel=None, loras=(), seed=None):
+    """하이레스 다듬기: 그린 그림(PNG 바이트) → hires {scale, steps, denoise} img2img 한 번 → (PNG 바이트, seed)"""
+    _ready(cfg, cancel)
+    seed = int(seed) if seed else random.randint(1, 2**48)
+    name = upload_image(cfg, png_bytes, f"tg_hires_{uuid.uuid4().hex[:12]}.png")
+    workflow = build_hires_workflow(prompt, negative, name, seed, cfg, loras, scale=hires["scale"], steps=hires["steps"], denoise=hires["denoise"])
+    return _run(workflow, cfg, cancel), seed
+
+
+def _run(workflow, cfg, cancel=None):
+    """워크플로 전송 → 끝날 때까지 기다림 → 첫 그림 PNG 바이트"""
     base = cfg["url"]
     sent = _json(f"{base}/prompt", {"prompt": workflow, "client_id": uuid.uuid4().hex})
     if sent.get("node_errors"):
@@ -250,10 +292,19 @@ def generate(prompt, negative, aspect_ratio, cfg, cancel=None, loras=(), seed=No
     if not prompt_id:
         raise GenError(f"ComfyUI 응답에 prompt_id가 없어요: {str(sent)[:300]}")
 
-    deadline = time.time() + TIMEOUT_SEC
-    while time.time() < deadline:
+    next_queue_check = time.time() + QUEUE_CHECK_SEC
+    gone = False  # 대기열에서 안 보였음 → 기록을 한 번 더 보고(그 사이 끝났을 수 있음) 그래도 없으면 오류
+    while True:
         hist = _json(f"{base}/history/{prompt_id}")
         item = hist.get(prompt_id)
+        if not item:
+            if gone:
+                raise GenError("ComfyUI 대기열에서 작업이 사라졌어요 (ComfyUI를 다시 켰거나 대기열에서 지웠나요?) — 다시 생성해 주세요")
+            if time.time() >= next_queue_check:
+                next_queue_check = time.time() + QUEUE_CHECK_SEC
+                gone = not _in_queue(base, prompt_id)
+                if gone:
+                    continue
         if item:
             status = item.get("status") or {}
             if status.get("status_str") == "error":
@@ -262,7 +313,7 @@ def generate(prompt, negative, aspect_ratio, cfg, cancel=None, loras=(), seed=No
             for out in (item.get("outputs") or {}).values():
                 for image in out.get("images", []):
                     q = urllib.parse.urlencode({"filename": image["filename"], "subfolder": image.get("subfolder", ""), "type": image.get("type", "output")})
-                    return _request(f"{base}/view?{q}", timeout=60), seed
+                    return _request(f"{base}/view?{q}", timeout=60)
             if status.get("completed"):
                 raise GenError("ComfyUI가 끝났지만 그림이 없어요 (SaveImage 노드 확인)")
         if cancel is None:
@@ -270,4 +321,3 @@ def generate(prompt, negative, aspect_ratio, cfg, cancel=None, loras=(), seed=No
         elif cancel.wait(1.0):
             interrupt(cfg, prompt_id)
             raise Cancelled("중단했어요 (ComfyUI 작업도 멈췄어요)")
-    raise GenError(f"ComfyUI 생성이 {TIMEOUT_SEC // 60}분 안에 끝나지 않았어요")

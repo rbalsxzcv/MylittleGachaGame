@@ -42,12 +42,25 @@ function softRect(g, w, h, pad, r) {
   }
 }
 
+/** 흐릿한 둥근 사각형 선 — 굵기를 줄여 가며 옅은 선을 겹침 → 가장자리가 가장 진하고 안팎으로 번짐 (블러 셰이더 대신) */
+function softEdge(g, w, h, pad, r, blur) {
+  const steps = 6;
+  for (let i = steps; i >= 1; i--) {
+    g.lineStyle(1.5 + (blur * 2 * i) / steps, 0xffffff, 0.2);
+    g.strokeRoundedRect(pad, pad, w, h, r);
+  }
+}
+
 /**
  * 전투 화면 전용 텍스처 (BATTLE_UI.md 13-1장: 장면 시작 때 한 번)
- * sizes: { 이름: {w, h} } 카드 종류별 크기 → 'bfx-soft-<이름>' (그림자/빛 공용, tint로 색)
+ * sizes: { 이름: {w, h} } 카드 종류별 크기 → 'bfx-soft-<이름>' (그림자/빛 공용, tint로 색) · 'bfx-edge-<이름>' (차례 표시 흐릿한 흰 테두리)
  */
-export function ensureBattleTextures(scene, sizes, { pad = 26, radius = 14 } = {}) {
-  for (const [name, s] of Object.entries(sizes)) make(scene, `bfx-soft-${name}`, s.w + pad * 2, s.h + pad * 2, (g) => softRect(g, s.w, s.h, pad, radius));
+export function ensureBattleTextures(scene, sizes, { pad = 26, radius = 14, edgeBlur = 6 } = {}) {
+  const ep = Math.ceil(edgeBlur) + 2;
+  for (const [name, s] of Object.entries(sizes)) {
+    make(scene, `bfx-soft-${name}`, s.w + pad * 2, s.h + pad * 2, (g) => softRect(g, s.w, s.h, pad, radius));
+    make(scene, `bfx-edge-${name}`, s.w + ep * 2, s.h + ep * 2, (g) => softEdge(g, s.w, s.h, ep, radius, edgeBlur));
+  }
   // 화살표 꺾쇠 (오른쪽을 가리킴 → 회전해서 씀)
   make(scene, 'bfx-chevron', 32, 32, (g) => {
     g.fillStyle(0xffffff, 1);

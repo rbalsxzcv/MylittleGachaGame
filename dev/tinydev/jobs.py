@@ -14,7 +14,7 @@ import secrets
 from . import config, cutout, images, store, uislots
 from .timeutil import now_iso, stamp
 
-KINDS = ("char", "banner", "bg", "ui", "enemy", "prop", "memory")
+KINDS = ("char", "banner", "bg", "ui", "enemy", "prop", "memory", "stagebg")
 MEMORY_CARD_H = 1024  # 추억 카드 WebP 높이 (썸네일 256은 승인할 때)
 MEMORY_THUMB_H = 256
 PROP_LONG_SIDE = 384  # 소품(상점 상품 그림 등)
@@ -69,7 +69,8 @@ def is_cutout_job(job):
 
 def _process(job, original_img, flatten=None):
     """원본 → 결과 이미지
-    캐릭터·적: 배경 제거 + 여백 자르기(원본 해상도) / 소품 384px · UI 아이콘 256px(로고 640px) / 배너·배경: 1280x720 JPG"""
+    캐릭터·적: 배경 제거 + 여백 자르기(원본 해상도) / 소품 384px · UI 아이콘 256px(로고 640px)
+    배너·배경(스토리 · 스테이지 전투 · 화면): 1280x720 JPG"""
     if is_cutout_job(job):
         long_side = None
         if job["kind"] == "ui":
@@ -142,6 +143,7 @@ def add_attempt(job, prompt, image_bytes, meta=None):
         "promptSource": None,
         "genWarning": None,
         "check": None,  # 캐릭터 자동 검사 결과 (문제 설명, 통과면 None)
+        "hires": None,  # 추억 카드 하이레스 다듬기로 만든 시도: {of: 원래 시도 번호, scale, steps, denoise}
     }
     attempt.update({k: v for k, v in (meta or {}).items() if k in attempt})
     img, ext, method, warning = _process(job, original)

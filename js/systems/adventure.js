@@ -75,3 +75,30 @@ export function adventureIssues(stages, storyIndex, bodies) {
   }
   return issues;
 }
+
+/**
+ * 스토리 본문에서 이 스테이지 전투에 쓸 배경 그림 → 경로 | null
+ * 전투 장면 자체의 그림 배경 → 바로 앞 장면들 중 가장 가까운 그림 배경 → 뒤 장면들 중 가장 가까운 그림 배경
+ * (본문은 정리된 것이든 개발 도구의 원본 JSON이든 됨: background = {type:'image', value})
+ */
+export function storyBattleBackground(story, stageId) {
+  const scenes = Array.isArray(story?.scenes) ? story.scenes : [];
+  const img = (sc) => (sc?.background?.type === 'image' && typeof sc.background.value === 'string' && sc.background.value) || null;
+  let at = scenes.findIndex((sc) => sc?.type === 'battle' && (!stageId || sc.stageId === stageId));
+  if (at < 0) at = scenes.findIndex((sc) => sc?.type === 'battle');
+  if (at < 0) return null;
+  if (img(scenes[at])) return img(scenes[at]);
+  for (let i = at - 1; i >= 0; i--) if (img(scenes[i])) return img(scenes[i]);
+  for (let i = at + 1; i < scenes.length; i++) if (img(scenes[i])) return img(scenes[i]);
+  return null;
+}
+
+/**
+ * 전투 배경 후보 (앞에서부터 시도, 못 불러오면 다음) — 스테이지 전용 → 스토리 배경 → 기본 배경(ui.json backgrounds.battle)
+ * @param {{stage?:object, story?:object|null, ui?:object}} o
+ * @returns {string[]}
+ */
+export function battleBackgrounds({ stage, story = null, ui = null } = {}) {
+  const list = [stage?.background, storyBattleBackground(story, stage?.id), ui?.backgrounds?.battle];
+  return [...new Set(list.filter((p) => typeof p === 'string' && p))];
+}

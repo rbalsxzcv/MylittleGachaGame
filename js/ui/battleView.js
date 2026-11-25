@@ -7,6 +7,8 @@ import { randomSeed } from '../core/rng.js';
 import { rewardText as rewardLine } from '../systems/economy.js';
 import { runScene, stopRunningScene, prefersReducedMotion } from '../fx/phaserHost.js';
 import { createBattleScene } from '../fx/BattleScene.js';
+import { battleBackgrounds } from '../systems/adventure.js';
+import { loadStory } from '../core/data.js';
 
 const num = (n) => Number(n).toLocaleString('ko-KR');
 
@@ -16,7 +18,7 @@ const num = (n) => Number(n).toLocaleString('ko-KR');
  * @param {object} o.ctx
  * @param {object} o.stage
  * @param {Array} o.team teams.teamMembers 결과
- * @param {string|null} [o.background] 전투 배경 그림 (스토리 전투 장면의 배경)
+ * @param {object|null} [o.story] 이 스테이지의 스토리 본문 (전투 배경: 스테이지 전용 → 스토리 배경 → 기본 배경)
  * @param {(summary)=>({rewards, first}|null)} [o.onResult] 끝났을 때 한 번 (보상 지급은 여기서)
  * @param {(result:string)=>Array<{label:string, primary?:boolean, onClick:()=>void}>} o.resultActions
  * @param {()=>void} o.onQuit 포기
@@ -29,7 +31,7 @@ export function dropLine(drops) {
   return parts.join(' · ');
 }
 
-export function mountBattle(host, { ctx, stage, team, background = null, onResult, resultActions, onQuit }) {
+export function mountBattle(host, { ctx, stage, team, story = null, onResult, resultActions, onQuit }) {
   const seed = randomSeed();
   const battle = createBattle({ team, stage, data: ctx.data, seed });
   let destroyed = false;
@@ -45,7 +47,7 @@ export function mountBattle(host, { ctx, stage, team, background = null, onResul
     battle,
     data: ctx.data,
     stage,
-    background,
+    backgrounds: battleBackgrounds({ stage, story, ui: ctx.data.ui }),
     speed: settings.battleSpeed,
     auto: settings.battleAuto,
     reduced: prefersReducedMotion(),
@@ -151,12 +153,16 @@ export function battleScreen(ctx, { teamMembers, bestTeam, back }) {
       let team = teamMembers(ctx);
       if (!team.some(Boolean)) team = bestTeam(ctx);
       let ui = null;
+      let story = null;
+      let gone = false;
       const start = () => {
+        if (gone) return;
         ui?.destroy();
         ui = mountBattle(el, {
           ctx,
           stage,
           team,
+          story,
           resultActions: () => [
             { label: '다시 하기', primary: true, onClick: start },
             { label: '나가기', onClick: () => back() },
@@ -164,8 +170,18 @@ export function battleScreen(ctx, { teamMembers, bestTeam, back }) {
           onQuit: () => back(),
         });
       };
-      start();
-      return { destroy: () => ui?.destroy(), onKey: (e) => ui?.onKey(e) ?? false };
+      // 스토리 배경을 전투 배경으로 쓰려고 본문을 먼저 읽음 (실패해도 그냥 시작)
+      loadStory(stage.storyId)
+        .then((r) => (story = r.ok ? r.data : null))
+        .catch(() => null)
+        .finally(start);
+      return {
+        destroy: () => {
+          gone = true;
+          ui?.destroy();
+        },
+        onKey: (e) => ui?.onKey(e) ?? false,
+      };
     },
   };
 }

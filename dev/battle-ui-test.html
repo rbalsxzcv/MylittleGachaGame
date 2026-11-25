@@ -61,12 +61,13 @@
     window.addEventListener('error', (e) => { errors.push(String(e.message)); log(`오류: ${e.message}`); });
     window.addEventListener('unhandledrejection', (e) => { errors.push(String(e.reason?.stack || e.reason)); log(`오류: ${e.reason?.stack || e.reason}`); });
 
-    const [{ loadGameData, splitCharacters, linkEnemyNpcs }, { createBattle }, host, { createBattleScene }, { runDemo, DEMOS }] = await Promise.all([
+    const [{ loadGameData, loadStory, splitCharacters, linkEnemyNpcs }, { createBattle }, host, { createBattleScene }, { runDemo, DEMOS }, { battleBackgrounds }] = await Promise.all([
       import(`${ROOT}js/core/data.js`),
       import(`${ROOT}js/battle/engine.js`),
       import(`${ROOT}js/fx/phaserHost.js`),
       import(`${ROOT}js/fx/BattleScene.js`),
       import(`${ROOT}js/fx/battleDemo.js`),
+      import(`${ROOT}js/systems/adventure.js`),
     ]);
     const data = await loadGameData();
     Object.assign(data, splitCharacters(data.characters));
@@ -99,8 +100,12 @@
     }
     document.getElementById('size').onchange = fitLayer;
 
-    function open() {
+    async function open() {
       const stage = data.stageMap.get(stageSel.value);
+      // 전투 배경: 스테이지 전용 → 스토리 배경 → 기본 배경 (게임과 같은 규칙)
+      const story = (await loadStory(stage.storyId).catch(() => null))?.data || null;
+      const backgrounds = battleBackgrounds({ stage, story, ui: data.ui });
+      log(`배경 후보: ${backgrounds.join(' → ') || '(없음)'}`);
       const battle = createBattle({ team, stage, data, seed: 12345 });
       scene = null;
       fitLayer();
@@ -109,7 +114,7 @@
           battle,
           data,
           stage,
-          background: null,
+          backgrounds,
           speed: document.getElementById('speed2').checked ? 2 : 1,
           auto: document.getElementById('auto').checked,
           reduced: document.getElementById('reduced').checked,

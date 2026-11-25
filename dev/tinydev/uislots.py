@@ -1,11 +1,12 @@
 """게임 화면에 쓰는 UI 에셋 칸(slot) 정의.
 
 게임(js/ui/theme.js)은 data/ui.json의 같은 키를 읽어서 그림이 있으면 쓰고, 없으면 CSS 디자인으로 보여 줍니다.
-  backgrounds.<화면>  → 1280x720 JPG (화면 배경)
+  backgrounds.<화면>  → 1280x720 JPG (화면 배경. backgrounds.battle = 전투 기본 배경 — 스테이지 전용/스토리 배경이 없을 때)
   icons.<이름>        → 투명 PNG (로고, 보석, 메뉴 아이콘)
 """
 
 # key: ui.json 안의 위치, kind: 'bg' | 'icon' | 'logo', subject: 그림 내용 설명(프롬프트 재료)
+# pkind: 프롬프트 규칙 종류를 칸 종류 기본값(imaging.SLOT_PKIND) 대신 따로 정할 때
 SLOTS = [
     {"key": "backgrounds.home", "label": "홈 배경", "kind": "bg", "subject": "main lobby: a cozy magical plaza at night with lanterns; keep the right third calm (menu buttons go there) and the left side open (a character stands there)"},
     {"key": "backgrounds.gacha", "label": "뽑기 화면 배경", "kind": "bg", "subject": "a mystical summoning hall with a glowing star circle, dramatic but not busy"},
@@ -15,6 +16,13 @@ SLOTS = [
     {"key": "backgrounds.mail", "label": "우편함 배경", "kind": "bg", "subject": "a cute magical post office counter with letters and parcels, soft focus, low contrast"},
     {"key": "backgrounds.notices", "label": "공지 배경", "kind": "bg", "subject": "a town notice board area at dusk, soft focus, low contrast"},
     {"key": "backgrounds.settings", "label": "설정 배경", "kind": "bg", "subject": "a quiet workshop with clockwork gears and stars, soft focus, low contrast"},
+    {
+        "key": "backgrounds.battle",
+        "label": "전투 기본 배경 (선술집 테이블)",
+        "kind": "bg",
+        "pkind": "battle_bg",
+        "subject": "the top of a large worn wooden tavern table seen from a high angle, the wooden tabletop fills the whole picture; a few mugs, a candle, scattered coins and dice only along the edges and corners; warm candlelight and soft shadows; the middle of the table is a wide, plain, uncluttered wooden surface",
+    },
     {"key": "icons.logo", "label": "게임 로고", "kind": "logo", "subject": "game title logo emblem for 'Tiny Gacha': a cute ornate star-and-card emblem with a ribbon banner; the ribbon may contain the words 'Tiny Gacha' in clean bold lettering"},
     {"key": "icons.gem", "label": "보석(재화) 아이콘", "kind": "icon", "subject": "a single shiny blue faceted gemstone"},
     {"key": "icons.menu_gacha", "label": "메뉴: 뽑기", "kind": "icon", "subject": "a glowing four-pointed star with sparkles (summon icon)"},
@@ -25,6 +33,8 @@ SLOTS = [
     {"key": "icons.menu_settings", "label": "메뉴: 설정", "kind": "icon", "subject": "a cute gear cog"},
 ]
 SLOT_BY_KEY = {s["key"]: s for s in SLOTS}
+
+GROUPS = ("backgrounds", "icons")  # ui.json 묶음
 
 # 결과 그림 규격
 ICON_LONG_SIDE = 256
@@ -38,7 +48,7 @@ def file_name(key):
 
 
 def empty_ui():
-    return {"backgrounds": {}, "icons": {}}
+    return {g: {} for g in GROUPS}
 
 
 def get_path(ui, key):

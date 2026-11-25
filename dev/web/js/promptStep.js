@@ -12,7 +12,7 @@ export const negativeNote = () => ((state.settings?.comfy?.cfg ?? 2) <= 1 ? ' �
 
 /**
  * @param {object} opts
- * @param {'char'|'banner'|'bg'|'ui'|'enemy'|'prop'} opts.kind
+ * @param {'char'|'banner'|'bg'|'ui'|'enemy'|'prop'|'memory'|'stagebg'} opts.kind
  * @param {()=>object|null} opts.getInput 생성에 쓸 입력값 (검사 실패 시 null)
  * @param {(gen:{prompt?:string, negative?:string, promptSource?:string})=>Promise<any>} opts.generate
  * @param {string} [opts.generateLabel]

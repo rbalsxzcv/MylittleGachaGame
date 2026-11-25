@@ -295,6 +295,9 @@ def validate(content, asset_exists, held=None):
                     r.warn(where, f"{key}에 모르는 보상 '{cur}' (무시됨)")
                 elif not isinstance(v, int) or v < 0:
                     r.error(where, f"{key}.{cur}는 0 이상의 정수여야 해요")
+        if st.get("background") not in (None, ""):
+            # 전투 배경 (스테이지 전용). 비우면 게임이 스토리 배경 → 기본 배경(ui backgrounds.battle)을 씀
+            _check_asset(r, where, "전투 배경", st["background"], asset_exists)
         rp = st.get("recommendedPower", 0)
         if not isinstance(rp, int) or rp < 0:
             r.error(where, "recommendedPower는 0 이상의 정수여야 해요")
