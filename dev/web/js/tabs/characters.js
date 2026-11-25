@@ -8,6 +8,7 @@ import { promptStep } from '../promptStep.js';
 import { openCharBattleEditor } from '../battleEditor.js';
 import { modelPicker } from '../modelPicker.js';
 import { openProfileEditor } from '../profileForm.js';
+import { profileBatchCard } from '../profileBatch.js';
 
 const ROLE_SHORT = { attacker: '딜', defender: '탱', support: '지', healer: '치' };
 
@@ -312,6 +313,7 @@ export function charactersTab(root) {
       h('div', { class: 'row' }, h('button', { class: 'btn small', onclick: () => (setReplacing(null), step.reset()) }, '새로 입력')),
       h('p', { class: 'muted small' }, 'Anima 캐릭터 규칙: 배경 없는 전신, 성격에 맞는 포즈. 공통 스타일(dev/style.txt)이 모든 프롬프트 뒤에 붙어요.'),
     ),
+    profileBatchCard({ onApproved: () => renderList() }),
     h('section', { class: 'card' }, h('h2', {}, `캐릭터 (${state.data.characters.length})`), list),
     h('section', { class: 'card' }, h('h2', {}, '최근 생성 기록'), jobsBox),
   );

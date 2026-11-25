@@ -345,12 +345,15 @@ def draft(tid, part="all", feedback="", current=None, model=None, extra_voices=N
     b = bible.load()
     chars = store.read_list("characters")
     roster = [{"id": c["id"], "name": c.get("name", c["id"]), "title": c.get("title", "")} for c in chars if c.get("id") != tid]
+    prot = dict(b["protagonist"])
+    if (extra_voices or {}).get(PROTAGONIST):  # 일괄 생성 중 아직 승인 안 한 주인공 카드
+        prot["voice"] = extra_voices[PROTAGONIST]
     ctx = {
         "target": target,
         "world": b["world"],
         "style": b["style"],
         "others": others_voices(tid, extra_voices),
-        "protagonist": b["protagonist"] if tid != PROTAGONIST else {},
+        "protagonist": prot if tid != PROTAGONIST else {},
         "roster": roster,
         "excerpt": excerpt_for(target["name"], None if tid == PROTAGONIST else tid),
         "part": part,

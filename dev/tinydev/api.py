@@ -16,6 +16,7 @@ from flask import Flask, abort, jsonify, redirect, request, send_from_directory
 from . import batch, bible, comfy, pack, config, cutout, genai, imaging, jobs, kit, prompts, publish, settings, store, texthist, uislots
 from . import rarity as rarity_mod
 from . import profile as profile_mod
+from . import profilebatch
 from .genai import GenError
 from .timeutil import now_iso, parse
 
@@ -649,6 +650,47 @@ def char_profile_draft():
 def char_profile_put(cid):
     data = body()
     return jsonify(profile=profile_mod.save_profile(cid, data.get("profile") if isinstance(data.get("profile"), dict) else {}))
+
+
+# ── 프로필 일괄 생성 ──
+@app.get("/api/profile-batch")
+def profile_batch_state():
+    return jsonify(batch=profilebatch.snapshot(), targets=profilebatch.targets(False), allTargets=len(profilebatch.targets(True)))
+
+
+@app.post("/api/profile-batch/start")
+def profile_batch_start():
+    data = body()
+    if data.get("model"):
+        genai.resolve_text_model("profile", data["model"])  # 없는 모델이면 400
+    return jsonify(batch=profilebatch.start({"all": bool(data.get("all")), "protagonist": data.get("protagonist", True), "model": data.get("model") or None}))
+
+
+@app.post("/api/profile-batch/resume")
+def profile_batch_resume():
+    return jsonify(batch=profilebatch.resume())
+
+
+@app.post("/api/profile-batch/cancel")
+def profile_batch_cancel():
+    return jsonify(batch=profilebatch.cancel())
+
+
+@app.post("/api/profile-batch/<tid>/approve")
+def profile_batch_approve(tid):
+    data = body()
+    return jsonify(batch=profilebatch.approve(tid, data.get("profile") if isinstance(data.get("profile"), dict) else None))
+
+
+@app.post("/api/profile-batch/<tid>/regenerate")
+def profile_batch_regenerate(tid):
+    data = body()
+    return jsonify(batch=profilebatch.regenerate(tid, text(data, "feedback", 1000), data.get("model") or None))
+
+
+@app.post("/api/profile-batch/<tid>/skip")
+def profile_batch_skip(tid):
+    return jsonify(batch=profilebatch.skip(tid))
 
 
 @app.put("/api/story-bible/protagonist")

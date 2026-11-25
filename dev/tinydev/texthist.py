@@ -8,7 +8,7 @@ import secrets
 from . import config, store
 from .timeutil import now_iso, stamp
 
-PROMPT_KEEP = 4000  # 프롬프트는 앞부분만 (전체는 길고 매번 비슷함)
+PROMPT_KEEP = 60000  # 프롬프트 전체 (모델 비교 · 디버깅용, 보통 10~30KB)
 
 
 def record(task, model, target, prompt, output):

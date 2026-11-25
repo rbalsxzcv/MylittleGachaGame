@@ -380,3 +380,11 @@ a.chip { text-decoration: none; }
 .profile-form .rel-row select, .profile-form .rel-row input { min-width: 0; width: 100%; }
 .profile-form .pf-ai { gap: 6px; align-items: center; }
 .profile-form .row > input { flex: 1; }
+
+/* 프로필 일괄 생성 (profileBatch.js) */
+.pb-items { display: grid; gap: 4px; margin: 8px 0; }
+.pb-item { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 4px 6px; border-radius: 6px; }
+.pb-item .btn { margin-left: auto; }
+.pb-item.is-done { background: rgba(255, 200, 80, 0.08); }
+.pb-item.is-approved { opacity: 0.7; }
+.pb-item.is-error { background: rgba(255, 80, 80, 0.08); }
