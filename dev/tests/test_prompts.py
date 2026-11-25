@@ -59,5 +59,52 @@ class ProfilePromptTest(unittest.TestCase):
         self.assertIn("관계: 이레나(그 마녀) — 마법 실력은 인정", card)
 
 
+
+class ChapterVoiceTest(unittest.TestCase):
+    CHARS = [
+        {"id": "char_0001", "name": "시논", "title": "척후", "description": "도망친 암살자", "profile": {"voice": SINON, "relations": [{"id": "char_0008", "label": "그 마녀", "note": "실력은 인정"}, {"id": "char_0003", "label": "창잡이", "note": "안 나옴"}]}},
+        {"id": "char_0008", "name": "이레나", "title": "마녀", "description": "술꾼 마녀", "profile": {"voice": IRENA}},
+        {"id": "char_0003", "name": "가린", "title": "창병", "description": "과묵한 창병", "profile": {"voice": {"personality": "PERSONALITY_GARIN", "speech": "x"}}},
+        {"id": "char_0007", "name": "루미 아이올락", "title": "점술가", "description": "카드 없음"},
+    ]
+
+    def ctx(self, featured):
+        return {
+            "meta": {"kind": "main", "chapter": 2, "title": "t"},
+            "outline": "o",
+            "world": "w",
+            "style": "s",
+            "prev": [],
+            "prev_script": "",
+            "chars": self.CHARS,
+            "featured": featured,
+            "protagonist": PROT,
+            "length": "auto",
+        }
+
+    def test_only_featured_get_full_cards(self):
+        text = prompts.chapter_draft(self.ctx(["char_0001", "char_0008"]))
+        self.assertIn("말투 카드를 최우선으로 따를 것", text)
+        self.assertIn('- 주인공 (speaker: "narrator", name: "단장")', text)
+        self.assertIn("능글맞은 용병단장", text)
+        self.assertIn("- id: char_0001 / 시논 / 척후\n  성격: 말수 적은 현실주의자", text)
+        self.assertIn("술 좋아하는 마녀", text)
+        self.assertNotIn("PERSONALITY_GARIN", text)  # 안 나오는 캐릭터는 한 줄 요약만
+        self.assertIn("- id: char_0003 / 이름: 가린 / 칭호: 창병 / 소개: 과묵한 창병", text)
+        self.assertIn("관계: 이레나(그 마녀) — 실력은 인정", text)
+        self.assertNotIn("창잡이", text)  # 이번 장에 없는 상대와의 관계는 빠짐
+
+    def test_featured_detection(self):
+        from tinydev import profile
+
+        prev = {"scenes": [{"lines": [{"speaker": "char_0003", "text": "…"}, {"speaker": "narrator", "name": "이레나", "text": "한 잔"}]}]}
+        self.assertEqual(profile.featured_ids(self.CHARS, "루미가 점을 친다", prev, ["char_0001"]), ["char_0001", "char_0008", "char_0003", "char_0007"])
+        self.assertEqual(profile.featured_ids(self.CHARS, "아무도 없음"), [])
+
+    def test_no_voice_falls_back_to_description(self):
+        text = prompts.chapter_draft(self.ctx(["char_0007"]))
+        self.assertIn("- id: char_0007 / 루미 아이올락 / 점술가\n  소개: 카드 없음 (말투 카드 없음)", text)
+
+
 if __name__ == "__main__":
     unittest.main()

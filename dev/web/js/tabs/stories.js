@@ -589,7 +589,7 @@ export function storiesTab(root, { select } = {}) {
           { class: 'draft-view' },
           h('h3', {}, `초안: ${d.title || '(제목 없음)'}`),
           d.summary && h('p', { class: 'muted' }, `한 줄 소개: ${d.summary}`),
-          h('p', { class: 'muted small' }, `장면 ${d.scenes.length}개 · 대사 ${lineCount}줄 · 참고: ${ctx.world ? '세계관, ' : ''}앞 장 요약 ${ctx.previous.length}개${ctx.previousScript ? `, ${ctx.previousScript} 대본` : ''}${ctx.recapsMade ? ` (요약 ${ctx.recapsMade}개 새로 만듦)` : ''}${ctx.model ? ` · 모델 ${ctx.model.label}${ctx.model.mock ? ' (모의)' : ''}` : ''}`),
+          h('p', { class: 'muted small' }, `장면 ${d.scenes.length}개 · 대사 ${lineCount}줄 · 참고: ${ctx.world ? '세계관, ' : ''}앞 장 요약 ${ctx.previous.length}개${ctx.previousScript ? `, ${ctx.previousScript} 대본` : ''}${ctx.recapsMade ? ` (요약 ${ctx.recapsMade}개 새로 만듦)` : ''}${ctx.model ? ` · 모델 ${ctx.model.label}${ctx.model.mock ? ' (모의)' : ''}` : ''}${ctx.voiceCards?.length ? ` · 말투 카드 전체: ${ctx.voiceCards.join(', ')}` : ''}`),
           d.recap && h('div', { class: 'card inner small' }, h('b', {}, '이 장 요약 (다음 장 참고용) '), d.recap),
           warnings.length > 0 && h('ul', { class: 'warn-list' }, warnings.map((w) => h('li', { class: 'warn' }, w))),
           d.scenes.map((sc) =>
@@ -653,7 +653,7 @@ export function storiesTab(root, { select } = {}) {
         h('summary', {}, h('b', {}, 'AI로 이 장 만들기 (개요 → 대본)')),
         contextLine,
         h('label', { class: 'field' }, '이번 장 개요', outline),
-        state.data.characters.length > 0 && h('div', { class: 'label' }, '등장 캐릭터 (고르지 않으면 전체를 알려 줘요. 목록에 없는 인물은 AI가 이름만 붙여 등장시켜요)'),
+        state.data.characters.length > 0 && h('div', { class: 'label' }, '등장 캐릭터 — 고른 캐릭터 + 개요에 이름이 나온 캐릭터 + 직전 장 화자는 말투 카드 전체를, 나머지는 한 줄 요약을 AI에게 알려 줘요 (목록에 없는 인물은 AI가 이름만 붙여 등장시켜요)'),
         state.data.characters.length > 0 && h('div', { class: 'row wrap' }, picks.map((p) => h('label', { class: 'inline' }, p.cb, p.c.name))),
         state.data.characters.length === 0 && h('p', { class: 'muted small' }, '등록된 캐릭터가 없어요. AI가 필요한 인물을 이름만 붙여 등장시켜요 (나중에 화자를 캐릭터로 바꿀 수 있어요).'),
         h(

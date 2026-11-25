@@ -1239,7 +1239,7 @@ def draft_chapter(meta, outline, length="auto", character_ids=(), allow_battles=
     length = length if length in prompts.STORY_LENGTH else "auto"
     chars_all = {c["id"]: c for c in store.read_list("characters")}
     picked = [i for i in character_ids or [] if i in chars_all]
-    chars = [chars_all[i] for i in picked] if picked else list(chars_all.values())
+    chars = list(chars_all.values())  # 화자로 쓸 수 있는 전체 (이번 장 등장 캐릭터만 말투 카드 전체, 나머지는 한 줄)
     b = bible.load()
 
     # 앞 장들: 요약이 없으면 대본에서 먼저 만들어 둠 (최대 8개까지 한 번에)
@@ -1257,12 +1257,17 @@ def draft_chapter(meta, outline, length="auto", character_ids=(), allow_battles=
             except (store.JsonError, ValueError):
                 recap = ""
         prev.append({"id": s["id"], "chapter": s.get("chapter"), "title": s.get("title", s["id"]), "recap": recap})
-    prev_script = ""
+    prev_script, prev_body = "", None
     if group:
         try:
-            prev_script = prompts.script_text(store.read_story(group[-1]["id"]) or {}, _names(), _stage_names())
+            prev_body = store.read_story(group[-1]["id"]) or {}
+            prev_script = prompts.script_text(prev_body, _names(), _stage_names())
         except (store.JsonError, ValueError):
             prev_script = ""
+    featured = profile_mod.featured_ids(chars, outline, prev_body, picked)
+    voice_warnings = [f"말투 카드 없음: {chars_all[i].get('name', i)} (캐릭터 탭 → 프로필)" for i in featured if not profile_mod.has_voice(chars_all[i].get("profile"))]
+    if not (b["protagonist"].get("voice") or {}).get("personality"):
+        voice_warnings.insert(0, "말투 카드 없음: 주인공 (스토리 탭 → 세계관 · 문체 → 주인공 말투 카드)")
 
     stages = [{"id": k, "name": v} for k, v in _stage_names().items()] if allow_battles else []
     backgrounds = [{"name": k, "label": v.get("label") or k} for k, v in sorted(b["backgrounds"].items())]
@@ -1274,6 +1279,8 @@ def draft_chapter(meta, outline, length="auto", character_ids=(), allow_battles=
         "prev": prev,
         "prev_script": prev_script,
         "chars": chars,
+        "featured": featured,
+        "protagonist": b["protagonist"],
         "length": length,
         "stages": stages,
         "backgrounds": backgrounds,
@@ -1285,6 +1292,7 @@ def draft_chapter(meta, outline, length="auto", character_ids=(), allow_battles=
     raw, used = genai.generate_text_ex(prompts.chapter_draft(ctx), json_mode=True, mock=lambda: prompts.mock_chapter(ctx), task="story", model=model, record=meta["id"] or f"{meta['kind']}-{meta['chapter']}")
     stage_ids = {s["id"] for s in stages} | ({required_stage["id"]} if required_stage else set())
     draft, warnings = clean_draft(genai.parse_json_text(raw), set(chars_all), stage_ids, {x["name"] for x in backgrounds})
+    warnings = voice_warnings + warnings
     if required_stage and not any(sc.get("type") == "battle" and sc.get("stageId") == required_stage["id"] for sc in draft["scenes"]):
         # AI가 전투를 빠뜨리면 마지막 장면 앞에 넣음
         draft["scenes"].insert(max(0, len(draft["scenes"]) - 1), {"id": "b1" if not any(x["id"] == "b1" for x in draft["scenes"]) else "battle_1", "type": "battle", "stageId": required_stage["id"]})
@@ -1298,6 +1306,7 @@ def draft_chapter(meta, outline, length="auto", character_ids=(), allow_battles=
         "previousScript": group[-1]["id"] if group and prev_script else None,
         "recapsMade": made,
         "model": used,
+        "voiceCards": [chars_all[i].get("name", i) for i in featured],
     }
     return draft, warnings, context
 

@@ -406,3 +406,37 @@ def save_protagonist(raw_voice, name=None):
     if errs:
         raise ValueError("말투 카드를 저장할 수 없어요: " + " / ".join(errs[:5]))
     return bible.set_protagonist(voice, name)
+
+
+# ── 스토리 생성에 넣을 말투 카드 고르기 (CHARACTER_PROFILE.md 5장) ──
+def _name_keys(name):
+    """개요에서 찾을 이름: 전체 이름 + 두 글자 이상인 첫 단어 ('루미 아이올락' → '루미')"""
+    name = str(name or "").strip()
+    keys = {name} if name else set()
+    first = name.split(" ")[0] if " " in name else ""
+    if len(first) >= 2:
+        keys.add(first)
+    return keys
+
+
+def featured_ids(chars, outline="", prev_body=None, picked=()):
+    """이번 장에 나오는 캐릭터 id (말투 카드 전체를 넣을 대상)
+    = 직접 고른 캐릭터(챕터 팩 구성 포함) + 개요에 이름이 나온 캐릭터 + 직전 장에서 말한 캐릭터. 순서는 chars 순서"""
+    want = set(picked or ())
+    text = str(outline or "")
+    by_name = {}
+    for c in chars:
+        for k in _name_keys(c.get("name")):
+            by_name.setdefault(k, c["id"])
+            if k and k in text:
+                want.add(c["id"])
+    for sc in (prev_body or {}).get("scenes") or []:
+        for ln in (sc or {}).get("lines") or []:
+            if not isinstance(ln, dict):
+                continue
+            sp = ln.get("speaker")
+            if sp and sp != "narrator":
+                want.add(sp)
+            elif ln.get("name") in by_name:
+                want.add(by_name[ln["name"]])
+    return [c["id"] for c in chars if c["id"] in want]

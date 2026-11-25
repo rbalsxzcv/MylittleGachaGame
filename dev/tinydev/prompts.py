@@ -683,10 +683,37 @@ def script_text(body, names, stage_names=None, limit=8000):
     return text if len(text) <= limit else text[: limit // 3] + "\n…(중략)…\n" + text[-(limit * 2 // 3):]
 
 
+def roster_text(chars, featured, protagonist=None):
+    """[등장 캐릭터] 목록: 주인공 카드 + 이번 장 등장 캐릭터는 말투 카드 전체, 나머지는 한 줄 요약
+    relations는 이번 장에 같이 나오는 두 캐릭터 사이의 것만. 말투 카드가 없는 캐릭터는 예전처럼 소개문"""
+    names = {c["id"]: c.get("name", c["id"]) for c in chars}
+    feat = [c for c in chars if c["id"] in set(featured or ())]
+    feat_ids = {c["id"] for c in feat}
+    prot = protagonist or {}
+    prot_name = prot.get("name") or "단장"
+    blocks = []
+    if (prot.get("voice") or {}).get("personality"):
+        blocks.append(voice_card(f'- 주인공 (speaker: "narrator", name: "{prot_name}")', prot["voice"], names, protagonist_name=prot_name))
+    else:
+        blocks.append(f'- 주인공 (speaker: "narrator", name: "{prot_name}") — 말투 카드 없음: 세계관의 주인공 설명을 따름')
+    for c in feat:
+        p = c.get("profile") if isinstance(c.get("profile"), dict) else {}
+        head = f"- id: {c['id']} / {c.get('name', c['id'])} / {c.get('title', '') or '-'}"
+        if (p.get("voice") or {}).get("personality"):
+            rels = [r for r in p.get("relations") or [] if isinstance(r, dict) and r.get("id") in feat_ids]
+            blocks.append(voice_card(head, p["voice"], names, rels, prot_name))
+        else:
+            blocks.append(f"{head}\n  소개: {c.get('description', '')} (말투 카드 없음)")
+    rest = [c for c in chars if c["id"] not in feat_ids]
+    if rest:
+        blocks.append("이번 장에 나올 수도 있는 다른 캐릭터 (한 줄 요약):\n" + "\n".join(f"- id: {c['id']} / 이름: {c.get('name', c['id'])} / 칭호: {c.get('title', '')} / 소개: {c.get('description', '')}" for c in rest))
+    return "\n\n".join(blocks)
+
+
 def chapter_draft(ctx):
-    """ctx: meta, outline, world, style, prev (list of {chapter,title,recap}), prev_script, chars, length, stages, feedback, previous"""
+    """ctx: meta, outline, world, style, prev (list of {chapter,title,recap}), prev_script, chars, featured, protagonist, length, stages, feedback, previous"""
     meta = ctx["meta"]
-    roster = "\n".join(f"- id: {c['id']} / 이름: {c['name']} / 칭호: {c.get('title', '')} / 소개: {c.get('description', '')}" for c in ctx["chars"])
+    roster = roster_text(ctx["chars"], ctx.get("featured") or [], ctx.get("protagonist"))
     prev = "\n".join(f"- {p['chapter']}장 「{p['title']}」: {p['recap'] or '(요약 없음)'}" for p in ctx["prev"])
     stages = ctx.get("stages") or []
     text = f"""당신은 모바일 수집형 RPG의 비주얼노벨형 스토리 작가입니다. 한국어로 이 장의 대본을 써 주세요.
@@ -706,7 +733,7 @@ def chapter_draft(ctx):
 {_pack_block(ctx)}[이번 장] {meta.get('chapter', 1)}장 {('「' + meta['title'] + '」') if meta.get('title') else '(제목은 정해 주세요)'}
 개요: {ctx['outline']}
 
-[등장 캐릭터] speaker에는 아래 id 또는 "narrator"만 쓰기
+[등장 캐릭터] speaker에는 아래 id 또는 "narrator"만 쓰기. 말투 카드를 최우선으로 따를 것.
 {roster or '- (등록된 캐릭터 없음)'}
 - 목록에 없는 인물이 필요하면 speaker는 "narrator", name에 그 인물 이름을 쓰기 (예: 마을 사람, 수수께끼의 목소리)
 
@@ -765,7 +792,7 @@ def recap_prompt(world, title, script):
 
 def mock_chapter(ctx):
     names = {c["id"]: c["name"] for c in ctx["chars"]}
-    ids = list(names) or []
+    ids = list(ctx.get("featured") or []) or list(names) or []
     a = ids[0] if ids else None
     count = {"short": 2, "normal": 3, "long": 5}.get(ctx["length"], 3)
     scenes = []
