@@ -15,6 +15,7 @@ from flask import Flask, abort, jsonify, redirect, request, send_from_directory
 
 from . import batch, bible, comfy, pack, config, cutout, genai, imaging, jobs, kit, prompts, publish, settings, store, texthist, uislots
 from . import rarity as rarity_mod
+from . import profile as profile_mod
 from .genai import GenError
 from .timeutil import now_iso, parse
 
@@ -626,6 +627,36 @@ def char_update(cid):
     return jsonify(existing)
 
 
+# ── 프로필 (CHARACTER_PROFILE.md) ──
+@app.post("/api/char/profile")
+def char_profile_draft():
+    """프로필 AI 초안 (저장 안 함 → 폼에 채움). id: 캐릭터 id 또는 'protagonist', part: all|stories|lines|voice"""
+    data = body()
+    tid = data.get("id")
+    if tid != profile_mod.PROTAGONIST and not store.valid_id(tid):
+        raise ValueError("캐릭터 id가 필요해요")
+    prof, used, warnings = profile_mod.draft(
+        tid,
+        part=data.get("part") or "all",
+        feedback=text(data, "feedback", 1000),
+        current=data.get("current") if isinstance(data.get("current"), dict) else None,
+        model=data.get("model") or None,
+    )
+    return jsonify(profile=prof, model=used, warnings=warnings)
+
+
+@app.put("/api/characters/<cid>/profile")
+def char_profile_put(cid):
+    data = body()
+    return jsonify(profile=profile_mod.save_profile(cid, data.get("profile") if isinstance(data.get("profile"), dict) else {}))
+
+
+@app.put("/api/story-bible/protagonist")
+def protagonist_put():
+    data = body()
+    return jsonify(protagonist=profile_mod.save_protagonist(data.get("voice"), text(data, "name", 20) or None))
+
+
 @app.get("/api/characters/<cid>/refs")
 def char_refs(cid):
     return jsonify(_char_refs(cid))
@@ -1082,6 +1113,10 @@ def story_bible_get():
 @app.put("/api/story-bible")
 def story_bible_put():
     data = body()
+    # 예전에는 제한을 넘으면 조용히 잘렸음(문체 지침이 3000자에서 끊김) → 이제는 저장을 거부
+    for key, limit, label in (("world", bible.WORLD_LIMIT, "세계관"), ("style", bible.STYLE_LIMIT, "문체 지침")):
+        if isinstance(data.get(key), str) and len(data[key].strip()) > limit:
+            raise ValueError(f"{label}이 너무 길어요: {len(data[key].strip())}자 (최대 {limit}자)")
     b = bible.set_world(text(data, "world", bible.WORLD_LIMIT), text(data, "style", bible.STYLE_LIMIT))
     return jsonify(b)
 

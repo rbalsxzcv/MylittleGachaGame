@@ -7,6 +7,7 @@ import { openPreview } from '../preview.js';
 import { promptStep } from '../promptStep.js';
 import { openCharBattleEditor } from '../battleEditor.js';
 import { modelPicker } from '../modelPicker.js';
+import { openProfileEditor } from '../profileForm.js';
 
 const ROLE_SHORT = { attacker: '딜', defender: '탱', support: '지', healer: '치' };
 
@@ -178,6 +179,8 @@ export function charactersTab(root) {
               : c.kit
                 ? h('span', { class: 'chip ok', title: `역할 ${c.role || 'attacker'} · 아키타입 ${c.archetype || '(손으로 만든 키트)'}${c.bt2 || c.bt6 ? ' · 돌파 2/6 있음' : ''}` }, `전투 ✓ ${ROLE_SHORT[c.role] || '딜'}${c.archetype ? ` · ${c.archetype}` : ''}`)
                 : h('span', { class: 'chip warn', title: '키트 일괄 탭에서 만들 수 있어요' }, '기본 스킬'),
+            ' ',
+            profileChip(c),
             h('div', { class: 'muted small' }, `${c.id} · ${c.title || ''}`),
           ),
           h(
@@ -185,6 +188,7 @@ export function charactersTab(root) {
             { class: 'col-buttons' },
             gradeOf(c) !== NPC && h('button', { class: 'btn small', onclick: () => openCharBattleEditor(c, { onSaved: renderList }) }, '전투 데이터'),
             h('button', { class: 'btn small', onclick: () => editChar(c) }, '정보 수정'),
+            h('button', { class: 'btn small', onclick: async () => (await openProfileEditor(c, { npc: gradeOf(c) === NPC })) && renderList() }, gradeOf(c) === NPC ? '말투 카드' : '프로필'),
             h('button', { class: 'btn small', onclick: () => setReplacing(c) }, '그림 교체'),
             h('button', { class: 'btn small danger-outline', onclick: () => deleteChar(c) }, '삭제'),
           ),
@@ -206,6 +210,16 @@ export function charactersTab(root) {
       ),
       ...(items.length ? [] : [h('p', { class: 'muted small' }, '아직 기록이 없어요')]),
     );
+  }
+
+  /** 프로필 상태 칩: 프로필 / 말투 카드가 있는지 */
+  function profileChip(c) {
+    const p = c.profile || {};
+    const hasVoice = !!p.voice?.personality;
+    if (gradeOf(c) === NPC) return h('span', { class: ['chip', hasVoice ? 'ok' : 'warn'] }, hasVoice ? '말투 ✓' : '말투 카드 없음');
+    const parts = (p.stories?.length ? 1 : 0) + (p.lines && Object.keys(p.lines).length ? 1 : 0);
+    if (!p.facts && !p.stories && !hasVoice) return h('span', { class: 'chip warn', title: '프로필 일괄 생성 또는 프로필 버튼' }, '프로필 없음');
+    return h('span', { class: ['chip', hasVoice && parts === 2 ? 'ok' : 'warn'], title: `이야기 ${p.stories?.length || 0}편 · 말투 카드 ${hasVoice ? '있음' : '없음'}` }, hasVoice ? '프로필 ✓' : '말투 카드 없음');
   }
 
   /** 이 NPC와 연결된 적 (적 탭 'NPC 연결') */

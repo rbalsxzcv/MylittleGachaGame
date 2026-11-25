@@ -450,6 +450,186 @@ def mock_describe(inp):
     return f"「{title}」라 불리는 {name}.\n겉보기와 달리 의외로 수줍음이 많다.{extra} [모의 모드]"
 
 
+# ── 말투 카드 (스토리 생성 · 검수 · 프로필 생성 공용) ─────────────
+def _address_text(address, names, protagonist_name="단장"):
+    out = []
+    for k, v in (address or {}).items():
+        who = protagonist_name if k == "protagonist" else names.get(k, k)
+        out.append(f'{who} → "{v}"')
+    return ", ".join(out)
+
+
+def voice_card(head, voice, names, relations=(), protagonist_name="단장"):
+    """말투 카드 전체 (CHARACTER_PROFILE.md 5장 형식). head = '- id: char_0001 / 시논 / 척후' 같은 첫 줄"""
+    v = voice if isinstance(voice, dict) else {}
+    rows = [head]
+    if v.get("personality"):
+        rows.append(f"  성격: {v['personality']}")
+    if v.get("speech"):
+        rows.append(f"  말투: {v['speech']}")
+    if v.get("address"):
+        rows.append(f"  호칭: {_address_text(v['address'], names, protagonist_name)}")
+    if v.get("habits"):
+        rows.append(f"  버릇: {', '.join(v['habits'])}")
+    if v.get("never"):
+        rows.append(f"  절대 안 하는 말: {', '.join(v['never'])}")
+    wd = " / ".join(x for x in ((f"약점: {v['weakness']}" if v.get("weakness") else ""), (f"원하는 것: {v['desire']}" if v.get("desire") else "")) if x)
+    if wd:
+        rows.append(f"  {wd}")
+    if v.get("samples"):
+        rows.append("  예시: " + " / ".join(f'"{s}"' for s in v["samples"]))
+    for r in relations:
+        rows.append(f"  관계: {names.get(r.get('id'), r.get('id'))}({r.get('label') or '-'}) — {r.get('note') or ''}".rstrip(" —"))
+    return "\n".join(rows)
+
+
+def voice_summary_line(name, voice):
+    """다른 캐릭터 말투 요약 한 줄 (이름 + 성격 + 말투)"""
+    v = voice if isinstance(voice, dict) else {}
+    return f"- {name}: 성격 {v.get('personality') or '?'} / 말투 {v.get('speech') or '?'}"
+
+
+# ── 캐릭터 프로필 생성 ─────────────────────────────────────
+PROFILE_PART_LABEL = {"stories": "이야기(stories)", "lines": "대사(lines)", "voice": "말투 카드(voice)"}
+
+VOICE_SCHEMA = """{
+    "personality": "성격 한두 문장",
+    "speech": "말투: 존대/반말, 문장 길이, 어미, 욕설 여부",
+    "address": {"protagonist": "주인공을 부르는 호칭", "캐릭터id": "그 인물을 부르는 호칭"},
+    "habits": ["말버릇이나 행동 버릇 1~3개"],
+    "never": ["절대 안 하는 말 2~4개"],
+    "weakness": "약한 부분 (들키기 싫은 것, 무서워하는 것)",
+    "desire": "원하는 것",
+    "samples": ["예시 대사 3~5개"]
+  }"""
+
+PROFILE_SCHEMA = """{
+  "facts": {"age": "나이", "height": "키", "origin": "출신", "affiliation": "소속", "likes": ["좋아하는 것 1~3"], "dislikes": ["싫어하는 것 1~3"], "hobby": "취미"},
+  "stories": [
+    {"title": "제목", "text": "200~400자", "unlock": {"breakthrough": 1}},
+    {"title": "제목", "text": "200~400자", "unlock": {"breakthrough": 3}},
+    {"title": "제목", "text": "200~400자", "unlock": {"breakthrough": 6}}
+  ],
+  "lines": {"obtain": "처음 만났을 때", "team": "편성될 때", "levelUp": "레벨 업", "breakthrough": "돌파", "battleStart": "전투 시작", "ultimate": "궁극기", "idle": ["대기 대사 2~3개"]},
+  "relations": [{"id": "다른 캐릭터 id", "label": "관계 이름(호칭)", "note": "한 줄 (60자 이내)"}],
+  "voice": %s
+}""" % VOICE_SCHEMA
+
+
+def profile_draft(ctx):
+    """ctx: target {id, name, rarity, title, role, description, keywords, lore, kind: char|npc|protagonist},
+    world, style, others [{id, name, voice}], protagonist {name, voice}, roster [{id, name, title}], excerpt,
+    part (all|stories|lines|voice), current (기존 프로필), feedback"""
+    t = ctx["target"]
+    kind = t.get("kind", "char")
+    part = ctx.get("part") or "all"
+    voice_only = kind in ("npc", "protagonist") or part == "voice"
+    names = {r["id"]: r["name"] for r in ctx.get("roster") or []}
+    prot = ctx.get("protagonist") or {}
+    prot_name = prot.get("name") or "단장"
+    others = [o for o in ctx.get("others") or [] if isinstance(o.get("voice"), dict) and o["voice"].get("personality")]
+    swearers = [o["name"] for o in others if _uses_swears(o["voice"])]
+    roster_n = len(ctx.get("roster") or []) + 1
+    who = {"char": "동료 캐릭터", "npc": "NPC(뽑기에 안 나오는 스토리 인물)", "protagonist": "주인공(플레이어, 용병단장)"}[kind]
+
+    text = f"""당신은 모바일 수집형 RPG의 캐릭터 작가입니다. 아래 {who}의 프로필을 한국어로 만들어 주세요.
+
+[세계관]
+{(ctx.get('world') or '(없음)')[:6000]}
+
+[문체 지침] (대사와 이야기는 이 지침을 따름)
+{(ctx.get('style') or '(없음)')[:12000]}
+
+[이 캐릭터]
+- 이름: {t.get('name', '')}
+- 등급: {rarity.label(t.get('rarity', '')) if t.get('rarity') else '-'}
+- 칭호: {t.get('title') or '-'}
+- 역할: {t.get('role') or '-'}
+- 소개문: {t.get('description') or '-'}
+- 외형 키워드: {t.get('keywords') or '-'}
+- 설정 메모: {t.get('lore') or '-'}
+"""
+    if kind != "protagonist":
+        text += "\n[주인공 말투 카드]\n" + (voice_card(f"- 주인공 ({prot_name})", prot.get("voice"), names, protagonist_name=prot_name) if (prot.get("voice") or {}).get("personality") else f"- 주인공 ({prot_name}): (아직 카드 없음)") + "\n"
+    text += "\n[다른 캐릭터들의 말투 요약] (이들과 겹치지 않게)\n" + ("\n".join(voice_summary_line(o["name"], o["voice"]) for o in others) or "(아직 없음)") + "\n"
+    if ctx.get("roster"):
+        text += "\n[캐릭터 id 목록] (relations / address에는 이 id만)\n" + "\n".join(f"- {r['id']}: {r['name']}{' · ' + r['title'] if r.get('title') else ''}" for r in ctx["roster"]) + '\n- protagonist: 주인공\n'
+    if ctx.get("excerpt"):
+        text += f"""
+[이 캐릭터가 나온 스토리 대본 발췌]
+※ 이미 쓴 장의 **사건과 관계의 사실만** 지키세요 (누가 누구와 무슨 일을 겪었는지). 대본 속 말투는 고칠 대상이니 따라 하지 마세요.
+{ctx['excerpt'][:3000]}
+"""
+    text += f"""
+[규칙]
+- voice는 약한 부분(weakness)과 절대 안 하는 말(never)을 반드시 채우기. 강하고 냉소적인 면만 있는 카드는 실패.
+- 다른 캐릭터와 말투가 겹치지 않게: 위 요약의 모든 캐릭터와 어미, 문장 길이, 욕설 사용, 호칭 방식 중 최소 두 가지가 달라야 함.
+- 욕설을 쓰는 캐릭터는 전체 로스터({roster_n}명)의 3분의 1 이하 (최대 {roster_n // 3}명). 지금 욕설을 쓰는 캐릭터: {', '.join(swearers) or '없음'}.
+- voice의 문장은 120자 이내, 목록은 5개 이내, samples는 3~5개.
+"""
+    if not voice_only:
+        text += """- samples와 lines는 이 캐릭터의 말투 카드를 그대로 따를 것. 대사 한 줄은 40자 이내, idle은 2~3개.
+- 현대 회사 · 직장 · 금융 비유 금지 (문체 지침 원칙 1).
+- stories는 1~3편, 각 200~400자. 신파 없이 담담하게, 하나의 구체적인 장면으로 (문체 지침 원칙 4). 이 캐릭터의 weakness 또는 desire와 연결. unlock.breakthrough는 1, 3, 6.
+- facts의 각 값은 40자 이내, likes/dislikes는 1~3개.
+- relations는 위 id 목록의 캐릭터만, 0~3개, note는 60자 이내.
+"""
+    if part != "all" and not voice_only:
+        key = part
+        text += f"\n[이번 요청] {PROFILE_PART_LABEL[part]}만 다시 만들기. 나머지는 아래 현재 프로필 그대로 둠.\n오직 JSON만 출력: {{\"{key}\": …}} (형식은 아래 전체 형식의 그 부분)\n"
+        text += f"\n전체 형식:\n{PROFILE_SCHEMA}\n"
+    elif voice_only:
+        text += f"\n오직 JSON만 출력. 형식: {{\"voice\": {VOICE_SCHEMA}}}\n"
+    else:
+        text += f"\n오직 JSON만 출력. 형식:\n{PROFILE_SCHEMA}\n"
+    if ctx.get("current"):
+        text += f"\n현재 프로필:\n{json.dumps(ctx['current'], ensure_ascii=False)[:6000]}\n"
+    if ctx.get("feedback"):
+        text += f"\n수정 요청 (반드시 반영, 나머지는 최대한 유지): {ctx['feedback']}\n"
+    return text
+
+
+def _uses_swears(voice):
+    """말투 카드가 욕설을 쓰는지 대략 판단 (never에 욕설이 있으면 안 씀)"""
+    never = " ".join(voice.get("never") or [])
+    if "욕" in never:
+        return False
+    speech = f"{voice.get('speech', '')} {' '.join(voice.get('habits') or [])}"
+    return "욕" in speech and not re.search(r"욕설\s*(없|거의 없|안|하지 않|금지)", speech)
+
+
+def mock_profile(ctx):
+    """모의 모드: 이름으로 정해지는 가짜 프로필 (형식은 진짜와 같음)"""
+    t = ctx["target"]
+    name = t.get("name") or "이름 없음"
+    seed = sum(ord(ch) for ch in name)
+    speech = ["반말. 짧은 평서문", "존댓말. 길고 정중한 문장", "반말. 질문을 자주 던짐", "사투리 섞인 반말"][seed % 4]
+    voice = {
+        "personality": f"[모의] {name}의 성격 — {['조용함', '겁 많음', '쓸데없이 정중함', '진지함'][seed % 4]}",
+        "speech": speech,
+        "address": {"protagonist": "단장"},
+        "habits": ["숫자로 상황을 말함"],
+        "never": ["욕설", "장황한 설명"],
+        "weakness": "[모의] 들키기 싫은 과거",
+        "desire": "[모의] 조용한 삶",
+        "samples": [f"[모의] {name}입니다.", "……셋.", "알았어."],
+    }
+    kind = t.get("kind", "char")
+    part = ctx.get("part") or "all"
+    if kind in ("npc", "protagonist") or part == "voice":
+        return json.dumps({"voice": voice}, ensure_ascii=False)
+    full = {
+        "facts": {"age": f"{18 + seed % 20}", "origin": "[모의] 남부 항구", "likes": ["따뜻한 우유"], "dislikes": ["빚"], "hobby": "단검 손질"},
+        "stories": [{"title": f"[모의] 이야기 {i + 1}", "text": f"[모의 모드] {name}의 {i + 1}번째 이야기. " + ("비 오는 날의 짧은 장면. " * 8), "unlock": {"breakthrough": bt}} for i, bt in enumerate((1, 3, 6))],
+        "lines": {"obtain": f"[모의] {name}. 잘 부탁해.", "team": "앞은 내가 본다.", "levelUp": "조금 가벼워졌어.", "breakthrough": "이번엔 안 도망칠게.", "battleStart": "셋. 오른쪽부터.", "ultimate": "놓친 적 없어.", "idle": ["우유 남았어?", "……"]},
+        "relations": [],
+        "voice": voice,
+    }
+    if ctx.get("feedback"):
+        full["voice"]["personality"] += f" ({ctx['feedback'][:30]} 반영)"
+    return json.dumps(full if part == "all" else {part: full[part]}, ensure_ascii=False)
+
+
 # ── 스토리 장 생성 ────────────────────────────────────────
 # 개요 한두 문단 → 대본. 세계관 + 앞 장 요약 + 직전 장 대본을 함께 읽고 이어 씀
 STORY_LENGTH = {

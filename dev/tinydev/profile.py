@@ -246,3 +246,160 @@ def strip_voice(char):
     if not isinstance(p, dict) or "voice" not in p:
         return char
     return {**char, "profile": {k: v for k, v in p.items() if k != "voice"}}
+
+
+# ── AI 초안 ───────────────────────────────────────────────
+EXCERPT_LIMIT = 3000
+
+
+def _story_order():
+    """스토리 목록을 읽는 순서 (메인 → 캐릭터 → 이벤트, 장 순서)"""
+    from . import store
+
+    order = {"main": 0, "character": 1, "event": 2}
+    items = [s for s in store.read_list("storyIndex") if isinstance(s, dict) and s.get("id")]
+    return sorted(items, key=lambda s: (order.get(s.get("kind"), 9), str(s.get("characterId") or ""), int(s.get("chapter") or 0)))
+
+
+def excerpt_for(name, cid=None, limit=EXCERPT_LIMIT):
+    """이 캐릭터가 말한 줄(+ 바로 앞 줄)을 스토리 순서대로 모은 발췌. cid가 없으면 이름(narrator name)으로만 찾음 (주인공)"""
+    from . import store
+
+    names = {c["id"]: c.get("name", c["id"]) for c in store.read_list("characters")}
+    out, total = [], 0
+    for s in _story_order():
+        try:
+            body = store.read_story(s["id"]) or {}
+        except (store.JsonError, ValueError):
+            continue
+        chunk = []
+        for sc in body.get("scenes") or []:
+            prev = None
+            for ln in (sc or {}).get("lines") or []:
+                if not isinstance(ln, dict):
+                    continue
+                sp = ln.get("speaker", "narrator")
+                who = ln.get("name") or ("지문" if sp == "narrator" else names.get(sp, sp))
+                mine = (cid and sp == cid) or (sp == "narrator" and ln.get("name") == name)
+                if mine:
+                    if prev and prev not in chunk:
+                        chunk.append(prev)
+                    chunk.append(f"{who}: {ln.get('text', '')}")
+                prev = f"{who}: {ln.get('text', '')}"
+        if chunk:
+            block = f"[{s.get('title') or s['id']}]\n" + "\n".join(chunk[:14])
+            if total + len(block) > limit:
+                out.append(block[: max(0, limit - total)])
+                break
+            out.append(block)
+            total += len(block) + 1
+    return "\n".join(out)
+
+
+def others_voices(exclude_id=None, extra=None):
+    """다른 캐릭터들의 말투 카드 [{id, name, voice}] (extra: 일괄 생성 중 아직 승인 안 한 카드 {id: voice} — 덮어씀)"""
+    from . import store
+
+    out = []
+    extra = extra or {}
+    for c in store.read_list("characters"):
+        if c.get("id") == exclude_id:
+            continue
+        voice = extra.get(c["id"]) or ((c.get("profile") or {}).get("voice") if isinstance(c.get("profile"), dict) else None)
+        if isinstance(voice, dict) and voice.get("personality"):
+            out.append({"id": c["id"], "name": c.get("name", c["id"]), "voice": voice})
+    return out
+
+
+def target_info(tid):
+    """초안 대상: 캐릭터 id 또는 'protagonist' → (target dict, 현재 프로필)"""
+    from . import bible, rarity, store
+
+    if tid == PROTAGONIST:
+        p = bible.load()["protagonist"]
+        world = bible.load()["world"]
+        return {"id": PROTAGONIST, "name": p.get("name") or "단장", "kind": "protagonist", "description": "플레이어. 용병단장 (세계관의 주인공 설명 참고)", "lore": world[:600]}, {"voice": p.get("voice") or {}}
+    c = next((x for x in store.read_list("characters") if x.get("id") == tid), None)
+    if not c:
+        raise FileNotFoundError("캐릭터가 없어요")
+    npc = rarity.is_npc(c)
+    target = {k: c.get(k, "") for k in ("id", "name", "rarity", "title", "role", "description", "keywords", "lore")}
+    target["kind"] = "npc" if npc else "char"
+    return target, (c.get("profile") if isinstance(c.get("profile"), dict) else {})
+
+
+def draft(tid, part="all", feedback="", current=None, model=None, extra_voices=None):
+    """프로필 초안 (저장하지 않음) → (profile, 쓴 모델, 경고 목록)
+    part: all | stories | lines | voice — all이 아니면 그 부분만 새로 만들어 현재 프로필에 합침. NPC · 주인공은 voice만"""
+    from . import bible, genai, prompts, store
+
+    if part not in PARTS:
+        raise ValueError("part는 all / stories / lines / voice")
+    target, saved = target_info(tid)
+    kind = target["kind"]
+    if kind != "char":
+        part = "voice" if part in ("all", "voice") else part
+        if part != "voice":
+            raise ValueError("NPC와 주인공은 말투 카드만 만들어요")
+    base = current if isinstance(current, dict) else saved
+    b = bible.load()
+    chars = store.read_list("characters")
+    roster = [{"id": c["id"], "name": c.get("name", c["id"]), "title": c.get("title", "")} for c in chars if c.get("id") != tid]
+    ctx = {
+        "target": target,
+        "world": b["world"],
+        "style": b["style"],
+        "others": others_voices(tid, extra_voices),
+        "protagonist": b["protagonist"] if tid != PROTAGONIST else {},
+        "roster": roster,
+        "excerpt": excerpt_for(target["name"], None if tid == PROTAGONIST else tid),
+        "part": part,
+        "current": base or None,
+        "feedback": feedback or "",
+    }
+    raw, used = genai.generate_text_ex(prompts.profile_draft(ctx), json_mode=True, mock=lambda: prompts.mock_profile(ctx), task="profile", model=model, record=tid)
+    data = genai.parse_json_text(raw)
+    if not isinstance(data, dict):
+        raise genai.GenError("AI 응답이 프로필 형식이 아니에요")
+    if kind != "char" or part == "voice":
+        new = {**(base or {}), "voice": data.get("voice") if isinstance(data.get("voice"), dict) else data}
+    elif part == "all":
+        new = data
+    else:
+        new = {**(base or {}), part: data.get(part)}
+    profile = clean_profile(new, npc=kind == "npc")
+    if kind == "protagonist":
+        profile = {"voice": profile.get("voice", {})}
+    ids = {c["id"] for c in chars}
+    warnings = issues(profile, ids) + voice_warnings(profile.get("voice"))
+    return profile, used, warnings
+
+
+def save_profile(cid, raw):
+    """캐릭터 프로필 저장 (정리 → 오류가 있으면 ValueError). 반환: 저장된 프로필"""
+    from . import rarity, store
+
+    chars = store.read_list("characters")
+    c = next((x for x in chars if x.get("id") == cid), None)
+    if not c:
+        raise FileNotFoundError("캐릭터가 없어요")
+    p = clean_profile(raw, npc=rarity.is_npc(c))
+    errs = issues(p, {x["id"] for x in chars})
+    if errs:
+        raise ValueError("프로필을 저장할 수 없어요: " + " / ".join(errs[:5]))
+    if len(p) == 1:  # version만 = 빈 프로필 → 지움
+        c.pop("profile", None)
+    else:
+        c["profile"] = p
+    store.write_list("characters", chars)
+    return c.get("profile")
+
+
+def save_protagonist(raw_voice, name=None):
+    from . import bible, store
+
+    voice = clean_voice(raw_voice)
+    errs = voice_issues(voice, {c["id"] for c in store.read_list("characters")})
+    if errs:
+        raise ValueError("말투 카드를 저장할 수 없어요: " + " / ".join(errs[:5]))
+    return bible.set_protagonist(voice, name)

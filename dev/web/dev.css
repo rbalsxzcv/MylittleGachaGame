@@ -367,3 +367,16 @@ a.chip { text-decoration: none; }
 .bg-pick-grid button:hover, .bg-pick-grid button.active { border-color: #6a4cff; }
 .bg-pick-grid img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
 .bg-pick-grid span { display: block; font-size: 11px; padding: 2px 4px; text-align: left; }
+
+/* 캐릭터 프로필 폼 (profileForm.js) */
+.profile-form .pf-section { border-top: 1px solid var(--line, #333); margin-top: 12px; padding-top: 8px; }
+.profile-form .pf-section h3 { margin: 4px 0 8px; }
+.profile-form .counted { position: relative; }
+.profile-form .counted .count { position: absolute; right: 6px; bottom: 4px; pointer-events: none; }
+.profile-form .counted textarea, .profile-form .counted input { width: 100%; padding-right: 56px; }
+.profile-form .pf-story { margin-bottom: 10px; }
+.profile-form .pf-story .row input { flex: 1; }
+.profile-form .rel-row { display: grid; grid-template-columns: 180px 160px 1fr 36px; gap: 6px; align-items: center; margin-bottom: 6px; }
+.profile-form .rel-row select, .profile-form .rel-row input { min-width: 0; width: 100%; }
+.profile-form .pf-ai { gap: 6px; align-items: center; }
+.profile-form .row > input { flex: 1; }

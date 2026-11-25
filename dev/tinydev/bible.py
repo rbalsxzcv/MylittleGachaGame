@@ -1,4 +1,4 @@
-"""스토리 설정집 (dev/story_bible.json): 세계관, 문체 메모, 장별 개요와 요약, 배경 목록, 챕터 팩 구성안.
+"""스토리 설정집 (dev/story_bible.json): 세계관, 문체 지침, 주인공 말투 카드, 장별 개요와 요약, 배경 목록, 챕터 팩 구성안.
 
 AI가 장을 쓸 때 세계관 + 앞 장들의 요약 + 직전 장 대본을 읽고 이어 씁니다.
 세계관에는 앞으로의 줄거리(스포일러)가 들어가기 쉬워서 git에 올리지 않습니다(.gitignore).
@@ -9,7 +9,7 @@ from .timeutil import now_iso
 
 PATH = config.DEV / "story_bible.json"
 WORLD_LIMIT = 12000
-STYLE_LIMIT = 3000
+STYLE_LIMIT = 20000  # 문체 지침 전체 (2~4장 + 퇴고 체크리스트)
 OUTLINE_LIMIT = 4000
 RECAP_LIMIT = 1500
 
@@ -20,6 +20,12 @@ def load():
         data = {}
     data.setdefault("world", "")
     data.setdefault("style", "")
+    # 주인공(단장) 말투 카드 — 캐릭터 데이터가 없으므로 여기에 (형식은 characters profile.voice와 같음)
+    if not isinstance(data.get("protagonist"), dict):
+        data["protagonist"] = {}
+    data["protagonist"].setdefault("name", "단장")
+    if not isinstance(data["protagonist"].get("voice"), dict):
+        data["protagonist"]["voice"] = {}
     for key in ("chapters", "backgrounds", "packs"):
         if not isinstance(data.get(key), dict):
             data[key] = {}
@@ -36,6 +42,16 @@ def set_world(world, style):
     data["style"] = (style or "")[:STYLE_LIMIT]
     save(data)
     return data
+
+
+def set_protagonist(voice, name=None):
+    """주인공 말투 카드 저장 (voice는 profile.clean_voice로 정리된 것)"""
+    data = load()
+    data["protagonist"]["voice"] = voice if isinstance(voice, dict) else {}
+    if name:
+        data["protagonist"]["name"] = str(name)[:20]
+    save(data)
+    return data["protagonist"]
 
 
 def chapter(sid):

@@ -6,6 +6,7 @@ import { jobPanel } from '../jobPanel.js';
 import { openPreview } from '../preview.js';
 import { promptStep } from '../promptStep.js';
 import { modelPicker } from '../modelPicker.js';
+import { openProfileEditor } from '../profileForm.js';
 
 const KINDS = [
   ['main', '메인'],
@@ -40,12 +41,20 @@ export function storiesTab(root, { select } = {}) {
   // ── 세계관 (모든 장을 만들 때 AI가 읽음) ──
   function worldCard() {
     const world = h('textarea', { rows: 12, placeholder: '예: 별빛을 실처럼 엮어 소원을 이루는 "직조사"들의 세계. 대륙 중앙의 별빛 도서관…\n주요 장소, 세력, 마법 규칙, 주인공의 목표, 앞으로의 큰 줄거리 등' });
-    const style = h('textarea', { rows: 3, placeholder: '문체/톤 예: 따뜻하고 가벼운 판타지. 개그 반, 감동 반. 지문은 짧게' });
+    const style = h('textarea', { rows: 10, placeholder: '문체 지침 전체 (원칙, 비교 예시, 퇴고 체크리스트 1~9). 스토리 생성 · 검수 · 프로필 생성이 모두 이걸 읽어요' });
     const status = h('span', { class: 'muted small' });
+    const styleCount = h('span', { class: 'muted small' });
+    const countStyle = () => {
+      styleCount.textContent = `${style.value.length} / 20000자`;
+      styleCount.classList.toggle('error', style.value.length > 20000);
+    };
+    style.addEventListener('input', countStyle);
     const fill = () => {
       world.value = bible.world || '';
       style.value = bible.style || '';
-      status.textContent = bible.world ? `${bible.world.length}자` : '아직 비어 있어요';
+      countStyle();
+      const prot = bible.protagonist?.voice?.personality ? '주인공 말투 카드 ✓' : '주인공 말투 카드 없음';
+      status.textContent = `${bible.world ? `세계관 ${bible.world.length}자` : '세계관 비어 있음'} · 문체 지침 ${(bible.style || '').length}자 · ${prot}`;
     };
     worldCard.fill = fill;
     return h(
@@ -57,7 +66,7 @@ export function storiesTab(root, { select } = {}) {
         h('summary', {}, h('b', {}, '세계관 · 문체 '), status),
         h('p', { class: 'muted small' }, 'AI가 모든 장을 쓸 때 이 내용을 먼저 읽어요. dev/story_bible.json에 저장되고 git에는 올라가지 않아요 (스포일러 보호).'),
         h('label', { class: 'field' }, '세계관 설명', world),
-        h('label', { class: 'field' }, '문체 / 톤 (선택)', style),
+        h('label', { class: 'field' }, h('span', {}, '문체 지침 ', styleCount), style),
         h(
           'button',
           {
@@ -72,6 +81,18 @@ export function storiesTab(root, { select } = {}) {
             },
           },
           '세계관 저장',
+        ),
+        h(
+          'button',
+          {
+            class: 'btn small',
+            onclick: async () => {
+              if ((await openProfileEditor('protagonist')) !== 'saved') return;
+              const b = await tryApi(() => api.get('/api/story-bible'));
+              if (b) (bible = b), fill();
+            },
+          },
+          '주인공 말투 카드',
         ),
       ),
     );

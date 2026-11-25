@@ -246,6 +246,9 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
 - 글 생성 모델(`settings.json textModels [{id,label,provider,model}]` + `textModelFor {story,review,recap,profile,describe,imagePrompt}`, 설정 탭):
   `genai.generate_text(…, task=, model=)` → `resolve_text_model` = 지정 id > 작업별 기본 > 환경 변수 `TG_TEXT_MODEL`(id `env`), 목록에 없는 id는 400.
   제공자별 함수 `genai._PROVIDERS`(지금 gemini만, 키는 `dev/.env`에만). 생성 버튼 옆 `web/js/modelPicker.js`. 기록 `dev/history/text-…/record.json`(`texthist`) + 장 초안은 설정집 장 정보 `model`.
+- 프로필(`tinydev/profile.py`): `draft(id | 'protagonist', part all|stories|lines|voice)` = `prompts.profile_draft`(다른 캐릭터 말투 요약 · 주인공 카드 · 대본 발췌 ≤3000자 · 문체 지침)
+  → `POST /api/char/profile`(저장 안 함) → 폼(`web/js/profileForm.js`, 캐릭터 탭 '프로필' / 스토리 탭 '주인공 말투 카드') → `PUT /api/characters/<id>/profile` · `PUT /api/story-bible/protagonist`.
+  주인공 카드는 `story_bible.json protagonist {name, voice}`. 설정집 문체 지침 한도 `bible.STYLE_LIMIT` 20000자(넘으면 저장 거부 — 예전엔 3000자에서 조용히 잘렸음).
 - 배경 제거 `tinydev/cutout.py`: RMBG에서는 마스크만 → 원본 W×H로 LANCZOS 확대 → 1px 깎기 + 1px 부드럽게(`config.CUTOUT_*`) → **칠하지 않은 원본**에 알파로 적용(크기 다르면 오류) → 투명 여백 자르기.
   캐릭터/적은 줄이지 않음(원본 해상도), 소품 384 · UI 아이콘 256 · 로고 640만 줄임. 예전 512px 그림 다시 만들기: `python -m tinydev.recut [--dry-run]`.
 
