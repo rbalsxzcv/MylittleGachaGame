@@ -1,6 +1,8 @@
 // 편성 화면: 프리셋 3개 × 5칸, 칸을 누르면 캐릭터 고르기, 총 전투력
 // teamPanel / openTeamEditor는 스토리 전투 전 화면에서도 씀 (스토리를 떠나지 않고 편성 변경)
 import { h } from './dom.js';
+import { toast } from './toast.js';
+import { lineOf } from '../systems/profile.js';
 import { openModal, closeTopModal, promptModal } from './modal.js';
 import { charArt, rarityBadge, starRow } from './charCard.js';
 
@@ -126,6 +128,10 @@ export function teamPanel(ctx, { onChange } = {}) {
           if (r === null) return;
           setSlot(ctx.save, view, slot, r || null);
           changed();
+          // 새로 넣은 캐릭터의 편성 대사 (lines.team)
+          const added = r && r !== id ? ctx.data.charMap.get(r) : null;
+          const line = added && lineOf(added, 'team');
+          if (line) toast(`${added.name}: 「${line}」`, { duration: 2000 });
         };
         if (!c || !e) {
           return h('button', { class: 'team-slot is-empty', type: 'button', onclick: onClick }, h('span', { class: 'slot-no' }, slot + 1), h('span', { class: 'slot-plus' }, '+'), h('span', { class: 'muted small' }, '비어 있음'));

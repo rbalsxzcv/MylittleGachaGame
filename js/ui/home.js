@@ -7,6 +7,8 @@ import { charArt } from './charCard.js';
 import { createCarousel } from './carousel.js';
 import { countdownEl, startCountdowns } from './countdown.js';
 import { getFeatured, hasUnseenNew } from '../systems/collection.js';
+import { hasUnseenStory, lineOf } from '../systems/profile.js';
+import { showBubble } from './profilePanel.js';
 import { bannerSignature } from '../systems/banners.js';
 import { hasOpenAdventure } from '../systems/adventure.js';
 import { canBreakthrough } from '../systems/progression.js';
@@ -24,7 +26,7 @@ const MENU = [
   { id: 'stories', label: '모험', icon: '⚔', key: 'T', screen: 'adventure', dot: (ctx) => hasOpenAdventure(ctx) },
   { id: 'growth', label: '육성', icon: '▲', key: 'U', screen: 'growth', dot: (ctx) => canGrowAny(ctx) },
   { id: 'team', label: '편성', icon: '⚑', key: 'P', screen: 'team' },
-  { id: 'collection', label: '도감', icon: '❖', key: 'C', screen: 'collection', dot: (ctx) => hasUnseenNew(ctx.save, ctx.data.charMap) },
+  { id: 'collection', label: '도감', icon: '❖', key: 'C', screen: 'collection', dot: (ctx) => hasUnseenNew(ctx.save, ctx.data.charMap) || hasUnseenStory(ctx.save, ctx.data.charMap) },
   { id: 'shop', label: '상점', icon: '⚖', key: 'S', screen: 'shop', shop: true, dot: (ctx) => hasFreeItem(ctx.save, ctx.data.shop) },
   { id: 'event', label: '이벤트', icon: '★', soon: true },
 ];
@@ -47,10 +49,13 @@ export function homeScreen(ctx) {
       let featuredEl;
       if (featured) {
         const art = h('div', { class: 'featured-art' }, charArt(featured));
+        // 누르면 살짝 튀고, 대기 대사(lines.idle)가 있으면 말풍선 — 화면 코드라 무작위 시작점은 Math.random
+        let idleN = Math.floor(Math.random() * 5);
         art.addEventListener('click', () => {
           art.classList.remove('poke');
           void art.offsetWidth;
           art.classList.add('poke');
+          showBubble(featuredEl, lineOf(featured, 'idle', idleN++));
         });
         featuredEl = h('div', { class: `featured rar-${featured.rarity}` }, h('div', { class: 'featured-aura' }), art);
       } else {

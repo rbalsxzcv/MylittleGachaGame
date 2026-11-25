@@ -2,10 +2,10 @@
 import { h } from './dom.js';
 import { openModal } from './modal.js';
 import { toast } from './toast.js';
-import { charCard, charArt, rarityBadge, starRow } from './charCard.js';
+import { charCard } from './charCard.js';
+import { openProfileModal } from './profilePanel.js';
+import { unseenStoryCount } from '../systems/profile.js';
 import { isOwned, isMarkedNew, markSeen, sortCharacters, ownedCount } from '../systems/collection.js';
-import { formatKST } from '../core/time.js';
-import { ownedPower } from '../systems/teams.js';
 import { formatBig, RATIO_STATS } from '../config.js';
 import { memoryCard } from './memoryCard.js';
 import { memoryStats } from '../systems/stats.js';
@@ -106,7 +106,7 @@ export function collectionScreen(ctx) {
           ...list.map((c) => {
             const entry = ctx.save.owned[c.id];
             const isNew = isMarkedNew(ctx.save, c.id);
-            return charCard(c, {
+            const card = charCard(c, {
               owned: !!entry,
               breakthrough: entry?.breakthrough ?? 0,
               essence: entry ? entry.essence : null,
@@ -114,6 +114,9 @@ export function collectionScreen(ctx) {
               badgeClass: 'badge-new',
               onClick: () => openDetail(c),
             });
+            // 돌파로 열렸지만 아직 안 읽은 프로필 이야기
+            if (unseenStoryCount(ctx.save, c) > 0) card.append(h('span', { class: 'menu-dot ccard-dot', title: '새 이야기가 열렸어요' }));
+            return card;
           }),
         );
         if (list.length === 0) {
@@ -127,37 +130,8 @@ export function collectionScreen(ctx) {
           ctx.commit();
           render();
         }
-        const entry = ctx.save.owned[c.id];
-        const owned = !!entry;
+        const owned = !!ctx.save.owned[c.id];
         const isFeatured = ctx.save.featuredId === c.id;
-
-        const body = h(
-          'div',
-          { class: `detail rar-${c.rarity}` },
-          h('div', { class: 'detail-art' }, charArt(c, { locked: !owned })),
-          h(
-            'div',
-            { class: 'detail-info' },
-            h('div', { class: 'detail-top' }, rarityBadge(c.rarity), owned && starRow(entry.breakthrough)),
-            h('div', { class: 'detail-title' }, owned ? c.title : '아직 만나지 못한 동료'),
-            h('div', { class: 'detail-name' }, owned ? c.name : '???'),
-            h('p', { class: 'detail-desc' }, owned ? c.description || '소개가 아직 없어요.' : '뽑기에서 만나보세요.'),
-            owned &&
-              h(
-                'dl',
-                { class: 'detail-meta' },
-                h('dt', {}, '레벨'),
-                h('dd', {}, `Lv.${entry.level} · 돌파 ${entry.breakthrough} · 정수 ${entry.essence}`),
-                h('dt', {}, '전투력'),
-                h('dd', {}, formatBig(ownedPower(ctx, c))),
-                h('dt', {}, '획득 횟수'),
-                h('dd', {}, `${entry.count}회`),
-                h('dt', {}, '처음 만난 날'),
-                h('dd', {}, formatKST(entry.firstAt, { withTime: false })),
-              ),
-          ),
-        );
-
         const buttons = [{ label: '닫기', value: null }];
         if (owned) {
           buttons.unshift({
@@ -171,7 +145,8 @@ export function collectionScreen(ctx) {
             },
           });
         }
-        openModal({ body, buttons, className: 'modal-detail', dismissValue: null });
+        // 정보 · 프로필 · 이야기 · 대사 탭 (이야기를 읽으면 카드의 빨간 점도 갱신)
+        openProfileModal(ctx, c, { tab: 'info', buttons, onSeen: render });
       }
 
       el.append(h('div', { class: 'collection-head' }, tabs, counter), h('div', { class: 'collection-scroll' }, grid));

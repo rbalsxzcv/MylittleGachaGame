@@ -11,6 +11,11 @@ export function initModal(el) {
 
 export const hasOpenModal = () => stack.length > 0;
 
+/** 가장 위 모달의 키 처리 (openModal의 onKey). 처리했으면 true */
+export function handleModalKey(e) {
+  return !!stack.at(-1)?.onKey?.(e);
+}
+
 /** 가장 위의 모달을 닫음 (Esc 키) */
 export function closeTopModal() {
   stack.at(-1)?.dismiss();
@@ -24,8 +29,9 @@ export function closeTopModal() {
  *                onClick?:()=>any}>} [opts.buttons]  onClick이 false를 반환하면 닫지 않음
  * @param {any} [opts.dismissValue] 바깥 클릭/Esc로 닫을 때의 결과
  * @param {string} [opts.className]
+ * @param {(e: KeyboardEvent) => boolean} [opts.onKey] 이 모달이 맨 위일 때 키 처리 (Esc 제외, 처리했으면 true)
  */
-export function openModal({ title, body, buttons = [{ label: '확인', value: true, primary: true }], dismissValue = null, className = '' }) {
+export function openModal({ title, body, buttons = [{ label: '확인', value: true, primary: true }], dismissValue = null, className = '', onKey = null }) {
   return new Promise((resolve) => {
     let closed = false;
     const close = (value) => {
@@ -68,7 +74,7 @@ export function openModal({ title, body, buttons = [{ label: '확인', value: tr
       if (e.target === backdrop) close(dismissValue);
     });
 
-    const entry = { dismiss: () => close(dismissValue) };
+    const entry = { dismiss: () => close(dismissValue), onKey };
     stack.push(entry);
     layer.append(backdrop);
     requestAnimationFrame(() => backdrop.classList.add('show'));

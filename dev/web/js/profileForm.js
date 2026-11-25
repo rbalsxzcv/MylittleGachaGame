@@ -173,10 +173,10 @@ export function profileEditor({ target, profile = {}, npc = false }) {
     );
     if (!r) return;
     fill(r.profile);
-    warnBox.replaceChildren(
+    warnBox.replaceChildren(h('div', {},
       h('p', { class: 'muted small' }, `모델: ${r.model.label}${r.model.mock ? ' (모의)' : ''} · 아직 저장 안 됨 — 고친 뒤 저장`),
       r.warnings.length > 0 && h('ul', { class: 'warn-list' }, r.warnings.map((w) => h('li', { class: 'warn' }, w))),
-    );
+    ));
     toast('초안을 채웠어요. 고친 뒤 저장해 주세요', 'success');
   }
 

@@ -76,7 +76,8 @@ export function reviewTab(root) {
     snap = s;
     const r = s.run;
     const mains = s.items.filter((i) => i.kind === 'main');
-    head.replaceChildren(
+    // replaceChildren은 false/null도 글자로 넣으므로 h로 한 번 감쌈
+    head.replaceChildren(h('div', {},
       h('p', {}, h('b', {}, `메인 ${mains.length}장 중 ${mains.filter((i) => i.status === 'approved').length}장 승인`), ` · 원본 유지 ${mains.filter((i) => i.status === 'kept').length} · 전체 ${s.total}장 중 끝남 ${s.done}`),
       h(
         'div',
@@ -89,7 +90,7 @@ export function reviewTab(root) {
       ),
       r.running && h('p', { class: 'muted small' }, `진행 중: ${r.current || '…'} · 남은 장 ${r.remaining}`),
       r.error && h('p', { class: 'error small' }, r.error),
-    );
+    ));
     list.replaceChildren(
       ...s.items.map((i) =>
         h(
@@ -109,7 +110,7 @@ export function reviewTab(root) {
     const t = s.totals;
     const has = Object.keys(t.before).length || Object.keys(t.after).length;
     const counted = s.items.filter((i) => i.counts).length;
-    table.replaceChildren(
+    table.replaceChildren(h('div', {},
       h('h3', {}, '검수 전 / 후 (규칙별 문제 수)'),
       !has
         ? h('p', { class: 'muted small' }, "승인한 장이 생기면 '전후 비교 검사'로 같은 검수 프롬프트를 원본과 지금 대본에 각각 돌려서 세요.")
@@ -125,7 +126,7 @@ export function reviewTab(root) {
             }),
           ),
       has && h('p', { class: 'muted small' }, `비교한 장 ${counted}개 기준. 규칙 번호는 문체 지침의 퇴고 체크리스트 번호예요.`),
-    );
+    ));
   }
 
   /** 대본 한 장면 → 비교용 줄 문자열 */

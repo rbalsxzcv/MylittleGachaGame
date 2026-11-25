@@ -13,7 +13,7 @@ import { buildPools, simulate } from './systems/gacha.js';
 import { activeBanners } from './systems/banners.js';
 import { initRouter, registerScreen, go, back, dispatchKey, currentScreen } from './ui/router.js';
 import { initToast, toast } from './ui/toast.js';
-import { initModal, hasOpenModal, closeTopModal } from './ui/modal.js';
+import { initModal, hasOpenModal, closeTopModal, handleModalKey } from './ui/modal.js';
 import { initHud } from './ui/hud.js';
 import { setTheme, decorateScreen } from './ui/theme.js';
 import { homeScreen } from './ui/home.js';
@@ -249,6 +249,8 @@ function setupKeyboard(ctx) {
       if (e.code === 'Escape') {
         e.preventDefault();
         closeTopModal();
+      } else if (!(tag === 'BUTTON' && (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter')) && handleModalKey(e)) {
+        e.preventDefault(); // 모달 안의 단축키 (예: 프로필 탭 1~4, ←/→)
       }
       return;
     }

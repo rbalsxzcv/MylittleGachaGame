@@ -211,6 +211,11 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
 - 전투 배경 후보는 장면 `backgrounds[]`(못 불러오면 다음).
 - HTML 쪽: `ui/gachaView.js revealScreen`(연출 → 결과 격자), `ui/battleView.js mountBattle`(장면 → 결과/보상, 스토리 본문을 받아 배경 후보 계산), 실패하면 연출 없이 결과만.
 
+### 캐릭터 프로필 화면 (`js/ui/profilePanel.js`)
+- `profilePanel(ctx, c, {tab, artEl, onSeen})` = 정보 · 프로필 · 이야기 · 대사 탭(미보유면 정보만, 나머지 자물쇠), `openProfileModal`(그림 + 패널) — 도감 상세 · 육성 '프로필' 버튼이 같이 씀. 전투 정보창에는 없음.
+  키 1~4 / ←→ = 모달 `onKey`(`modal.js handleModalKey`, main.js가 모달 분기에서 부름). 이야기를 열면 `profileSeen` 기록 → 도감 카드 · 홈 도감 메뉴 · 이야기 탭의 빨간 점(`hasUnseenStory`).
+  대사를 누르면 그림 위 말풍선 2초(`showBubble`), 홈 대표 캐릭터를 누르면 `lines.idle`, 편성에 넣으면 `lines.team` 토스트, 돌파로 이야기가 열리면 "새 이야기가 열렸어요" 토스트.
+
 ## 키트 생성기 (`tools/kitgen/`, 게임은 import 안 함 — `tests/kitgen.test.js`가 검사)
 - `archetypes.js`: 아키타입 10종(1 스택 폭발 · 2 표식 사냥 · 3 추가 공격 · 4 반격 탱커 · 5 타임라인 조작 · 6 보호막 전환 · 7 지속 치유 ·
   8 지속 피해 확산 · 9 변신 캐리 · 10 SP 배터리/버퍼). 템플릿마다 basic/skill/ultimate(+transformed)/talents, bt2 변형 ≥3, bt6 변형 ≥3, 전용 추억 ≥2.
@@ -294,3 +299,4 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
 - `enemy_0006`(광휘교단 이단 사냥꾼, 1-7 적) 그림은 작업 공간에만 있음 → 배포하면 공개됨.
 - 전투 기본 배경(선술집 테이블)은 작업 공간에만 있음 → 배포하면 공개됨. 스테이지 전용 전투 배경은 칸만 있고 그림은 아직 없음 → 개발 도구 스테이지 탭 / 일괄 생성으로 뽑기.
 - 1-1/1-2/1-3/1-5/1-7 스토리의 전투 장면과 도입 대사(b0)는 초안 — 스토리 탭에서 다듬기.
+- 캐릭터 프로필 · 말투 카드가 아직 없음 → 스토리 탭에 문체 지침 전체(퇴고 체크리스트 포함)를 다시 붙여 넣기(예전 3000자 제한으로 잘려 있음) → 캐릭터 탭 '프로필 일괄 생성' → 승인 → 검수 탭에서 기존 24장 검수.

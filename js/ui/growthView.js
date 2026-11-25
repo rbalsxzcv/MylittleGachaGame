@@ -24,6 +24,8 @@ import { memoryCard } from './memoryCard.js';
 import { bagList, equipGear, unequipGear, autoEquip, enhanceEquipped, enhanceCost, salvage, salvageValue, bulkSalvage, toggleLock, parsePiece } from '../systems/gear.js';
 import { formatBig, RATIO_STATS, GEAR_SLOTS } from '../config.js';
 import { describeSkill, describePassive, describeModifier } from '../battle/describe.js';
+import { newStoriesAt } from '../systems/profile.js';
+import { openProfileModal } from './profilePanel.js';
 
 const SORTS = [
   { id: 'power', label: '전투력' },
@@ -155,7 +157,7 @@ export function growthScreen(ctx) {
             { class: 'grow-head-info' },
             h('div', { class: 'detail-top' }, rarityBadge(c.rarity), starRow(e.breakthrough)),
             c.title && h('div', { class: 'muted' }, c.title),
-            h('div', { class: 'grow-name' }, c.name),
+            h('div', { class: 'grow-name' }, c.name, h('button', { class: 'btn btn-ghost grow-profile-btn', type: 'button', onclick: () => openProfileModal(ctx, c, { tab: 'profile', onSeen: renderList }) }, '프로필')),
             h('div', { class: 'grow-meta' }, h('b', {}, `Lv.${e.level}`), h('span', {}, `전투력 ${formatBig(powerOf(stats, balance))}`), h('span', {}, `정수 ${e.essence}`)),
           ),
         );
@@ -510,9 +512,12 @@ export function growthScreen(ctx) {
                         class: 'btn btn-primary',
                         type: 'button',
                         onclick: () => {
+                          const before = e.breakthrough;
                           if (!doBreakthrough(ctx.save, c.id, balance)) return;
                           ctx.commit();
                           toast(`${c.name} 돌파 ${i + 1}: ${p?.name || '해금'}`, { type: 'success' });
+                          // 프로필 이야기가 이 돌파로 열렸으면 한 줄 더 (도감 메뉴에 빨간 점)
+                          if (newStoriesAt(c, before, ctx.save.owned[c.id].breakthrough).length) toast('새 이야기가 열렸어요 — 도감 → 이야기', { type: 'info', duration: 3200 });
                           renderList();
                           renderDetail();
                         },
