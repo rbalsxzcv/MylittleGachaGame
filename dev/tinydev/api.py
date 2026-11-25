@@ -17,6 +17,7 @@ from . import batch, bible, comfy, pack, config, cutout, genai, imaging, jobs, k
 from . import rarity as rarity_mod
 from . import profile as profile_mod
 from . import profilebatch
+from . import review
 from .genai import GenError
 from .timeutil import now_iso, parse
 
@@ -1062,6 +1063,7 @@ def story_put(sid):
     if not exists and not store.issued("story", sid):
         raise ValueError(f"'{sid}'는 발급받은 스토리 id가 아니에요 (id는 자동으로 정해져요)")
     store.write_story(sid, data)
+    review.note_manual_save(sid, data)  # 검수한 장을 사람이 고침 → 구조 기준을 새로
     return jsonify(ok=True)
 
 
@@ -1327,6 +1329,52 @@ def story_draft():
         model=data.get("model") or None,
     )
     return jsonify(draft=draft, warnings=warnings, context=context)
+
+
+# ─────────────────────────────────────────────────────────
+# 스토리 검수 (CHARACTER_PROFILE.md 8-2 · 8-3)
+# ─────────────────────────────────────────────────────────
+@app.get("/api/review")
+def review_state():
+    return jsonify(review.snapshot())
+
+
+@app.post("/api/review/start")
+def review_start():
+    data = body()
+    scope = data.get("scope") if data.get("scope") in ("main", "character", "event", "all") else "main"
+    return jsonify(review.start(scope, data.get("model") or None, data.get("mode") or "review"))
+
+
+@app.post("/api/review/cancel")
+def review_cancel():
+    return jsonify(review.cancel())
+
+
+@app.get("/api/review/<sid>")
+def review_get(sid):
+    if not store.valid_id(sid):
+        raise ValueError("잘못된 스토리 id")
+    meta = next((s for s in store.read_list("storyIndex") if s.get("id") == sid), {})
+    return jsonify(entry=review.entry_of(sid), result=review.result_of(sid), current=store.read_story(sid), meta=meta, names=_names())
+
+
+@app.post("/api/review/<sid>/redo")
+def review_redo(sid):
+    data = body()
+    return jsonify(entry=review.redo(sid, text(data, "feedback", 1500), data.get("model") or None))
+
+
+@app.post("/api/review/<sid>/approve")
+def review_approve(sid):
+    data = body()
+    scenes = data.get("scenes") if isinstance(data.get("scenes"), list) else None
+    return jsonify(review.approve(sid, scenes, data.get("title") if isinstance(data.get("title"), str) else None, data.get("summary") if isinstance(data.get("summary"), str) else None))
+
+
+@app.post("/api/review/<sid>/keep")
+def review_keep(sid):
+    return jsonify(entry=review.keep(sid))
 
 
 # ─────────────────────────────────────────────────────────

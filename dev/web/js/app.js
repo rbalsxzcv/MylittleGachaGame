@@ -19,6 +19,7 @@ import { balanceTab } from './tabs/balance.js';
 import { kitsTab } from './tabs/kits.js';
 import { memoriesTab } from './tabs/memories.js';
 import { packTab } from './tabs/pack.js';
+import { reviewTab } from './tabs/review.js';
 import { openPreview } from './preview.js';
 import { onBatch, refreshBatch } from './batchWatch.js';
 
@@ -27,6 +28,7 @@ const TABS = [
   ['banners', '배너', bannersTab],
   ['stories', '스토리', storiesTab],
   ['pack', '챕터 팩', packTab],
+  ['review', '검수', reviewTab],
   ['enemies', '적', enemiesTab],
   ['stages', '스테이지', stagesTab],
   ['kits', '키트 일괄', kitsTab],

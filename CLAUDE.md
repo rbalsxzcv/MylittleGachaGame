@@ -252,7 +252,12 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
   일괄 생성 `tinydev/profilebatch.py`(캐릭터 탭 위 패널 `web/js/profileBatch.js`): 주인공 → 캐릭터(높은 등급 → NPC) 한 명씩, 앞에서 만든 카드(승인 전 포함)를 다음 요청 요약에 넣음,
   결과는 대기 → 캐릭터별 승인 / 다시 만들기 / 건너뛰기. 상태 `dev/history/profile-batch/state.json`(재시작해도 검토 이어서).
 - 장 초안(`api.draft_chapter` → `prompts.chapter_draft`): 등장 캐릭터 = 고른 캐릭터(챕터 팩 구성 포함) + 개요에 이름이 나온 캐릭터 + 직전 장 화자(`profile.featured_ids`)
-  → 이들만 말투 카드 전체(`prompts.voice_card`, relations는 둘 다 등장할 때만), 나머지는 한 줄 요약, 주인공 카드는 항상. 카드 없는 등장 캐릭터는 경고 "말투 카드 없음". 설정집 문체 지침 한도 `bible.STYLE_LIMIT` 20000자(넘으면 저장 거부 — 예전엔 3000자에서 조용히 잘렸음).
+  → 이들만 말투 카드 전체(`prompts.voice_card`, relations는 둘 다 등장할 때만), 나머지는 한 줄 요약, 주인공 카드는 항상. 카드 없는 등장 캐릭터는 경고 "말투 카드 없음".
+- 스토리 검수(`tinydev/review.py`, 검수 탭 `web/js/tabs/review.js`): 메인 → 캐릭터 → 이벤트 순서로 한 장씩 `prompts.review_prompt`(문체 지침 · 등장 캐릭터 카드 · 앞 장 요약 · 직전 장 **검수된** 대본)
+  → `{report[{sceneId,lineIndex,rule,before,reason}], revised, title}` → 대기 → 승인(대본 저장 · 목록 제목/summary · recap 다시) / 다시 검수(수정 요청, 뒤 장 대기 결과는 '다시 필요') / 원본 유지.
+  구조 잠금: 장면 틀(id · 순서 · 배경 · next · 전투)은 원본에서(`merge_revised`), 승인 때 `locked_changes`(선택지 개수 · goto 포함) 다시 확인. 상태 = 설정집 `chapters[id].review`
+  (`structure` 기록 → 배포 검사 `validate._check_review`가 비교, 스토리 편집기로 저장하면 기준 갱신). 원본/결과 `dev/history/review-<id>-…/`. 전후 비교 = 체크 전용 모드로 원본 · 지금 대본 각각 → 규칙별 개수.
+  `bible.py`의 쓰기 함수는 잠금(`_lock`, `update_chapter`) 안에서 (백그라운드 작업과 화면 요청이 같이 씀). 설정집 문체 지침 한도 `bible.STYLE_LIMIT` 20000자(넘으면 저장 거부 — 예전엔 3000자에서 조용히 잘렸음).
 - 배경 제거 `tinydev/cutout.py`: RMBG에서는 마스크만 → 원본 W×H로 LANCZOS 확대 → 1px 깎기 + 1px 부드럽게(`config.CUTOUT_*`) → **칠하지 않은 원본**에 알파로 적용(크기 다르면 오류) → 투명 여백 자르기.
   캐릭터/적은 줄이지 않음(원본 해상도), 소품 384 · UI 아이콘 256 · 로고 640만 줄임. 예전 512px 그림 다시 만들기: `python -m tinydev.recut [--dry-run]`.
 

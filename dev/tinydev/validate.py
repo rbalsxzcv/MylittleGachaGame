@@ -211,6 +211,23 @@ def _check_profile(r, where, c, char_ids, is_npc):
         r.warn(where, "말투 카드(voice)가 없어요 — 스토리 생성이 소개문만 보고 써요")
 
 
+def _check_review(r, stories):
+    """검수 승인 · 원본 유지한 장: 지금 대본 구조 = 기록한 구조 (장면 id · 전투 · next · 선택지). 스토리 편집기로 저장하면 기준이 새로 잡힘"""
+    from . import bible, review
+
+    try:
+        chapters = bible.load()["chapters"]
+    except (OSError, ValueError):
+        return
+    for sid, body in (stories or {}).items():
+        rv = (chapters.get(sid) or {}).get("review") or {}
+        if rv.get("structure") is None or not isinstance(body, dict):
+            continue
+        if review.structure(body) != rv["structure"]:
+            changed = review.locked_changes({"scenes": [{"id": x["id"], "type": x["type"], "stageId": x.get("stageId"), "next": x.get("next"), "lines": [{"choices": [{"goto": g} for g in ch]} for ch in x["choices"]]} for x in rv["structure"]]}, body)
+            r.error(f"stories/{sid}", "검수한 장의 구조가 바뀌었어요 (장면 id · 전투 장면 · next · 선택지): " + (" / ".join(changed) or "구조 다름") + " — 의도한 변경이면 스토리 탭에서 다시 저장해 주세요")
+
+
 def validate(content, asset_exists, held=None):
     """content: {characters, banners, storyIndex, notices, mail, enemies, stages, balance, ui, stories: {id: body}}
     held: 이번 배포에서 보류된 항목 id 집합 (참조 오류 메시지를 친절하게 하기 위해)
@@ -553,6 +570,7 @@ def validate(content, asset_exists, held=None):
         if st["id"] not in used_stages:
             r.warn(f"stages/{st['id']}", "어느 스토리에도 쓰이지 않는 스테이지예요 (게임에서 싸울 수 없음)")
     _check_adventure(r, stages, index, content.get("stories") or {})
+    _check_review(r, content.get("stories") or {})
 
     # ── 밸런스 ──
     bal = content.get("balance")

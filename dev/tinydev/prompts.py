@@ -790,6 +790,112 @@ def recap_prompt(world, title, script):
 규칙: 한국어 3~6문장. 등장인물, 실제로 일어난 사건, 관계/감정 변화, 해결되지 않은 떡밥을 포함. 대본에 없는 내용은 쓰지 않기. 요약 글만 출력."""
 
 
+# ── 스토리 검수 (CHARACTER_PROFILE.md 8-2 · 8-3장) ─────────────
+def review_script(body, names):
+    """검수용 대본: 줄마다 [장면id:줄번호] 표시 (보고서가 이 번호를 가리킴), 전투 장면은 바꾸지 말라고 표시"""
+    out = []
+    for sc in (body or {}).get("scenes") or []:
+        if not isinstance(sc, dict):
+            continue
+        if sc.get("type") == "battle":
+            out.append(f"# 장면 {sc.get('id')} — [전투 장면: {sc.get('stageId')}] (바꾸지 말 것){' → ' + sc['next'] if sc.get('next') else ''}")
+            continue
+        out.append(f"# 장면 {sc.get('id')}{' (끝나면 → ' + sc['next'] + ')' if sc.get('next') else ''}")
+        for i, ln in enumerate(sc.get("lines") or []):
+            if not isinstance(ln, dict):
+                continue
+            sp = ln.get("speaker", "narrator")
+            who = f"{ln['name']} (narrator)" if ln.get("name") else ("지문" if sp == "narrator" else f"{names.get(sp, sp)} ({sp})")
+            out.append(f"[{sc.get('id')}:{i}] {who}: {ln.get('text', '')}")
+            if ln.get("choices"):
+                out.append("    선택지: " + " / ".join(f"{c.get('text', '')} → {c.get('goto', '')}" for c in ln["choices"] if isinstance(c, dict)))
+    return "\n".join(out)
+
+
+REVIEW_REPORT_SCHEMA = '{"sceneId": "s1", "lineIndex": 0, "rule": 1, "before": "문제가 된 원래 문장", "reason": "왜 문제인지 한 줄"}'
+
+
+def review_prompt(ctx):
+    """ctx: story {id, title, summary, kind, chapter}, body, names, style, world, roster(말투 카드 텍스트),
+    prev (앞 장 요약 [{chapter,title,recap}]), prev_script (직전 장 — 검수된 대본), mode (revise|check), feedback, previous (이전 검수본)"""
+    st = ctx["story"]
+    mode = ctx.get("mode") or "revise"
+    prev = "\n".join(f"- {p['chapter']}장 「{p['title']}」: {p.get('recap') or '(요약 없음)'}" for p in ctx.get("prev") or [])
+    text = f"""당신은 모바일 수집형 RPG 스토리의 퇴고 편집자입니다. 아래 장을 문체 지침과 등장 캐릭터 말투 카드에 맞는지 검사{'하고 고쳐 써' if mode == 'revise' else '만 해'} 주세요.
+
+[문체 지침] (퇴고 체크리스트 번호 = rule)
+{ctx.get('style') or '(없음)'}
+
+[세계관 참고]
+{(ctx.get('world') or '(없음)')[:3000]}
+
+[등장 캐릭터 말투 카드] (이 카드를 기준으로 "이름을 가렸을 때 구분되는가"를 판정)
+{ctx.get('roster') or '(없음)'}
+
+[앞 장들의 요약]
+{prev or '(이번이 첫 장)'}
+
+[직전 장 대본] (검수된 버전 — 호칭, 관계, 마지막 상황을 이어받기)
+{ctx.get('prev_script') or '(없음)'}
+
+[이번 장] {st.get('chapter', '')}장 「{st.get('title', '')}」 — 한 줄 소개: {st.get('summary', '') or '-'}
+{review_script(ctx['body'], ctx.get('names') or {})}
+
+[검사 규칙]
+- 문제마다 report에 한 줄: {REVIEW_REPORT_SCHEMA}
+  rule은 문체 지침의 퇴고 체크리스트 번호(1~9). 체크리스트가 없으면 가장 가까운 원칙 번호. sceneId · lineIndex는 위 대본의 [장면id:줄번호].
+- 문제가 없는 줄은 report에 넣지 않기. 같은 문제가 여러 줄이면 줄마다.
+"""
+    if mode == "check":
+        text += f'\n오직 JSON만 출력: {{"report": [{REVIEW_REPORT_SCHEMA}, …]}}\n'
+        return text
+    text += f"""
+[고쳐 쓰기 규칙]
+- 고쳐도 되는 것: 대사, 지문, 화자 배분, 장면 안의 줄 추가 · 삭제, 제목(원칙 8에 걸릴 때만), 한 줄 소개(summary).
+- 절대 바꾸면 안 되는 것: 장면 id와 장면 순서, 전투 장면(type battle, stageId)과 그 위치, 장면의 next, 선택지 개수와 각 선택지의 goto,
+  사건의 결과(누가 죽고 누가 합류하는지, 무엇을 얻고 잃는지). 전투 장면은 revised에 그대로 두기.
+- 선택지가 있는 줄은 선택지를 그대로 유지 (선택지 문구는 다듬어도 됨, goto는 그대로).
+- speaker는 원래 대본처럼 캐릭터 id 또는 "narrator" (목록에 없는 인물은 narrator + name). 한 줄은 60자 이내.
+- 원래 분량을 크게 늘리거나 줄이지 않기 (장면당 ±30% 안).
+
+오직 JSON만 출력. 형식:
+{{
+  "report": [{REVIEW_REPORT_SCHEMA}],
+  "revised": {{"summary": "한 줄 소개 (40자 이내)", "scenes": [{{"id": "s1", "lines": [{{"speaker": "char_0001", "text": "…"}}, {{"speaker": "narrator", "text": "…"}}]}}, {{"id": "b1", "type": "battle", "stageId": "…"}}]}},
+  "title": "고친 제목 (원칙 8에 걸릴 때만, 아니면 빈 문자열)"
+}}
+"""
+    if ctx.get("previous"):
+        text += f"\n이전 검수본:\n{json.dumps(ctx['previous'], ensure_ascii=False)[:8000]}\n"
+    if ctx.get("feedback"):
+        text += f"\n이전 검수본에 대한 수정 요청 (반드시 반영): {ctx['feedback']}\n"
+    return text
+
+
+def mock_review(ctx):
+    """모의 모드: 첫 줄마다 '[모의 검수]'를 붙이고, 직장 비유 단어가 있는 줄을 보고서에 올림"""
+    banned = ("퇴직금", "정산", "원스톱", "월급", "야근", "산재", "출근", "퇴근", "수당", "회식", "보험", "단가")
+    report, scenes = [], []
+    for sc in (ctx["body"] or {}).get("scenes") or []:
+        if sc.get("type") == "battle":
+            scenes.append(dict(sc))
+            continue
+        lines = []
+        for i, ln in enumerate(sc.get("lines") or []):
+            t = ln.get("text", "")
+            hit = next((w for w in banned if w in t), None)
+            if hit:
+                report.append({"sceneId": sc.get("id"), "lineIndex": i, "rule": 1, "before": t, "reason": f"현대 직장 · 금융 비유 ({hit})"})
+                t = t.replace(hit, "몫")
+            lines.append({**ln, "text": t})
+        if lines and ctx.get("mode") != "check":
+            lines[0] = {**lines[0], "text": "[모의 검수] " + lines[0]["text"]}
+        scenes.append({"id": sc.get("id"), "lines": lines})
+    if ctx.get("mode") == "check":
+        return json.dumps({"report": report}, ensure_ascii=False)
+    return json.dumps({"report": report, "revised": {"summary": ctx["story"].get("summary", ""), "scenes": scenes}, "title": ""}, ensure_ascii=False)
+
+
 def mock_chapter(ctx):
     names = {c["id"]: c["name"] for c in ctx["chars"]}
     ids = list(ctx.get("featured") or []) or list(names) or []
