@@ -7,6 +7,7 @@ import { state, reloadData } from '../state.js';
 import { loadBattleKit, cleanEntity } from '../battleForm.js';
 import { openAssetGenerator } from './assets.js';
 
+
 const BG_SOURCE = { stage: '스테이지 전용', story: '스토리 배경', default: '기본 배경', none: '배경 없음 (단색)' };
 
 const MAX_PER_WAVE = 6;
@@ -291,7 +292,14 @@ export function stagesTab(root, { select } = {}) {
     const turnLimit = num(v, 'roundLimit', { min: 1, nullable: true, placeholder: '제한 없음' });
     // 난이도 배율 (적 공격/HP × 값) — 보통은 밸런스 탭 자동 튜너가 정함. 종류는 튜너 목표 승률 (normal .9 / elite .75 / boss .6)
     const difficulty = h('input', { type: 'number', class: 'num-input', step: 0.01, min: 0.05, max: 20, value: v.difficulty ?? 1, oninput: (ev) => ((v.difficulty = Math.min(20, Math.max(0.05, Number(ev.target.value) || 1))), mark()) });
-    const stageType = h('select', { onchange: (ev) => ((v.stageType = ev.target.value), mark()) }, [['normal', '일반 (목표 승률 90%)'], ['elite', '정예 (75%)'], ['boss', '보스 (60%)']].map(([k, l]) => h('option', { value: k }, l)));
+    // HP 배율 (적 HP만 × 값) — 자동 튜너가 전투 길이(목표 라운드)에 맞춤
+    const hpScale = h('input', { type: 'number', class: 'num-input', step: 0.01, min: 0.05, max: 20, value: v.hpScale ?? 1, oninput: (ev) => ((v.hpScale = Math.min(20, Math.max(0.05, Number(ev.target.value) || 1))), mark()) });
+    const T = state.data.balance?.tuner || {};
+    const goal = (k) => {
+      const t = T.killTurns?.[k];
+      return t ? `내가 ${t.myMin}~${t.myMax}턴 · 적이 ${t.enemyMin}~${t.enemyMax}턴` : '';
+    };
+    const stageType = h('select', { onchange: (ev) => ((v.stageType = ev.target.value), mark()) }, [['normal', `일반 (${goal('normal')})`], ['elite', `정예 (${goal('elite')})`], ['boss', `보스 (${goal('boss')})`]].map(([k, l]) => h('option', { value: k }, l)));
     stageType.value = v.stageType || 'normal';
     const chapters = [...new Set([...state.data.stages.map((x) => x.chapter || 'ch01'), v.chapter])];
     // 챕터: 있는 챕터에서 고르거나 '새 챕터' (번호는 자동: 마지막 챕터 + 1)
@@ -324,7 +332,8 @@ export function stagesTab(root, { select } = {}) {
         h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (자동)', id), h('label', { class: 'field' }, '이름', name)),
         h('div', { class: 'grid2' }, h('label', { class: 'field' }, '챕터 (모험 탭 묶음, 예: ch01)', chapterSel, chapterList), h('label', { class: 'field' }, '연결 스토리 (이 스토리 안에 이 스테이지 전투 장면을 넣어요)', storySel)),
         h('div', { class: 'grid2' }, h('label', { class: 'field' }, '권장 전투력', rec, powerHint), h('label', { class: 'field' }, '라운드 제한 (비우면 없음)', turnLimit)),
-        h('div', { class: 'grid2' }, h('label', { class: 'field', title: '적 공격력 · HP에 곱함 (자동 튜너가 정함)' }, '난이도 배율', difficulty), h('label', { class: 'field' }, '종류 (튜너 목표 승률)', stageType)),
+        h('div', { class: 'grid2' }, h('label', { class: 'field', title: '적 공격력 · HP에 곱함 (자동 튜너가 「적이 나를 잡는 턴」에 맞춤)' }, '난이도 배율', difficulty), h('label', { class: 'field', title: '적 HP에만 곱함 (자동 튜너가 「내가 적을 잡는 턴」에 맞춤)' }, 'HP 배율', hpScale)),
+        h('div', { class: 'grid2' }, h('label', { class: 'field' }, '종류 (튜너 처치 턴 목표)', stageType)),
         h('h3', {}, '전투 배경 (스테이지 전용 → 스토리 배경 → 기본 배경)'),
         bgBox,
         h('h3', {}, '웨이브 (앞 웨이브를 모두 쓰러뜨리면 다음 웨이브)'),

@@ -3,8 +3,8 @@
 import { charPower } from '../../js/systems/progression.js';
 import { memoryPassives } from '../../js/systems/memories.js';
 import { regionTier, chapterOf } from '../../js/systems/gear.js';
-import { GEAR_SLOTS, normalizeRarity, isNpc } from '../../js/config.js';
-import { expectedLevel } from '../enemygen/generate.js';
+import { GEAR_SLOTS, normalizeRarity, isNpc, levelCapFor } from '../../js/config.js';
+import { expectedLevelOf } from '../enemygen/generate.js';
 
 /** 스테이지 전체 순서 (챕터 순서대로) */
 export function stageIndexOf(stageId, chapters) {
@@ -18,13 +18,13 @@ export function stageIndexOf(stageId, chapters) {
   return 0;
 }
 
-/** 이 스테이지에서 기대하는 플레이어 상태 */
-export function expectedState(stage, data) {
+/** 이 스테이지에서 기대하는 플레이어 상태 (level을 주면 그 레벨로 — 상한 레벨 검사) */
+export function expectedState(stage, data, { level: levelOverride = null } = {}) {
   const B = data.balance;
   const E = B.expected;
   const index = stageIndexOf(stage.id, data.chapters);
   const ch = chapterOf(stage.id, data.chapters);
-  const level = expectedLevel(index, B);
+  const level = levelOverride ?? expectedLevelOf(stage.id, data.chapters, B, data.stageMap);
   const caps = E.maxRarityByChapter?.length ? E.maxRarityByChapter : [5];
   return {
     index,
@@ -80,4 +80,50 @@ export function referenceTeam(stage, data, { exclude = null, include = null, sta
 /** 기대 전투력 = 기준 팀 전투력 합 */
 export function expectedPower(stage, data) {
   return referenceTeam(stage, data).reduce((sum, m) => sum + charPower(data.charMap.get(m.charId), m, data.balance, m.extras), 0);
+}
+
+/** 이 스테이지를 하는 동안의 레벨 상한 (챕터 c = 앞 챕터 c개를 다 깬 상태) */
+export function stageLevelCap(stage, data) {
+  return levelCapFor(chapterOf(stage.id, data.chapters).index, data.balance);
+}
+
+/** 톱니 곡선: 기대 전투력 ÷ 권장 전투력 (balance.expected.sawtooth) — 챕터 첫 스테이지 start → 마지막 앞 end → 마지막(챕터 보스) boss (은퇴 스테이지는 안 셈) */
+export function sawtoothRatio(stage, data) {
+  const S = data.balance.expected.sawtooth;
+  const ch = data.chapters?.find((c) => c.stageIds.includes(stage.id));
+  if (!ch) return S.end;
+  const live = ch.stageIds.filter((id) => id === stage.id || !data.stageMap?.get(id)?.retired);
+  const pos = live.indexOf(stage.id);
+  if (pos === live.length - 1) return live.length === 1 ? S.end : S.boss;
+  const n = live.length - 1; // 보스 앞 스테이지 수
+  return n <= 1 ? S.start : S.start + (S.end - S.start) * (pos / (n - 1));
+}
+
+/** 팀 전투력 합 */
+export const teamPower = (team, data) => team.reduce((sum, m) => sum + charPower(data.charMap.get(m.charId), m, data.balance, m.extras), 0);
+
+/** 권장 전투력 = 기대 전투력 ÷ 톱니 비율 (= 이 스테이지를 '100% 결과'로 깨는 팀 전투력) */
+export function recommendedPower(stage, data) {
+  return Math.round(expectedPower(stage, data) / sawtoothRatio(stage, data));
+}
+
+/**
+ * 전투력이 target에 가장 가까운 기준 팀 (레벨만 바꿈 — 돌파 · 추억 · 장비는 기대 상태 그대로)
+ * @returns {{team, level, power}}
+ */
+export function teamAtPower(stage, data, target) {
+  const at = (level) => {
+    const team = referenceTeam(stage, data, { state: expectedState(stage, data, { level }) });
+    return { team, level, power: teamPower(team, data) };
+  };
+  let lo = 1;
+  let hi = 999;
+  while (hi - lo > 1) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (at(mid).power < target) lo = mid;
+    else hi = mid;
+  }
+  const a = at(lo);
+  const b = at(hi);
+  return Math.abs(a.power - target) <= Math.abs(b.power - target) ? a : b;
 }

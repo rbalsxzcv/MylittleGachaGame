@@ -70,7 +70,7 @@ export function balanceTab(root, { select } = {}) {
           'div',
           { class: 'row wrap' },
           h('span', { class: 'muted small' }, '한꺼번에:'),
-          ...[1, 5, 10, 20].map((lv) => h('button', { class: 'btn tiny', onclick: () => (team.forEach((m) => m && (m.level = lv)), renderTeam()) }, `Lv.${lv}`)),
+          ...[1, 10, 30, 45, 50, 60].map((lv) => h('button', { class: 'btn tiny', onclick: () => (team.forEach((m) => m && (m.level = lv)), renderTeam()) }, `Lv.${lv}`)),
           ...[0, 5].map((bt) => h('button', { class: 'btn tiny', onclick: () => (team.forEach((m) => m && (m.breakthrough = bt)), renderTeam()) }, `돌파 ${bt}`)),
         ),
       );

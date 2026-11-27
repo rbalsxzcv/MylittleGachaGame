@@ -1,4 +1,5 @@
 // 배너 탭: 픽업 캐릭터 고르기, 기간(KST), 키 아트 생성(승인/거절/다시 생성), 관련 스토리, 게임 화면 미리보기
+// 추억 배너: 목록의 '+ 추억 배너' 또는 캐릭터 픽업 배너의 '이 배너의 추억 배너 만들기'(pickupFrom = 그 배너) — 그림은 픽업 추억의 주인 캐릭터 · 추억 장면으로
 import { h, toast, confirmBox, busy, dateField, wsImage, fmt, nowIso, rarOf, rarLabel, raritySelect, idBadge, gradeOf, isNpc } from '../ui.js';
 import { api, tryApi, newId } from '../api.js';
 import { state, saveList, reloadData } from '../state.js';
@@ -16,7 +17,7 @@ export function bannersTab(root, { select } = {}) {
     h(
       'div',
       { class: 'two-col' },
-      h('div', { class: 'col-left' }, h('section', { class: 'card' }, h('div', { class: 'row between' }, h('h2', {}, '배너'), h('button', { class: 'btn primary small', onclick: () => edit(null) }, '+ 새 배너')), list)),
+      h('div', { class: 'col-left' }, h('section', { class: 'card' }, h('div', { class: 'row between' }, h('h2', {}, '배너'), h('div', { class: 'row' }, h('button', { class: 'btn primary small', onclick: () => edit(null) }, '+ 새 배너'), h('button', { class: 'btn small', onclick: () => edit(null, { category: 'memory' }) }, '+ 추억 배너'))), list)),
       editor,
     ),
   );
@@ -46,9 +47,10 @@ export function bannersTab(root, { select } = {}) {
     );
   }
 
-  function edit(b) {
+  /** b = null이면 새 배너 (preset: 처음 값 — 추억 배너 초안 등) */
+  function edit(b, preset = null) {
     const isNew = !b;
-    const v = structuredClone(b || blank());
+    const v = structuredClone(b || { ...blank(), ...(preset || {}) });
     selectedId = v.id || null;
     renderList();
 
@@ -82,18 +84,25 @@ export function bannersTab(root, { select } = {}) {
     image.oninput = showImg;
     showImg();
 
-    // 픽업 선택 (캐릭터 또는 추억)
-    const picked = new Set(v.pickupIds);
+    // 픽업 선택: 캐릭터 / 추억 따로 (그림 요청 · 저장에 섞이지 않게)
+    const isMemId = (id) => String(id).startsWith('memory_');
+    const pickedChars = new Set((v.pickupIds || []).filter((id) => !isMemId(id)));
+    const pickedMems = new Set((v.pickupIds || []).filter(isMemId));
     const memories = state.data.memories || [];
+    // 빈 칸(draft) · 은퇴 추억은 뽑기에 안 나와서 후보에서 뺌 (이미 골라져 있으면 빼낼 수 있게 ⚠와 함께)
+    const memChecks = new Map();
     const memGrid = h(
       'div',
       { class: 'pick-grid' },
       [...memories]
+        .filter((m) => (m.draft !== true && !m.retired) || pickedMems.has(m.id))
         .sort((a, b) => (b.kind === 'signature') - (a.kind === 'signature') || b.rarity - a.rarity)
         .map((m) => {
-          const cb = h('input', { type: 'checkbox', checked: picked.has(m.id), onchange: (e) => (e.target.checked ? picked.add(m.id) : picked.delete(m.id)) });
+          const cb = h('input', { type: 'checkbox', checked: pickedMems.has(m.id), onchange: (e) => (e.target.checked ? pickedMems.add(m.id) : pickedMems.delete(m.id)) });
+          memChecks.set(m.id, cb);
           const owner = m.signatureOf && state.data.characters.find((c) => c.id === m.signatureOf);
-          return h('label', { class: ['pick', `r-${m.rarity}`] }, cb, h('div', { class: 'thumb checker' }, m.thumb || m.image ? h('img', { src: wsImage(m.thumb || m.image), onerror: (e) => e.target.remove() }) : '✦'), h('span', {}, `${m.name} (${m.rarity}★)${owner ? ` · ${owner.name} 전용` : ''}`));
+          const bad = m.draft === true ? '빈 칸' : m.retired ? '은퇴' : '';
+          return h('label', { class: ['pick', `r-${m.rarity}`, bad && 'is-npc'], title: bad ? `${bad} 추억은 뽑기에 안 나와요 → 픽업에서 빼 주세요` : '' }, cb, h('div', { class: 'thumb checker' }, m.thumb || m.image ? h('img', { src: wsImage(m.thumb || m.image), onerror: (e) => e.target.remove() }) : '✦'), h('span', {}, `${m.name} (${m.rarity}★)${owner ? ` · ${owner.name} 전용` : ''}${bad ? ` ⚠${bad}` : ''}`));
         }),
     );
     const syncFromChars = h(
@@ -104,11 +113,11 @@ export function bannersTab(root, { select } = {}) {
         onclick: () => {
           const from = state.data.banners.find((b) => b.id === pickupFrom.value) || charBanners[0];
           if (!from) return toast('픽업 캐릭터 배너가 없어요', 'error');
-          const ids = memories.filter((m) => m.signatureOf && (from.pickupIds || []).includes(m.signatureOf)).map((m) => m.id);
-          picked.clear();
-          ids.forEach((id) => picked.add(id));
-          memGrid.querySelectorAll('input[type=checkbox]').forEach((cb, i) => (cb.checked = picked.has([...memories].sort((a, b) => (b.kind === 'signature') - (a.kind === 'signature') || b.rarity - a.rarity)[i].id)));
-          toast(ids.length ? `「${from.title}」 픽업의 전용 추억 ${ids.length}장을 골랐어요` : '그 배너의 픽업 캐릭터에게 전용 추억이 없어요', ids.length ? 'success' : 'error');
+          const ids = memories.filter((m) => m.signatureOf && m.draft !== true && !m.retired && (from.pickupIds || []).includes(m.signatureOf)).map((m) => m.id);
+          pickedMems.clear();
+          ids.forEach((id) => pickedMems.add(id));
+          for (const [id, cb] of memChecks) cb.checked = pickedMems.has(id);
+          toast(ids.length ? `「${from.title}」 픽업의 전용 추억 ${ids.length}장을 골랐어요` : '그 배너의 픽업 캐릭터에게 (완성된) 전용 추억이 없어요', ids.length ? 'success' : 'error');
         },
       },
       '캐릭터 픽업과 맞추기',
@@ -118,9 +127,9 @@ export function bannersTab(root, { select } = {}) {
       { class: 'pick-grid' },
       // NPC 등급은 뽑기에 안 나와서 픽업 후보에서 뺌 (이미 골라져 있으면 빼낼 수 있게 경고와 함께 보여 줌)
       state.data.characters
-        .filter((c) => !isNpc(c) || picked.has(c.id))
+        .filter((c) => !isNpc(c) || pickedChars.has(c.id))
         .map((c) => {
-          const cb = h('input', { type: 'checkbox', checked: picked.has(c.id), onchange: (e) => (e.target.checked ? picked.add(c.id) : picked.delete(c.id)) });
+          const cb = h('input', { type: 'checkbox', checked: pickedChars.has(c.id), onchange: (e) => (e.target.checked ? pickedChars.add(c.id) : pickedChars.delete(c.id)) });
           const npc = isNpc(c);
           return h('label', { class: ['pick', `r-${gradeOf(c)}`, npc && 'is-npc'], title: npc ? 'NPC 등급이라 뽑기에 안 나와요 → 픽업에서 빼 주세요' : '' }, cb, h('div', { class: 'thumb checker' }, c.image ? h('img', { src: wsImage(c.image), onerror: (e) => e.target.remove() }) : ''), h('span', {}, `${c.name} (${rarLabel(gradeOf(c))})${npc ? ' ⚠' : ''}`));
         }),
@@ -175,7 +184,11 @@ export function bannersTab(root, { select } = {}) {
     // 키 아트 생성
     const extra = h('input', { placeholder: '추가 연출 (예: 밤하늘 축제 등불, 따뜻한 분위기)' });
     const jobArea = h('div');
-    const bannerInput = () => (collect(false) ? { bannerId: bid || 'banner_new', title: title.value, description: desc.value, pickupIds: [...picked], extra: extra.value } : null);
+    // 추억 배너는 서버(batch.banner_input)가 픽업 추억 / pickupFrom → 주인 캐릭터 · 추억 이름 · 장면 태그로 바꿔서 그림 요청에 넣음
+    const bannerInput = () => {
+      const d = collect(false);
+      return d ? { bannerId: bid || 'banner_new', title: d.title, description: d.description, category: d.category, pickupIds: d.pickupIds, pickupFrom: d.pickupFrom || null, extra: extra.value } : null;
+    };
     const artStep = promptStep({ kind: 'banner', getInput: bannerInput, generateLabel: '그림 뽑기', generate: (gen) => genArt(gen) });
     async function genArt(gen) {
       if (!bannerInput() || !(await ensureId())) return;
@@ -206,7 +219,7 @@ export function bannersTab(root, { select } = {}) {
         title: title.value.trim(),
         type: type.value,
         category: category.value,
-        pickupIds: type.value === 'pickup' && (memory ? !pickupFrom.value : !rotOn.checked) ? [...picked].filter((id) => (memory ? memories.some((m) => m.id === id) : !id.startsWith('memory_'))) : [],
+        pickupIds: type.value === 'pickup' && (memory ? !pickupFrom.value : !rotOn.checked) ? (memory ? [...pickedMems].filter((id) => memories.some((m) => m.id === id)) : [...pickedChars]) : [],
         ...(type.value === 'pickup' && rotOn.checked && !memory ? { rotation: rotation() } : {}),
         ...(memory && type.value === 'pickup' && pickupFrom.value ? { pickupFrom: pickupFrom.value } : {}),
         startAt: start.get(),
@@ -251,17 +264,45 @@ export function bannersTab(root, { select } = {}) {
       openPreview({ banner: bid, now });
     }
 
+    // 캐릭터 픽업 배너 ↔ 추억 배너 (pickupFrom = 이 배너 → 그때그때 픽업 캐릭터의 전용 추억이 픽업)
+    const linked = v.id ? state.data.banners.filter((x) => x.category === 'memory' && x.pickupFrom === v.id) : [];
+    const memLink =
+      !isNew &&
+      v.category !== 'memory' &&
+      v.type === 'pickup' &&
+      h(
+        'div',
+        { class: 'card inner' },
+        h('b', {}, '추억 픽업 '),
+        h('span', { class: 'muted small' }, '— 이 배너의 픽업 캐릭터 전용 추억을 픽업하는 추억 배너 (로테이션도 따라감)'),
+        h(
+          'div',
+          { class: 'row wrap' },
+          ...linked.map((x) => h('button', { class: 'btn small', onclick: () => edit(x) }, `추억 배너 열기: ${x.title}`)),
+          h(
+            'button',
+            {
+              class: ['btn small', !linked.length && 'primary'],
+              onclick: () =>
+                edit(null, { title: `${v.title} · 추억`, type: 'pickup', category: 'memory', pickupFrom: v.id, startAt: v.startAt, endAt: v.endAt, description: v.description, relatedStoryId: v.relatedStoryId }),
+            },
+            linked.length ? '+ 추억 배너 하나 더' : '이 배너의 추억 배너 만들기',
+          ),
+        ),
+      );
+
     editor.replaceChildren(
       h(
         'section',
         { class: 'card' },
-        h('h2', {}, isNew ? '새 배너' : `배너 편집 — ${v.id}`),
+        h('h2', {}, isNew ? (v.category === 'memory' ? '새 추억 배너' : '새 배너') : `배너 편집 — ${v.id}`),
         h('div', { class: 'grid2' }, h('label', { class: 'field' }, 'id (자동)', id), h('div', { class: 'row' }, h('label', { class: 'field' }, '뽑기', category), h('label', { class: 'field' }, '종류', type))),
         h('label', { class: 'field' }, '제목', title),
         h('div', { class: 'grid2' }, start.el, end.el),
         rotWrap,
         pickWrap,
         memPickWrap,
+        memLink,
         h('label', { class: 'field' }, '설명 (배너 화면과 상세에 표시)', desc),
         h('label', { class: 'field' }, '관련 이벤트 스토리', related),
         h('label', { class: 'field' }, '배너 그림 경로', image),
@@ -278,7 +319,7 @@ export function bannersTab(root, { select } = {}) {
         'section',
         { class: 'card' },
         h('h2', {}, '키 아트 생성'),
-        h('p', { class: 'muted small' }, '픽업 캐릭터의 소개문과, 승인된 캐릭터 그림을 만들 때 쓴 외형 태그를 이어받아 Gemini가 프롬프트를 써요. 공통 스타일: dev/style_banner.txt'),
+        h('p', { class: 'muted small' }, '픽업 캐릭터의 소개문과, 승인된 캐릭터 그림을 만들 때 쓴 외형 태그를 이어받아 Gemini가 프롬프트를 써요. 추억 배너는 픽업 추억(또는 따라가는 캐릭터 배너의 전용 추억)의 주인 캐릭터 + 추억 이름 · 장면 태그로 그려요. 공통 스타일: dev/style_banner.txt'),
         h('label', { class: 'field' }, '추가 연출', extra),
         artStep.el,
         jobArea,

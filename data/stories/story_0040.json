@@ -1,0 +1,263 @@
+{
+  "id": "story_0040",
+  "title": "비 내리는 폐예배당",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0016.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "티르가 붕대 감긴 팔을 들어 단장을 가리켰다."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "수레 밑에 혼자 있었는데, 아빠가 고기 줬잖아!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……고기?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "……반년 전에 털었던 수송 마차 밑바닥?",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0015",
+          "text": "응! 까맣고 딱딱해서 곰팡이 핀 거!"
+        },
+        {
+          "speaker": "char_0003",
+          "text": "아이고, 이 나간다고 내다 버린 썩은 육포 말입니까요?"
+        },
+        {
+          "speaker": "char_0008",
+          "text": "상한 쓰레기 하나 버려놓고 평생 아비 소릴 듣네."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……짐승인 줄 알았다. 짐칸에 쥐 꼬일까 봐 던진 거야.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……핑계도 구차해."
+        },
+        {
+          "speaker": "narrator",
+          "text": "비에 젖은 판자문이 벌컥 열리며 바바루아가 굴러 들어왔다."
+        },
+        {
+          "speaker": "char_0004",
+          "text": "단장 나리! 숨넘어갑니다요! 교단 쪽에서 전갈이 왔소!"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0016.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "사냥개들이 또 냄새를 맡았나?",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0004",
+          "text": "심문관 하나가 단장 나리와 단독 거래를 청했답니다요."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……함정이야. 심문관은 거래 안 해."
+        },
+        {
+          "speaker": "char_0004",
+          "text": "북쪽 숲 폐예배당입니다요. 지금 당장 오라더군요!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "교단 심문관이 단독 거래라.",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "함정이면 목을 따고 은화나 털면 그만이지.",
+              "goto": "s2_1"
+            },
+            {
+              "text": "혼자 오랬다고 혼자 갈 놈으로 보였나 보군.",
+              "goto": "s2_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0016.jpg",
+        "color": "#33264f"
+      },
+      "next": "s3",
+      "lines": [
+        {
+          "speaker": "char_0001",
+          "text": "……등 뒤는 내가 맡아. 단검 챙겼어."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "단장님, 비 오는데 화살값은 따로 쳐주시는 거죠?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "티르는 주드한테 맡긴다. 예배당으로 간다.",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "s2_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0016.jpg",
+        "color": "#24304a"
+      },
+      "next": "s3",
+      "lines": [
+        {
+          "speaker": "char_0008",
+          "text": "하아암…… 빗소리 들으면서 낮잠이나 자려 했더니."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……비 맞기 싫으면 칼이나 뽑아."
+        },
+        {
+          "speaker": "narrator",
+          "text": "가린, 쇠뇌 챙겨라. 예배당 지붕부터 훑는다.",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0017.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "천장 무너진 폐예배당 안으로 빗물이 들이쳤다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "부서진 석상 아래, 젖은 망토를 두른 여검사가 서 있었다."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "……혼자 오라고 전했을 텐데."
+        },
+        {
+          "speaker": "narrator",
+          "text": "목에 현상금 걸린 놈이 심문관 말을 믿겠나.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "도살자 손에 제 목을 대주는 멍청이보단 낫군."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 저 여자, 숨소리가 거칠어. 손도 떨려."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "쥐고 있는 칼이 무거울 뿐이다. 아이는 어디 있나."
+        },
+        {
+          "speaker": "narrator",
+          "text": "물건부터 찾는 놈치고 제값 치르는 꼴을 못 봤는데.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "깨진 창문 너머로 철갑 부딪히는 소리가 빗속을 울렸다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "배교자 클레어! 실험체를 빼돌린 죗값을 치러라!",
+          "name": "교단 추격병"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "쯧…… 벌써 여기까지 들이닥쳤군."
+        },
+        {
+          "speaker": "narrator",
+          "text": "손님을 달고 왔으면 입장료부터 내야지. 칼 뽑아!",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0040",
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0017.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "빗물에 씻긴 피가 바닥 돌 틈으로 스며들었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "클레어는 칼을 집어넣지 않고 숨을 골랐다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……은화 여섯 닢. 시체 털어봐야 장화 밑창값도 안 나와."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "아이고 단장님! 화살 세 발 쐈는데 본전도 못 건졌습니다!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "심문관 양반. 제 식구 모가지 베는 손놀림이 깔끔하네.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "더는 내 식구가 아니다. 가죽만 뒤집어쓴 백정들이지."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "티르를 넘기라는 소리가 아니다. 그 아이를 지키러 왔다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "클레어가 품속에서 피 묻은 은제 성표를 꺼내 쥐었다."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,213 @@
+{
+  "id": "story_0043",
+  "title": "연기 나는 굴뚝",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "잿가루가 섞인 매캐한 바람이 골목길을 메웠다."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "아이고, 맙소사! 단장님, 지붕 위로 연기가 솟구치는데요!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……기름 탄 냄새. 유황도 섞였어."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "말라코르의 방식이다. 저항하면 통째로 불태워 재로 만들지."
+        },
+        {
+          "speaker": "narrator",
+          "text": "새로 맞춘 참나무 문짝 값 아직 반도 못 뽑았는데.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 문짝 핑계 댈 때 아니야. 발소리가 빨라졌어."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……시끄러워. 칼이나 뽑아.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 보폭을 넓히며 허리춤의 칼자루를 거칠게 쥐었다."
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0009.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "회관 앞마당은 이미 불화살과 연기로 아수라장이었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "불을 더 질러라! 이단 실험체를 끌어내고 배교자들은 태워 없앤다!",
+          "name": "교단 선봉대장"
+        },
+        {
+          "speaker": "char_0007",
+          "text": "어머나, 남의 집 지붕에 무슨 불장난이에요?! 기왓장 값은 물어내시죠!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "루미가 두꺼운 장부 모서리로 기어오르던 병사의 턱을 찍어 내렸다."
+        },
+        {
+          "speaker": "char_0006",
+          "text": "기름이 솥에 튀었잖아요. 얌전히 줄 서세요, 손질해 드릴게요."
+        },
+        {
+          "speaker": "narrator",
+          "text": "안나가 식칼 두 자루를 교차해 창대를 쳐내며 덤덤하게 중얼거렸다."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "빨래 아줌마, 고기 언니 뒤로 숨어! 티르가 다 부술 거야!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "티르가 문짝만 한 쇠 탁자를 통째로 집어 던져 사병 둘을 깔아뭉갰다."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "포위망의 뒤쪽이 얇다. 단장, 바로 뚫어야 해."
+        },
+        {
+          "speaker": "narrator",
+          "text": "등 뒤에서 칼침 맞는 맛이 어떤 건지 알려주지. 썰어버려!",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0043",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0009.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "선봉대장의 몸뚱이가 진흙탕에 처박혔다."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "배후는 정리됐다! 안으로 합류한다!"
+        },
+        {
+          "speaker": "char_0015",
+          "text": "아빠! 아빠 왔다! 티르가 문짝 지켰…… 어?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "부서진 담벼락 뒤에서 검은 로브를 두른 사제 셋이 붉은 향로를 던졌다."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "피해라! 침묵의 향로다!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "깨진 향로에서 지독하게 달콤한 보라색 안개가 번져나갔다."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "머리가, 빙글빙글…… 아빠……?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "티르의 손에서 쇠 탁자가 힘없이 떨어지며 바닥을 찧었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "성물을 확보했다! 사슬을 채워라! 퇴각한다!",
+          "name": "교단 사제"
+        },
+        {
+          "speaker": "narrator",
+          "text": "손 치워, 이 새끼들아!",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0009.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "단장이 연기를 뚫고 검을 내질렀으나 갈고리 사슬이 티르를 낚아채 갔다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……말발굽 소리. 넷. 이미 골목 밖으로 빠져나갔어."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "눈이 따가워서 앞이 하나도 안 보입니다요!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "안개는 흩어졌지만, 티르가 있던 자리에는 끊어진 쇠고리만 뒹굴었다."
+        },
+        {
+          "speaker": "char_0007",
+          "text": "……단장님. 장부 볼 것도 없어요. 새로 산 식탁도, 스튜도 잿더미예요."
+        },
+        {
+          "speaker": "narrator",
+          "text": "…….",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 대답 대신 품속의 주사위를 꺼내 쥐었다. 손끝이 하얗게 질려 있었다."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "말라코르의 짓이다. 외곽 성당으로 데려갔을 거야."
+        },
+        {
+          "speaker": "narrator",
+          "text": "외상값 떼먹고 도망치는 놈은 절대 살려두지 않는다고 했을 텐데.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "부서진 문짝 값에 지붕 삯까지, 그 영감탱이 뼈마디를 뽑아서 받아낸다.",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}

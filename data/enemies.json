@@ -5,9 +5,9 @@
     "image": "assets/enemies/enemy_0001.png",
     "boss": false,
     "stats": {
-      "atk": 150,
-      "def": 30,
-      "hp": 1350,
+      "atk": 500,
+      "def": 60,
+      "hp": 7200,
       "spd": 100,
       "critRate": 0.05,
       "critDmg": 0.5
@@ -45,9 +45,9 @@
     "image": "assets/enemies/enemy_0002.png",
     "boss": false,
     "stats": {
-      "atk": 165,
-      "def": 24,
-      "hp": 1215,
+      "atk": 550,
+      "def": 48,
+      "hp": 6480,
       "spd": 112,
       "critRate": 0.05,
       "critDmg": 0.5
@@ -106,9 +106,9 @@
     "image": "assets/enemies/enemy_0003.png",
     "boss": false,
     "stats": {
-      "atk": 150,
-      "def": 30,
-      "hp": 1350,
+      "atk": 500,
+      "def": 60,
+      "hp": 7200,
       "spd": 100,
       "critRate": 0.05,
       "critDmg": 0.5
@@ -146,9 +146,9 @@
     "image": "assets/enemies/enemy_0004.png",
     "boss": false,
     "stats": {
-      "atk": 188,
-      "def": 39,
-      "hp": 2430,
+      "atk": 625,
+      "def": 66,
+      "hp": 10080,
       "spd": 88,
       "critRate": 0.05,
       "critDmg": 0.5,
@@ -190,10 +190,10 @@
     },
     "pattern": [
       {
-        "action": "skill"
+        "action": "basic"
       },
       {
-        "action": "basic"
+        "action": "skill"
       },
       {
         "action": "basic"
@@ -208,9 +208,9 @@
     "image": "assets/enemies/enemy_0005.png",
     "boss": true,
     "stats": {
-      "atk": 225,
-      "def": 48,
-      "hp": 6750,
+      "atk": 750,
+      "def": 96,
+      "hp": 36000,
       "spd": 102,
       "critRate": 0.05,
       "critDmg": 0.5,
@@ -266,7 +266,7 @@
             "effects": [
               {
                 "type": "damage",
-                "mult": 1.8,
+                "mult": 1.7,
                 "stat": "atk",
                 "hits": 1
               }
@@ -313,7 +313,7 @@
           },
           {
             "type": "shield",
-            "mult": 2,
+            "mult": 1,
             "stat": "def",
             "turns": 2
           }
@@ -321,7 +321,7 @@
       }
     ],
     "enrage": {
-      "round": 15,
+      "round": 11,
       "effects": [
         {
           "type": "buff",
@@ -358,9 +358,9 @@
     "image": "assets/enemies/enemy_0006.png",
     "boss": false,
     "stats": {
-      "atk": 180,
-      "def": 24,
-      "hp": 1148,
+      "atk": 600,
+      "def": 48,
+      "hp": 6120,
       "spd": 104,
       "critRate": 0.05,
       "critDmg": 0.5,
@@ -428,9 +428,9 @@
     "name": "숙부파 사설 경비병",
     "image": "assets/enemies/enemy_0007.png",
     "stats": {
-      "atk": 150,
-      "def": 30,
-      "hp": 1350,
+      "atk": 500,
+      "def": 60,
+      "hp": 7200,
       "spd": 100,
       "critRate": 0.05,
       "critDmg": 0.5
@@ -467,9 +467,9 @@
     "name": "이웃 영지 정규 방패병",
     "image": "assets/enemies/enemy_0008.png",
     "stats": {
-      "atk": 128,
-      "def": 42,
-      "hp": 1890,
+      "atk": 425,
+      "def": 84,
+      "hp": 10080,
       "spd": 90,
       "critRate": 0.05,
       "critDmg": 0.5,
@@ -498,7 +498,7 @@
         "effects": [
           {
             "type": "shield",
-            "mult": 1.2,
+            "mult": 0.6,
             "stat": "def",
             "turns": 2
           },
@@ -512,10 +512,10 @@
     },
     "pattern": [
       {
-        "action": "skill"
+        "action": "basic"
       },
       {
-        "action": "basic"
+        "action": "skill"
       },
       {
         "action": "basic"
@@ -529,9 +529,9 @@
     "name": "약탈 부대 방화범",
     "image": "assets/enemies/enemy_0009.png",
     "stats": {
-      "atk": 180,
-      "def": 24,
-      "hp": 1148,
+      "atk": 600,
+      "def": 48,
+      "hp": 6120,
       "spd": 104,
       "critRate": 0.05,
       "critDmg": 0.5,
@@ -593,9 +593,9 @@
     "name": "강철송곳니 용병대장",
     "image": "assets/enemies/enemy_0010.png",
     "stats": {
-      "atk": 195,
-      "def": 39,
-      "hp": 2970,
+      "atk": 650,
+      "def": 78,
+      "hp": 15840,
       "spd": 102,
       "critRate": 0.05,
       "critDmg": 0.5,
@@ -677,9 +677,9 @@
     "image": "",
     "boss": true,
     "stats": {
-      "atk": 225,
-      "def": 48,
-      "hp": 6750,
+      "atk": 750,
+      "def": 96,
+      "hp": 36000,
       "spd": 102,
       "critRate": 0.05,
       "critDmg": 0.5,
@@ -735,7 +735,7 @@
             "effects": [
               {
                 "type": "damage",
-                "mult": 1.8,
+                "mult": 1.7,
                 "stat": "atk",
                 "hits": 1
               }
@@ -782,7 +782,7 @@
           },
           {
             "type": "shield",
-            "mult": 2,
+            "mult": 1,
             "stat": "def",
             "turns": 2
           }
@@ -790,7 +790,7 @@
       }
     ],
     "enrage": {
-      "round": 15,
+      "round": 11,
       "effects": [
         {
           "type": "buff",
@@ -820,5 +820,365 @@
       }
     ],
     "archetype": "boss"
+  },
+  {
+    "id": "enemy_0012",
+    "name": "빈집털이 부랑자",
+    "image": "",
+    "boss": false,
+    "stats": {
+      "atk": 60,
+      "def": 18,
+      "hp": 400,
+      "spd": 100,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "actions": {
+      "basic": {
+        "name": "빠루 휘두르기",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1,
+            "stat": "atk",
+            "hits": 1
+          }
+        ],
+        "icon": "attack"
+      }
+    },
+    "pattern": [
+      {
+        "action": "basic"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "enemy_0013",
+    "name": "교단 사냥개 조련사",
+    "image": "",
+    "boss": false,
+    "stats": {
+      "atk": 60,
+      "def": 16,
+      "hp": 380,
+      "spd": 104,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "actions": {
+      "basic": {
+        "name": "사냥개 풀기",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.8,
+            "stat": "atk",
+            "hits": 1
+          },
+          {
+            "type": "dot",
+            "mult": 0.2,
+            "turns": 2,
+            "chance": 50
+          }
+        ],
+        "icon": "attack"
+      },
+      "skill": {
+        "name": "갈고리 창 찌르기",
+        "description": "",
+        "targeting": "enemy_all",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.4,
+            "stat": "atk",
+            "hits": 1
+          },
+          {
+            "type": "dot",
+            "mult": 0.25,
+            "turns": 2
+          }
+        ],
+        "icon": "aoe"
+      }
+    },
+    "pattern": [
+      {
+        "action": "basic"
+      },
+      {
+        "action": "basic"
+      },
+      {
+        "action": "skill"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "enemy_0014",
+    "name": "고행의 채찍수",
+    "image": "",
+    "boss": false,
+    "stats": {
+      "atk": 64,
+      "def": 34,
+      "hp": 975,
+      "spd": 88,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "actions": {
+      "basic": {
+        "name": "가시 도리깨질",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1,
+            "stat": "atk",
+            "hits": 1
+          }
+        ],
+        "icon": "attack"
+      },
+      "skill": {
+        "name": "고통의 광기",
+        "description": "",
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "shield",
+            "mult": 0.15,
+            "stat": "hp",
+            "turns": 2
+          },
+          {
+            "type": "taunt",
+            "turns": 1
+          }
+        ],
+        "icon": "buff"
+      }
+    },
+    "pattern": [
+      {
+        "action": "skill"
+      },
+      {
+        "action": "basic"
+      },
+      {
+        "action": "basic"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "enemy_0015",
+    "name": "이단 심문관 서기",
+    "image": "",
+    "boss": false,
+    "stats": {
+      "atk": 60,
+      "def": 26,
+      "hp": 825,
+      "spd": 96,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "actions": {
+      "basic": {
+        "name": "향로 타격",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1,
+            "stat": "atk",
+            "hits": 1
+          }
+        ],
+        "icon": "attack"
+      },
+      "skill": {
+        "name": "뜨거운 인두질",
+        "description": "",
+        "targeting": "ally_lowest_hp",
+        "effects": [
+          {
+            "type": "heal",
+            "mult": 0.9,
+            "stat": "atk"
+          }
+        ],
+        "icon": "heal"
+      }
+    },
+    "pattern": [
+      {
+        "action": "basic"
+      },
+      {
+        "action": "basic"
+      },
+      {
+        "action": "skill"
+      }
+    ],
+    "passives": []
+  },
+  {
+    "id": "enemy_0016",
+    "charId": "char_0019",
+    "name": "수석 심문관 말라코르",
+    "image": "",
+    "boss": true,
+    "stats": {
+      "atk": 86,
+      "def": 36,
+      "hp": 2000,
+      "spd": 104,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "actions": {
+      "basic": {
+        "name": "심판의 철퇴",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1,
+            "stat": "atk",
+            "hits": 1
+          }
+        ],
+        "icon": "attack"
+      },
+      "skill": {
+        "name": "이단 낙인 찍기",
+        "description": "",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.6,
+            "stat": "atk",
+            "hits": 1
+          },
+          {
+            "type": "debuff",
+            "stat": "def",
+            "pct": 20,
+            "turns": 2
+          }
+        ],
+        "icon": "attack"
+      },
+      "ultimate": {
+        "name": "대주교의 화형 선고",
+        "description": "",
+        "targeting": "enemy_all",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.2,
+            "stat": "atk",
+            "hits": 1
+          },
+          {
+            "type": "debuff",
+            "stat": "atk",
+            "pct": 15,
+            "turns": 2
+          }
+        ],
+        "icon": "aoe",
+        "big": true
+      }
+    },
+    "pattern": [
+      {
+        "action": "basic"
+      },
+      {
+        "action": "skill"
+      },
+      {
+        "action": "basic"
+      },
+      {
+        "action": "ultimate"
+      }
+    ],
+    "phases": [
+      {
+        "hpBelow": 50,
+        "name": "수석 심문관 말라코르의 분노",
+        "pattern": [
+          {
+            "action": "skill"
+          },
+          {
+            "action": "ultimate"
+          },
+          {
+            "action": "basic"
+          }
+        ],
+        "enterEffects": [
+          {
+            "type": "buff",
+            "stat": "atk",
+            "pct": 20,
+            "turns": 3
+          }
+        ]
+      }
+    ],
+    "enrage": {
+      "round": 15,
+      "effects": [
+        {
+          "type": "buff",
+          "stat": "atk",
+          "pct": 50,
+          "turns": 20
+        }
+      ]
+    },
+    "passives": [
+      {
+        "name": "분노",
+        "description": "HP가 절반 아래면 공격력이 올라요.",
+        "trigger": "onHpBelow",
+        "pct": 50,
+        "limit": 1,
+        "targeting": "self",
+        "conditions": [],
+        "effects": [
+          {
+            "type": "buff",
+            "stat": "atk",
+            "pct": 30,
+            "turns": 3
+          }
+        ],
+        "modifiers": []
+      }
+    ]
   }
 ]

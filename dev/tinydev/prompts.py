@@ -158,6 +158,12 @@ def brief(kind, inp, chars=(), theme="", slot=None):
                     lines.append(f"  Appearance tags used for this character's standee art (keep hair/eyes/outfit the same): {look}")
         else:
             lines.append("No featured characters: make it a festive themed scene with no humans.")
+        mems = inp.get("memories") or []
+        if inp.get("category") == "memory":
+            lines.append("This is a MEMORY-CARD gacha banner (keepsake cards that capture a moment): show the featured scene(s) as glowing keepsakes / floating memory cards, nostalgic mood.")
+        for m in mems:
+            theme = ", ".join(m.get("theme") or [])
+            lines.append(f"- Memory card {m.get('name', '')} ({rarity.label(m.get('rarity', 3))}){f' — scene tags: {theme}' if theme else ''}")
     elif kind == "bg":
         lines = ["Background art for a visual novel scene (scenery only, no people).", f"Scene: {inp.get('prompt', '')}"]
     elif kind == "ui_bg":
@@ -367,7 +373,9 @@ def template_prompt(kind, inp, slot, chars, reasons):
         subject = ", ".join(x for x in (inp.get("keywords"), inp.get("title"), RARITY_HINT.get(inp.get("rarity"), "")) if x)
     elif kind == "banner":
         count = f"{len(chars)}girls" if len(chars) > 1 else ("1girl" if chars else "no humans")
-        subject = ", ".join([count] + [look_tags(c.get("look", "")) or c["name"] for c in chars] + [inp.get("description", "")])
+        mem_tags = [t for m in inp.get("memories") or [] for t in (m.get("theme") or [])][:8]
+        extra_mem = ["floating cards, glowing keepsake, nostalgic"] if inp.get("category") == "memory" else []
+        subject = ", ".join([count] + [look_tags(c.get("look", "")) or c["name"] for c in chars] + extra_mem + mem_tags + [inp.get("description", "")])
     elif kind == "bg":
         subject = inp.get("prompt", "")
     elif kind == "enemy":

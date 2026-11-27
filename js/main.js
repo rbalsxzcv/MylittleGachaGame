@@ -46,12 +46,14 @@ const IS_LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
  *   ?screen=<화면>     그 화면 바로 열기 (예: growth, team, collection, gacha)
  *   ?battle=<스테이지id>  그 스테이지 전투 바로 시작 (보상 없음, 편성이 비면 전투력 상위 5명)
  *   &ownAll=1          (preview=1일 때만) 모든 캐릭터를 가진 상태로 시작 — 육성/편성/도감 확인용
+ *   &lv=N              (preview=1일 때만) 가진 캐릭터 레벨을 N으로 (상한 무시) — 밸런스 확인용
  */
 function readPreviewOptions() {
   if (!IS_LOCAL) return {};
   const q = new URLSearchParams(location.search);
   const opts = { preview: q.get('preview') === '1', story: q.get('story'), banner: q.get('banner'), shop: q.get('shop'), category: q.get('category'), screen: q.get('screen'), battle: q.get('battle') };
   opts.ownAll = opts.preview && q.get('ownAll') === '1';
+  opts.lv = opts.preview && Number.isInteger(Number(q.get('lv'))) && Number(q.get('lv')) >= 1 ? Math.min(999, Number(q.get('lv'))) : null;
   const t = parseDate(q.get('now'));
   if (t) setNowOverride(t);
   if (opts.preview) usePreviewSaveKey();
@@ -103,6 +105,7 @@ async function boot() {
   if (opts.ownAll) {
     for (const c of data.characters) if (!save.owned[c.id]) save.owned[c.id] = { level: 1, essence: 0, breakthrough: 0, count: 1, firstAt: save.createdAt };
   }
+  if (opts.lv) for (const e of Object.values(save.owned)) e.level = opts.lv;
   syncKnownIds(save, data.characters, isNew);
   ensureDefaultMemories(save, data.characters, data.memories); // 가진 캐릭터마다 역할 기본 추억 1장 (v3 → v4 세이브 포함, 한 번만)
   const daily = isNew ? null : applyDailyLogin(save, { tickets: data.balance.daily.tickets, gold: data.balance.daily.gold });

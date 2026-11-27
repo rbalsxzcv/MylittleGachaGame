@@ -32,6 +32,24 @@ describe('효과', () => {
     expect(ev.filter((e) => e.t === 'damage').map((e) => e.amount)).toEqual([107, 107]); // floor(150 × 100/140)
     expect(e1.hp).toBe(100000 - 214);
   });
+  it('damage: 방어 감쇠 K/(K+방어), K = defK × 공격자 레벨 배율 → 같은 레벨끼리 같은 비율', () => {
+    const { a1, b, run } = setup();
+    const m1 = b.tools.mitigation(a1, 40); // Lv.1: 100/140
+    expect(Math.round(m1 * 1e6)).toBe(Math.round((100 / 140) * 1e6));
+    a1.level = 50; // K = 100 × (1 + 0.08 × 49) = 492
+    const lvMul = 1 + 0.08 * 49;
+    expect(Math.round(b.tools.mitigation(a1, 40 * lvMul) * 1e6)).toBe(Math.round(m1 * 1e6));
+    expect(b.tools.mitigation(a1, 40) > m1).toBe(true); // 레벨 높은 공격자 → 같은 방어를 덜 받음
+    a1.level = 1;
+    expect(run('damage', { mult: 1, stat: 'atk', hits: 1 })[0].amount).toBe(71); // floor(100 × 100/140)
+  });
+  it('damage: 1타 비율 기록 (주는 쪽 hits/hitPct, 받는 쪽 hitsTaken/takenPct)', () => {
+    const { a1, e1, run } = setup();
+    run('damage', { mult: 1, stat: 'atk', hits: 2 });
+    expect([a1.stats.hits, e1.stats.hitsTaken]).toEqual([2, 2]);
+    expect(Math.round(a1.stats.hitPct * 1e6)).toBe(Math.round((142 / 100000) * 1e6));
+    expect(a1.stats.maxHitPct).toBe(71 / 100000);
+  });
   it('damage: 최소 1, 보호막이 먼저 막음', () => {
     const { e1, run } = setup();
     expect(run('damage', { mult: 0, stat: 'atk', hits: 1 })[0].amount).toBe(1);
@@ -260,5 +278,30 @@ describe('수정자: 자원 상한 / 표식 지속', () => {
     expect(a1.res.cap).toBe(7);
     b.tools.addMark(a1, b.unit('w1e1'), 2, 3);
     expect(b.unit('w1e1').marks[0].turns).toBe(3);
+  });
+});
+
+describe('전투 시작 기력 (combat.energy.start)', () => {
+  it('아군만 시작 기력을 받고, 최대 기력을 넘지 않음', () => {
+    const cs = [char(vocab, 'h')];
+    const mk = (energy) => createBattle({ team: teamOf('h'), stage: stageOf(['d']), data: mkData(vocab, cs, [enemy(vocab, 'd')], { combat: { energy } }), seed: 1 });
+    const b = mk({ start: 25 });
+    expect([b.unit('a1').energy, b.unit('w1e1').energy]).toEqual([25, 0]);
+    expect(mk({ start: 500 }).unit('a1').energy).toBe(100);
+    expect(mk({}).unit('a1').energy).toBe(0);
+  });
+});
+
+
+describe('받은 피해 기록 (처치 턴 계산용)', () => {
+  it('takenRaw = 보호막 전 받은 피해 합, 상한 없음', () => {
+    const cs = [char(vocab, 'h', { stats: { hp: 1000 } })];
+    const b = createBattle({ team: teamOf('h'), stage: stageOf(['d']), data: mkData(vocab, cs, [enemy(vocab, 'd', { stats: { atk: 100000 } })]), seed: 1 });
+    const ctx = { actor: null, action: 'skill', sourceKey: 't', crit: false, kills: [], hits: [], triggerTarget: null };
+    const a1 = b.unit('a1');
+    a1.shield = { value: 500, turns: 2 };
+    EFFECTS.damage(b.tools, ctx, b.unit('w1e1'), a1, { type: 'damage', mult: 1, stat: 'atk', hits: 1 }, 1);
+    expect(a1.alive).toBe(false); // 한 방에 쓰러질 수 있음 (적 1타 상한 없음)
+    expect(a1.stats.takenRaw > 1500).toBe(true);
   });
 });

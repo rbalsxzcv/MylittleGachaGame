@@ -93,7 +93,7 @@ export function generateKit({ id, role, rarity, archetype, variants = {}, seed, 
     if (points < target * (1 - B.tolerancePct / 100)) {
       const stat = FILLER_STAT[role] || 'atk';
       const per = B.modifierPoints.stat_bonus * 2 * (B.statWeight[stat] ?? 1);
-      const pct = Math.min(40, Math.round((target - points) / per));
+      const pct = Math.min(60, Math.round((target - points) / per));
       if (pct >= 1) {
         p = toPassive({ ...res.value, modifiers: [...(res.value.modifiers || []), { type: 'stat_bonus', stat, pct }] });
         points = passivePoints(p, B, cap);

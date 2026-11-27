@@ -1,0 +1,287 @@
+{
+  "id": "story_0042",
+  "title": "알현실의 창문",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#1b1440"
+      },
+      "next": "b1",
+      "lines": [
+        {
+          "speaker": "char_0003",
+          "text": "단장님! 영주관에서 또 전령이 왔습니다요! 벌써 세 번째라니까요!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "자리에 앉은 지 며칠이나 됐다고 아침부터 성가시게 굴어.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "광명교단이 움직였다. 말라코르의 병력이 성벽 바로 앞까지 진을 쳤어."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 골목 양쪽 지붕. 넷, 아니 여섯. 숨소리가 너무 거칠어."
+        },
+        {
+          "speaker": "narrator",
+          "text": "영주 보러 가는 길에 통행세를 뜯으려는 놈들이 있나 보군.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "교단 서기들과…… 숙부파 잔당이다. 말라코르가 은화로 산 사냥개들이지."
+        },
+        {
+          "speaker": "narrator",
+          "text": "영주관엔 발도 못 붙인다! 저 배교자와 용병 놈 목을 바치면 금화다!",
+          "name": "숙부파 잔당"
+        },
+        {
+          "speaker": "char_0003",
+          "text": "히익! 화살값도 안 나오는 놈들이 떼거지로 몰려옵니다요!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "금화 소리 들었지? 주머니 털어서 길 치운 삯부터 챙긴다. 썰어.",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0042",
+      "next": "s2"
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#33264f"
+      },
+      "next": "s3",
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "단장은 칼등에 묻은 피를 털지도 않은 채 시체의 허리춤을 발로 찼다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "금화 준다는 놈들 주머니가 왜 이따위야. 은화 넉 닢에 동화 몇 개?",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……부츠는 질겨. 벗겨서 마르텐 주면 좋아할 거야."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "이들은 잔챙이다. 말라코르의 본대는 영지 문턱을 밟고 있어."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "아이고, 빗맞았는데도 가죽 옷이 찢어졌네! 단장님, 옷값은 주실 거죠?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "영주관 가서 받아낼 삯에 얹으면 돼. 발걸음 재촉해라.",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0014.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "영주 알현실의 무거운 문이 열리자 날 선 긴장감이 밀려들었다."
+        },
+        {
+          "speaker": "char_0012",
+          "text": "단장 공! 어찌 이리 늦었소! 성문 앞이 교단 기사들로 가득 찼단 말이오!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "오는 길에 청소 좀 하느라 늦었습니다, 기사 나으리.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0011",
+          "text": "아이린, 검을 거두세요. 피 냄새를 묻히고 온 걸 보니 쉬운 길은 아니었나 봐요."
+        },
+        {
+          "speaker": "narrator",
+          "text": "레일라는 헐거운 인장 반지를 매만지며 단장을 차분하게 응시했다."
+        },
+        {
+          "speaker": "char_0011",
+          "text": "단장님. 단도직입적으로 묻겠어요. 용병단 회관에 데려온 그 아이…… 티르요."
+        },
+        {
+          "speaker": "char_0011",
+          "text": "광명교단의 성물이라는 소문이 파다해요. 수석 심문관이 직접 군사를 끌고 왔고요."
+        },
+        {
+          "speaker": "narrator",
+          "text": "귀는 참 밝으시네. 그래서, 본론이 뭡니까?",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0011",
+          "text": "아직 영지는 삼촌이 남긴 상처도 다 아물지 못했어요. 교단과의 전쟁은 무립니다."
+        },
+        {
+          "speaker": "char_0011",
+          "text": "그 아이…… 교단에 돌려주는 건 어떨까요? 제 목숨값으로 은화는 섭섭잖게 드리죠."
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 품속에서 죽은 단원의 주사위를 꺼내 엄지손가락으로 매만졌다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "생각을 묻는 겁니까, 아니면 영주로서 내리는 명령입니까?",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "용병단 식구로 들인 녀석은 안 내준다.",
+              "goto": "s4_1"
+            },
+            {
+              "text": "몸값 흥정할 생각이면 번지수를 잘못 찾았어.",
+              "goto": "s4_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s4_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0014.jpg",
+        "color": "#2b1f3a"
+      },
+      "next": "s5",
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "받기 전이면 몰라도, 문짝 부수고 들어와서 밥통까지 꿰찬 단원이야.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0012",
+          "text": "단장 공! 교단 전체를 적으로 돌리겠다는 소리오? 영지가 불탈 수도 있소!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장 말이 맞아. 우리 걸 뺏기면 용병 못 해."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……근데 식구라고 부르니까 되게 어색해. 다 티 나."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……시끄러. 밥 한 톨이라도 축내면 쫓아낼 거다.",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "s4_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0014.jpg",
+        "color": "#1b1440"
+      },
+      "next": "s5",
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "그 꼬맹이가 먹어 치운 고기 스튜랑 부서진 참나무 문짝 값이 얼마인 줄 알아?",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0011",
+          "text": "은화로 전부 물어 드린다고 말씀드렸잖아요."
+        },
+        {
+          "speaker": "narrator",
+          "text": "빚진 놈은 내 손으로 털어먹는 게 용병 규율이야. 남 손 빌려서 셈 안 치러.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……또 돈 핑계. 그냥 불쌍해서 거둔 거면서."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……너 오늘따라 말이 많다?",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0014.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "레일라는 헐거운 인장 반지를 돌리며 작게 한숨을 내쉬었다."
+        },
+        {
+          "speaker": "char_0011",
+          "text": "후후…… 영주 알현실에서 이렇게 배짱 좋은 용병은 단장님뿐일 거예요."
+        },
+        {
+          "speaker": "char_0011",
+          "text": "하지만 말라코르는 만만한 상대가 아닙니다. 영지 안에서 피를 흘리게 둘 순 없어요."
+        },
+        {
+          "speaker": "narrator",
+          "text": "교단 놈들이 먼저 칼을 뽑았어. 영주님은 그냥 창문 닫고 귀나 막고 계쇼.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "대신 바닥에 피 칠갑 된 거 치우는 비용이나 두둑하게 준비해 두시지.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0012",
+          "text": "크윽, 또 명치가 쑤시는군…… 단장 공, 감당 못 할 불장난을 하는 거요!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 저기, 창밖 봐."
+        },
+        {
+          "speaker": "narrator",
+          "text": "시논이 가리킨 창문 너머, 용병단 회관 방향에서 검은 연기가 솟구쳤다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……새로 맞춘 참나무 문짝 냄새가 아닌데.",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}

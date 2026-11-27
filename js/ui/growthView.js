@@ -25,6 +25,7 @@ import { bagList, equipGear, unequipGear, autoEquip, enhanceEquipped, enhanceCos
 import { formatBig, RATIO_STATS, GEAR_SLOTS } from '../config.js';
 import { describeSkill, describePassive, describeModifier } from '../battle/describe.js';
 import { newStoriesAt } from '../systems/profile.js';
+import { levelCapOf, clearedChapterCount } from '../systems/stageProgress.js';
 import { openProfileModal } from './profilePanel.js';
 
 const SORTS = [
@@ -117,7 +118,7 @@ export function growthScreen(ctx) {
                 'div',
                 { class: 'grow-row-main' },
                 h('div', { class: 'grow-row-name' }, rarityBadge(c.rarity), c.name),
-                h('div', { class: 'grow-row-sub' }, `Lv.${e.level}`, starRow(e.breakthrough)),
+                h('div', { class: 'grow-row-sub' }, h('span', {}, `Lv.${e.level}`, h('span', { class: 'muted small' }, `/${levelCapOf(ctx)}`)), starRow(e.breakthrough)),
                 h('div', { class: 'grow-row-power' }, `전투력 ${formatBig(p)}`),
               ),
               canBreakthrough(e, balance) && h('span', { class: 'menu-dot' }),
@@ -158,7 +159,7 @@ export function growthScreen(ctx) {
             h('div', { class: 'detail-top' }, rarityBadge(c.rarity), starRow(e.breakthrough)),
             c.title && h('div', { class: 'muted' }, c.title),
             h('div', { class: 'grow-name' }, c.name, h('button', { class: 'btn btn-ghost grow-profile-btn', type: 'button', onclick: () => openProfileModal(ctx, c, { tab: 'profile', onSeen: renderList }) }, '프로필')),
-            h('div', { class: 'grow-meta' }, h('b', {}, `Lv.${e.level}`), h('span', {}, `전투력 ${formatBig(powerOf(stats, balance))}`), h('span', {}, `정수 ${e.essence}`)),
+            h('div', { class: 'grow-meta' }, h('b', {}, `Lv.${e.level}`, h('span', { class: 'muted small' }, ` / ${levelCapOf(ctx)}`)), h('span', {}, `전투력 ${formatBig(powerOf(stats, balance))}`), h('span', {}, `정수 ${e.essence}`)),
           ),
         );
         const tabBar = h(
@@ -174,14 +175,20 @@ export function growthScreen(ctx) {
 
       function levelTab(c, e, stats, extras) {
         const gold = ctx.save.gold || 0;
-        const max = maxAffordable(e.level, ctx.save.tickets, balance, 100000, gold);
-        const n = mode === '10' ? 10 : mode === 'max' ? Math.max(1, max.n) : 1;
+        // 레벨 상한: 기본 + 챕터를 모두 깰 때마다 늘어남 (예전에 상한을 넘긴 캐릭터는 그대로, 더 못 올림)
+        const cap = levelCapOf(ctx);
+        const room = Math.max(0, cap - e.level);
+        const max = maxAffordable(e.level, ctx.save.tickets, balance, room, gold);
+        const atCap = room < 1;
+        const n = atCap ? 0 : Math.min(room, mode === '10' ? 10 : mode === 'max' ? Math.max(1, max.n) : 1);
+        const cleared = clearedChapterCount(ctx.save, ctx.data.chapters, ctx.data.stageMap);
+        const nextChapter = cleared < ctx.data.chapters.length ? cleared + 1 : null; // 다음에 다 깨야 할 챕터 번호
         const cost = costFor(e.level, n, balance);
         const goldCost = goldCostFor(e.level, n, balance);
         const after = statsOf(c, e.level + n, e.breakthrough, balance, extras);
         const okTickets = ctx.save.tickets >= cost;
         const okGold = gold >= goldCost;
-        const can = okTickets && okGold;
+        const can = okTickets && okGold && !atCap;
         const pick = (v) => {
           mode = v;
           renderDetail();
@@ -203,8 +210,14 @@ export function growthScreen(ctx) {
             { class: 'grow-level-left' },
             h('div', { class: 'grow-pick' },
               h('button', { class: ['btn', mode === '1' && 'btn-selected'], type: 'button', onclick: () => pick('1') }, '+1'),
-              h('button', { class: ['btn', mode === '10' && 'btn-selected'], type: 'button', onclick: () => pick('10') }, '+10'),
+              h('button', { class: ['btn', mode === '10' && 'btn-selected'], type: 'button', disabled: atCap, onclick: () => pick('10') }, room < 10 && !atCap ? `+${room}` : '+10'),
               h('button', { class: ['btn', mode === 'max' && 'btn-selected'], type: 'button', disabled: max.n < 1, onclick: () => pick('max') }, `MAX (+${max.n})`),
+            ),
+            h(
+              'p',
+              { class: 'muted small grow-cap' },
+              `최대 레벨 Lv.${cap}`,
+              nextChapter && ` · 챕터 ${nextChapter}을 모두 깨면 Lv.${cap + balance.level.cap.perChapter}까지`,
             ),
             h('div', { class: 'grow-cost' }, h('span', { class: 'muted' }, '필요 티켓'), h('b', { class: okTickets ? '' : 'bad' }, ticketIcon(), formatGems(cost)), h('span', { class: 'muted small' }, `보유 ${formatGems(ctx.save.tickets)}`)),
             goldCost > 0 && h('div', { class: 'grow-cost' }, h('span', { class: 'muted' }, '필요 골드'), h('b', { class: okGold ? '' : 'bad' }, goldIcon(), formatGems(goldCost)), h('span', { class: 'muted small' }, `보유 ${formatGems(gold)}`)),
@@ -215,7 +228,7 @@ export function growthScreen(ctx) {
                 type: 'button',
                 disabled: !can,
                 onclick: () => {
-                  if (!levelUp(ctx.save, c.id, n, balance)) return toast(okTickets ? '골드가 부족해요' : '티켓이 부족해요', { type: 'error' });
+                  if (!levelUp(ctx.save, c.id, n, balance, cap)) return toast(okTickets ? '골드가 부족해요' : '티켓이 부족해요', { type: 'error' });
                   ctx.commit();
                   toast(`${c.name} Lv.${e.level}!`, { type: 'success' });
                   mode = '1';
@@ -223,9 +236,10 @@ export function growthScreen(ctx) {
                   renderDetail();
                 },
               },
-              `레벨업 (Lv.${e.level} → ${e.level + n})`,
+              atCap ? '최대 레벨' : `레벨업 (Lv.${e.level} → ${e.level + n})`,
             ),
             !can &&
+              !atCap &&
               h(
                 'p',
                 { class: 'muted small' },

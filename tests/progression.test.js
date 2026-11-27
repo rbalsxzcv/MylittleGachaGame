@@ -1,7 +1,9 @@
 // js/systems/progression.js: 능력치 공식(속도 포함), 레벨업 비용, 전투력, 정수/돌파
 import { describe, it, expect } from './lib/runner.js';
 import { loadConfig } from '../js/config.js';
-import { statsOf, powerOf, levelCost, costFor, goldCostFor, maxAffordable, grantDuplicate, doBreakthrough, canBreakthrough } from '../js/systems/progression.js';
+import { statsOf, powerOf, levelCost, costFor, goldCostFor, maxAffordable, grantDuplicate, doBreakthrough, canBreakthrough, levelUp } from '../js/systems/progression.js';
+import { clearedChapterCount, levelCapOf } from '../js/systems/stageProgress.js';
+import { levelCapFor } from '../js/config.js';
 import { addCharacter } from '../js/systems/collection.js';
 import { createNewSave } from '../js/core/save.js';
 
@@ -44,6 +46,46 @@ describe('progression: 레벨업 비용 / 전투력', () => {
   it('전투력 = 가중합 (속도 포함)', () => {
     const s = { atk: 100, def: 40, hp: 900, spd: 100, critRate: 0.05, critDmg: 0.5 };
     expect(powerOf(s, cfg)).toBe(Math.floor(200 + 60 + 180 + 200 + 15 + 50));
+  });
+});
+
+describe('progression: 레벨 상한', () => {
+  const chapters = [
+    { id: 'ch01', stageIds: ['s1', 's2'] },
+    { id: 'ch02', stageIds: ['s3', 'old'] },
+    { id: 'ch03', stageIds: [] },
+  ];
+  const stageMap = new Map([['s1', { id: 's1' }], ['s2', { id: 's2' }], ['s3', { id: 's3' }], ['old', { id: 'old', retired: true }]]);
+  const clear = (save, ...ids) => ids.forEach((id) => (save.stages[id] = { clears: 1, firstClaimed: true, bestRounds: 3, stars: 1 }));
+  it('상한 = 50 + 10 × 모두 깬 챕터 (은퇴 스테이지 무시, 빈 챕터는 안 셈)', () => {
+    const save = createNewSave();
+    expect(clearedChapterCount(save, chapters, stageMap)).toBe(0);
+    expect(levelCapOf({ save, data: { chapters, stageMap, balance: cfg } })).toBe(50);
+    clear(save, 's1');
+    expect(clearedChapterCount(save, chapters, stageMap)).toBe(0);
+    clear(save, 's2');
+    expect(clearedChapterCount(save, chapters, stageMap)).toBe(1);
+    clear(save, 's3');
+    expect(clearedChapterCount(save, chapters, stageMap)).toBe(2);
+    expect(levelCapFor(2, cfg)).toBe(70);
+  });
+  it('levelUp은 상한까지만 (넘는 만큼 잘라서 올림, 상한이면 false — 티켓도 안 씀)', () => {
+    const save = createNewSave();
+    save.tickets = 1e7;
+    save.gold = 1e9;
+    save.owned.a = { level: 45, essence: 0, breakthrough: 0, count: 1, firstAt: 0 };
+    expect(levelUp(save, 'a', 10, cfg, 50)).toBe(true);
+    expect(save.owned.a.level).toBe(50);
+    const t = save.tickets;
+    expect(levelUp(save, 'a', 1, cfg, 50)).toBe(false);
+    expect(save.tickets).toBe(t);
+    // 예전에 상한을 넘긴 캐릭터는 깎지 않음
+    save.owned.b = { level: 80, essence: 0, breakthrough: 0, count: 1, firstAt: 0 };
+    expect(levelUp(save, 'b', 1, cfg, 50)).toBe(false);
+    expect(save.owned.b.level).toBe(80);
+  });
+  it('maxAffordable에 남은 칸(상한 − 레벨)을 주면 그 이상 안 셈', () => {
+    expect(maxAffordable(48, 1e9, cfg, 2).n).toBe(2);
   });
 });
 

@@ -7,14 +7,12 @@ import { MODIFIERS } from './modifiers.js';
  * @param {object} o.entity 캐릭터 또는 적 데이터
  * @param {'ally'|'enemy'} o.side
  */
-export function buildUnit({ entity, level = 1, breakthrough = 0, side, slot, uid, balance, extras = {}, difficulty = 1 }) {
+export function buildUnit({ entity, level = 1, breakthrough = 0, side, slot, uid, balance, extras = {}, difficulty = 1, hpScale = 1 }) {
   const stats = statsOf(entity, level, breakthrough, balance, extras);
   const ally = side === 'ally';
-  // 적: 스테이지 난이도 배율 (공격/HP)
-  if (!ally && difficulty !== 1) {
-    stats.atk = Math.max(0, Math.floor(stats.atk * difficulty));
-    stats.hp = Math.max(1, Math.floor(stats.hp * difficulty));
-  }
+  // 적: 스테이지 난이도 배율 (공격/HP) × HP 배율 (HP만 — 튜너가 전투 길이를 맞추는 손잡이)
+  if (!ally && difficulty !== 1) stats.atk = Math.max(0, Math.floor(stats.atk * difficulty));
+  if (!ally && difficulty * hpScale !== 1) stats.hp = Math.max(1, Math.floor(stats.hp * difficulty * hpScale));
   const full = ally ? structuredClone(kitOf(entity, balance)) : null;
   const kitAlt = full?.transformed ? Object.fromEntries(Object.entries(full.transformed).filter(([, v]) => v)) : null;
   const kit = full ? { basic: full.basic, skill: full.skill, ultimate: full.ultimate } : null;
@@ -39,7 +37,7 @@ export function buildUnit({ entity, level = 1, breakthrough = 0, side, slot, uid
     base: stats,
     maxHp: stats.hp,
     hp: stats.hp,
-    energy: 0,
+    energy: ally ? Math.min(balance.combat.energy.max, balance.combat.energy.start || 0) : 0,
     // ── 아군: 기본 공격 / 스킬(SP) / 궁극기(기력) ──
     kit,
     ultCost: kit?.ultimate?.cost ?? e.ultimateCost,
@@ -69,7 +67,8 @@ export function buildUnit({ entity, level = 1, breakthrough = 0, side, slot, uid
     kitAlt: kitAlt && Object.keys(kitAlt).length ? kitAlt : null,
     alive: true,
     passives: [],
-    stats: { dealt: 0, healed: 0, shielded: 0, taken: 0 },
+    // 집계: 피해 · 치유 · 보호막 · 받은 피해 + 1타 비율(주는 쪽 hits/hitPct/maxHitPct, 받는 쪽 hitsTaken/takenPct/maxTakenPct — 대상 최대 HP 대비, takenRaw = 보호막 · 치유 전 받은 피해 합)
+    stats: { dealt: 0, healed: 0, shielded: 0, taken: 0, hits: 0, hitPct: 0, maxHitPct: 0, hitsTaken: 0, takenPct: 0, maxTakenPct: 0, takenRaw: 0 },
   };
   activePassives(entity, breakthrough, extras.passives || []).forEach((p, idx) => {
     for (const m of p.modifiers || []) MODIFIERS[m.type]?.(u, m);

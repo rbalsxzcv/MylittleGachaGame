@@ -1,0 +1,171 @@
+{
+  "id": "story_0045",
+  "title": "쇠창살 너머의 향로",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0018.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "축축한 지하 배수로 끝에서 쇠창살 문이 삐걱거렸다."
+        },
+        {
+          "speaker": "char_0018",
+          "text": "……셋, 둘, 하나. 열렸수다. 이놈의 교단 자물쇠는 겉만 번지르르해."
+        },
+        {
+          "speaker": "narrator",
+          "text": "소리 죽여. 발 끄는 놈부터 버리고 간다.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "이 통로 끝이 심문실이다. 사냥개 냄새가 나. 셋…… 아니, 넷이다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 바람 타고 오는 냄새. 피비린내랑, 탄내."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "히익, 저 시뻘건 향로 연기 좀 봐요! 들이쉬면 폐가 녹는 거 아닙니까요?"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "겁먹고 질질 짜지 마라, 주사위 놈아. 숨 참고 대가리부터 쪼개면 그만이지."
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0018.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "누구냐! 불경한 쥐새끼들이 성역에 발을……!",
+          "name": "교단 채찍수"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "성역은 개뿔. 산 사람 피나 짜내는 도살장이지."
+        },
+        {
+          "speaker": "narrator",
+          "text": "개 짖는 소리 새어나가기 전에 쓸어버려.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……개 목줄부터 끊을게."
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0045",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0018.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "피웅덩이 위로 채찍과 쇠사슬이 흩어졌다. 숨소리는 금세 잦아들었다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "은화 열한 닢. 그리고…… 성표 셋. 이건 쪼개서 팔아야겠네."
+        },
+        {
+          "speaker": "char_0017",
+          "text": "어이, 단장. 이리 와서 이것 좀 봐. 보통 물건이 아니야."
+        },
+        {
+          "speaker": "narrator",
+          "text": "주드가 피 묻은 나무 선반 구석에서 먼지 쌓인 유리병들을 꺼내 들었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……보라색 찌꺼기. 어디서 많이 본 색깔인데.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0017",
+          "text": "버스튼 성채에서 그 영감탱이가 마시고 괴물딱지가 됐던 그 약이다."
+        },
+        {
+          "speaker": "char_0017",
+          "text": "빛의 신을 모신다는 놈들이 지하실에선 사람 잡는 요술 기름을 끓이고 있었어."
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0018.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "char_0008",
+          "text": "흐응…… 제국 놈들 은화 냄새에 교단 나리들도 코를 박았네."
+        },
+        {
+          "speaker": "narrator",
+          "text": "이레나가 빈 병의 마개를 손가락으로 튕겼다. 병이 바닥에 떨어져 깨졌다."
+        },
+        {
+          "speaker": "char_0008",
+          "text": "마탑에선 금지된 요술이라고 쫓아내더니, 성당에선 성유랍시고 빚어대다니."
+        },
+        {
+          "speaker": "narrator",
+          "text": "헨드릭 남작에 발도르프, 그리고 이 땡중 놈들까지 한 줄에 꿰인 고기였군.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "퉤! 하여간 흰 옷 입은 놈치고 구린내 안 나는 놈이 없지."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "티르는 저 비약을 버텨낸 유일한 아이다. 말라코르는 그 몸을 가르려 해."
+        },
+        {
+          "speaker": "narrator",
+          "text": "갈라 보라지. 밥값 떼먹고 도망친 꼬맹이 배는 내가 먼저 가를 테니까.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……또 그 소리. 가르지도 못할 거면서."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……시끄러워.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "저 안쪽 복도 끝에서 쇠사슬 끄는 소리 나. 피 냄새도 진해."
+        }
+      ]
+    }
+  ]
+}

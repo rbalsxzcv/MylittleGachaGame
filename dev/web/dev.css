@@ -50,6 +50,7 @@ main { padding: 18px 20px 60px; max-width: 1600px; margin: 0 auto; }
 .col-left { position: sticky; top: 70px; max-height: calc(100vh - 90px); overflow-y: auto; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
 .card.inner { margin-top: 12px; background: #faf9fe; }
+.card.inner.draft-box { background: #fff8e8; border-color: #f0d79a; }
 .empty { padding: 60px 20px; text-align: center; color: var(--muted); border: 2px dashed var(--line); border-radius: 12px; }
 .row { display: flex; gap: 8px; align-items: center; }
 .row.wrap { flex-wrap: wrap; }

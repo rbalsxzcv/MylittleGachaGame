@@ -54,8 +54,8 @@ export function evaluateCharacters(data, { runs = 100 } = {}) {
       }
     }
     const avg = (list, k) => list.reduce((a, x) => a + x[k], 0) / Math.max(1, list.length);
-    row.bt0 = { winRate: avg(row.bt0, 'winRate'), share: avg(row.bt0, 'share') };
-    row.bt6 = { winRate: avg(row.bt6, 'winRate'), share: avg(row.bt6, 'share') };
+    row.bt0 = { winRate: avg(row.bt0, 'winRate'), share: avg(row.bt0, 'share'), rounds: Math.round(avg(row.bt0, 'avgRounds') * 10) / 10 };
+    row.bt6 = { winRate: avg(row.bt6, 'winRate'), share: avg(row.bt6, 'share'), rounds: Math.round(avg(row.bt6, 'avgRounds') * 10) / 10 };
     if (row.sig) row.sig = { winRate: avg(row.sig, 'winRate'), share: avg(row.sig, 'share') };
     row.score = Math.round((row.bt0.winRate * 0.6 + row.bt0.share * 0.4) * 1000) / 10;
     out.push(row);
@@ -138,8 +138,8 @@ export function evalReport({ characters, memories, gear, combos }) {
   const pct = (x) => (x == null ? '-' : `${Math.round(x * 1000) / 10}%`);
   const L = ['# 밸런스 평가 보고서', ''];
   if (characters) {
-    L.push('## 캐릭터 티어 (교체 테스트, 챕터 보스 스테이지 평균)', '', '| 티어 | 캐릭터 | ★ | 역할 | 아키타입 | 돌0 승률 · 기여 | 돌6 승률 · 기여 | 전용 추억 |', '|---|---|---|---|---|---|---|---|');
-    for (const r of characters) L.push(`| ${r.tier} | ${r.name} (${r.id}) | ${r.rarity} | ${r.role} | ${r.archetype} | ${pct(r.bt0.winRate)} · ${pct(r.bt0.share)} | ${pct(r.bt6.winRate)} · ${pct(r.bt6.share)} | ${r.sig ? `${pct(r.sig.winRate)} · ${pct(r.sig.share)}` : '-'} |`);
+    L.push('## 캐릭터 티어 (교체 테스트, 챕터 보스 스테이지 평균)', '', '| 티어 | 캐릭터 | ★ | 역할 | 아키타입 | 돌0 승률 · 기여 · 라운드 | 돌6 승률 · 기여 · 라운드 | 전용 추억 |', '|---|---|---|---|---|---|---|---|');
+    for (const r of characters) L.push(`| ${r.tier} | ${r.name} (${r.id}) | ${r.rarity} | ${r.role} | ${r.archetype} | ${pct(r.bt0.winRate)} · ${pct(r.bt0.share)} · ${r.bt0.rounds} | ${pct(r.bt6.winRate)} · ${pct(r.bt6.share)} · ${r.bt6.rounds} | ${r.sig ? `${pct(r.sig.winRate)} · ${pct(r.sig.share)}` : '-'} |`);
     L.push('');
   }
   if (memories) {

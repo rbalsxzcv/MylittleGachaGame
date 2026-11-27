@@ -1,0 +1,294 @@
+{
+  "id": "story_0039",
+  "title": "금니 두 개짜리 왕진",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0003.jpg",
+        "color": "#1b1440"
+      },
+      "next": "s2",
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "하수구 물이 고인 뒷골목 어귀에서 이레나가 벽을 짚고 멈춰 섰다."
+        },
+        {
+          "speaker": "char_0008",
+          "text": "하아…… 잠깐만. 속이 좀 뒤집혀서 그래."
+        },
+        {
+          "speaker": "narrator",
+          "text": "이레나가 손바닥으로 입을 가렸다. 손가락 사이로 검붉은 피가 배어 나왔다."
+        },
+        {
+          "speaker": "char_0008",
+          "text": "……쳐다보지 마. 어제 마신 포도주가 상했나 보지."
+        },
+        {
+          "speaker": "narrator",
+          "text": "포도주에서 쇳내가 나냐. 방패 녹일 때부터 무리하더니.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0015",
+          "text": "아빠, 마녀 언니 입에서 피 나! 티르도 아까 코에서 저거 나왔는데!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 저기 판자집 앞이 소란스러워."
+        },
+        {
+          "speaker": "narrator",
+          "text": "약초 다발이 매달린 판자집 문을 험상궂은 뜨내기들이 발로 차고 있었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "골목 그늘 쪽에는 하얀 외투를 뒤집어쓴 교단 척후병 둘이 문가를 살피고 있었다."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "아이고, 저기 빚쟁이 놈들에 교단 사냥개들까지 겹쳤는데요?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "마침 잘 됐군. 주머니 털어서 약값에 보태자고.",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0016.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "char_0009",
+          "text": "어이, 주드 영감! 밀린 자릿세 안 내놓으면 약초 선반부터 다 부숴버린다!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "비켜라, 건달 놈들. 이 안에 사슬 끊고 도망친 성물이 숨었는지 뒤져야겠다.",
+          "name": "교단 척후병"
+        },
+        {
+          "speaker": "char_0017",
+          "text": "빌어먹을, 환자도 없는데 문짝만 남아나질 않겠군."
+        },
+        {
+          "speaker": "narrator",
+          "text": "어이, 거기 줄 서 있는 놈들. 우리 환자가 좀 급해서 말이지.",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "진료소 앞 청소부터 해 드려라!",
+              "goto": "s2_1"
+            },
+            {
+              "text": "교단 놈들 금니부터 뽑아라!",
+              "goto": "s2_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0016.jpg",
+        "color": "#33264f"
+      },
+      "next": "b1",
+      "lines": [
+        {
+          "speaker": "char_0003",
+          "text": "단장님, 화살 한 발에 동화 한 닢씩 계산해 주시는 거죠?"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……떠들지 마. 숨소리 때문에 조준이 흔들려."
+        }
+      ]
+    },
+    {
+      "id": "s2_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0016.jpg",
+        "color": "#24304a"
+      },
+      "next": "b1",
+      "lines": [
+        {
+          "speaker": "char_0015",
+          "text": "하얀 옷 아저씨들 또 왔네! 티르가 다 날려버릴까?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "넌 가만히 있어. 등 터지면 약값 더 나온다.",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0039",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0016.jpg",
+        "color": "#1b1440"
+      },
+      "next": "s4",
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "척후병과 뜨내기들이 진료소 계단 아래에 나뒹굴었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "삐걱거리는 판자문이 열리고, 피 묻은 가죽 앞치마를 두른 사내가 고개를 내밀었다."
+        },
+        {
+          "speaker": "char_0017",
+          "text": "소란 피운 값은 안 받을 테니 시체나 저쪽으로 치워. 파리 꼬인다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "문 앞 파리 떼를 치워줬는데 인사치레가 박하군.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 주머니에서 피가 말라붙은 금니 두 개를 꺼내 나무 탁자 위에 던졌다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "둘이다. 하나는 속이 뒤집혔고, 하나는 등이 부었어.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0017",
+          "text": "……뿌리까지 통째로 뽑았군. 제법 묵직해."
+        },
+        {
+          "speaker": "narrator",
+          "text": "주드가 집게로 금니를 집어 들어 불빛에 비춰 보더니 턱짓으로 안쪽 의자를 가리켰다."
+        },
+        {
+          "speaker": "char_0017",
+          "text": "들어와. 약초 달인 물은 써니까 각오하고."
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0016.jpg",
+        "color": "#2a2152"
+      },
+      "next": "end",
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "주드는 이레나에게 시커먼 약사발을 던져 준 뒤, 티르의 등 뒤 옷자락을 들췄다."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "할아버지 손 차가워! 주사는 안 놓을 거지?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "어린아이의 좁은 등줄기를 따라 검붉은 핏줄과 기괴한 문양이 살갗 위로 부풀어 올라 있었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "주드의 손이 멈췄다. 그가 돋보기를 내려놓고 한참 동안 아무 말도 하지 않았다."
+        },
+        {
+          "speaker": "char_0017",
+          "text": "……어이, 단장 양반. 아까 낸 금니 도로 가져가."
+        },
+        {
+          "speaker": "narrator",
+          "text": "못 고친다는 소리면 진료소 기둥뿌리를 뽑아줄 텐데.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0017",
+          "text": "병이어야 고치지! 이건 광명교단 놈들이 금지된 요술로 빚어낸 '살아있는 성물'이야."
+        },
+        {
+          "speaker": "char_0017",
+          "text": "아이 핏줄 속에 시커먼 주술을 억지로 욱여넣어서 족쇄로 눌러 둔 거라고."
+        },
+        {
+          "speaker": "char_0008",
+          "text": "……어쩐지 역겨운 냄새가 나더라니. 사람 몸을 술통처럼 썼네."
+        },
+        {
+          "speaker": "char_0017",
+          "text": "지금은 열이 나는 정도지만, 저 등 뒤의 각인이 터지면 이 영지 전체가 잿더미가 된다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "주드가 독주를 적신 붕대로 티르의 등을 감으며 혀를 찼다."
+        },
+        {
+          "speaker": "char_0017",
+          "text": "당장 교단에 돌려주든가, 숲에다 버려. 내 진료소까지 말려들게 하지 말고."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "……아빠, 티르 버릴 거야? 티르 말 잘 들을 건데……."
+        },
+        {
+          "speaker": "narrator",
+          "text": "티르가 붕대를 감은 채 단장의 소매 끝을 두 손으로 꼭 쥐었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……누가 버린대. 문짝 값 은화 열 닢에 방금 쓴 금니 두 개까지 다 내 빚인데.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 잿더미가 된다는데도?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "터지기 전에 일 시켜서 밥값 뽑으면 그만이야.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……손해 봐도 안 버릴 거면서. 다 티 나."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……시끄러. 소매나 놔, 옷 찢어진다.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "그보다 너, 왜 자꾸 단장한테 아빠라고 불러?"
+        },
+        {
+          "speaker": "char_0015",
+          "text": "응? 아빠가 옛날에 티르한테 맛있는 거 줬잖아!"
+        }
+      ]
+    }
+  ]
+}

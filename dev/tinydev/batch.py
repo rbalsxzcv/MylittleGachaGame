@@ -162,7 +162,7 @@ def _job_input(key, extra):
         b = next((x for x in store.read_list("banners") if x.get("id") == ident), None)
         if not b:
             raise ValueError("배너가 없어요")
-        return "banner", {"bannerId": ident, "title": b.get("title", ""), "description": b.get("description", ""), "pickupIds": b.get("pickupIds") or [], "extra": extra}
+        return "banner", banner_input(b, extra)
     if kind == "enemy":
         e = next((x for x in store.read_list("enemies") if x.get("id") == ident), None)
         if not e:
@@ -206,6 +206,34 @@ def enemy_input(e, extra="", keywords=None):
         "memo": e.get("memo", ""),
         "extra": extra,
     }
+
+
+def banner_input(b, extra="", banners=None, memories=None):
+    """배너 → 그림 생성 입력값. pickupIds = 그림에 나올 캐릭터 id (imaging._context가 캐릭터에서 찾음)
+    추억 배너: 픽업 추억(또는 pickupFrom 배너의 픽업 캐릭터의 전용 추억)의 주인/등장 캐릭터 + 추억 이름 · 장면 태그(memories)"""
+    out = {"bannerId": b.get("id") or b.get("bannerId"), "title": b.get("title", ""), "description": b.get("description", ""), "pickupIds": [], "extra": extra}
+    ids = [i for i in (b.get("pickupIds") or []) if isinstance(i, str)]
+    if b.get("category") != "memory":
+        out["pickupIds"] = [i for i in ids if not i.startswith("memory_")]
+        return out
+    out["category"] = "memory"
+    mems = [m for m in (store.read_list("memories") if memories is None else memories) if isinstance(m, dict) and m.get("draft") is not True]
+    src_id = b.get("pickupFrom")
+    if src_id:
+        src = next((x for x in (store.read_list("banners") if banners is None else banners) if x.get("id") == src_id), None) or {}
+        owners = set(src.get("pickupIds") or [])
+        picked = [m for m in mems if m.get("signatureOf") in owners]
+    else:
+        by_id = {m.get("id"): m for m in mems}
+        picked = [by_id[i] for i in ids if i in by_id]
+    chars = []
+    for m in picked:
+        cid = m.get("signatureOf") or m.get("featuredCharacterId")
+        if cid and cid not in chars:
+            chars.append(cid)
+    out["pickupIds"] = chars
+    out["memories"] = [{"name": m.get("name", ""), "rarity": m.get("rarity", 3), "theme": [t for t in m.get("theme") or [] if isinstance(t, str)][:6]} for m in picked][:6]
+    return out
 
 
 def memory_input(m, extra="", img2img=None, seed=None):
@@ -254,6 +282,8 @@ def apply_job(job, n):
     kind, inp = job["kind"], job["input"]
     if kind == "banner":
         rel = f"assets/banners/{inp['bannerId']}.jpg"
+        if not any(b.get("id") == inp["bannerId"] for b in store.read_list("banners")):
+            raise ValueError("배너가 없어요 (먼저 저장해 주세요)")
     elif kind == "bg":
         rel = f"assets/bg/{inp['bgName']}.jpg"
     elif kind == "ui":

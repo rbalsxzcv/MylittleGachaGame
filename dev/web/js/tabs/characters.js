@@ -134,6 +134,7 @@ export function charactersTab(root) {
         setReplacing(null);
         right.prepend(deployHint(r.character));
         toast(r.created ? `「${r.character.name}」 추가 완료` : `「${r.character.name}」 그림 교체 완료`, 'success');
+        if (r.memorySlots?.length) toast('5★ 전용 추억 빈 칸을 만들었어요 (추억 탭에서 채우기)', 'success');
         return true;
       },
     });
@@ -282,6 +283,7 @@ export function charactersTab(root) {
       await reloadData();
       renderList();
       toast('저장했어요', 'success');
+      if (r.memorySlots?.length) toast('5★ 전용 추억 빈 칸을 만들었어요 (추억 탭에서 채우기)', 'success');
     }
   }
 

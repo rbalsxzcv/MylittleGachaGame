@@ -19,11 +19,17 @@
           {
             "type": "buff",
             "stat": "atk",
-            "pct": 28,
+            "pct": 40,
             "turns": 2
           }
         ],
-        "modifiers": []
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "atk",
+            "pct": 2
+          }
+        ]
       }
     },
     "id": "memory_0001",
@@ -61,7 +67,7 @@
           {
             "type": "stat_bonus",
             "stat": "hp",
-            "pct": 10
+            "pct": 16
           }
         ],
         "limit": 1
@@ -91,10 +97,16 @@
         "effects": [
           {
             "type": "advance_action",
-            "pct": 46
+            "pct": 50
           }
         ],
-        "modifiers": []
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "spd",
+            "pct": 4
+          }
+        ]
       }
     },
     "id": "memory_0003",
@@ -130,7 +142,7 @@
           {
             "type": "stat_bonus",
             "stat": "healBonus",
-            "pct": 7
+            "pct": 11
           }
         ]
       }
@@ -165,7 +177,7 @@
           {
             "type": "stat_bonus",
             "stat": "critRate",
-            "pct": 5
+            "pct": 16
           }
         ]
       }
@@ -194,7 +206,12 @@
           {
             "type": "stat_bonus",
             "stat": "def",
-            "pct": 19
+            "pct": 25
+          },
+          {
+            "type": "stat_bonus",
+            "stat": "def",
+            "pct": 6
           }
         ]
       }
@@ -233,7 +250,7 @@
           {
             "type": "stat_bonus",
             "stat": "atk",
-            "pct": 10
+            "pct": 18
           }
         ]
       }
@@ -268,7 +285,7 @@
           {
             "type": "stat_bonus",
             "stat": "energyRegen",
-            "pct": 11
+            "pct": 19
           }
         ]
       }
@@ -297,7 +314,7 @@
           {
             "type": "stat_bonus",
             "stat": "effectHit",
-            "pct": 17
+            "pct": 28
           }
         ]
       }
@@ -334,7 +351,7 @@
           {
             "type": "stat_bonus",
             "stat": "hp",
-            "pct": 10
+            "pct": 24
           }
         ],
         "perRound": 1
@@ -372,7 +389,7 @@
           {
             "type": "stat_bonus",
             "stat": "critDmg",
-            "pct": 2
+            "pct": 30
           }
         ]
       }
@@ -402,7 +419,7 @@
             "type": "effect_power",
             "action": "any",
             "effect": "heal",
-            "pct": 14
+            "pct": 22
           }
         ]
       }
@@ -431,7 +448,12 @@
           {
             "type": "stat_bonus",
             "stat": "shieldBonus",
-            "pct": 23
+            "pct": 30
+          },
+          {
+            "type": "stat_bonus",
+            "stat": "def",
+            "pct": 7
           }
         ]
       }
@@ -466,7 +488,7 @@
           {
             "type": "stat_bonus",
             "stat": "critRate",
-            "pct": 6
+            "pct": 21
           }
         ],
         "perRound": 1
@@ -498,7 +520,12 @@
           {
             "type": "stat_bonus",
             "stat": "atk",
-            "pct": 16
+            "pct": 24
+          },
+          {
+            "type": "stat_bonus",
+            "stat": "atk",
+            "pct": 3
           }
         ]
       },
@@ -513,7 +540,7 @@
             "type": "effect_power",
             "action": "skill",
             "effect": "damage",
-            "pct": 25
+            "pct": 40
           }
         ]
       }
@@ -544,7 +571,12 @@
           {
             "type": "stat_bonus",
             "stat": "spd",
-            "pct": 11
+            "pct": 12
+          },
+          {
+            "type": "stat_bonus",
+            "stat": "energyRegen",
+            "pct": 9
           }
         ]
       },
@@ -568,7 +600,7 @@
           {
             "type": "stat_bonus",
             "stat": "energyRegen",
-            "pct": 9
+            "pct": 19
           }
         ]
       }
@@ -599,7 +631,7 @@
           {
             "type": "stat_bonus",
             "stat": "critDmg",
-            "pct": 20
+            "pct": 76
           }
         ]
       },
@@ -614,7 +646,7 @@
             "type": "effect_power",
             "action": "any",
             "effect": "damage",
-            "pct": 16
+            "pct": 26
           }
         ]
       }
@@ -650,7 +682,7 @@
           {
             "type": "stat_bonus",
             "stat": "hp",
-            "pct": 4
+            "pct": 20
           }
         ]
       },
@@ -665,7 +697,7 @@
             "type": "effect_power",
             "action": "any",
             "effect": "damage",
-            "pct": 16
+            "pct": 26
           }
         ]
       }

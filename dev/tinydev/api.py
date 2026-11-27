@@ -17,6 +17,7 @@ from . import batch, bible, comfy, pack, config, cutout, genai, imaging, jobs, k
 from . import rarity as rarity_mod
 from . import profile as profile_mod
 from . import profilebatch
+from . import memslots
 from . import review
 from .genai import GenError
 from .timeutil import now_iso, parse
@@ -577,7 +578,9 @@ def char_approve():
         chars.append(entry)
     store.write_list("characters", chars)
     jobs.mark_approved(job, data.get("attempt"), rel)
-    return jsonify(character=entry, created=not existing)
+    # 5★면 전용 추억 빈 칸 (이미 있으면 그대로)
+    slots = memslots.ensure_signature_slots([cid])
+    return jsonify(character=entry, created=not existing, memorySlots=[m["id"] for m in slots])
 
 
 def _char_refs(cid):
@@ -626,7 +629,8 @@ def char_update(cid):
             raise ValueError("addedAt 날짜 형식이 잘못됐어요")
         existing["addedAt"] = data["addedAt"]
     store.write_list("characters", chars)
-    return jsonify(existing)
+    slots = memslots.ensure_signature_slots([cid]) if "rarity" in data else []  # 5★로 바뀌면 전용 추억 빈 칸
+    return jsonify({**existing, "memorySlots": [m["id"] for m in slots]})
 
 
 # ── 프로필 (CHARACTER_PROFILE.md) ──
@@ -884,13 +888,16 @@ def _banner_input(data):
     bid = data.get("bannerId")
     if not store.valid_id(bid):
         raise ValueError("배너 id가 올바르지 않아요")
-    return {
-        "bannerId": bid,
+    # 아직 저장 전인 배너도 그림을 먼저 뽑을 수 있게 요청 값으로 (추억 배너는 픽업 추억 → 등장 캐릭터 · 추억 이름, batch.banner_input)
+    b = {
+        "id": bid,
         "title": text(data, "title", 80),
         "description": text(data, "description", 1000),
+        "category": "memory" if data.get("category") == "memory" else "character",
         "pickupIds": [i for i in (data.get("pickupIds") or []) if store.valid_id(i)],
-        "extra": text(data, "extra", 1000),
+        "pickupFrom": data.get("pickupFrom") if store.valid_id(data.get("pickupFrom") or "") else None,
     }
+    return batch.banner_input(b, text(data, "extra", 1000))
 
 
 def _bg_input(data):
@@ -945,6 +952,18 @@ def _memory_input(data):
     if not m:
         raise ValueError("저장된 추억에만 그림을 만들 수 있어요 (그림 파일 이름 = 추억 id)")
     return batch.memory_input(m, text(data, "extra", 1000), img2img=data.get("img2img"), seed=data.get("seed"))
+
+
+@app.get("/api/memories/slots")
+def memory_slots_missing():
+    """전용 추억(빈 칸 포함)이 없는 5★ 캐릭터"""
+    return jsonify(missing=memslots.missing())
+
+
+@app.post("/api/memories/slots")
+def memory_slots_make():
+    """5★ 캐릭터마다 전용 추억 빈 칸 (없는 캐릭터만, draft: true)"""
+    return jsonify(made=memslots.ensure_signature_slots())
 
 
 @app.post("/api/memory/generate")

@@ -27,7 +27,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 0.65,
+            "mult": 0.8,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -47,11 +47,11 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1.2,
+            "mult": 1.8,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
-            "vsMarked": 24
+            "vsMarked": 35
           },
           {
             "type": "mark",
@@ -78,7 +78,7 @@
           },
           {
             "type": "mark_detonate",
-            "mult": 1.15
+            "mult": 1.95
           }
         ]
       }
@@ -106,7 +106,7 @@
           {
             "type": "stat_bonus",
             "stat": "atk",
-            "pct": 14
+            "pct": 24
           }
         ]
       }
@@ -121,7 +121,7 @@
         {
           "type": "stat_bonus",
           "stat": "critRate",
-          "pct": 5
+          "pct": 17
         },
         {
           "type": "stat_bonus",
@@ -139,14 +139,14 @@
       "effects": [
         {
           "type": "mark_detonate",
-          "mult": 1.2
+          "mult": 1.9
         }
       ],
       "modifiers": [
         {
           "type": "stat_bonus",
           "stat": "atk",
-          "pct": 7
+          "pct": 12
         }
       ]
     },
@@ -247,7 +247,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 0.9,
+            "mult": 1.1,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -267,10 +267,10 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1.45,
+            "mult": 2.3,
             "stat": "atk",
             "hits": 1,
-            "perStack": 0.3,
+            "perStack": 0.5,
             "vsMarked": 0
           },
           {
@@ -298,7 +298,7 @@
           },
           {
             "type": "damage",
-            "mult": 2.1,
+            "mult": 3.5,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -317,14 +317,14 @@
         "effects": [
           {
             "type": "stack_gain",
-            "n": 2
+            "n": 4
           }
         ],
         "modifiers": [
           {
             "type": "stat_bonus",
             "stat": "atk",
-            "pct": 18
+            "pct": 28
           }
         ],
         "perRound": 2
@@ -344,7 +344,12 @@
         {
           "type": "stat_bonus",
           "stat": "atk",
-          "pct": 8
+          "pct": 12
+        },
+        {
+          "type": "stat_bonus",
+          "stat": "atk",
+          "pct": 4
         }
       ]
     },
@@ -370,7 +375,7 @@
           "type": "effect_power",
           "action": "ultimate",
           "effect": "damage",
-          "pct": 36
+          "pct": 60
         }
       ]
     },
@@ -481,7 +486,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 0.7,
+            "mult": 0.85,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -496,7 +501,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 0.85,
+            "mult": 1.75,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -505,7 +510,7 @@
           {
             "type": "buff",
             "stat": "critRate",
-            "pct": 7,
+            "pct": 14,
             "turns": 2,
             "target": "self"
           }
@@ -518,7 +523,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1.05,
+            "mult": 1.7,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -538,7 +543,7 @@
         "effects": [
           {
             "type": "follow_up",
-            "mult": 1.05,
+            "mult": 1.65,
             "stat": "atk"
           }
         ],
@@ -555,7 +560,7 @@
       "effects": [
         {
           "type": "follow_up",
-          "mult": 0.7,
+          "mult": 1.1,
           "stat": "atk"
         }
       ],
@@ -583,7 +588,7 @@
         {
           "type": "stat_bonus",
           "stat": "atk",
-          "pct": 8
+          "pct": 19
         }
       ]
     },
@@ -684,7 +689,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 0.45,
+            "mult": 0.55,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -692,7 +697,7 @@
           },
           {
             "type": "dot",
-            "mult": 0.15,
+            "mult": 0.17,
             "turns": 2
           }
         ]
@@ -704,13 +709,13 @@
         "effects": [
           {
             "type": "dot",
-            "mult": 0.24,
+            "mult": 0.38,
             "turns": 3
           },
           {
             "type": "debuff",
             "stat": "effectRes",
-            "pct": 8,
+            "pct": 13,
             "turns": 2
           }
         ]
@@ -722,7 +727,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 0.75,
+            "mult": 1.15,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -730,7 +735,7 @@
           },
           {
             "type": "dot",
-            "mult": 0.5,
+            "mult": 0.85,
             "turns": 2
           }
         ]
@@ -746,7 +751,7 @@
         "effects": [
           {
             "type": "dot",
-            "mult": 0.9,
+            "mult": 1.45,
             "turns": 2
           }
         ],
@@ -775,7 +780,7 @@
         {
           "type": "stat_bonus",
           "stat": "energyRegen",
-          "pct": 2
+          "pct": 8
         }
       ]
     },
@@ -789,7 +794,7 @@
       "effects": [
         {
           "type": "dot",
-          "mult": 0.45,
+          "mult": 0.75,
           "turns": 2
         }
       ],
@@ -892,7 +897,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 0.85,
+            "mult": 1,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -920,14 +925,14 @@
         "effects": [
           {
             "type": "heal",
-            "mult": 1.15,
+            "mult": 1.4,
             "stat": "atk",
             "perStack": 0
           },
           {
             "type": "buff",
             "stat": "dmgTaken",
-            "pct": 15,
+            "pct": 19,
             "turns": 2
           }
         ]
@@ -943,18 +948,12 @@
         "effects": [
           {
             "type": "heal",
-            "mult": 1,
+            "mult": 1.1,
             "stat": "atk",
             "perStack": 0
           }
         ],
-        "modifiers": [
-          {
-            "type": "stat_bonus",
-            "stat": "healBonus",
-            "pct": 2
-          }
-        ]
+        "modifiers": []
       }
     ],
     "bt2": {
@@ -981,7 +980,7 @@
         {
           "type": "stat_bonus",
           "stat": "healBonus",
-          "pct": 10
+          "pct": 18
         }
       ]
     },
@@ -995,18 +994,12 @@
       "effects": [
         {
           "type": "heal",
-          "mult": 3,
+          "mult": 3.95,
           "stat": "atk",
           "perStack": 0
         }
       ],
-      "modifiers": [
-        {
-          "type": "stat_bonus",
-          "stat": "healBonus",
-          "pct": 7
-        }
-      ],
+      "modifiers": [],
       "limit": 2
     },
     "profile": {
@@ -1106,7 +1099,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1,
+            "mult": 1.2,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -1122,12 +1115,12 @@
           {
             "type": "buff",
             "stat": "atk",
-            "pct": 39,
+            "pct": 63,
             "turns": 2
           },
           {
             "type": "energy_gain",
-            "n": 20
+            "n": 30
           }
         ]
       },
@@ -1139,7 +1132,7 @@
           {
             "type": "buff",
             "stat": "atk",
-            "pct": 31,
+            "pct": 59,
             "turns": 2
           },
           {
@@ -1170,7 +1163,7 @@
           {
             "type": "stat_bonus",
             "stat": "energyRegen",
-            "pct": 15
+            "pct": 27
           }
         ],
         "perRound": 1
@@ -1190,7 +1183,7 @@
         {
           "type": "stat_bonus",
           "stat": "energyRegen",
-          "pct": 3
+          "pct": 11
         }
       ]
     },
@@ -1203,14 +1196,14 @@
       "effects": [
         {
           "type": "energy_gain",
-          "n": 25
+          "n": 60
         }
       ],
       "modifiers": [
         {
           "type": "stat_bonus",
           "stat": "energyRegen",
-          "pct": 23
+          "pct": 34
         }
       ]
     },
@@ -1311,7 +1304,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1,
+            "mult": 1.2,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -1326,7 +1319,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 2.2,
+            "mult": 3.5,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -1341,7 +1334,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 1.3,
+            "mult": 2.3,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -1355,7 +1348,7 @@
           {
             "type": "buff",
             "stat": "atk",
-            "pct": 26,
+            "pct": 40,
             "turns": 2,
             "target": "self"
           }
@@ -1369,7 +1362,7 @@
           "effects": [
             {
               "type": "damage",
-              "mult": 0.55,
+              "mult": 0.65,
               "stat": "atk",
               "hits": 1,
               "perStack": 0,
@@ -1384,7 +1377,7 @@
           "effects": [
             {
               "type": "damage",
-              "mult": 2.1,
+              "mult": 3.4,
               "stat": "atk",
               "hits": 1,
               "perStack": 0,
@@ -1420,7 +1413,7 @@
           {
             "type": "stat_bonus",
             "stat": "atk",
-            "pct": 18
+            "pct": 30
           }
         ]
       }
@@ -1435,7 +1428,12 @@
         {
           "type": "stat_bonus",
           "stat": "atk",
-          "pct": 13
+          "pct": 15
+        },
+        {
+          "type": "stat_bonus",
+          "stat": "atk",
+          "pct": 6
         }
       ]
     },
@@ -1455,7 +1453,7 @@
         {
           "type": "stat_bonus",
           "stat": "atk",
-          "pct": 7
+          "pct": 23
         }
       ]
     },
@@ -1556,7 +1554,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 0.5,
+            "mult": 0.6,
             "stat": "def",
             "hits": 1,
             "perStack": 0,
@@ -1590,10 +1588,10 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 0.7,
+            "mult": 1.1,
             "stat": "def",
             "hits": 1,
-            "perStack": 0.2,
+            "perStack": 0.3,
             "vsMarked": 0
           },
           {
@@ -1618,19 +1616,13 @@
           },
           {
             "type": "shield",
-            "mult": 1,
+            "mult": 1.2,
             "stat": "def",
             "turns": 1,
             "perStack": 0
           }
         ],
-        "modifiers": [
-          {
-            "type": "stat_bonus",
-            "stat": "hp",
-            "pct": 3
-          }
-        ],
+        "modifiers": [],
         "perRound": 1
       }
     ],
@@ -1662,7 +1654,7 @@
           "type": "effect_power",
           "action": "ultimate",
           "effect": "damage",
-          "pct": 22
+          "pct": 35
         }
       ]
     },
@@ -1701,7 +1693,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 0.65,
+            "mult": 0.75,
             "stat": "atk",
             "hits": 1,
             "perStack": 0,
@@ -1709,7 +1701,7 @@
           },
           {
             "type": "delay_action",
-            "pct": 7
+            "pct": 9
           }
         ]
       },
@@ -1720,12 +1712,12 @@
         "effects": [
           {
             "type": "advance_action",
-            "pct": 35
+            "pct": 56
           },
           {
             "type": "buff",
             "stat": "spd",
-            "pct": 11,
+            "pct": 17,
             "turns": 2
           }
         ]
@@ -1737,11 +1729,11 @@
         "effects": [
           {
             "type": "advance_action",
-            "pct": 36
+            "pct": 58
           },
           {
             "type": "delay_action",
-            "pct": 29,
+            "pct": 47,
             "target": "enemy_all"
           }
         ]
@@ -1757,10 +1749,16 @@
         "effects": [
           {
             "type": "advance_action",
-            "pct": 37
+            "pct": 50
           }
         ],
-        "modifiers": []
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "energyRegen",
+            "pct": 4
+          }
+        ]
       }
     ],
     "bt2": {
@@ -1783,7 +1781,7 @@
         {
           "type": "stat_bonus",
           "stat": "energyRegen",
-          "pct": 2
+          "pct": 9
         }
       ]
     },
@@ -1803,7 +1801,7 @@
         {
           "type": "stat_bonus",
           "stat": "energyRegen",
-          "pct": 7
+          "pct": 21
         }
       ]
     },
@@ -1905,7 +1903,7 @@
         "effects": [
           {
             "type": "damage",
-            "mult": 0.9,
+            "mult": 1.1,
             "stat": "def",
             "hits": 1,
             "perStack": 0,
@@ -1924,7 +1922,7 @@
           },
           {
             "type": "shield",
-            "mult": 2.25,
+            "mult": 2.45,
             "stat": "def",
             "turns": 2,
             "perStack": 0
@@ -1938,7 +1936,7 @@
         "effects": [
           {
             "type": "shield",
-            "mult": 2.65,
+            "mult": 2.75,
             "stat": "def",
             "turns": 2,
             "perStack": 0
@@ -1961,7 +1959,7 @@
         "effects": [
           {
             "type": "counter",
-            "mult": 1.35,
+            "mult": 2.15,
             "stat": "def"
           }
         ],
@@ -1984,7 +1982,7 @@
         {
           "type": "stat_bonus",
           "stat": "hp",
-          "pct": 9
+          "pct": 22
         }
       ]
     },
@@ -1997,18 +1995,12 @@
       "effects": [
         {
           "type": "heal",
-          "mult": 0.15,
+          "mult": 0.22,
           "stat": "hp",
           "perStack": 0
         }
       ],
-      "modifiers": [
-        {
-          "type": "stat_bonus",
-          "stat": "hp",
-          "pct": 14
-        }
-      ],
+      "modifiers": [],
       "perRound": 2
     },
     "profile": {
@@ -2099,5 +2091,363 @@
     "image": "assets/chars/char_0014.png",
     "addedAt": "2026-11-22T23:25:53+09:00",
     "arc": 2
+  },
+  {
+    "id": "char_0015",
+    "name": "티르",
+    "rarity": 5,
+    "title": "저주축복받은아이영웅",
+    "description": "자신의 '첫번쨰 아빠'를 찾겠다며 다짜고짜 용병단으로 쳐들어와 단장을 지목한 엉뚱한 괴력의 소녀입니다.\n어른들도 버거워하는 무기를 한 손으로 가볍게 휘두르는 무시무시한 힘을 가졌지만, 사탕 하나와 칭찬 한마디에 금세 헤벌쭉 웃어넘기는 순진무구한 아이입니다.",
+    "image": "assets/chars/char_0015.png",
+    "addedAt": "2026-11-26T16:12:00+09:00",
+    "profile": {
+      "facts": {
+        "age": "11세 전후(추정)",
+        "height": "138cm",
+        "origin": "북부의 이름 없는 무너진 요새",
+        "affiliation": "용병단",
+        "likes": [
+          "단맛 나는 사탕",
+          "머리 쓰다듬받기",
+          "무거운 쇳덩이"
+        ],
+        "dislikes": [
+          "주삿바늘",
+          "쓴 가루약",
+          "혼자 남겨진 방"
+        ],
+        "hobby": "마차 바퀴만 한 맷돌 굴리기"
+      },
+      "stories": [
+        {
+          "title": "사탕과 쇳덩이",
+          "text": "주점 나무문이 부서지며 아이 하나가 들어왔다. 자기 몸집보다 두 배는 큰 할버드를 나뭇가지처럼 가볍게 들고 있었다. 단장은 계산대 아래에 둔 칼자루를 잡았다. 아이는 주점을 두리번거리다 단장 앞에 멈췄다. 코를 킁킁대더니 할버드를 바닥에 내리찍었다. 널빤지가 부서지며 잔들이 튀었다. 아이가 아빠 냄새가 난다고 말하며 맹렬한 속도로 달려들자, 단장은 생명의 위협을 느끼고 주머니 속 박하사탕 하나를 들이밀었다. 코앞에서 멈춘 아이는 사탕을 입에 물고 헤벌쭉 웃었다.",
+          "unlock": {
+            "breakthrough": 1
+          }
+        },
+        {
+          "title": "흙바닥의 그림",
+          "text": "야영지 구석에서 티르가 나뭇가지로 흙바닥에 창을 든 사내를 그리고 있었다. 단장이 교단 놈들이냐고 묻자 티르는 고개를 저었다. 첫 번째 아빠라고 했다. 병든 어미 곁을 떠나 겨우 찾아간 경비병 사내는, 어린 딸이 제 할버드를 한 손으로 휘두르는 꼴을 보자마자 괴물이라며 도망쳤다고 했다. 두 번째로 찾아간 마구간지기는 말들이 제 젖을 물리는 기이한 광경을 보고 이단심문관을 불러왔다. 이야기를 다 들은 단장은 아무 말 없이 티르의 머리가 헝클어지도록 쓰다듬었다.",
+          "unlock": {
+            "breakthrough": 3
+          }
+        },
+        {
+          "title": "교단의 낙인",
+          "text": "모닥불 앞에서 발레리아가 술병을 기울이며 잠든 티르를 내려다보았다. 과거 교단에서는 부모 잃은 아이를 광명신의 자식이라 불렀지만, 이단심문관들은 그 과한 괴력을 악마의 저주라 낙인찍었다. 발레리아는 코피가 말라붙은 티르의 콧잔등을 손가락으로 톡 건드리고는 낮게 웃었다. 진짜 신 나부랭이가 있다면, 제 자식을 굶어 죽게 내버려 두지 않을 고집쯤은 부렸을 거라는 투였다. 단장은 대답 대신 모닥불에 장작 하나를 더 밀어 넣었다.",
+          "unlock": {
+            "breakthrough": 6
+          }
+        }
+      ],
+      "lines": {
+        "obtain": "찾았다, 아빠! 티르 사탕 사주라!",
+        "team": "무거운 거 부수러 가는 거야? 신난다!",
+        "levelUp": "와아! 팔에 힘이 더 빵빵해졌어!",
+        "breakthrough": "이제 저 큰 바위도 한 손으로 던질 수 있어!",
+        "battleStart": "티르가 쾅 치면 다 납작해져!",
+        "ultimate": "아빠가 방해되는 건 다 부수랬어!",
+        "idle": [
+          "아빠, 티르 오늘 얌전했지? 머리 쓰다듬어 줘.",
+          "이 칼 가벼워. 열 개 묶어 들면 딱 맞겠다.",
+          "배고파…… 오늘 저녁엔 고기 주는 거지?"
+        ]
+      },
+      "relations": [
+        {
+          "id": "char_0007",
+          "label": "루미 아줌마",
+          "note": "옷에 흙 묻혀 오면 맛있는 과자를 주면서 엄청 화낸다."
+        },
+        {
+          "id": "char_0006",
+          "label": "안나 언니",
+          "note": "요리할때 도와주면 자투리로 남은 햄 조각을 준다."
+        }
+      ],
+      "version": 1
+    },
+    "stats": {
+      "atk": 155,
+      "def": 48,
+      "hp": 1120,
+      "spd": 112,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "kit": {
+      "basic": {
+        "name": "타고난 괴력",
+        "description": "적 1명에게 공격력에 비례한 피해를 입힙니다.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.6,
+            "stat": "atk",
+            "hits": 2
+          }
+        ]
+      },
+      "skill": {
+        "name": "저주받은 아이",
+        "description": "적 1명에게 강력한 피해를 입히고 자신의 기력을 대폭 충전합니다.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 1.5,
+            "stat": "atk",
+            "hits": 2
+          },
+          {
+            "type": "energy_gain",
+            "n": 50,
+            "target": "self"
+          }
+        ]
+      },
+      "ultimate": {
+        "name": "축복받은 영웅",
+        "description": "적 1명에게 극심한 피해를 입히고 잠재된 힘을 해방하여 변신합니다.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.75,
+            "stat": "atk",
+            "hits": 4
+          },
+          {
+            "type": "transform",
+            "turns": 3,
+            "target": "self"
+          },
+          {
+            "type": "buff",
+            "stat": "atk",
+            "pct": 40,
+            "turns": 3,
+            "target": "self"
+          }
+        ]
+      }
+    },
+    "talents": [
+      {
+        "name": "끝없는 연격",
+        "description": "변신 상태에서 기본 공격을 사용하면 자신의 행동 게이지를 60% 당겨옵니다.",
+        "trigger": "onBasic",
+        "conditions": [
+          {
+            "type": "is_transformed"
+          }
+        ],
+        "targeting": "self",
+        "effects": [
+          {
+            "type": "advance_action",
+            "pct": 90
+          }
+        ],
+        "modifiers": []
+      }
+    ],
+    "bt2": {
+      "name": "저주의 흉인",
+      "description": "기본 공격으로 입히는 피해량이 상시 증가합니다.",
+      "modifiers": [
+        {
+          "type": "effect_power",
+          "action": "basic",
+          "effect": "damage",
+          "pct": 33
+        }
+      ],
+      "conditions": [],
+      "effects": []
+    },
+    "bt6": {
+      "name": "잔영의 칼날",
+      "description": "변신 상태에서 기본 공격 시 대상에게 위력적인 추가 타격을 가합니다.",
+      "trigger": "onBasic",
+      "conditions": [
+        {
+          "type": "is_transformed"
+        }
+      ],
+      "targeting": "trigger_target",
+      "effects": [
+        {
+          "type": "follow_up",
+          "mult": 3.6,
+          "stat": "atk"
+        }
+      ],
+      "modifiers": []
+    },
+    "role": "attacker",
+    "archetype": "transform_carry"
+  },
+  {
+    "id": "char_0016",
+    "name": "클레어",
+    "rarity": 5,
+    "title": "배교한 집행관",
+    "description": "광명교단의 이단 심문관이었으나 명령을 거부하고 낙인찍힌 채 쫓기는 검사. 말수가 적고 교단의 위선을 경멸한다.",
+    "image": "",
+    "addedAt": "2026-11-27T19:46:02+09:00",
+    "arc": 3,
+    "stats": {
+      "atk": 150,
+      "def": 47,
+      "hp": 1110,
+      "spd": 113,
+      "critRate": 0.05,
+      "critDmg": 0.5
+    },
+    "kit": {
+      "basic": {
+        "name": "단절의 일격",
+        "description": "적 1명에게 날카로운 검격을 가하고 낙인을 새깁니다.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.8,
+            "stat": "atk",
+            "hits": 1
+          },
+          {
+            "type": "mark",
+            "turns": 2,
+            "max": 3
+          }
+        ]
+      },
+      "skill": {
+        "name": "단죄의 칼날",
+        "description": "적 1명을 급습하여 행동을 차단하고 뒤로 밀어냅니다.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.35,
+            "stat": "atk",
+            "hits": 2,
+            "vsMarked": 50
+          },
+          {
+            "type": "interrupt"
+          },
+          {
+            "type": "delay_action",
+            "pct": 20
+          }
+        ]
+      },
+      "ultimate": {
+        "name": "거짓된 광명",
+        "description": "표식이 새겨진 적의 숨통을 끊고 강력한 참격으로 차단합니다.",
+        "targeting": "enemy_single",
+        "effects": [
+          {
+            "type": "damage",
+            "mult": 0.35,
+            "stat": "atk",
+            "hits": 3,
+            "vsMarked": 100
+          },
+          {
+            "type": "mark_detonate",
+            "mult": 0.8
+          },
+          {
+            "type": "interrupt"
+          }
+        ]
+      }
+    },
+    "talents": [
+      {
+        "name": "심문관의 직감",
+        "description": "위선자를 꿰뚫어 보는 예리한 감각으로 치명타 확률이 상시 증가합니다.",
+        "modifiers": [
+          {
+            "type": "stat_bonus",
+            "stat": "critRate",
+            "pct": 15
+          }
+        ],
+        "conditions": [],
+        "effects": []
+      }
+    ],
+    "bt2": {
+      "name": "배교자의 낙인",
+      "description": "전투 시작 시 적 전체에 배교자의 낙인을 새깁니다.",
+      "trigger": "onBattleStart",
+      "conditions": [],
+      "targeting": "enemy_all",
+      "effects": [
+        {
+          "type": "mark",
+          "turns": 3,
+          "max": 3
+        }
+      ],
+      "modifiers": []
+    },
+    "bt6": {
+      "name": "속죄 없는 결말",
+      "description": "적을 처치하면 기력과 전술 포인트를 즉시 수급합니다.",
+      "trigger": "onKill",
+      "conditions": [],
+      "targeting": "self",
+      "effects": [
+        {
+          "type": "energy_gain",
+          "n": 30
+        },
+        {
+          "type": "sp_gain",
+          "n": 1
+        }
+      ],
+      "modifiers": []
+    },
+    "role": "attacker",
+    "archetype": "mark_hunter"
+  },
+  {
+    "id": "char_0017",
+    "name": "주드",
+    "rarity": 4,
+    "title": "금니 뽑는 약제사",
+    "description": "전장을 떠돌며 시체를 수습하거나 부상자를 고치는 무면허 의사. 마취제 대신 독주를 물리며 치료비로 금니를 챙긴다.",
+    "image": "",
+    "addedAt": "2026-11-27T19:46:02+09:00",
+    "arc": 3
+  },
+  {
+    "id": "char_0018",
+    "name": "마르텐",
+    "rarity": 3,
+    "title": "외눈박이 자물쇠공",
+    "description": "버스튼 영지의 지하 감옥에서 평생을 보낼 뻔한 고참 도적. 잠긴 문과 금고, 족쇄를 여는 데만은 귀신같은 솜씨를 자랑한다.",
+    "image": "",
+    "addedAt": "2026-11-27T19:46:02+09:00",
+    "arc": 3
+  },
+  {
+    "id": "char_0019",
+    "name": "말라코르",
+    "rarity": "npc",
+    "title": "선혈의 수석 심문관",
+    "description": "광명교단 대주교의 직속 명령을 받아 움직이는 수석 이단 심문관. 온화한 미소로 화형과 고문을 집행하는 광신도다.",
+    "image": "",
+    "addedAt": "2026-11-27T19:46:02+09:00",
+    "arc": 3
   }
 ]

@@ -1,0 +1,4628 @@
+[
+  {
+    "stageId": "stage_0013",
+    "name": "시체밭의 하이에나들",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 4011,
+    "sawtooth": 1.15,
+    "teamLevel": 1,
+    "teamPowerRatio": 1.15,
+    "enemyPower": 7913,
+    "difficulty": 1.454,
+    "hpScale": 0.13,
+    "winRate": 1,
+    "avgRounds": 3.4,
+    "winRounds": 3.4,
+    "p90Rounds": 5,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.1,
+    "hpLeft": 0.954,
+    "peakLoss": 0.236,
+    "myKill": 3.4,
+    "enemyKill": 11.8,
+    "allyHit": 0.352,
+    "allyMaxHit": 2.64,
+    "enemyHit": 0.536,
+    "enemyMaxHit": 0.978,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0006",
+      "char_0001",
+      "char_0011",
+      "char_0017",
+      "char_0003"
+    ],
+    "history": [
+      {
+        "difficulty": 1.454,
+        "hpScale": 0.13,
+        "myKill": 3.4,
+        "enemyKill": 11.8,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 1.15,
+        "level": 1,
+        "winRate": 1,
+        "hpLeft": 0.947,
+        "winRounds": 3.4,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 1.15,
+        "level": 1,
+        "winRate": 1,
+        "hpLeft": 0.947,
+        "winRounds": 3.4,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.15,
+        "level": 1,
+        "winRate": 1,
+        "hpLeft": 0.947,
+        "winRounds": 3.4,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.204,
+        "level": 2,
+        "winRate": 1,
+        "hpLeft": 0.951,
+        "winRounds": 3.2,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.479,
+        "level": 7,
+        "winRate": 1,
+        "hpLeft": 0.999,
+        "winRounds": 2.3,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 50,
+      "winRate": 1,
+      "winRounds": 2,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0014",
+    "name": "피 냄새 맡은 사냥개",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 4829,
+    "sawtooth": 1.135,
+    "teamLevel": 2,
+    "teamPowerRatio": 1,
+    "enemyPower": 6309,
+    "difficulty": 0.689,
+    "hpScale": 0.188,
+    "winRate": 1,
+    "avgRounds": 3.3,
+    "winRounds": 3.3,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.8,
+    "hpLeft": 0.83,
+    "peakLoss": 0.235,
+    "myKill": 3.3,
+    "enemyKill": 13,
+    "allyHit": 0.451,
+    "allyMaxHit": 3.518,
+    "enemyHit": 0.262,
+    "enemyMaxHit": 0.514,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0006",
+      "char_0001",
+      "char_0017",
+      "char_0011",
+      "char_0003"
+    ],
+    "history": [
+      {
+        "difficulty": 0.689,
+        "hpScale": 0.188,
+        "myKill": 3.3,
+        "enemyKill": 13,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.955,
+        "level": 1,
+        "winRate": 1,
+        "hpLeft": 0.795,
+        "winRounds": 3.9,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.955,
+        "level": 1,
+        "winRate": 1,
+        "hpLeft": 0.795,
+        "winRounds": 3.9,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1,
+        "level": 2,
+        "winRate": 1,
+        "hpLeft": 0.844,
+        "winRounds": 3.2,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.182,
+        "level": 6,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 2.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.498,
+        "level": 13,
+        "winRate": 1,
+        "hpLeft": 0.981,
+        "winRounds": 2,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 50,
+      "winRate": 1,
+      "winRounds": 2,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0015",
+    "name": "썩은 술집 패싸움",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 6096,
+    "sawtooth": 1.12,
+    "teamLevel": 6,
+    "teamPowerRatio": 1.013,
+    "enemyPower": 11694,
+    "difficulty": 1.454,
+    "hpScale": 0.122,
+    "winRate": 0.9966666666666667,
+    "avgRounds": 3.7,
+    "winRounds": 3.6,
+    "p90Rounds": 5,
+    "timeoutRate": 0.0033333333333333335,
+    "wipeRate": 0,
+    "deaths": 0.2,
+    "hpLeft": 0.942,
+    "peakLoss": 0.256,
+    "myKill": 3.7,
+    "enemyKill": 11.5,
+    "allyHit": 0.328,
+    "allyMaxHit": 2.487,
+    "enemyHit": 0.571,
+    "enemyMaxHit": 0.993,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0006",
+      "char_0001",
+      "char_0017",
+      "char_0011",
+      "char_0003"
+    ],
+    "history": [
+      {
+        "difficulty": 1.454,
+        "hpScale": 0.122,
+        "myKill": 3.7,
+        "enemyKill": 11.5,
+        "winRate": 0.9966666666666667
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.833,
+        "level": 1,
+        "winRate": 0.76,
+        "hpLeft": 0.625,
+        "winRounds": 5.9,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.902,
+        "level": 3,
+        "winRate": 0.98,
+        "hpLeft": 0.84,
+        "winRounds": 4.8,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.013,
+        "level": 6,
+        "winRate": 0.99,
+        "hpLeft": 0.936,
+        "winRounds": 3.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.194,
+        "level": 11,
+        "winRate": 1,
+        "hpLeft": 0.996,
+        "winRounds": 2.5,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.483,
+        "level": 19,
+        "winRate": 1,
+        "hpLeft": 0.999,
+        "winRounds": 2.4,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 50,
+      "winRate": 1,
+      "winRounds": 2,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0016",
+    "name": "시궁창 청소",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 7023,
+    "sawtooth": 1.105,
+    "teamLevel": 10,
+    "teamPowerRatio": 1.01,
+    "enemyPower": 13614,
+    "difficulty": 1.454,
+    "hpScale": 0.12,
+    "winRate": 1,
+    "avgRounds": 3.5,
+    "winRounds": 3.5,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.2,
+    "hpLeft": 0.947,
+    "peakLoss": 0.244,
+    "myKill": 3.5,
+    "enemyKill": 12.3,
+    "allyHit": 0.35,
+    "allyMaxHit": 2.577,
+    "enemyHit": 0.568,
+    "enemyMaxHit": 0.99,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0006",
+      "char_0001",
+      "char_0017",
+      "char_0011",
+      "char_0003"
+    ],
+    "history": [
+      {
+        "difficulty": 1.454,
+        "hpScale": 0.12,
+        "myKill": 3.5,
+        "enemyKill": 12.3,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.787,
+        "level": 3,
+        "winRate": 0.43,
+        "hpLeft": 0.347,
+        "winRounds": 6.1,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.885,
+        "level": 6,
+        "winRate": 0.99,
+        "hpLeft": 0.865,
+        "winRounds": 4.5,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.01,
+        "level": 10,
+        "winRate": 1,
+        "hpLeft": 0.94,
+        "winRounds": 3.5,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.203,
+        "level": 16,
+        "winRate": 1,
+        "hpLeft": 0.996,
+        "winRounds": 2.5,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.492,
+        "level": 25,
+        "winRate": 1,
+        "hpLeft": 0.949,
+        "winRounds": 2.8,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 50,
+      "winRate": 1,
+      "winRounds": 2,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0017",
+    "name": "불청객 이단 심문",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 7955,
+    "sawtooth": 1.09,
+    "teamLevel": 14,
+    "teamPowerRatio": 1.005,
+    "enemyPower": 14413,
+    "difficulty": 1.19,
+    "hpScale": 0.144,
+    "winRate": 1,
+    "avgRounds": 4,
+    "winRounds": 4,
+    "p90Rounds": 5,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.9,
+    "hpLeft": 0.811,
+    "peakLoss": 0.286,
+    "myKill": 4,
+    "enemyKill": 11.6,
+    "allyHit": 0.408,
+    "allyMaxHit": 3.305,
+    "enemyHit": 0.395,
+    "enemyMaxHit": 0.759,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0006",
+      "char_0001",
+      "char_0017",
+      "char_0011",
+      "char_0003"
+    ],
+    "history": [
+      {
+        "difficulty": 1.19,
+        "hpScale": 0.144,
+        "myKill": 4,
+        "enemyKill": 11.6,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.81,
+        "level": 7,
+        "winRate": 0.57,
+        "hpLeft": 0.378,
+        "winRounds": 6,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.892,
+        "level": 10,
+        "winRate": 0.98,
+        "hpLeft": 0.729,
+        "winRounds": 4.9,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.005,
+        "level": 14,
+        "winRate": 1,
+        "hpLeft": 0.825,
+        "winRounds": 4,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.204,
+        "level": 21,
+        "winRate": 1,
+        "hpLeft": 0.639,
+        "winRounds": 3.9,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.49,
+        "level": 31,
+        "winRate": 1,
+        "hpLeft": 0.928,
+        "winRounds": 2,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 50,
+      "winRate": 1,
+      "winRounds": 2,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0018",
+    "name": "암시장 부채 청산",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 8908,
+    "sawtooth": 1.075,
+    "teamLevel": 18,
+    "teamPowerRatio": 0.996,
+    "enemyPower": 14070,
+    "difficulty": 0.912,
+    "hpScale": 0.226,
+    "winRate": 1,
+    "avgRounds": 3.8,
+    "winRounds": 3.8,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0,
+    "hpLeft": 0.936,
+    "peakLoss": 0.166,
+    "myKill": 3.8,
+    "enemyKill": 12.1,
+    "allyHit": 0.342,
+    "allyMaxHit": 2.239,
+    "enemyHit": 0.336,
+    "enemyMaxHit": 0.62,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0006",
+      "char_0001",
+      "char_0017",
+      "char_0003",
+      "char_0018"
+    ],
+    "history": [
+      {
+        "difficulty": 0.912,
+        "hpScale": 0.226,
+        "myKill": 3.8,
+        "enemyKill": 12.1,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.797,
+        "level": 10,
+        "winRate": 0.96,
+        "hpLeft": 0.902,
+        "winRounds": 5.5,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.897,
+        "level": 14,
+        "winRate": 1,
+        "hpLeft": 0.963,
+        "winRounds": 4.6,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 0.996,
+        "level": 18,
+        "winRate": 1,
+        "hpLeft": 0.935,
+        "winRounds": 3.8,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.203,
+        "level": 26,
+        "winRate": 1,
+        "hpLeft": 0.991,
+        "winRounds": 3.2,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.509,
+        "level": 38,
+        "winRate": 1,
+        "hpLeft": 0.988,
+        "winRounds": 2.9,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 50,
+      "winRate": 1,
+      "winRounds": 2.6,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0019",
+    "name": "수송 마차 털이 야근",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 10166,
+    "sawtooth": 1.06,
+    "teamLevel": 22,
+    "teamPowerRatio": 0.993,
+    "enemyPower": 21060,
+    "difficulty": 1.454,
+    "hpScale": 0.118,
+    "winRate": 1,
+    "avgRounds": 3.5,
+    "winRounds": 3.5,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.2,
+    "hpLeft": 0.956,
+    "peakLoss": 0.239,
+    "myKill": 3.5,
+    "enemyKill": 13.1,
+    "allyHit": 0.341,
+    "allyMaxHit": 2.933,
+    "enemyHit": 0.589,
+    "enemyMaxHit": 1.324,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0006",
+      "char_0001",
+      "char_0017",
+      "char_0011",
+      "char_0003"
+    ],
+    "history": [
+      {
+        "difficulty": 1.454,
+        "hpScale": 0.118,
+        "myKill": 3.5,
+        "enemyKill": 13.1,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.809,
+        "level": 14,
+        "winRate": 0.8,
+        "hpLeft": 0.588,
+        "winRounds": 5.6,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.899,
+        "level": 18,
+        "winRate": 0.94,
+        "hpLeft": 0.782,
+        "winRounds": 4.5,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 0.993,
+        "level": 22,
+        "winRate": 1,
+        "hpLeft": 0.945,
+        "winRounds": 3.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.199,
+        "level": 31,
+        "winRate": 1,
+        "hpLeft": 0.998,
+        "winRounds": 2.8,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.497,
+        "level": 44,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 2.5,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 50,
+      "winRate": 1,
+      "winRounds": 2.7,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0020",
+    "name": "교차로 검문소 철거",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 11203,
+    "sawtooth": 1.045,
+    "teamLevel": 27,
+    "teamPowerRatio": 1.005,
+    "enemyPower": 22170,
+    "difficulty": 1.207,
+    "hpScale": 0.156,
+    "winRate": 1,
+    "avgRounds": 3.8,
+    "winRounds": 3.8,
+    "p90Rounds": 5,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.2,
+    "hpLeft": 0.95,
+    "peakLoss": 0.22,
+    "myKill": 3.8,
+    "enemyKill": 13.8,
+    "allyHit": 0.319,
+    "allyMaxHit": 2.784,
+    "enemyHit": 0.431,
+    "enemyMaxHit": 1.229,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0006",
+      "char_0001",
+      "char_0017",
+      "char_0011",
+      "char_0003"
+    ],
+    "history": [
+      {
+        "difficulty": 1.207,
+        "hpScale": 0.156,
+        "myKill": 3.8,
+        "enemyKill": 13.8,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.797,
+        "level": 17,
+        "winRate": 0.71,
+        "hpLeft": 0.582,
+        "winRounds": 6.3,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.901,
+        "level": 22,
+        "winRate": 0.97,
+        "hpLeft": 0.889,
+        "winRounds": 4.7,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.005,
+        "level": 27,
+        "winRate": 1,
+        "hpLeft": 0.957,
+        "winRounds": 3.7,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.192,
+        "level": 36,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 2.9,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.507,
+        "level": 51,
+        "winRate": 1,
+        "hpLeft": 0.924,
+        "winRounds": 2.9,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 50,
+      "winRate": 1,
+      "winRounds": 3,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0021",
+    "name": "감시탑의 밀린 외상값",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 12267,
+    "sawtooth": 1.03,
+    "teamLevel": 31,
+    "teamPowerRatio": 0.993,
+    "enemyPower": 26892,
+    "difficulty": 1.439,
+    "hpScale": 0.133,
+    "winRate": 1,
+    "avgRounds": 3.6,
+    "winRounds": 3.6,
+    "p90Rounds": 5,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.2,
+    "hpLeft": 0.943,
+    "peakLoss": 0.24,
+    "myKill": 3.6,
+    "enemyKill": 11.8,
+    "allyHit": 0.347,
+    "allyMaxHit": 3.4,
+    "enemyHit": 0.595,
+    "enemyMaxHit": 1.47,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0006",
+      "char_0001",
+      "char_0017",
+      "char_0011",
+      "char_0003"
+    ],
+    "history": [
+      {
+        "difficulty": 1.439,
+        "hpScale": 0.133,
+        "myKill": 3.6,
+        "enemyKill": 11.8,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.804,
+        "level": 21,
+        "winRate": 0.61,
+        "hpLeft": 0.529,
+        "winRounds": 6.1,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.898,
+        "level": 26,
+        "winRate": 0.96,
+        "hpLeft": 0.839,
+        "winRounds": 4.4,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 0.993,
+        "level": 31,
+        "winRate": 1,
+        "hpLeft": 0.94,
+        "winRounds": 3.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.203,
+        "level": 42,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 2.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.493,
+        "level": 57,
+        "winRate": 1,
+        "hpLeft": 0.921,
+        "winRounds": 2.9,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 50,
+      "winRate": 1,
+      "winRounds": 3.1,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0022",
+    "name": "지하 와인창고 기습",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 13387,
+    "sawtooth": 1.015,
+    "teamLevel": 36,
+    "teamPowerRatio": 0.997,
+    "enemyPower": 30762,
+    "difficulty": 1.454,
+    "hpScale": 0.136,
+    "winRate": 0.9933333333333333,
+    "avgRounds": 3.9,
+    "winRounds": 3.8,
+    "p90Rounds": 5,
+    "timeoutRate": 0.006666666666666667,
+    "wipeRate": 0,
+    "deaths": 0.3,
+    "hpLeft": 0.923,
+    "peakLoss": 0.27,
+    "myKill": 3.9,
+    "enemyKill": 11,
+    "allyHit": 0.273,
+    "allyMaxHit": 1.914,
+    "enemyHit": 0.727,
+    "enemyMaxHit": 1.451,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0006",
+      "char_0001",
+      "char_0017",
+      "char_0011",
+      "char_0003"
+    ],
+    "history": [
+      {
+        "difficulty": 1.454,
+        "hpScale": 0.136,
+        "myKill": 3.9,
+        "enemyKill": 11,
+        "winRate": 0.9933333333333333
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.805,
+        "level": 25,
+        "winRate": 0.53,
+        "hpLeft": 0.472,
+        "winRounds": 6.2,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.892,
+        "level": 30,
+        "winRate": 0.94,
+        "hpLeft": 0.784,
+        "winRounds": 5.2,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 0.997,
+        "level": 36,
+        "winRate": 1,
+        "hpLeft": 0.92,
+        "winRounds": 3.8,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.206,
+        "level": 48,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 2.8,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.506,
+        "level": 65,
+        "winRate": 1,
+        "hpLeft": 0.924,
+        "winRounds": 2.8,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 50,
+      "winRate": 1,
+      "winRounds": 3.1,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0023",
+    "name": "연회장 난입 소동",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 14567,
+    "sawtooth": 1,
+    "teamLevel": 41,
+    "teamPowerRatio": 1,
+    "enemyPower": 33273,
+    "difficulty": 1.454,
+    "hpScale": 0.151,
+    "winRate": 0.9966666666666667,
+    "avgRounds": 3.9,
+    "winRounds": 3.9,
+    "p90Rounds": 5,
+    "timeoutRate": 0.0033333333333333335,
+    "wipeRate": 0,
+    "deaths": 0.2,
+    "hpLeft": 0.925,
+    "peakLoss": 0.253,
+    "myKill": 3.9,
+    "enemyKill": 11.4,
+    "allyHit": 0.274,
+    "allyMaxHit": 3.137,
+    "enemyHit": 0.704,
+    "enemyMaxHit": 1.413,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0006",
+      "char_0001",
+      "char_0017",
+      "char_0011",
+      "char_0003"
+    ],
+    "history": [
+      {
+        "difficulty": 1.454,
+        "hpScale": 0.151,
+        "myKill": 3.9,
+        "enemyKill": 11.4,
+        "winRate": 0.9966666666666667
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.807,
+        "level": 29,
+        "winRate": 0.56,
+        "hpLeft": 0.549,
+        "winRounds": 6.3,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.903,
+        "level": 35,
+        "winRate": 0.93,
+        "hpLeft": 0.801,
+        "winRounds": 5,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1,
+        "level": 41,
+        "winRate": 1,
+        "hpLeft": 0.92,
+        "winRounds": 3.8,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.193,
+        "level": 53,
+        "winRate": 1,
+        "hpLeft": 0.971,
+        "winRounds": 3.2,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.505,
+        "level": 73,
+        "winRate": 1,
+        "hpLeft": 0.928,
+        "winRounds": 2.8,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 50,
+      "winRate": 1,
+      "winRounds": 3.3,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0024",
+    "name": "탐욕의 대가",
+    "stageType": "boss",
+    "target": {
+      "myMin": 7,
+      "myMax": 9,
+      "enemyMin": 6,
+      "enemyMax": 8
+    },
+    "recommended": 16316,
+    "sawtooth": 0.95,
+    "teamLevel": 49,
+    "teamPowerRatio": 1.007,
+    "enemyPower": 47859,
+    "difficulty": 1,
+    "hpScale": 0.216,
+    "winRate": 0.8466666666666667,
+    "avgRounds": 8.5,
+    "winRounds": 7.8,
+    "p90Rounds": 10,
+    "timeoutRate": 0.01,
+    "wipeRate": 0.14333333333333334,
+    "deaths": 1.3,
+    "hpLeft": 0.693,
+    "peakLoss": 0.486,
+    "myKill": 8.4,
+    "enemyKill": 7.5,
+    "allyHit": 0.175,
+    "allyMaxHit": 1.964,
+    "enemyHit": 0.583,
+    "enemyMaxHit": 1.663,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0006",
+      "char_0001",
+      "char_0017",
+      "char_0011",
+      "char_0003"
+    ],
+    "history": [
+      {
+        "difficulty": 1,
+        "hpScale": 0.216,
+        "myKill": 8.4,
+        "enemyKill": 7.5,
+        "winRate": 0.8466666666666667
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.806,
+        "level": 35,
+        "winRate": 0.09,
+        "hpLeft": 0.069,
+        "winRounds": 9.3,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.893,
+        "level": 41,
+        "winRate": 0.44,
+        "hpLeft": 0.359,
+        "winRounds": 8.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.007,
+        "level": 49,
+        "winRate": 0.86,
+        "hpLeft": 0.718,
+        "winRounds": 7.7,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.199,
+        "level": 62,
+        "winRate": 1,
+        "hpLeft": 0.951,
+        "winRounds": 5,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.501,
+        "level": 85,
+        "winRate": 1,
+        "hpLeft": 0.985,
+        "winRounds": 4,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 50,
+      "winRate": 0.8666666666666667,
+      "winRounds": 7.2,
+      "deaths": 1.5
+    }
+  },
+  {
+    "stageId": "stage_0025",
+    "name": "국경선 봉쇄 돌파",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 15529,
+    "sawtooth": 1.15,
+    "teamLevel": 37,
+    "teamPowerRatio": 1.007,
+    "enemyPower": 29620,
+    "difficulty": 1.207,
+    "hpScale": 0.22,
+    "winRate": 1,
+    "avgRounds": 3.9,
+    "winRounds": 3.9,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0,
+    "hpLeft": 0.945,
+    "peakLoss": 0.164,
+    "myKill": 3.9,
+    "enemyKill": 12.9,
+    "allyHit": 0.437,
+    "allyMaxHit": 2.151,
+    "enemyHit": 0.292,
+    "enemyMaxHit": 0.785,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 1.207,
+        "hpScale": 0.22,
+        "myKill": 3.9,
+        "enemyKill": 12.9,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.792,
+        "level": 25,
+        "winRate": 0.94,
+        "hpLeft": 0.834,
+        "winRounds": 5.6,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.9,
+        "level": 31,
+        "winRate": 1,
+        "hpLeft": 0.92,
+        "winRounds": 4.5,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.007,
+        "level": 37,
+        "winRate": 1,
+        "hpLeft": 0.949,
+        "winRounds": 3.9,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.204,
+        "level": 48,
+        "winRate": 1,
+        "hpLeft": 0.952,
+        "winRounds": 3.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.492,
+        "level": 64,
+        "winRate": 1,
+        "hpLeft": 0.985,
+        "winRounds": 3.3,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 60,
+      "winRate": 1,
+      "winRounds": 3.3,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0026",
+    "name": "주점 뒷골목의 추적자",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 15992,
+    "sawtooth": 1.135,
+    "teamLevel": 38,
+    "teamPowerRatio": 0.994,
+    "enemyPower": 30119,
+    "difficulty": 1.207,
+    "hpScale": 0.22,
+    "winRate": 1,
+    "avgRounds": 3.9,
+    "winRounds": 3.9,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0,
+    "hpLeft": 0.945,
+    "peakLoss": 0.163,
+    "myKill": 3.9,
+    "enemyKill": 12.9,
+    "allyHit": 0.438,
+    "allyMaxHit": 2.152,
+    "enemyHit": 0.291,
+    "enemyMaxHit": 0.784,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 1.207,
+        "hpScale": 0.22,
+        "myKill": 3.9,
+        "enemyKill": 12.9,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.805,
+        "level": 27,
+        "winRate": 0.96,
+        "hpLeft": 0.85,
+        "winRounds": 5.4,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.908,
+        "level": 33,
+        "winRate": 1,
+        "hpLeft": 0.926,
+        "winRounds": 4.5,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 0.994,
+        "level": 38,
+        "winRate": 1,
+        "hpLeft": 0.949,
+        "winRounds": 3.9,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.204,
+        "level": 50,
+        "winRate": 1,
+        "hpLeft": 0.956,
+        "winRounds": 3.5,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.497,
+        "level": 67,
+        "winRate": 1,
+        "hpLeft": 0.987,
+        "winRounds": 3.2,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 60,
+      "winRate": 1,
+      "winRounds": 3.4,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0027",
+    "name": "피 튀기는 주점 난투",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 16525,
+    "sawtooth": 1.12,
+    "teamLevel": 40,
+    "teamPowerRatio": 1.001,
+    "enemyPower": 34714,
+    "difficulty": 1.674,
+    "hpScale": 0.123,
+    "winRate": 1,
+    "avgRounds": 3.9,
+    "winRounds": 3.9,
+    "p90Rounds": 5,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.2,
+    "hpLeft": 0.936,
+    "peakLoss": 0.213,
+    "myKill": 3.9,
+    "enemyKill": 12.7,
+    "allyHit": 0.528,
+    "allyMaxHit": 2.877,
+    "enemyHit": 0.471,
+    "enemyMaxHit": 1.051,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 1.674,
+        "hpScale": 0.123,
+        "myKill": 3.9,
+        "enemyKill": 12.7,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.799,
+        "level": 28,
+        "winRate": 0.96,
+        "hpLeft": 0.864,
+        "winRounds": 4.9,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.899,
+        "level": 34,
+        "winRate": 1,
+        "hpLeft": 0.919,
+        "winRounds": 4.2,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.001,
+        "level": 40,
+        "winRate": 1,
+        "hpLeft": 0.929,
+        "winRounds": 3.9,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.205,
+        "level": 52,
+        "winRate": 1,
+        "hpLeft": 0.943,
+        "winRounds": 3.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.499,
+        "level": 70,
+        "winRate": 1,
+        "hpLeft": 0.981,
+        "winRounds": 3.3,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 60,
+      "winRate": 1,
+      "winRounds": 3.4,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0028",
+    "name": "수풀 속 매복 습격",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 16978,
+    "sawtooth": 1.105,
+    "teamLevel": 42,
+    "teamPowerRatio": 1.008,
+    "enemyPower": 18684,
+    "difficulty": 0.689,
+    "hpScale": 0.206,
+    "winRate": 1,
+    "avgRounds": 4,
+    "winRounds": 4,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 1,
+    "hpLeft": 0.847,
+    "peakLoss": 0.193,
+    "myKill": 4,
+    "enemyKill": 11.6,
+    "allyHit": 0.683,
+    "allyMaxHit": 3.71,
+    "enemyHit": 0.142,
+    "enemyMaxHit": 0.278,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 0.689,
+        "hpScale": 0.206,
+        "myKill": 4,
+        "enemyKill": 11.6,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.794,
+        "level": 29,
+        "winRate": 1,
+        "hpLeft": 0.825,
+        "winRounds": 4,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.892,
+        "level": 35,
+        "winRate": 1,
+        "hpLeft": 0.832,
+        "winRounds": 4.1,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.008,
+        "level": 42,
+        "winRate": 1,
+        "hpLeft": 0.847,
+        "winRounds": 4,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.205,
+        "level": 54,
+        "winRate": 1,
+        "hpLeft": 0.992,
+        "winRounds": 3.1,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.505,
+        "level": 73,
+        "winRate": 1,
+        "hpLeft": 0.999,
+        "winRounds": 2.9,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 60,
+      "winRate": 1,
+      "winRounds": 2.9,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0029",
+    "name": "보리밭 방화 저지",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 17471,
+    "sawtooth": 1.09,
+    "teamLevel": 43,
+    "teamPowerRatio": 0.994,
+    "enemyPower": 38456,
+    "difficulty": 1.599,
+    "hpScale": 0.178,
+    "winRate": 1,
+    "avgRounds": 4,
+    "winRounds": 4,
+    "p90Rounds": 5,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.1,
+    "hpLeft": 0.944,
+    "peakLoss": 0.212,
+    "myKill": 4,
+    "enemyKill": 12,
+    "allyHit": 0.442,
+    "allyMaxHit": 2.141,
+    "enemyHit": 0.428,
+    "enemyMaxHit": 0.978,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 1.599,
+        "hpScale": 0.178,
+        "myKill": 4,
+        "enemyKill": 12,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.804,
+        "level": 31,
+        "winRate": 0.95,
+        "hpLeft": 0.76,
+        "winRounds": 5.5,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.899,
+        "level": 37,
+        "winRate": 1,
+        "hpLeft": 0.902,
+        "winRounds": 4.6,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 0.994,
+        "level": 43,
+        "winRate": 1,
+        "hpLeft": 0.948,
+        "winRounds": 4,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.203,
+        "level": 56,
+        "winRate": 1,
+        "hpLeft": 0.955,
+        "winRounds": 3.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.506,
+        "level": 76,
+        "winRate": 1,
+        "hpLeft": 0.98,
+        "winRounds": 3.3,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 60,
+      "winRate": 1,
+      "winRounds": 3.5,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0030",
+    "name": "곡물창고 잔당 소탕",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 17981,
+    "sawtooth": 1.075,
+    "teamLevel": 45,
+    "teamPowerRatio": 0.997,
+    "enemyPower": 60560,
+    "difficulty": 3.299,
+    "hpScale": 0.053,
+    "winRate": 1,
+    "avgRounds": 3.9,
+    "winRounds": 3.9,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.6,
+    "hpLeft": 0.885,
+    "peakLoss": 0.211,
+    "myKill": 3.9,
+    "enemyKill": 11.8,
+    "allyHit": 0.63,
+    "allyMaxHit": 3.576,
+    "enemyHit": 0.684,
+    "enemyMaxHit": 1.973,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 3.299,
+        "hpScale": 0.053,
+        "myKill": 3.9,
+        "enemyKill": 11.8,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.797,
+        "level": 32,
+        "winRate": 0.89,
+        "hpLeft": 0.565,
+        "winRounds": 5.3,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.904,
+        "level": 39,
+        "winRate": 0.99,
+        "hpLeft": 0.734,
+        "winRounds": 4.8,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 0.997,
+        "level": 45,
+        "winRate": 1,
+        "hpLeft": 0.884,
+        "winRounds": 3.9,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.2,
+        "level": 58,
+        "winRate": 1,
+        "hpLeft": 0.956,
+        "winRounds": 3.5,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.506,
+        "level": 79,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 3,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 60,
+      "winRate": 1,
+      "winRounds": 3.4,
+      "deaths": 0.1
+    }
+  },
+  {
+    "stageId": "stage_0031",
+    "name": "철벽 방진 분쇄",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 18293,
+    "sawtooth": 1.06,
+    "teamLevel": 46,
+    "teamPowerRatio": 0.999,
+    "enemyPower": 94556,
+    "difficulty": 3.709,
+    "hpScale": 0.05,
+    "winRate": 1,
+    "avgRounds": 5.3,
+    "winRounds": 5.3,
+    "p90Rounds": 6,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0,
+    "hpLeft": 0.973,
+    "peakLoss": 0.229,
+    "myKill": 5.3,
+    "enemyKill": 14.6,
+    "allyHit": 0.484,
+    "allyMaxHit": 3.462,
+    "enemyHit": 0.47,
+    "enemyMaxHit": 0.684,
+    "iterations": 5,
+    "ok": false,
+    "okMy": false,
+    "okEnemy": false,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 3.709,
+        "hpScale": 0.05,
+        "myKill": 5.3,
+        "enemyKill": 14.6,
+        "winRate": 1
+      },
+      {
+        "difficulty": 8.613,
+        "hpScale": 0.05,
+        "myKill": 25.2,
+        "enemyKill": 2.3,
+        "winRate": 0
+      },
+      {
+        "difficulty": 5.652,
+        "hpScale": 0.05,
+        "myKill": 10.5,
+        "enemyKill": 4.8,
+        "winRate": 0.19333333333333333
+      },
+      {
+        "difficulty": 4.579,
+        "hpScale": 0.05,
+        "myKill": 7.4,
+        "enemyKill": 9,
+        "winRate": 0.9733333333333334
+      },
+      {
+        "difficulty": 4.121,
+        "hpScale": 0.05,
+        "myKill": 6.1,
+        "enemyKill": 11,
+        "winRate": 0.9966666666666667
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.801,
+        "level": 33,
+        "winRate": 0.17,
+        "hpLeft": 0.098,
+        "winRounds": 6.4,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.908,
+        "level": 40,
+        "winRate": 1,
+        "hpLeft": 0.898,
+        "winRounds": 6.3,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 0.999,
+        "level": 46,
+        "winRate": 1,
+        "hpLeft": 0.976,
+        "winRounds": 5.3,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.198,
+        "level": 59,
+        "winRate": 1,
+        "hpLeft": 0.964,
+        "winRounds": 4.5,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.498,
+        "level": 80,
+        "winRate": 1,
+        "hpLeft": 0.999,
+        "winRounds": 4,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 60,
+      "winRate": 1,
+      "winRounds": 4.6,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0032",
+    "name": "진흙 참호 돌파전",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 18837,
+    "sawtooth": 1.045,
+    "teamLevel": 48,
+    "teamPowerRatio": 0.999,
+    "enemyPower": 45344,
+    "difficulty": 2.115,
+    "hpScale": 0.109,
+    "winRate": 1,
+    "avgRounds": 4,
+    "winRounds": 4,
+    "p90Rounds": 5,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.2,
+    "hpLeft": 0.919,
+    "peakLoss": 0.24,
+    "myKill": 4,
+    "enemyKill": 11.1,
+    "allyHit": 0.535,
+    "allyMaxHit": 2.841,
+    "enemyHit": 0.535,
+    "enemyMaxHit": 1.204,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 2.115,
+        "hpScale": 0.109,
+        "myKill": 4,
+        "enemyKill": 11.1,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.807,
+        "level": 35,
+        "winRate": 0.99,
+        "hpLeft": 0.819,
+        "winRounds": 4.9,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.896,
+        "level": 41,
+        "winRate": 1,
+        "hpLeft": 0.889,
+        "winRounds": 4.1,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 0.999,
+        "level": 48,
+        "winRate": 1,
+        "hpLeft": 0.914,
+        "winRounds": 4,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.195,
+        "level": 61,
+        "winRate": 1,
+        "hpLeft": 0.942,
+        "winRounds": 3.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.495,
+        "level": 83,
+        "winRate": 1,
+        "hpLeft": 0.975,
+        "winRounds": 3.3,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 60,
+      "winRate": 1,
+      "winRounds": 3.6,
+      "deaths": 0.1
+    }
+  },
+  {
+    "stageId": "stage_0033",
+    "name": "성문 돌파와 혈전",
+    "stageType": "elite",
+    "target": {
+      "myMin": 5,
+      "myMax": 6,
+      "enemyMin": 7,
+      "enemyMax": 9
+    },
+    "recommended": 19388,
+    "sawtooth": 1.03,
+    "teamLevel": 50,
+    "teamPowerRatio": 1,
+    "enemyPower": 73329,
+    "difficulty": 2.377,
+    "hpScale": 0.098,
+    "winRate": 0.99,
+    "avgRounds": 5.5,
+    "winRounds": 5.4,
+    "p90Rounds": 6,
+    "timeoutRate": 0,
+    "wipeRate": 0.01,
+    "deaths": 0.4,
+    "hpLeft": 0.843,
+    "peakLoss": 0.294,
+    "myKill": 5.5,
+    "enemyKill": 7.7,
+    "allyHit": 0.357,
+    "allyMaxHit": 2.327,
+    "enemyHit": 0.495,
+    "enemyMaxHit": 2.793,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 2.377,
+        "hpScale": 0.098,
+        "myKill": 5.5,
+        "enemyKill": 7.7,
+        "winRate": 0.99
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.799,
+        "level": 36,
+        "winRate": 0.11,
+        "hpLeft": 0.049,
+        "winRounds": 7.5,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.899,
+        "level": 43,
+        "winRate": 0.73,
+        "hpLeft": 0.54,
+        "winRounds": 6.3,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1,
+        "level": 50,
+        "winRate": 0.99,
+        "hpLeft": 0.816,
+        "winRounds": 5.5,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.202,
+        "level": 64,
+        "winRate": 1,
+        "hpLeft": 0.943,
+        "winRounds": 4.4,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.506,
+        "level": 87,
+        "winRate": 1,
+        "hpLeft": 0.995,
+        "winRounds": 4,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 60,
+      "winRate": 1,
+      "winRounds": 4.6,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0034",
+    "name": "용병대장의 최후",
+    "stageType": "elite",
+    "target": {
+      "myMin": 5,
+      "myMax": 6,
+      "enemyMin": 7,
+      "enemyMax": 9
+    },
+    "recommended": 19926,
+    "sawtooth": 1.015,
+    "teamLevel": 52,
+    "teamPowerRatio": 1.002,
+    "enemyPower": 74640,
+    "difficulty": 2.378,
+    "hpScale": 0.095,
+    "winRate": 1,
+    "avgRounds": 5.5,
+    "winRounds": 5.5,
+    "p90Rounds": 6,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.1,
+    "hpLeft": 0.885,
+    "peakLoss": 0.238,
+    "myKill": 5.4,
+    "enemyKill": 9,
+    "allyHit": 0.348,
+    "allyMaxHit": 2.69,
+    "enemyHit": 0.384,
+    "enemyMaxHit": 1.924,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 2.378,
+        "hpScale": 0.095,
+        "myKill": 5.4,
+        "enemyKill": 9,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.805,
+        "level": 38,
+        "winRate": 0.28,
+        "hpLeft": 0.167,
+        "winRounds": 7,
+        "checked": true,
+        "ok": false
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.903,
+        "level": 45,
+        "winRate": 0.81,
+        "hpLeft": 0.61,
+        "winRounds": 6.2,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.002,
+        "level": 52,
+        "winRate": 1,
+        "hpLeft": 0.895,
+        "winRounds": 5.5,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.195,
+        "level": 66,
+        "winRate": 1,
+        "hpLeft": 0.957,
+        "winRounds": 4.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.504,
+        "level": 90,
+        "winRate": 1,
+        "hpLeft": 0.996,
+        "winRounds": 4,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": false,
+    "atCap": {
+      "level": 60,
+      "winRate": 1,
+      "winRounds": 4.9,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0035",
+    "name": "알현실 친위대 청소",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 20577,
+    "sawtooth": 1,
+    "teamLevel": 54,
+    "teamPowerRatio": 1,
+    "enemyPower": 94392,
+    "difficulty": 4.472,
+    "hpScale": 0.05,
+    "winRate": 1,
+    "avgRounds": 4.1,
+    "winRounds": 4.1,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.1,
+    "hpLeft": 0.974,
+    "peakLoss": 0.25,
+    "myKill": 4.1,
+    "enemyKill": 12.3,
+    "allyHit": 0.493,
+    "allyMaxHit": 3.125,
+    "enemyHit": 0.516,
+    "enemyMaxHit": 1.039,
+    "iterations": 1,
+    "ok": false,
+    "okMy": false,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 4.472,
+        "hpScale": 0.05,
+        "myKill": 4.1,
+        "enemyKill": 12.3,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.796,
+        "level": 39,
+        "winRate": 0.45,
+        "hpLeft": 0.295,
+        "winRounds": 5.1,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.906,
+        "level": 47,
+        "winRate": 0.97,
+        "hpLeft": 0.719,
+        "winRounds": 4.4,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1,
+        "level": 54,
+        "winRate": 1,
+        "hpLeft": 0.979,
+        "winRounds": 4.1,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.198,
+        "level": 69,
+        "winRate": 1,
+        "hpLeft": 0.998,
+        "winRounds": 4,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.497,
+        "level": 93,
+        "winRate": 1,
+        "hpLeft": 0.988,
+        "winRounds": 3.6,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 60,
+      "winRate": 1,
+      "winRounds": 4,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0036",
+    "name": "반역자의 마지막 발악",
+    "stageType": "boss",
+    "target": {
+      "myMin": 7,
+      "myMax": 9,
+      "enemyMin": 6,
+      "enemyMax": 8
+    },
+    "recommended": 21963,
+    "sawtooth": 0.95,
+    "teamLevel": 59,
+    "teamPowerRatio": 1.001,
+    "enemyPower": 69939,
+    "difficulty": 1.437,
+    "hpScale": 0.226,
+    "winRate": 0.8633333333333333,
+    "avgRounds": 9,
+    "winRounds": 8.6,
+    "p90Rounds": 10,
+    "timeoutRate": 0,
+    "wipeRate": 0.13666666666666666,
+    "deaths": 0.8,
+    "hpLeft": 0.624,
+    "peakLoss": 0.465,
+    "myKill": 8.8,
+    "enemyKill": 6.7,
+    "allyHit": 0.206,
+    "allyMaxHit": 2.051,
+    "enemyHit": 0.416,
+    "enemyMaxHit": 3.101,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 1.437,
+        "hpScale": 0.226,
+        "myKill": 8.8,
+        "enemyKill": 6.7,
+        "winRate": 0.8633333333333333
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.796,
+        "level": 43,
+        "winRate": 0.01,
+        "hpLeft": 0.009,
+        "winRounds": 11,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.899,
+        "level": 51,
+        "winRate": 0.25,
+        "hpLeft": 0.169,
+        "winRounds": 9.9,
+        "checked": true,
+        "ok": false
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.001,
+        "level": 59,
+        "winRate": 0.87,
+        "hpLeft": 0.625,
+        "winRounds": 8.7,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.204,
+        "level": 76,
+        "winRate": 1,
+        "hpLeft": 0.767,
+        "winRounds": 6.7,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.496,
+        "level": 101,
+        "winRate": 1,
+        "hpLeft": 0.986,
+        "winRounds": 5.8,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": false,
+    "atCap": {
+      "level": 60,
+      "winRate": 0.9166666666666666,
+      "winRounds": 8.5,
+      "deaths": 0.6
+    }
+  },
+  {
+    "stageId": "stage_0037",
+    "name": "새 회관의 불청객들",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 18143,
+    "sawtooth": 1.15,
+    "teamLevel": 45,
+    "teamPowerRatio": 0.995,
+    "enemyPower": 40014,
+    "difficulty": 16.562,
+    "hpScale": 0.149,
+    "winRate": 1,
+    "avgRounds": 3.1,
+    "winRounds": 3.1,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.2,
+    "hpLeft": 0.889,
+    "peakLoss": 0.223,
+    "myKill": 3.1,
+    "enemyKill": 11.6,
+    "allyHit": 0.964,
+    "allyMaxHit": 5.098,
+    "enemyHit": 0.645,
+    "enemyMaxHit": 1.294,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 16.562,
+        "hpScale": 0.149,
+        "myKill": 3.1,
+        "enemyKill": 11.6,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.797,
+        "level": 32,
+        "winRate": 0.92,
+        "hpLeft": 0.632,
+        "winRounds": 4.1,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.903,
+        "level": 39,
+        "winRate": 1,
+        "hpLeft": 0.875,
+        "winRounds": 3.2,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 0.995,
+        "level": 45,
+        "winRate": 1,
+        "hpLeft": 0.89,
+        "winRounds": 3.2,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.196,
+        "level": 58,
+        "winRate": 1,
+        "hpLeft": 0.99,
+        "winRounds": 3,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.5,
+        "level": 79,
+        "winRate": 1,
+        "hpLeft": 0.994,
+        "winRounds": 3,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 70,
+      "winRate": 1,
+      "winRounds": 3,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0038",
+    "name": "문 앞의 사냥개들",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 18633,
+    "sawtooth": 1.135,
+    "teamLevel": 47,
+    "teamPowerRatio": 1,
+    "enemyPower": 21671,
+    "difficulty": 1,
+    "hpScale": 0.778,
+    "winRate": 1,
+    "avgRounds": 4,
+    "winRounds": 4,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0,
+    "hpLeft": 0.984,
+    "peakLoss": 0.105,
+    "myKill": 4,
+    "enemyKill": 13.9,
+    "allyHit": 1.042,
+    "allyMaxHit": 13.024,
+    "enemyHit": 0.233,
+    "enemyMaxHit": 0.631,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 1,
+        "hpScale": 0.778,
+        "myKill": 4,
+        "enemyKill": 13.9,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.804,
+        "level": 34,
+        "winRate": 0.99,
+        "hpLeft": 0.936,
+        "winRounds": 4.8,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.894,
+        "level": 40,
+        "winRate": 1,
+        "hpLeft": 0.975,
+        "winRounds": 4.3,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1,
+        "level": 47,
+        "winRate": 1,
+        "hpLeft": 0.984,
+        "winRounds": 4,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.195,
+        "level": 60,
+        "winRate": 1,
+        "hpLeft": 0.992,
+        "winRounds": 3.8,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.501,
+        "level": 82,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 3.5,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 70,
+      "winRate": 1,
+      "winRounds": 3.6,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0039",
+    "name": "진료소 앞의 소란",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 19229,
+    "sawtooth": 1.12,
+    "teamLevel": 49,
+    "teamPowerRatio": 1.002,
+    "enemyPower": 43857,
+    "difficulty": 2.018,
+    "hpScale": 0.139,
+    "winRate": 1,
+    "avgRounds": 3.9,
+    "winRounds": 3.9,
+    "p90Rounds": 5,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.2,
+    "hpLeft": 0.909,
+    "peakLoss": 0.255,
+    "myKill": 3.9,
+    "enemyKill": 10.3,
+    "allyHit": 0.949,
+    "allyMaxHit": 35.973,
+    "enemyHit": 0.573,
+    "enemyMaxHit": 1.245,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 2.018,
+        "hpScale": 0.139,
+        "myKill": 3.9,
+        "enemyKill": 10.3,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.799,
+        "level": 35,
+        "winRate": 0.86,
+        "hpLeft": 0.564,
+        "winRounds": 4.8,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.901,
+        "level": 42,
+        "winRate": 1,
+        "hpLeft": 0.832,
+        "winRounds": 4.2,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.002,
+        "level": 49,
+        "winRate": 1,
+        "hpLeft": 0.915,
+        "winRounds": 4,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.194,
+        "level": 62,
+        "winRate": 1,
+        "hpLeft": 0.934,
+        "winRounds": 3.5,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.5,
+        "level": 85,
+        "winRate": 1,
+        "hpLeft": 0.967,
+        "winRounds": 3.1,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 70,
+      "winRate": 1,
+      "winRounds": 3.4,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0040",
+    "name": "빗속의 추격자들",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 19719,
+    "sawtooth": 1.105,
+    "teamLevel": 51,
+    "teamPowerRatio": 1.007,
+    "enemyPower": 22273,
+    "difficulty": 0.52,
+    "hpScale": 1.143,
+    "winRate": 1,
+    "avgRounds": 3.8,
+    "winRounds": 3.8,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0,
+    "hpLeft": 0.957,
+    "peakLoss": 0.106,
+    "myKill": 3.8,
+    "enemyKill": 10.6,
+    "allyHit": 0.568,
+    "allyMaxHit": 7.599,
+    "enemyHit": 0.148,
+    "enemyMaxHit": 0.339,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 0.52,
+        "hpScale": 1.143,
+        "myKill": 3.8,
+        "enemyKill": 10.6,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.794,
+        "level": 36,
+        "winRate": 1,
+        "hpLeft": 0.933,
+        "winRounds": 5,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.906,
+        "level": 44,
+        "winRate": 1,
+        "hpLeft": 0.945,
+        "winRounds": 4,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.007,
+        "level": 51,
+        "winRate": 1,
+        "hpLeft": 0.959,
+        "winRounds": 3.7,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.203,
+        "level": 65,
+        "winRate": 1,
+        "hpLeft": 0.98,
+        "winRounds": 3.4,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.502,
+        "level": 88,
+        "winRate": 1,
+        "hpLeft": 0.992,
+        "winRounds": 3.3,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 70,
+      "winRate": 1,
+      "winRounds": 3.3,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0041",
+    "name": "배교자의 대가",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 20257,
+    "sawtooth": 1.09,
+    "teamLevel": 52,
+    "teamPowerRatio": 0.994,
+    "enemyPower": 52487,
+    "difficulty": 19.993,
+    "hpScale": 0.069,
+    "winRate": 1,
+    "avgRounds": 3.5,
+    "winRounds": 3.5,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0,
+    "hpLeft": 0.982,
+    "peakLoss": 0.066,
+    "myKill": 3.3,
+    "enemyKill": 30.1,
+    "allyHit": 0.897,
+    "allyMaxHit": 7.709,
+    "enemyHit": 0.443,
+    "enemyMaxHit": 0.642,
+    "iterations": 20,
+    "ok": false,
+    "okMy": true,
+    "okEnemy": false,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 19.993,
+        "hpScale": 0.069,
+        "myKill": 3.3,
+        "enemyKill": 30.1,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.996,
+        "hpScale": 0.069,
+        "myKill": 3.3,
+        "enemyKill": 30.1,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.998,
+        "hpScale": 0.069,
+        "myKill": 3.3,
+        "enemyKill": 30.1,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.999,
+        "hpScale": 0.069,
+        "myKill": 3.3,
+        "enemyKill": 30.1,
+        "winRate": 1
+      },
+      {
+        "difficulty": 20,
+        "hpScale": 0.069,
+        "myKill": 3.3,
+        "enemyKill": 30.1,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.993,
+        "hpScale": 0.073,
+        "myKill": 3.4,
+        "enemyKill": 31.5,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.996,
+        "hpScale": 0.073,
+        "myKill": 3.4,
+        "enemyKill": 31.5,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.998,
+        "hpScale": 0.073,
+        "myKill": 3.4,
+        "enemyKill": 31.5,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.999,
+        "hpScale": 0.073,
+        "myKill": 3.4,
+        "enemyKill": 31.5,
+        "winRate": 1
+      },
+      {
+        "difficulty": 20,
+        "hpScale": 0.073,
+        "myKill": 3.4,
+        "enemyKill": 31.5,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.993,
+        "hpScale": 0.075,
+        "myKill": 3.4,
+        "enemyKill": 31.5,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.996,
+        "hpScale": 0.075,
+        "myKill": 3.4,
+        "enemyKill": 31.5,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.998,
+        "hpScale": 0.075,
+        "myKill": 3.4,
+        "enemyKill": 31.5,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.999,
+        "hpScale": 0.075,
+        "myKill": 3.4,
+        "enemyKill": 31.5,
+        "winRate": 1
+      },
+      {
+        "difficulty": 20,
+        "hpScale": 0.075,
+        "myKill": 3.4,
+        "enemyKill": 31.5,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.993,
+        "hpScale": 0.077,
+        "myKill": 3.6,
+        "enemyKill": 32.9,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.996,
+        "hpScale": 0.077,
+        "myKill": 3.6,
+        "enemyKill": 32.9,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.998,
+        "hpScale": 0.077,
+        "myKill": 3.6,
+        "enemyKill": 32.9,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.999,
+        "hpScale": 0.077,
+        "myKill": 3.6,
+        "enemyKill": 32.9,
+        "winRate": 1
+      },
+      {
+        "difficulty": 20,
+        "hpScale": 0.077,
+        "myKill": 3.6,
+        "enemyKill": 32.9,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.799,
+        "level": 38,
+        "winRate": 1,
+        "hpLeft": 0.995,
+        "winRounds": 4,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.896,
+        "level": 45,
+        "winRate": 1,
+        "hpLeft": 0.998,
+        "winRounds": 3.9,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 0.994,
+        "level": 52,
+        "winRate": 1,
+        "hpLeft": 0.983,
+        "winRounds": 3.5,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.196,
+        "level": 67,
+        "winRate": 1,
+        "hpLeft": 0.992,
+        "winRounds": 3.2,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.5,
+        "level": 91,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 3,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 70,
+      "winRate": 1,
+      "winRounds": 3,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0042",
+    "name": "골목길의 매복",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 20809,
+    "sawtooth": 1.075,
+    "teamLevel": 54,
+    "teamPowerRatio": 0.994,
+    "enemyPower": 30661,
+    "difficulty": 1.754,
+    "hpScale": 0.228,
+    "winRate": 1,
+    "avgRounds": 4,
+    "winRounds": 4,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.2,
+    "hpLeft": 0.935,
+    "peakLoss": 0.214,
+    "myKill": 4,
+    "enemyKill": 11.7,
+    "allyHit": 1.08,
+    "allyMaxHit": 11.86,
+    "enemyHit": 0.444,
+    "enemyMaxHit": 1.04,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 1.754,
+        "hpScale": 0.228,
+        "myKill": 4,
+        "enemyKill": 11.7,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.806,
+        "level": 40,
+        "winRate": 0.99,
+        "hpLeft": 0.897,
+        "winRounds": 4.5,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.9,
+        "level": 47,
+        "winRate": 1,
+        "hpLeft": 0.929,
+        "winRounds": 4.3,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 0.994,
+        "level": 54,
+        "winRate": 1,
+        "hpLeft": 0.95,
+        "winRounds": 4,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.201,
+        "level": 70,
+        "winRate": 1,
+        "hpLeft": 0.965,
+        "winRounds": 3.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.497,
+        "level": 94,
+        "winRate": 1,
+        "hpLeft": 0.988,
+        "winRounds": 3.3,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 70,
+      "winRate": 1,
+      "winRounds": 3.7,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0043",
+    "name": "불타는 회관 앞마당",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 21179,
+    "sawtooth": 1.06,
+    "teamLevel": 55,
+    "teamPowerRatio": 0.994,
+    "enemyPower": 25656,
+    "difficulty": 1.454,
+    "hpScale": 0.457,
+    "winRate": 1,
+    "avgRounds": 3.9,
+    "winRounds": 3.9,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0,
+    "hpLeft": 0.982,
+    "peakLoss": 0.101,
+    "myKill": 3.9,
+    "enemyKill": 11.2,
+    "allyHit": 1.258,
+    "allyMaxHit": 16.648,
+    "enemyHit": 0.383,
+    "enemyMaxHit": 0.907,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 1.454,
+        "hpScale": 0.457,
+        "myKill": 3.9,
+        "enemyKill": 11.2,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.795,
+        "level": 40,
+        "winRate": 1,
+        "hpLeft": 0.921,
+        "winRounds": 4.2,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.9,
+        "level": 48,
+        "winRate": 1,
+        "hpLeft": 0.975,
+        "winRounds": 4.1,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 0.994,
+        "level": 55,
+        "winRate": 1,
+        "hpLeft": 0.982,
+        "winRounds": 3.9,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.197,
+        "level": 71,
+        "winRate": 1,
+        "hpLeft": 0.968,
+        "winRounds": 3.7,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.499,
+        "level": 96,
+        "winRate": 1,
+        "hpLeft": 0.997,
+        "winRounds": 3.6,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 70,
+      "winRate": 1,
+      "winRounds": 3.7,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0044",
+    "name": "남겨진 교단 전위대",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 21764,
+    "sawtooth": 1.045,
+    "teamLevel": 58,
+    "teamPowerRatio": 1.005,
+    "enemyPower": 23944,
+    "difficulty": 0.52,
+    "hpScale": 1.204,
+    "winRate": 1,
+    "avgRounds": 3.8,
+    "winRounds": 3.8,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0,
+    "hpLeft": 0.964,
+    "peakLoss": 0.097,
+    "myKill": 3.8,
+    "enemyKill": 11.5,
+    "allyHit": 0.58,
+    "allyMaxHit": 7.785,
+    "enemyHit": 0.136,
+    "enemyMaxHit": 0.313,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 0.52,
+        "hpScale": 1.204,
+        "myKill": 3.8,
+        "enemyKill": 11.5,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.8,
+        "level": 42,
+        "winRate": 1,
+        "hpLeft": 0.935,
+        "winRounds": 4.7,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.902,
+        "level": 50,
+        "winRate": 1,
+        "hpLeft": 0.954,
+        "winRounds": 3.9,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.005,
+        "level": 58,
+        "winRate": 1,
+        "hpLeft": 0.966,
+        "winRounds": 3.7,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.2,
+        "level": 74,
+        "winRate": 1,
+        "hpLeft": 0.982,
+        "winRounds": 3.3,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.506,
+        "level": 100,
+        "winRate": 1,
+        "hpLeft": 0.993,
+        "winRounds": 3.3,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 70,
+      "winRate": 1,
+      "winRounds": 3.5,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0045",
+    "name": "지하 고문실의 파수꾼",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 22361,
+    "sawtooth": 1.03,
+    "teamLevel": 60,
+    "teamPowerRatio": 1.004,
+    "enemyPower": 21437,
+    "difficulty": 1.454,
+    "hpScale": 0.688,
+    "winRate": 1,
+    "avgRounds": 3.5,
+    "winRounds": 3.5,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0,
+    "hpLeft": 0.936,
+    "peakLoss": 0.105,
+    "myKill": 3.5,
+    "enemyKill": 10.1,
+    "allyHit": 1.074,
+    "allyMaxHit": 11.61,
+    "enemyHit": 0.372,
+    "enemyMaxHit": 0.861,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 1.454,
+        "hpScale": 0.688,
+        "myKill": 3.5,
+        "enemyKill": 10.1,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.803,
+        "level": 44,
+        "winRate": 1,
+        "hpLeft": 0.889,
+        "winRounds": 3.8,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.904,
+        "level": 52,
+        "winRate": 1,
+        "hpLeft": 0.918,
+        "winRounds": 3.7,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.004,
+        "level": 60,
+        "winRate": 1,
+        "hpLeft": 0.935,
+        "winRounds": 3.4,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.202,
+        "level": 77,
+        "winRate": 1,
+        "hpLeft": 0.99,
+        "winRounds": 3.5,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.5,
+        "level": 103,
+        "winRate": 1,
+        "hpLeft": 0.982,
+        "winRounds": 3,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 70,
+      "winRate": 1,
+      "winRounds": 3.3,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0046",
+    "name": "의식실의 심문관들",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 22945,
+    "sawtooth": 1.015,
+    "teamLevel": 62,
+    "teamPowerRatio": 1.004,
+    "enemyPower": 21478,
+    "difficulty": 1.206,
+    "hpScale": 0.829,
+    "winRate": 1,
+    "avgRounds": 3.6,
+    "winRounds": 3.6,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0,
+    "hpLeft": 0.944,
+    "peakLoss": 0.081,
+    "myKill": 3.6,
+    "enemyKill": 11.9,
+    "allyHit": 0.778,
+    "allyMaxHit": 5.2,
+    "enemyHit": 0.299,
+    "enemyMaxHit": 0.703,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 1.206,
+        "hpScale": 0.829,
+        "myKill": 3.6,
+        "enemyKill": 11.9,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.795,
+        "level": 45,
+        "winRate": 1,
+        "hpLeft": 0.9,
+        "winRounds": 3.9,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.905,
+        "level": 54,
+        "winRate": 1,
+        "hpLeft": 0.928,
+        "winRounds": 3.7,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.004,
+        "level": 62,
+        "winRate": 1,
+        "hpLeft": 0.942,
+        "winRounds": 3.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.205,
+        "level": 80,
+        "winRate": 1,
+        "hpLeft": 0.987,
+        "winRounds": 3.6,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.495,
+        "level": 106,
+        "winRate": 1,
+        "hpLeft": 0.986,
+        "winRounds": 3,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 70,
+      "winRate": 1,
+      "winRounds": 3.5,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0047",
+    "name": "화형대 앞의 광신도들",
+    "stageType": "normal",
+    "target": {
+      "myMin": 3,
+      "myMax": 4,
+      "enemyMin": 10,
+      "enemyMax": 14
+    },
+    "recommended": 23632,
+    "sawtooth": 1,
+    "teamLevel": 64,
+    "teamPowerRatio": 1,
+    "enemyPower": 15363,
+    "difficulty": 1,
+    "hpScale": 1,
+    "winRate": 1,
+    "avgRounds": 4,
+    "winRounds": 4,
+    "p90Rounds": 4,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0,
+    "hpLeft": 1,
+    "peakLoss": 0,
+    "myKill": 3.9,
+    "enemyKill": 99,
+    "allyHit": 1.677,
+    "allyMaxHit": 11.999,
+    "enemyHit": 0,
+    "enemyMaxHit": 0,
+    "iterations": 32,
+    "ok": false,
+    "okMy": true,
+    "okEnemy": false,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 1,
+        "hpScale": 1,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 4.472,
+        "hpScale": 0.224,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 9.457,
+        "hpScale": 0.106,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 13.753,
+        "hpScale": 0.073,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 16.585,
+        "hpScale": 0.06,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 18.213,
+        "hpScale": 0.055,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.085,
+        "hpScale": 0.052,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.537,
+        "hpScale": 0.051,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.767,
+        "hpScale": 0.051,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.883,
+        "hpScale": 0.05,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.942,
+        "hpScale": 0.05,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.971,
+        "hpScale": 0.05,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.985,
+        "hpScale": 0.05,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.993,
+        "hpScale": 0.05,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 1,
+        "hpScale": 0.897,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 4.472,
+        "hpScale": 0.201,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 9.457,
+        "hpScale": 0.095,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 13.753,
+        "hpScale": 0.065,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 16.585,
+        "hpScale": 0.054,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 18.213,
+        "hpScale": 0.05,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.085,
+        "hpScale": 0.05,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.537,
+        "hpScale": 0.05,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 19.767,
+        "hpScale": 0.05,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 1,
+        "hpScale": 0.805,
+        "myKill": 3.8,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 4.472,
+        "hpScale": 0.18,
+        "myKill": 3.8,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 9.457,
+        "hpScale": 0.085,
+        "myKill": 3.8,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 13.753,
+        "hpScale": 0.059,
+        "myKill": 3.8,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 16.585,
+        "hpScale": 0.05,
+        "myKill": 3.9,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 1,
+        "hpScale": 0.741,
+        "myKill": 3.5,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 4.472,
+        "hpScale": 0.166,
+        "myKill": 3.5,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 9.457,
+        "hpScale": 0.078,
+        "myKill": 3.5,
+        "enemyKill": 99,
+        "winRate": 1
+      },
+      {
+        "difficulty": 13.753,
+        "hpScale": 0.054,
+        "myKill": 3.5,
+        "enemyKill": 99,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.8,
+        "level": 47,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 4,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.894,
+        "level": 55,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 4,
+        "checked": false,
+        "ok": true
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1,
+        "level": 64,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 4,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.195,
+        "level": 82,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 3.9,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.499,
+        "level": 110,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 3.5,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": true,
+    "atCap": {
+      "level": 70,
+      "winRate": 1,
+      "winRounds": 4,
+      "deaths": 0
+    }
+  },
+  {
+    "stageId": "stage_0048",
+    "name": "선혈의 수석 심문관",
+    "stageType": "boss",
+    "target": {
+      "myMin": 7,
+      "myMax": 9,
+      "enemyMin": 6,
+      "enemyMax": 8
+    },
+    "recommended": 25143,
+    "sawtooth": 0.95,
+    "teamLevel": 70,
+    "teamPowerRatio": 1.001,
+    "enemyPower": 93909,
+    "difficulty": 13.734,
+    "hpScale": 0.342,
+    "winRate": 1,
+    "avgRounds": 8.1,
+    "winRounds": 8.1,
+    "p90Rounds": 10,
+    "timeoutRate": 0,
+    "wipeRate": 0,
+    "deaths": 0.2,
+    "hpLeft": 0.849,
+    "peakLoss": 0.311,
+    "myKill": 7.7,
+    "enemyKill": 7.5,
+    "allyHit": 0.206,
+    "allyMaxHit": 1.304,
+    "enemyHit": 0.323,
+    "enemyMaxHit": 1.682,
+    "iterations": 1,
+    "ok": true,
+    "okMy": true,
+    "okEnemy": true,
+    "okTimeout": true,
+    "team": [
+      "char_0012",
+      "char_0006",
+      "char_0008",
+      "char_0002",
+      "char_0001"
+    ],
+    "history": [
+      {
+        "difficulty": 13.734,
+        "hpScale": 0.342,
+        "myKill": 7.7,
+        "enemyKill": 7.5,
+        "winRate": 1
+      }
+    ],
+    "powerCheck": [
+      {
+        "key": "r80",
+        "ratio": 0.8,
+        "actual": 0.796,
+        "level": 51,
+        "winRate": 0.37,
+        "hpLeft": 0.29,
+        "winRounds": 10.9,
+        "checked": true,
+        "ok": false
+      },
+      {
+        "key": "r90",
+        "ratio": 0.9,
+        "actual": 0.896,
+        "level": 60,
+        "winRate": 0.9,
+        "hpLeft": 0.716,
+        "winRounds": 9.8,
+        "checked": true,
+        "ok": false
+      },
+      {
+        "key": "r100",
+        "ratio": 1,
+        "actual": 1.001,
+        "level": 70,
+        "winRate": 1,
+        "hpLeft": 0.834,
+        "winRounds": 8,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r120",
+        "ratio": 1.2,
+        "actual": 1.205,
+        "level": 90,
+        "winRate": 1,
+        "hpLeft": 0.976,
+        "winRounds": 6.2,
+        "checked": true,
+        "ok": true
+      },
+      {
+        "key": "r150",
+        "ratio": 1.5,
+        "actual": 1.5,
+        "level": 119,
+        "winRate": 1,
+        "hpLeft": 1,
+        "winRounds": 5,
+        "checked": true,
+        "ok": true
+      }
+    ],
+    "powerOk": false,
+    "atCap": {
+      "level": 70,
+      "winRate": 1,
+      "winRounds": 8,
+      "deaths": 0.1
+    }
+  }
+]

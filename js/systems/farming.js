@@ -1,22 +1,25 @@
 // 스테이지 클리어 처리 한 곳: 별점 + 보상(stageProgress) + 장비 드롭 — 스토리 전투 · 반복 전투 · 소탕이 같이 씀
 // 반복 전투 = 렌더 없이 엔진만(sim.runOne + AUTO), 지면 멈춤. 소탕 = ★3 스테이지만, 전투 없이 보상 + 드롭. 스태미나 없음
-import { recordClear, stageRecord } from './stageProgress.js';
+import { recordClear, stageRecord, levelCapOf } from './stageProgress.js';
 import { dropTable, rollDrops, grantDrops, starsOf } from './gear.js';
 import { runOne } from '../battle/sim.js';
 
 /**
- * 승리 한 번 반영 → { rewards, first, stars, drops }
+ * 승리 한 번 반영 → { rewards, first, stars, drops, capRaised }
+ * capRaised = 이 클리어로 챕터를 다 깨서 레벨 상한이 오르면 새 상한 (아니면 null)
  * @param {{save, data}} ctx
  * @param {()=>number} rand 드롭 굴리기 (화면은 Math.random, 테스트는 시드)
  */
 export function clearStage(ctx, stage, summary, rand) {
   const stars = starsOf(summary, stage, ctx.data.balance);
+  const capBefore = ctx.data.stageMap ? levelCapOf(ctx) : null;
   const r = recordClear(ctx.save, stage, summary.rounds);
+  const capAfter = ctx.data.stageMap ? levelCapOf(ctx) : null;
   const rec = ctx.save.stages[stage.id];
   rec.stars = Math.max(rec.stars || 0, stars);
   const drops = rollDrops(dropTable(stage, ctx.data.chapters, ctx.data.balance), rand);
   grantDrops(ctx.save, drops);
-  return { ...r, stars, drops };
+  return { ...r, stars, drops, capRaised: capAfter > capBefore ? capAfter : null };
 }
 
 /** 소탕 가능한지 (★3 기록) */

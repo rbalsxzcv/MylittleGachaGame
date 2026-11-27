@@ -128,10 +128,12 @@ export function maxAffordable(lv, tickets, balance, cap = 100000, gold = Infinit
 }
 
 // ── 세이브 조작 ──────────────────────────────────────────
-/** 레벨업. 티켓이나 골드가 모자라면 false (아무것도 안 바뀜) */
-export function levelUp(save, id, n, balance) {
+/** 레벨업. 티켓이나 골드가 모자라거나 상한(cap)이면 false (아무것도 안 바뀜). n은 상한까지로 자름 */
+export function levelUp(save, id, n, balance, cap = Infinity) {
   const entry = save.owned[id];
-  if (!entry || n < 1) return false;
+  if (!entry) return false;
+  n = Math.min(n, cap - entry.level);
+  if (n < 1) return false;
   const cost = costFor(entry.level, n, balance);
   const gold = goldCostFor(entry.level, n, balance);
   if (save.tickets < cost || (save.gold || 0) < gold) return false;

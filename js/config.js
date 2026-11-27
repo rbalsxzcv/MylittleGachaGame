@@ -106,7 +106,9 @@ export const DEFAULTS = {
     },
     tweakWarnPct: 10, // 캐릭터 statTweak(%)가 이걸 넘으면 개발 도구 경고
   },
-  level: { costBase: 10, costExp: 1.25, goldPerTicket: 10 }, // lv→lv+1 티켓 = ceil(costBase × lv^costExp), 골드 = 티켓 × goldPerTicket
+  // lv→lv+1 티켓 = ceil(costBase × lv^costExp), 골드 = 티켓 × goldPerTicket
+  // 레벨 상한 = cap.base + cap.perChapter × (모두 깬 챕터 수)
+  level: { costBase: 10, costExp: 1.25, goldPerTicket: 10, cap: { base: 50, perChapter: 10 } },
   essence: { maxBreakthrough: 6, overflowTickets: { 1: 30, 2: 30, 3: 30, 4: 80, 5: 200 } }, // 돌파 1–6, 정수 1개씩
   daily: { tickets: 30, gold: 3000 },
   // 전투력 가중치 (energyRegen은 1을 넘는 만큼만)
@@ -176,6 +178,11 @@ export const DEFAULTS = {
   // 적: 기본(Lv.1) × 아키타입 배율 × 스테이지 난이도(difficulty, 튜너가 정함)
   enemy: {
     base: { atk: 150, def: 30, hp: 1350, spd: 100 }, // Lv.1 잡몹 기준 (튜너가 스테이지마다 difficulty로 맞춤)
+    critRate: 0.05, // 적 치명타 (적 생성기가 넣음 — 아군보다 편차를 작게)
+    // 웨이브 최소 인원 (스테이지 종류별): 적 생성기가 모자란 웨이브를 그 웨이브의 보스 아닌 적으로 돌아가며 채움 (빼지는 않음, 최대 6)
+    // 적 1타 상한이 있어서 압박은 '센 한 방'이 아니라 '적 수'로 — 한 마리 HP는 튜너 hpScale이 맞춤
+    waveSize: { normal: 3, elite: 4, boss: 4 },
+    critDmg: 0.5,
     archetypes: {
       grunt: { atk: 1, def: 1, hp: 1, spd: 1, effectRes: 0 },
       brute: { atk: 1.25, def: 1.3, hp: 1.8, spd: 0.88, effectRes: 0.05 },
@@ -190,7 +197,13 @@ export const DEFAULTS = {
   // 밸런스 툴킷: 스테이지마다 '그때쯤 플레이어 상태' 가정 → expectedPower, 기준 팀
   expected: {
     levelStart: 1,
-    levelPerStage: 1.4,
+    levelPerStage: 1.4, // 챕터 정보가 없을 때만 쓰는 예비 곡선 (1 + levelPerStage × 순서)
+    // 기대 레벨 = 챕터 안 경사: 시작 = 이전 챕터 상한 − capGap (첫 챕터는 levelStart) → 챕터 끝 = 이 챕터 상한 − capGap
+    capGap: 5,
+    repeatsPerStage: 3, // 경제 검사: 스테이지마다 반복 클리어 가정 횟수
+    daysPerChapter: 3, // 경제 검사: 챕터마다 일일 보상 받는 날 수
+    // 톱니 곡선: 기대 전투력 ÷ 권장 전투력 — 챕터 첫 스테이지 start → 보스 직전 end → 챕터 마지막(보스) boss, 다음 챕터는 다시 start
+    sawtooth: { start: 1.15, end: 1, boss: 0.95 },
     breakthrough: { 1: 3, 2: 3, 3: 2, 4: 1, 5: 0 }, // 희귀도별 돌파 가정 (breakthroughRamp 스테이지에 걸쳐 0에서 이 값까지)
     breakthroughRamp: 12,
     memory: { rarity: 3, levelRatio: 0.8, refine: 1 },
@@ -199,11 +212,30 @@ export const DEFAULTS = {
     gearFromPosition: 2, // 지역 안 이 순서부터 지역 티어 장비 (그 전은 이전 지역 티어, 첫 지역이면 장비 없음 — 드롭으로 모으는 중)
   },
   tuner: {
-    targetWinRate: { normal: 0.9, elite: 0.75, boss: 0.6 },
+    // 기준: 권장 전투력(= 그 스테이지를 '100% 결과'로 깨는 팀 전투력)의 팀으로 처치 턴 수를 맞춤 (1턴 = 1라운드)
+    //   내가 잡는 턴 = 적 HP 합 ÷ 아군 라운드당 피해, 적이 나를 잡는 턴 = 아군 HP 합 ÷ 적 라운드당 피해(보호막 · 치유 전)
+    //   적 공격력(difficulty) → 적이 잡는 턴, 적 HP(hpScale) → 내가 잡는 턴
+    killTurns: {
+      normal: { myMin: 3, myMax: 4, enemyMin: 10, enemyMax: 14 }, // 적이 잡는 턴 '10 이상' — 위를 14로 묶어서 적이 무해해지지 않게
+      elite: { myMin: 5, myMax: 6, enemyMin: 7, enemyMax: 9 },
+      boss: { myMin: 7, myMax: 9, enemyMin: 6, enemyMax: 8 },
+    },
+    // 전투력 검사 (권장 전투력 대비 팀 전투력 → AUTO 승률): 정예 · 보스는 전부, 일반은 100% 이상 칸만 (일반은 처치 턴 표가 우선)
+    powerCheck: {
+      r80: { ratio: 0.8, minWin: 0, maxWin: 0.2 }, // 거의 패배 — 육성하고 다시
+      r90: { ratio: 0.9, minWin: 0.3, maxWin: 0.85 }, // 잘 싸우면 승리
+      r100: { ratio: 1, minWin: 0.85, maxWin: 1 }, // 긴장감 있는 승리 (정예 · 보스 HP 30~50% 남음)
+      r120: { ratio: 1.2, minWin: 0.98, maxWin: 1 }, // 여유
+      r150: { ratio: 1.5, minWin: 1, maxWin: 1 }, // 자동으로 쉽게 (소탕 구간)
+    },
+    hpLeft: { min: 0.3, max: 0.5 }, // 100%에서 정예 · 보스가 끝날 때 남는 팀 HP (보고서 표시)
+    maxTimeoutRate: 0.05, // 100%에서 라운드 제한으로 지는 비율 상한
+    roundLimit: { normal: 8, elite: 12, boss: 16 }, // 적 생성기가 스테이지 종류별로 넣는 라운드 제한
     runs: 300,
-    tolerance: 0.03,
-    difficulty: { min: 0.2, max: 6 },
+    difficulty: { min: 0.05, max: 20 },
+    hpScale: { min: 0.05, max: 20 },
     maxIter: 14,
+    passes: 4, // difficulty(적이 잡는 턴) ↔ hpScale(내가 잡는 턴) 번갈아 맞추는 횟수
   },
   powerWarnPct: 15, // 같은 희귀도 평균 전투력보다 이만큼(%) 높으면 개발 도구 경고
   combat: {
@@ -211,7 +243,9 @@ export const DEFAULTS = {
     roundAv: 100, // 타임라인이 이만큼 흐를 때마다 1라운드
     queuePreview: 8, // 왼쪽 행동 순서에 보여 줄 인원
     maxRounds: 200, // 무한 전투 방지
-    energy: { max: 100, basic: 20, skill: 30, hit: 10, ultimateCost: 100 },
+    energy: { max: 100, basic: 20, skill: 30, hit: 10, ultimateCost: 100, start: 0 }, // start = 전투 시작 기력
+    // 피해 감쇠 = K / (K + 방어), K = defK × (1 + growth × (공격자 레벨 − 1)) → 같은 레벨끼리는 레벨과 무관하게 같은 비율
+    defK: 100,
     sp: { start: 3, max: 5, basicGain: 1, skillCost: 1 },
     // 스테이지 웨이브에 level이 없을 때: 적 레벨 = 1 + (추천 전투력 ÷ 5 − refPower) ÷ perLevel
     // refPower = Lv.1 3★ 한 명의 전투력, perLevel = 레벨 1당 늘어나는 전투력 (대략)
@@ -348,6 +382,7 @@ export function loadConfig(json, vocab = null, warn = () => {}) {
       costBase: num(j.level?.costBase, d.level.costBase, 0, 1e6),
       costExp: num(j.level?.costExp, d.level.costExp, 0, 5),
       goldPerTicket: num(j.level?.goldPerTicket, d.level.goldPerTicket, 0, 1e4),
+      cap: { base: int(j.level?.cap?.base, d.level.cap.base, 1, 100000), perChapter: int(j.level?.cap?.perChapter, d.level.cap.perChapter, 0, 10000) },
     },
     essence: {
       maxBreakthrough: int(j.essence?.maxBreakthrough, d.essence.maxBreakthrough, 0, MAX_BREAKTHROUGH),
@@ -361,6 +396,7 @@ export function loadConfig(json, vocab = null, warn = () => {}) {
       roundAv: int(j.combat?.roundAv, d.combat.roundAv, 1, 1e6),
       queuePreview: int(j.combat?.queuePreview, d.combat.queuePreview, 1, 20),
       maxRounds: int(j.combat?.maxRounds, d.combat.maxRounds, 10, 1000),
+      defK: num(j.combat?.defK, d.combat.defK, 1, 1e6),
       energy: rec(j.combat?.energy, d.combat.energy, 0, 1000),
       sp: rec(j.combat?.sp, d.combat.sp, 0, 99),
       enemyLevel: {
@@ -405,15 +441,18 @@ export function loadConfig(json, vocab = null, warn = () => {}) {
     },
     tuner: {
       ...like(j.tuner, d.tuner),
-      targetWinRate: like(j.tuner?.targetWinRate, d.tuner.targetWinRate, 1),
       runs: int(j.tuner?.runs, d.tuner.runs, 10, 100000),
       maxIter: int(j.tuner?.maxIter, d.tuner.maxIter, 1, 100),
+      passes: int(j.tuner?.passes, d.tuner.passes, 1, 20),
+      maxTimeoutRate: num(j.tuner?.maxTimeoutRate, d.tuner.maxTimeoutRate, 0, 1),
+      roundLimit: rec(j.tuner?.roundLimit, d.tuner.roundLimit, 1, 999),
     },
   };
   out.memoryGacha.rates = normalizeRates(out.memoryGacha.rates, d.memoryGacha.rates, warn, 'balance.memoryGacha.rates');
   out.combat.energy.max = Math.max(1, out.combat.energy.max);
   out.combat.sp.max = Math.max(1, out.combat.sp.max);
   out.combat.sp.start = Math.min(out.combat.sp.start, out.combat.sp.max);
+  out.combat.energy.start = Math.min(out.combat.energy.start, out.combat.energy.max);
   out.defaultKit = vocab ? cleanKit(j.defaultKit || {}, vocab, warn, 'balance.defaultKit', d.defaultKit) : structuredClone(d.defaultKit);
   return out;
 }
@@ -424,6 +463,12 @@ export const overflowTickets = (rarity, cfg) => cfg.essence.overflowTickets[norm
 
 /** 희귀도 기본 능력치 (모르는 희귀도면 3★) */
 export const rarityBaseStats = (rarity, cfg) => cfg.stats.byRarity[normalizeRarity(rarity) || 3];
+
+/** 레벨 상한: 기본 + 챕터당 증가 × 모두 깬 챕터 수 */
+export const levelCapFor = (clearedChapters, cfg) => cfg.level.cap.base + cfg.level.cap.perChapter * Math.max(0, clearedChapters || 0);
+
+/** 레벨 성장 배율 (atk/def/hp, 피해 감쇠 K) */
+export const levelMul = (level, cfg) => 1 + cfg.stats.growth * (Math.max(1, level || 1) - 1);
 
 /** 스테이지 웨이브의 적 레벨: 적어 둔 level → 없으면 추천 전투력으로 계산 */
 export function enemyLevelFor(entry, stage, cfg) {

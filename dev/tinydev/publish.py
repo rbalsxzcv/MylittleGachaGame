@@ -9,7 +9,7 @@ import json
 import shutil
 import subprocess
 
-from . import config, rarity, store, uislots, validate
+from . import config, memslots, rarity, store, uislots, validate
 from . import profile as profile_mod
 from .timeutil import now_iso, parse
 
@@ -158,13 +158,19 @@ def plan(cutoff=None):
 
     # ── 1) 보류 판정 ──
     out = {}
-    held_items, held = [], {"characters": set(), "banners": set(), "stories": set(), "notices": set(), "mail": set()}
+    held_items, held = [], {"characters": set(), "banners": set(), "stories": set(), "notices": set(), "mail": set(), "memories": set()}
     held_key = {"storyIndex": "stories"}
     for key in LIST_KEYS:
         keep = []
         for item in ws[key]:
             start = parse(_start_of(key, item)) if isinstance(item, dict) else None
-            if cutoff_dt and start and start > cutoff_dt:
+            if key == "memories" and memslots.is_draft(item):
+                # 빈 추억 칸 (draft) — 다 채울 때까지 공개하지 않음
+                held["memories"].add(item.get("id"))
+                if item.get("signatureOf"):
+                    held.setdefault("memoryOwners", set()).add(item["signatureOf"])
+                held_items.append({"type": key, "id": item.get("id"), "title": item.get("name") or "", "startAt": _start_of(key, item), "reason": "빈 추억 칸 (추억 탭에서 패시브를 채우면 공개)"})
+            elif cutoff_dt and start and start > cutoff_dt:
                 held[held_key.get(key, key)].add(item.get("id"))
                 held_items.append({"type": key, "id": item.get("id"), "title": item.get("name") or item.get("title") or "", "startAt": _start_of(key, item)})
             else:

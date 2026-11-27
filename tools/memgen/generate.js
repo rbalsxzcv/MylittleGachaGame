@@ -74,8 +74,30 @@ export function generateMemories({ characters, balance, vocab }) {
   return out;
 }
 
-/** 생성 결과 → memories.json에 쓰는 칸 (budget/issues 제외, 있던 id · 그림 · 공개 시각은 유지) */
+/** 생성 결과 → memories.json에 쓰는 칸 (budget/issues 제외, 있던 id · 그림 · 공개 시각은 유지)
+ *  생성 결과는 다 채워진 카드라 빈 칸 표시(draft)는 지움 */
 export function memoryFields(gen, existing = null) {
   const { budget, issues, ...fields } = gen;
-  return { ...(existing || {}), ...fields, id: existing?.id, image: existing?.image || '', thumb: existing?.thumb || '', addedAt: existing?.addedAt || '' };
+  const out = { ...(existing || {}), ...fields, id: existing?.id, image: existing?.image || '', thumb: existing?.thumb || '', addedAt: existing?.addedAt || '' };
+  delete out.draft;
+  return out;
+}
+
+/** 생성기 결과를 지금 목록에 합치기 (웹 '생성기로 다시 만들기' · cli.js 공용, id 발급은 부르는 쪽)
+ *  genKey가 같으면 같은 항목에 (id · 그림 · 공개 시각 유지). 생성기가 이번에 만들지 않은 genKey 항목은 지우지 않고 그대로 둠
+ *  (예: 키트가 아직 없는 5★의 빈 전용 칸, 5★가 아니게 된 캐릭터의 전용 추억 — 지우면 가진 카드가 사라지고 id가 삭제로 남음)
+ *  @returns {{entries:Array, fresh:Array, kept:Array}} entries = 새 목록(새 항목은 id 없음), fresh = 새 항목, kept = 그대로 둔 genKey 항목 */
+export function mergeGenerated(existing, gens) {
+  const byKey = new Map(existing.filter((m) => m.genKey).map((m) => [m.genKey, m]));
+  const made = new Set(gens.map((g) => g.genKey));
+  const entries = existing.filter((m) => !m.genKey || !made.has(m.genKey));
+  const kept = existing.filter((m) => m.genKey && !made.has(m.genKey));
+  const fresh = [];
+  for (const g of gens) {
+    const prev = byKey.get(g.genKey);
+    const entry = memoryFields(g, prev);
+    if (!prev) fresh.push(entry);
+    entries.push(entry);
+  }
+  return { entries, fresh, kept };
 }

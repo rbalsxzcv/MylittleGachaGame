@@ -192,11 +192,13 @@ export function linkEnemyNpcs(enemies, allCharMap) {
 
 // ── memories.json (추억 카드) ──────────────────────────────
 // { id, name, rarity 3–5, kind: default|generic|signature, role?(기본 추억), signatureOf?(전용 주인), featuredCharacterId?,
-//   baseAtk?(없으면 balance.memory.atkBase), secondary {stat}, passive {generic, owner?}, image, thumb, addedAt, retired? }
+//   baseAtk?(없으면 balance.memory.atkBase), secondary {stat}, passive {generic, owner?}, image, thumb, addedAt, retired?, draft?(빈 칸 → 무시) }
 // 역할 제한 없음 — 누구나 장착. owner 패시브는 장착자 = signatureOf일 때만
 export const MEMORY_KINDS = ['default', 'generic', 'signature'];
 export function validateMemories(json, vocab) {
-  return cleanList(asList(json, 'memories'), 'memories', (raw) => {
+  // draft: true = 개발 도구의 빈 추억 칸 (배포에서 보류됨) → 작업 공간 미리보기에서도 없는 것으로 봄
+  const list = asList(json, 'memories').filter((m) => !(m && m.draft === true));
+  return cleanList(list, 'memories', (raw) => {
     const name = str(raw.name).trim();
     if (!name) throw new Error('name 없음');
     const rarity = normalizeRarity(raw.rarity);
@@ -264,6 +266,7 @@ export function validateStages(json, ch = {}) {
       waves,
       // 난이도 배율(적 공격/HP, 자동 튜너가 정함) · 종류(목표 승률: normal/elite/boss)
       difficulty: Number.isFinite(Number(raw.difficulty)) && raw.difficulty !== '' && raw.difficulty != null ? Math.min(20, Math.max(0.05, Number(raw.difficulty))) : 1,
+      hpScale: Number.isFinite(Number(raw.hpScale)) && raw.hpScale !== '' && raw.hpScale != null ? Math.min(20, Math.max(0.05, Number(raw.hpScale))) : 1, // 적 HP만 (튜너: 전투 길이)
       stageType: STAGE_TYPES.includes(raw.stageType) ? raw.stageType : 'normal',
       // 라운드 제한 (예전 이름 turnLimit도 받음)
       roundLimit: (raw.roundLimit ?? raw.turnLimit) == null || (raw.roundLimit ?? raw.turnLimit) === '' ? null : int(raw.roundLimit ?? raw.turnLimit, 1, 999, 20),

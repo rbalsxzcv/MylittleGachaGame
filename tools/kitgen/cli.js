@@ -1,6 +1,6 @@
 // 키트 생성기 CLI (Node): node tools/kitgen/cli.js bootstrap [--apply] [--force]
 //   bootstrap: BOOTSTRAP 표대로 기존 캐릭터에 키트 생성 → 작업 공간(dev/workspace/data)과 공개(data/) characters.json 둘 다
-//   이미 kitGen이 있는 캐릭터는 그대로 (승인한 내용은 안 바뀜) — --force면 다시 생성. --apply 없으면 미리보기만
+//   이미 kitGen이 있는 캐릭터는 그대로 (승인한 내용은 안 바뀜) — --force면 kitGen(아키타입 · 변형 · 시드)대로 숫자만 다시 생성. --apply 없으면 미리보기만
 import fs from 'node:fs';
 import { loadConfig } from '../../js/config.js';
 import { generateKit, kitFields } from './generate.js';
@@ -24,9 +24,10 @@ for (const file of ['dev/workspace/data/characters.json', 'data/characters.json'
   const chars = readJson(file);
   let changed = 0;
   for (const c of chars) {
-    const a = BOOTSTRAP[c.id];
+    // 이미 생성기 기록(kitGen)이 있으면 그 아키타입 · 변형 · 시드 · 역할 그대로 숫자만 다시 (--force) — 이름과 고른 변형은 안 바뀜
+    const a = c.kitGen?.archetype ? { role: c.role || BOOTSTRAP[c.id]?.role, archetype: c.kitGen.archetype, variants: c.kitGen.variants, seed: c.kitGen.seed } : BOOTSTRAP[c.id];
     if (!a || (c.kitGen && !force)) continue;
-    const g = generateKit({ id: c.id, role: a.role, rarity: c.rarity, archetype: a.archetype, balance, vocab });
+    const g = generateKit({ id: c.id, role: a.role, rarity: c.rarity, archetype: a.archetype, variants: a.variants || {}, seed: a.seed, balance, vocab });
     Object.assign(c, kitFields(g));
     changed += 1;
     const pct = Object.entries(g.budget).map(([k, b]) => `${k} ${b.pct}%`).join(', ');

@@ -59,7 +59,12 @@ describe('config: loadConfig', () => {
     expect(c.stats.growth).toBe(0.08);
     expect(c.stats.critRate).toBe(0.05);
     expect(c.combat.sp).toEqual({ start: 3, max: 5, basicGain: 1, skillCost: 1 });
-    expect(c.combat.energy).toEqual({ max: 100, basic: 20, skill: 30, hit: 10, ultimateCost: 100 });
+    expect(c.combat.energy).toEqual({ max: 100, basic: 20, skill: 30, hit: 10, ultimateCost: 100, start: 0 });
+    expect(c.combat.defK).toBe(100);
+    expect([c.enemy.critRate, c.enemy.critDmg]).toEqual([0.05, 0.5]);
+    expect(c.level.cap).toEqual({ base: 50, perChapter: 10 });
+    expect(c.tuner.killTurns.boss).toEqual({ myMin: 7, myMax: 9, enemyMin: 6, enemyMax: 8 });
+    expect(c.expected.sawtooth).toEqual({ start: 1.15, end: 1, boss: 0.95 });
     expect(c.essence.overflowTickets).toEqual({ 1: 30, 2: 30, 3: 30, 4: 80, 5: 200 });
     expect(c.daily.tickets).toBe(30);
   });
@@ -68,7 +73,7 @@ describe('config: loadConfig', () => {
     expect(c.stats.byRarity[3]).toEqual({ atk: 100, def: 40, hp: 900, spd: 100 });
     expect(c.stats.byRarity[5]).toEqual({ atk: 130, def: 52, hp: 1170, spd: 105 });
     expect(c.stats.byRarity[1]).toEqual(DEFAULTS.stats.byRarity[1]);
-    expect(c.level).toEqual({ costBase: 10, costExp: 1.25, goldPerTicket: 10 });
+    expect(c.level).toEqual({ costBase: 10, costExp: 1.25, goldPerTicket: 10, cap: { base: 50, perChapter: 10 } });
     expect(c.essence.overflowTickets[5]).toBe(200);
     expect(c.essence.overflowTickets[4]).toBe(80);
     expect(c.essence.overflowTickets[3]).toBe(30);
@@ -110,7 +115,7 @@ describe('config: loadConfig', () => {
     expect(c.memoryGacha.pity).toBe(60);
     expect(c.gear.tiers).toBe(8);
     expect(c.gear.maxEnh).toBe(5);
-    expect(c.tuner.targetWinRate).toEqual({ normal: 0.9, elite: 0.75, boss: 0.6 });
+    expect(c.tuner.powerCheck.r100).toEqual({ ratio: 1, minWin: 0.85, maxWin: 1 });
     expect(c.tuner.runs).toBe(300);
     expect(Object.keys(c.enemy.archetypes).sort()).toEqual([...ENEMY_ARCHETYPES].sort());
   });

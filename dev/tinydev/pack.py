@@ -12,7 +12,7 @@ import re
 import secrets
 import threading
 
-from . import bible, genai, kit, store
+from . import bible, genai, kit, memslots, store
 from .genai import GenError
 from .timeutil import now_iso, stamp
 
@@ -466,7 +466,8 @@ def stage_entry(arc, n, battle, enemies_by_id, roles, balance, sid=None, story=N
         "storyId": story,
         "recommendedPower": int(round(strongest * 1.2 / 100.0) * 100),
         "waves": waves,
-        "roundLimit": 25 if has_boss else 20,
+        # 라운드 제한 = balance.tuner.roundLimit (스테이지 종류별 — 적 생성기와 같은 값). 정예는 적 생성기가 다시 맞춤
+        "roundLimit": int(((balance.get("tuner") or {}).get("roundLimit") or {}).get("boss" if has_boss else "normal", 18 if has_boss else 10)),
         "rewards": {"tickets": 40 + 5 * (n - 1) + 30 * (arc - 1), "gems": 0, "gold": (40 + 5 * (n - 1) + 30 * (arc - 1)) * 10},
         "firstClearRewards": {"tickets": 150 + 10 * n, "gems": 100 if has_boss else 50, "gold": (150 + 10 * n) * 10},
     }
@@ -608,7 +609,8 @@ def _run(st, plan, options):
             entry = {"id": c["id"], "name": c["name"], "rarity": c["rarity"], "title": c["title"], "description": c["description"], "image": "", "addedAt": now_iso(), "keywords": c["keywords"], "lore": c["lore"], "arc": arc}
             made += _upsert(chars, entry)
         store.write_list("characters", chars)
-        _step(st, "characters", status="done", note=f"새로 {made}명 (이미 있던 {len(plan['characters']) - made}명은 그대로)")
+        slots = memslots.ensure_signature_slots([c["id"] for c in plan["characters"]])  # 5★ → 전용 추억 빈 칸
+        _step(st, "characters", status="done", note=f"새로 {made}명 (이미 있던 {len(plan['characters']) - made}명은 그대로)" + (f" · 전용 추억 빈 칸 {len(slots)}장" if slots else ""))
 
         # 2) 적
         _step(st, "enemies", status="running")

@@ -3,7 +3,7 @@ import { h, toast, confirmBox, busy, isoToLocal, localToIso, fmt } from '../ui.j
 import { api, tryApi } from '../api.js';
 import { state, reloadData, reloadStatus } from '../state.js';
 
-const TYPE_LABEL = { characters: '캐릭터', banners: '배너', storyIndex: '스토리', notices: '공지', mail: '우편' };
+const TYPE_LABEL = { characters: '캐릭터', banners: '배너', storyIndex: '스토리', notices: '공지', mail: '우편', memories: '추억' };
 const STATUS_LABEL = { added: '추가', modified: '수정', removed: '삭제' };
 
 export function publishTab(root) {
@@ -40,7 +40,7 @@ export function publishTab(root) {
         h('h2', {}, `2. 이번에 보류되는 콘텐츠 (${plan.held.length})`),
         h('p', { class: 'muted small' }, `시작 시각이 기준(${fmt(plan.cutoff)})보다 늦은 항목은 공개 저장소에 올리지 않아요 → 스포일러 방지. 기준 시각이 지난 뒤 다시 배포하세요.`),
         plan.held.length
-          ? h('ul', {}, plan.held.map((x) => h('li', {}, `[${TYPE_LABEL[x.type] || x.type}] ${x.title || x.id} — ${fmt(x.startAt)} 시작`)))
+          ? h('ul', {}, plan.held.map((x) => h('li', {}, `[${TYPE_LABEL[x.type] || x.type}] ${x.title || x.id} — ${x.reason || `${fmt(x.startAt)} 시작`}`)))
           : h('p', { class: 'muted' }, '보류되는 항목이 없어요'),
       ),
       h(

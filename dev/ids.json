@@ -1,14 +1,14 @@
 {
   "next": {
-    "char": 15,
-    "enemy": 12,
-    "stage": 37,
-    "story": 37,
+    "char": 20,
+    "enemy": 17,
+    "stage": 49,
+    "story": 49,
     "banner": 5,
     "notice": 1,
     "mail": 3,
     "shop": 24,
-    "bg": 15,
+    "bg": 20,
     "prop": 1,
     "memory": 19
   },

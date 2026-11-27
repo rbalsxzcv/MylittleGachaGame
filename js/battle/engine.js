@@ -18,7 +18,7 @@
 //   - 토큰(차지/소환): 타임라인에 유닛처럼 놓여 자기 차례에 효과 실행. 같은 av면 유닛이 먼저. 주인이 쓰러지면 사라짐
 
 import { createRng } from '../core/rng.js';
-import { enemyLevelFor } from '../config.js';
+import { enemyLevelFor, levelMul } from '../config.js';
 import { buildUnit } from './units.js';
 import { EFFECTS } from './effects/index.js';
 import { TARGETING, selectable, lowestHp } from './targeting.js';
@@ -71,6 +71,7 @@ export function createBattle({ team, stage, data, seed = 1 }) {
     round: 1,
     elapsed: 0, // 지금까지 흐른 타임라인
     roundLimit: stage.roundLimit ?? stage.turnLimit ?? null,
+    minTeamHp: 1, // 아군 팀 HP 최저점 (applyRaw가 기록)
     maxRounds: C.maxRounds,
     wave: -1,
     waveCount: stage.waves.length,
@@ -188,6 +189,21 @@ export function createBattle({ team, stage, data, seed = 1 }) {
 
   /** 보호막 → HP 순서로 피해 적용. 반환: 실제로 깎인 양(보호막 포함) */
   function applyRaw(tgt, amount) {
+    const r = applyRawInner(tgt, amount);
+    // 아군 팀 HP 최저점 기록 (밸런스 보고서 '압박도' — 결과에는 영향 없음)
+    if (tgt.side === 'ally' && r.lost > 0) {
+      let hp = 0;
+      let max = 0;
+      for (const u of state.allies) {
+        max += u.maxHp;
+        hp += u.alive ? Math.max(0, u.hp) : 0;
+      }
+      if (max) state.minTeamHp = Math.min(state.minTeamHp, hp / max);
+    }
+    return r;
+  }
+
+  function applyRawInner(tgt, amount) {
     let rest = amount;
     let absorbed = 0;
     if (tgt.shield) {
@@ -218,11 +234,25 @@ export function createBattle({ team, stage, data, seed = 1 }) {
     isActor: (u) => state.actorUid === u.uid,
     canUse: (u, a) => canUse(u, a),
     skillCost,
+    /** 피해 감쇠 배율 K / (K + 방어), K = defK × 공격자 레벨 성장 배율 (같은 레벨끼리는 레벨과 무관) */
+    mitigation: (src, D) => {
+      const K = balance.combat.defK * levelMul(src.level, balance);
+      return K / (K + Math.max(0, D));
+    },
     /** 직접 피해 (공격받음 → 기력 +, 발동 조건 기록) */
     hit(ctx, src, tgt, amount, crit) {
       const { absorbed, lost } = applyRaw(tgt, amount);
       src.stats.dealt += absorbed + lost;
       tgt.stats.taken += absorbed + lost;
+      // 1타 비율 기록 (밸런스 보고서용, 결과에는 영향 없음)
+      const pct = amount / Math.max(1, tgt.maxHp);
+      src.stats.hits += 1;
+      src.stats.hitPct += pct;
+      src.stats.maxHitPct = Math.max(src.stats.maxHitPct, pct);
+      tgt.stats.hitsTaken += 1;
+      tgt.stats.takenPct += pct;
+      tgt.stats.maxTakenPct = Math.max(tgt.stats.maxTakenPct, pct);
+      tgt.stats.takenRaw += amount; // 보호막 · 치유 전 받은 피해 (처치 턴 계산용)
       log({ t: 'damage', src: src.uid, tgt: tgt.uid, amount, absorbed, crit, hp: tgt.hp });
       ctx.hits.push({ src, tgt });
       if (crit) {
@@ -358,7 +388,7 @@ export function createBattle({ team, stage, data, seed = 1 }) {
       .map((e, j) => {
         const entity = data.enemyMap.get(e.enemyId);
         if (!entity) return null;
-        const u = buildUnit({ entity, level: enemyLevelFor(e, stage, balance), side: 'enemy', slot: j, uid: `w${i + 1}e${j + 1}`, balance, difficulty: stage.difficulty ?? 1 });
+        const u = buildUnit({ entity, level: enemyLevelFor(e, stage, balance), side: 'enemy', slot: j, uid: `w${i + 1}e${j + 1}`, balance, difficulty: stage.difficulty ?? 1, hpScale: stage.hpScale ?? 1 });
         u.av = turnLength(u); // 지금부터 한 턴 뒤에 첫 행동
         return u;
       })
@@ -622,9 +652,10 @@ export function createBattle({ team, stage, data, seed = 1 }) {
     if (u.dots.length) {
       for (const d of u.dots) {
         if (!u.alive) break;
+        const src = unitOf(d.src);
         const amount = Math.max(1, Math.floor(d.dmg * Math.max(0, 1 + stat(u, 'dmgTaken'))));
         const { absorbed, lost } = applyRaw(u, amount);
-        const src = unitOf(d.src);
+        u.stats.takenRaw += amount;
         if (src) src.stats.dealt += absorbed + lost;
         u.stats.taken += absorbed + lost;
         log({ t: 'damage', src: d.src, tgt: u.uid, amount, absorbed, crit: false, dot: true, hp: u.hp });
@@ -848,6 +879,7 @@ export function createBattle({ team, stage, data, seed = 1 }) {
         reason: state.reason,
         rounds: state.round,
         seed: state.seed,
+        minTeamHp: Math.round(state.minTeamHp * 1000) / 1000, // 전투 중 아군 팀 HP 합이 가장 낮았을 때 (최대 HP 합 대비)
         units: state.allies.map((u) => ({ uid: u.uid, refId: u.refId, name: u.name, alive: u.alive, hp: u.hp, maxHp: u.maxHp, ...u.stats })),
       };
     },

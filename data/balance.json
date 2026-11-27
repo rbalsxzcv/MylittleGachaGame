@@ -19,38 +19,38 @@
     "growth": 0.08,
     "byRarity": {
       "1": {
-        "atk": 85,
-        "def": 34,
+        "atk": 170,
+        "def": 68,
         "hp": 765,
         "spd": 95
       },
       "2": {
-        "atk": 92,
-        "def": 37,
+        "atk": 184,
+        "def": 74,
         "hp": 830,
         "spd": 97
       },
       "3": {
-        "atk": 100,
-        "def": 40,
+        "atk": 200,
+        "def": 80,
         "hp": 900,
         "spd": 100
       },
       "4": {
-        "atk": 115,
-        "def": 46,
+        "atk": 230,
+        "def": 92,
         "hp": 1035,
         "spd": 102
       },
       "5": {
-        "atk": 130,
-        "def": 52,
+        "atk": 260,
+        "def": 104,
         "hp": 1170,
         "spd": 105
       }
     },
-    "critRate": 0.05,
-    "critDmg": 0.5,
+    "critRate": 0.15,
+    "critDmg": 1,
     "rarityMul": {
       "1": 0.66,
       "2": 0.72,
@@ -60,12 +60,12 @@
     },
     "roleTemplate": {
       "attacker": {
-        "atk": 145,
-        "def": 46,
+        "atk": 290,
+        "def": 92,
         "hp": 1050,
         "spd": 104,
-        "critRate": 0.05,
-        "critDmg": 0.5,
+        "critRate": 0.15,
+        "critDmg": 1,
         "energyRegen": 1,
         "effectHit": 0,
         "effectRes": 0,
@@ -73,12 +73,12 @@
         "shieldBonus": 0
       },
       "defender": {
-        "atk": 100,
-        "def": 72,
+        "atk": 200,
+        "def": 144,
         "hp": 1500,
         "spd": 96,
-        "critRate": 0.05,
-        "critDmg": 0.5,
+        "critRate": 0.15,
+        "critDmg": 1,
         "energyRegen": 1,
         "effectHit": 0,
         "effectRes": 0.1,
@@ -86,12 +86,12 @@
         "shieldBonus": 0
       },
       "support": {
-        "atk": 115,
-        "def": 52,
+        "atk": 230,
+        "def": 104,
         "hp": 1150,
         "spd": 110,
-        "critRate": 0.05,
-        "critDmg": 0.5,
+        "critRate": 0.15,
+        "critDmg": 1,
         "energyRegen": 1,
         "effectHit": 0.1,
         "effectRes": 0,
@@ -99,12 +99,12 @@
         "shieldBonus": 0
       },
       "healer": {
-        "atk": 110,
-        "def": 52,
+        "atk": 220,
+        "def": 104,
         "hp": 1250,
         "spd": 102,
-        "critRate": 0.05,
-        "critDmg": 0.5,
+        "critRate": 0.15,
+        "critDmg": 1,
         "energyRegen": 1,
         "effectHit": 0,
         "effectRes": 0,
@@ -115,9 +115,13 @@
     "tweakWarnPct": 10
   },
   "level": {
-    "costBase": 10,
-    "costExp": 1.25,
-    "goldPerTicket": 10
+    "costBase": 1,
+    "costExp": 1,
+    "goldPerTicket": 10,
+    "cap": {
+      "base": 50,
+      "perChapter": 10
+    }
   },
   "essence": {
     "maxBreakthrough": 6,
@@ -134,8 +138,8 @@
     "gold": 3000
   },
   "power": {
-    "atk": 2,
-    "def": 1.5,
+    "atk": 1,
+    "def": 0.75,
     "hp": 0.2,
     "spd": 2,
     "critRate": 300,
@@ -157,7 +161,8 @@
       "basic": 20,
       "skill": 30,
       "hit": 10,
-      "ultimateCost": 100
+      "ultimateCost": 100,
+      "start": 25
     },
     "sp": {
       "start": 3,
@@ -172,7 +177,8 @@
     "fx": {
       "actionMs": 500,
       "cutinMs": 1000
-    }
+    },
+    "defK": 200
   },
   "defaultKit": {
     "basic": {
@@ -224,7 +230,7 @@
         },
         {
           "stat": "critRate",
-          "pct": 6
+          "pct": 10
         },
         {
           "stat": "atk",
@@ -232,7 +238,7 @@
         },
         {
           "stat": "critDmg",
-          "pct": 18
+          "pct": 30
         }
       ],
       "defender": [
@@ -301,8 +307,8 @@
   "kitBudget": {
     "points": {
       "damage": 100,
-      "heal": 90,
-      "shield": 80,
+      "heal": 144,
+      "shield": 128,
       "dot": 85,
       "buff": 2.5,
       "debuff": 2.5,
@@ -328,8 +334,8 @@
       "def": 0.6,
       "hp": 0.6,
       "spd": 1.5,
-      "critRate": 2,
-      "critDmg": 0.8,
+      "critRate": 1,
+      "critDmg": 0.35,
       "dmgDealt": 1.2,
       "dmgTaken": 1.2,
       "energyRegen": 1,
@@ -371,13 +377,13 @@
       "mark_turns": 24
     },
     "caps": {
-      "basic": 100,
-      "skill": 220,
-      "ultimate": 420,
-      "talent": 120,
-      "bt2": 80,
-      "bt6": 160,
-      "signature": 100
+      "basic": 120,
+      "skill": 352,
+      "ultimate": 672,
+      "talent": 192,
+      "bt2": 128,
+      "bt6": 256,
+      "signature": 160
     },
     "rarityFactor": {
       "1": 0.55,
@@ -392,9 +398,9 @@
     "maxLevel": 50,
     "growth": 0.08,
     "atkBase": {
-      "3": 24,
-      "4": 34,
-      "5": 46
+      "3": 48,
+      "4": 68,
+      "5": 92
     },
     "secondary": {
       "3": 6,
@@ -443,14 +449,14 @@
         "hp": 160
       },
       "def": {
-        "def": 12
+        "def": 24
       },
       "crit": {
         "critRate": 0.015,
         "critDmg": 0.03
       },
       "atk": {
-        "atk": 18
+        "atk": 36
       }
     },
     "tierMul": 1.35,
@@ -492,9 +498,9 @@
   },
   "enemy": {
     "base": {
-      "atk": 150,
-      "def": 30,
-      "hp": 1350,
+      "atk": 500,
+      "def": 60,
+      "hp": 7200,
       "spd": 100
     },
     "archetypes": {
@@ -507,8 +513,8 @@
       },
       "brute": {
         "atk": 1.25,
-        "def": 1.3,
-        "hp": 1.8,
+        "def": 1.1,
+        "hp": 1.4,
         "spd": 0.88,
         "effectRes": 0.05
       },
@@ -554,6 +560,13 @@
         "spd": 1.02,
         "effectRes": 0.2
       }
+    },
+    "critRate": 0.05,
+    "critDmg": 0.5,
+    "waveSize": {
+      "normal": 3,
+      "elite": 4,
+      "boss": 4
     }
   },
   "expected": {
@@ -577,20 +590,84 @@
       4,
       5
     ],
-    "gearFromPosition": 2
+    "gearFromPosition": 2,
+    "capGap": 5,
+    "repeatsPerStage": 3,
+    "daysPerChapter": 3,
+    "sawtooth": {
+      "start": 1.15,
+      "end": 1,
+      "boss": 0.95
+    }
   },
   "tuner": {
-    "targetWinRate": {
-      "normal": 0.9,
-      "elite": 0.75,
-      "boss": 0.6
+    "killTurns": {
+      "normal": {
+        "myMin": 3,
+        "myMax": 4,
+        "enemyMin": 10,
+        "enemyMax": 14
+      },
+      "elite": {
+        "myMin": 5,
+        "myMax": 6,
+        "enemyMin": 7,
+        "enemyMax": 9
+      },
+      "boss": {
+        "myMin": 7,
+        "myMax": 9,
+        "enemyMin": 6,
+        "enemyMax": 8
+      }
+    },
+    "powerCheck": {
+      "r80": {
+        "ratio": 0.8,
+        "minWin": 0,
+        "maxWin": 0.2
+      },
+      "r90": {
+        "ratio": 0.9,
+        "minWin": 0.3,
+        "maxWin": 0.85
+      },
+      "r100": {
+        "ratio": 1,
+        "minWin": 0.85,
+        "maxWin": 1
+      },
+      "r120": {
+        "ratio": 1.2,
+        "minWin": 0.98,
+        "maxWin": 1
+      },
+      "r150": {
+        "ratio": 1.5,
+        "minWin": 1,
+        "maxWin": 1
+      }
+    },
+    "hpLeft": {
+      "min": 0.3,
+      "max": 0.5
+    },
+    "maxTimeoutRate": 0.05,
+    "roundLimit": {
+      "normal": 8,
+      "elite": 12,
+      "boss": 16
     },
     "runs": 300,
-    "tolerance": 0.03,
     "difficulty": {
-      "min": 0.2,
-      "max": 6
+      "min": 0.05,
+      "max": 20
     },
-    "maxIter": 14
+    "hpScale": {
+      "min": 0.05,
+      "max": 20
+    },
+    "maxIter": 14,
+    "passes": 4
   }
 }

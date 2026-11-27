@@ -1,0 +1,268 @@
+{
+  "id": "story_0038",
+  "title": "족쇄와 고기 스튜",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#1b1440"
+      },
+      "next": "s2",
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "티르는 뜨거운 무쇠 냄비를 두 손으로 들고 스튜를 마셨다."
+        },
+        {
+          "speaker": "char_0006",
+          "text": "천천히 드세요. 바닥에 눌어붙은 비계도 긁어 드릴게요."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "고기 언니 최고! 티르 한 냄비 더 먹을래!"
+        },
+        {
+          "speaker": "char_0007",
+          "text": "어머나, 저 작은 배에 열 명분 양식이 다 들어가고 있잖아요!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "문짝은 박살 내 놓고 밥통은 거덜 내는군. 누구 피를 빼먹으려고.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 진짜 어디서 사고 친 적 없어? 먹는 꼴이 똑같은데."
+        },
+        {
+          "speaker": "narrator",
+          "text": "헛소리 마. ……그보다 영감, 저 손목에 달린 건 못 따나?",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "마르텐이 외눈을 찌푸리며 티르의 손목에 달린 쇳덩이를 살폈다."
+        },
+        {
+          "speaker": "char_0018",
+          "text": "단장 양반, 이건 보통 족쇄가 아냐. 열쇠 구멍 자체가 없다고."
+        },
+        {
+          "speaker": "char_0018",
+          "text": "안쪽에 징그러운 글자가 파여 있는데…… 쇳물이 살에 붙었어."
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "술부대를 흔들던 발레리아가 다가와 족쇄의 문양을 내려다보았다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "……이거 광휘교단 룬이잖아. 지하 심문소에서나 쓰는 물건인데."
+        },
+        {
+          "speaker": "narrator",
+          "text": "발레리아가 왼손으로 관자놀이를 짓누르며 인상을 썼다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "단장 놈, 이 꼬맹이 당장 버려. 교단 놈들 엮여서 좋을 거 없다."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "싫어! 티르 안 가! 하얀 옷 입은 아저씨들 냄새나고 아파!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "티르가 빈 냄비를 떨어뜨리고 단장의 바짓가랑이를 붙잡았다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 늦었어. 부서진 문밖에서 개 냄새가 나."
+        },
+        {
+          "speaker": "narrator",
+          "text": "부서진 정문 너머로 사냥개와 쇠사슬을 쥔 사내들이 들어섰다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "찾았다, 성물 7호! 감히 사슬을 끊어? 개들아, 물어뜯어라!",
+          "name": "교단 사냥개 조련사"
+        },
+        {
+          "speaker": "narrator",
+          "text": "남의 안방에 똥개들을 풀어?",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "가죽 벗겨서 문풍지 대신 발라라!",
+              "goto": "s2_1"
+            },
+            {
+              "text": "개들은 안나 주고, 조련사 주머니나 털어!",
+              "goto": "s2_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#33264f"
+      },
+      "next": "b1",
+      "lines": [
+        {
+          "speaker": "char_0007",
+          "text": "어머나, 개가죽으로 바람이 막혀요? 그냥 뼈까지 다 부숴버려요!"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "크하하! 교단 개새끼들, 오랜만에 대가리 좀 깨주마!"
+        }
+      ]
+    },
+    {
+      "id": "s2_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#24304a"
+      },
+      "next": "b1",
+      "lines": [
+        {
+          "speaker": "char_0006",
+          "text": "사냥개는 질겨서 푹 고아야 해요. 앞치마부터 매고 올게요."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……은 십자가 달린 놈은 내 거."
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0038",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#1b1440"
+      },
+      "next": "s4",
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "사냥개들이 피를 쏟으며 쓰러졌다. 남은 조련사가 창을 겨눴다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "이 괴물 꼬맹이가, 얌전히 잡혀가지 못해!",
+          "name": "교단 사냥개 조련사"
+        },
+        {
+          "speaker": "char_0015",
+          "text": "아빠 건드리지 마!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "티르가 사내의 강철 투구를 움켜쥐었다. 투구가 힘없이 찌그러졌다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "사내는 비명도 없이 바닥에 고꾸라졌다. 방 안이 가라앉았다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "……어이, 방금 쇳덩이를 맨손으로 구긴 거냐?"
+        },
+        {
+          "speaker": "char_0015",
+          "text": "아빠, 티르가 저 나쁜 아저씨 날려버렸어! 잘했지?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "티르의 코에서 피가 흘러내렸다. 아이는 소매로 쓱 훔쳐냈다."
+        },
+        {
+          "speaker": "char_0006",
+          "text": "……단장님. 이 아이, 등 뒤 살이 검게 부어오르고 있어요."
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "char_0007",
+          "text": "세상에, 살갗 아래 핏줄이 타들어 가는 것처럼 시커멓잖아요."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……빌어먹을, 참나무 문짝 값만 은화 열 닢이다. 스튜도 다 비웠고.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "어이, 꼬맹이. 문짝 값 다 갚을 때까지 넌 짐꾼이야. 도망 못 가.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0015",
+          "text": "응! 티르 힘세! 아빠랑 같이 있을래!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 저렇게 먹어 치우는 짐꾼이면 밑지는 장사야."
+        },
+        {
+          "speaker": "narrator",
+          "text": "황소 한 마리 들였다 치면 되지.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "황소가 코피 흘린다고 약제사 찾으러 가진 않아. 다 티 나."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……시끄러워. 일꾼이 시체가 되면 문짝 값은 누구한테 받아!",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장이 죽은 조련사의 입을 단검 끝으로 헤쳐 금니 둘을 뽑았다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "뒷골목에 금니 받고 칼질하는 돌팔이가 있어. 죽기 전에 가자.",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}

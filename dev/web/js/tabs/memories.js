@@ -1,8 +1,9 @@
-// 추억 탭: 추억 카드 목록 / 편집(이름 · 희귀도 · 종류 · 주인 · 부옵션 · 패시브) / 생성기로 다시 만들기 / 카드 그림(ComfyUI)
+// 추억 탭: 추억 카드 목록 / 새 추억 / 편집(이름 · 희귀도 · 종류 · 주인 · 부옵션 · 패시브) / 생성기로 다시 만들기 / 카드 그림(ComfyUI)
+// 빈 칸(draft: true): 새 추억 · 5★ 전용 빈 칸(서버 memslots.py가 캐릭터를 만들 때 자동)은 일반 패시브를 채워 저장할 때까지 배포에서 보류, 게임은 무시
 // 일반 라이브러리 + 5★ 전용 추억은 tools/memgen(결정론, AI 없음)이 만들고 genKey로 같은 항목에 다시 붙음 (id · 그림 · 공개 시각 유지)
 // 그림: 장면 프롬프트(AI 또는 테마 태그) + 주인 캐릭터 외형 슬롯 그대로 → 1차만 → 카드 WebP(높이 1024) + 썸네일(256)
 //       마음에 드는 시도만 '하이레스로 다듬기'(검토 패널, 1.25× · 13스텝 img2img 한 번)
-import { h, toast, confirmBox, busy, wsImage, idBadge, rarLabel } from '../ui.js';
+import { h, toast, confirmBox, busy, wsImage, idBadge, rarLabel, dateField, nowIso, gradeOf } from '../ui.js';
 import { api, tryApi, newId } from '../api.js';
 import { state, reloadData } from '../state.js';
 import { jobPanel } from '../jobPanel.js';
@@ -12,6 +13,9 @@ import { loadKitTools } from '../kitTools.js';
 
 const KIND_LABEL = { default: '역할 기본', generic: '일반', signature: '전용 (5★)' };
 const ROLE_LABEL = { attacker: '딜러', defender: '탱커', support: '지원', healer: '치유' };
+const blankMemory = () => ({ id: '', name: '', rarity: 4, kind: 'generic', secondary: { stat: 'atk' }, passive: {}, theme: [], image: '', thumb: '', addedAt: '', draft: true });
+/** 일반 패시브에 효과나 수정자가 하나라도 있으면 채워진 카드 (빈 칸 풀림) */
+const filled = (m) => !!((m.passive?.generic?.effects || []).length || (m.passive?.generic?.modifiers || []).length);
 
 export function memoriesTab(root, { select } = {}) {
   let kt = null;
@@ -21,6 +25,8 @@ export function memoriesTab(root, { select } = {}) {
   let dirty = false;
   const list = h('div', { class: 'item-list' });
   const editor = h('div', { class: 'col-right' });
+  const title = h('h2', {});
+  const slotBtn = h('button', { class: 'btn small', onclick: makeSlots, hidden: true });
   root.replaceChildren(h('p', { class: 'muted' }, '불러오는 중…'));
 
   (async () => {
@@ -36,8 +42,9 @@ export function memoriesTab(root, { select } = {}) {
           h(
             'section',
             { class: 'card' },
-            h('div', { class: 'row between' }, h('h2', {}, `추억 (${mems().length})`), h('button', { class: 'btn small', onclick: regenerate }, '생성기로 다시 만들기')),
-            h('p', { class: 'muted small' }, '일반 라이브러리 + 5★ 캐릭터마다 전용 추억 (키트의 전용 추억 변형). 있던 카드는 id · 그림 · 공개 시각을 그대로 두고 수치만 새로 써요.'),
+            h('div', { class: 'row between' }, title, h('div', { class: 'row' }, h('button', { class: 'btn primary small', onclick: () => edit(null) }, '+ 새 추억'), h('button', { class: 'btn small', onclick: regenerate }, '생성기로 다시 만들기'))),
+            h('p', { class: 'muted small' }, '생성기 = 일반 라이브러리 + 5★ 캐릭터마다 전용 추억 (키트의 전용 추억 변형). 있던 카드는 id · 그림 · 공개 시각을 그대로 두고 수치만 새로 써요. 「빈 칸」은 패시브를 채워 저장하기 전까지 배포에서 빠져요.'),
+            slotBtn,
             list,
           ),
         ),
@@ -52,11 +59,25 @@ export function memoriesTab(root, { select } = {}) {
 
   const mems = () => state.data.memories || [];
   const charName = (id) => state.data.characters.find((c) => c.id === id)?.name || id;
+  /** 전용 추억(빈 칸 포함)이 없는 5★ (NPC · 은퇴 제외) — 서버 memslots.needs_slot과 같은 규칙 */
+  const missingSlots = () => state.data.characters.filter((c) => gradeOf(c) === 5 && !c.retired && !mems().some((m) => m.signatureOf === c.id));
+
+  async function makeSlots() {
+    const r = await tryApi(() => api.post('/api/memories/slots', {}));
+    if (!r) return;
+    await reloadData();
+    renderList();
+    toast(r.made.length ? `전용 추억 빈 칸 ${r.made.length}장을 만들었어요` : '만들 빈 칸이 없어요', 'success');
+  }
 
   function renderList() {
+    title.textContent = `추억 (${mems().length})`;
+    const miss = missingSlots();
+    slotBtn.hidden = !miss.length;
+    slotBtn.textContent = `빈 전용 칸 만들기 (${miss.map((c) => c.name).join(', ')})`;
     list.replaceChildren(
       ...[...mems()]
-        .sort((a, b) => b.rarity - a.rarity || a.id.localeCompare(b.id))
+        .sort((a, b) => (b.draft === true) - (a.draft === true) || b.rarity - a.rarity || a.id.localeCompare(b.id))
         .map((m) =>
           h(
             'button',
@@ -65,7 +86,7 @@ export function memoriesTab(root, { select } = {}) {
               'div',
               { class: 'row' },
               h('div', { class: 'thumb small-thumb' }, m.thumb || m.image ? h('img', { src: wsImage(m.thumb || m.image), alt: '', onerror: (e) => e.target.remove() }) : '✦'),
-              h('div', { class: 'grow' }, h('b', {}, m.name), ' ', h('span', { class: `chip r-${m.rarity}` }, rarLabel(m.rarity)), ' ', h('span', { class: 'chip' }, KIND_LABEL[m.kind] || m.kind), h('div', { class: 'muted small' }, `${m.id}${m.signatureOf ? ` · ${charName(m.signatureOf)} 전용` : m.role ? ` · ${ROLE_LABEL[m.role]} 기본` : ''}${m.image ? '' : ' · 그림 없음'}`)),
+              h('div', { class: 'grow' }, h('b', {}, m.name), ' ', h('span', { class: `chip r-${m.rarity}` }, rarLabel(m.rarity)), ' ', h('span', { class: 'chip' }, KIND_LABEL[m.kind] || m.kind), m.draft === true && h('span', { class: 'chip warn', title: '패시브를 채워 저장하기 전까지 배포에서 빠져요' }, '빈 칸'), h('div', { class: 'muted small' }, `${m.id}${m.signatureOf ? ` · ${charName(m.signatureOf)} 전용` : m.role ? ` · ${ROLE_LABEL[m.role]} 기본` : ''}${m.image ? '' : ' · 그림 없음'}`)),
             ),
           ),
         ),
@@ -76,17 +97,14 @@ export function memoriesTab(root, { select } = {}) {
   async function regenerate() {
     if (dirty && !(await confirmBox('저장하지 않은 변경', '버리고 다시 만들까요?', { ok: '버리기', danger: true }))) return;
     const gens = mg.generateMemories({ characters: state.data.characters, balance: kt.balance, vocab: kt.vocab });
-    const byKey = new Map(mems().filter((m) => m.genKey).map((m) => [m.genKey, m]));
-    const fresh = gens.filter((g) => !byKey.has(g.genKey)).length;
-    if (!(await confirmBox('생성기로 다시 만들기', `${gens.length}장 (새로 ${fresh}장). 손으로 고친 수치는 생성기 값으로 돌아가요. 계속할까요?`, { ok: '다시 만들기' }))) return;
+    const { entries: out, fresh, kept } = mg.mergeGenerated(mems(), gens);
+    const keptNote = kept.length ? ` 생성기가 이번에 안 만드는 ${kept.length}장(${kept.map((m) => m.name).join(', ')})은 그대로 둬요.` : '';
+    if (!(await confirmBox('생성기로 다시 만들기', `${gens.length}장 (새로 ${fresh.length}장). 손으로 고친 수치는 생성기 값으로 돌아가요.${keptNote} 계속할까요?`, { ok: '다시 만들기' }))) return;
     await busy('추억 다시 만드는 중…', async () => {
       const now = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 19) + '+09:00';
-      const out = mems().filter((m) => !m.genKey);
-      for (const g of gens) {
-        const entry = mg.memoryFields(g, byKey.get(g.genKey));
+      for (const entry of out) {
         if (!entry.id) entry.id = await newId('memory');
         if (!entry.addedAt) entry.addedAt = now;
-        out.push(entry);
       }
       out.sort((a, b) => a.id.localeCompare(b.id));
       await api.put('/api/list/memories', out);
@@ -97,15 +115,27 @@ export function memoriesTab(root, { select } = {}) {
     renderList();
   }
 
-  async function edit(src) {
-    if (dirty && !(await confirmBox('저장하지 않은 변경', '버리고 이동할까요?', { ok: '버리기', danger: true }))) return;
-    selectedId = src.id;
-    dirty = false;
+  /** src = null이면 새 추억 (id는 처음 저장/그림 뽑기 때 발급). keepDirty = 생성기로 채운 폼처럼 아직 저장 안 된 값 */
+  async function edit(src, { keepDirty = false } = {}) {
+    if (!keepDirty && dirty && !(await confirmBox('저장하지 않은 변경', '버리고 이동할까요?', { ok: '버리기', danger: true }))) return;
+    const isNew = !src?.id;
+    selectedId = src?.id || null;
+    dirty = keepDirty || isNew;
     renderList();
-    const v = structuredClone(src);
+    const v = structuredClone(src || blankMemory());
     v.passive ||= {};
     v.passive.generic ||= blankPassive();
     const mark = () => ((dirty = true), showBudget());
+    const idEl = h('div', {}, idBadge(v.id));
+    const ensureId = async () => {
+      if (!v.id) {
+        v.id = (await tryApi(() => newId('memory'))) || '';
+        idEl.replaceChildren(idBadge(v.id));
+      }
+      return v.id;
+    };
+    const added = dateField('공개 시각 (이 시각부터 뽑기 · 도감에 나옴)', v.addedAt || nowIso(), { allowEmpty: false });
+    added.el.addEventListener('change', mark);
     const field = (label, el) => h('label', { class: 'field' }, label, el);
     const sel = (opts, value, onChange) => {
       const s = h('select', { onchange: (e) => (onChange(e.target.value), mark()) }, opts.map(([k, l]) => h('option', { value: k }, l)));
@@ -144,6 +174,29 @@ export function memoriesTab(root, { select } = {}) {
       );
     renderOwner();
 
+    // 빈 칸 안내 + 전용 칸이면 생성기로 채우기 (주인 캐릭터에 키트 아키타입이 있을 때)
+    const ownerChar = v.signatureOf && state.data.characters.find((c) => c.id === v.signatureOf);
+    const canGen = v.kind === 'signature' && ownerChar && gradeOf(ownerChar) === 5 && ownerChar.kitGen?.archetype;
+    function fillFromGenerator() {
+      const g = mg.generateMemories({ characters: [ownerChar], balance: kt.balance, vocab: kt.vocab }).find((x) => x.genKey === `signature:${ownerChar.id}`);
+      if (!g) return toast('생성기가 이 캐릭터의 전용 추억을 만들지 못했어요', 'error');
+      const entry = mg.memoryFields(g, { ...v, genKey: g.genKey });
+      edit(entry, { keepDirty: true });
+      toast('생성기 값으로 채웠어요 — 저장하면 빈 칸이 풀려요', 'success');
+    }
+    const draftNote =
+      v.draft === true &&
+      h(
+        'div',
+        { class: 'card inner draft-box' },
+        h('b', {}, '빈 칸'),
+        ' — 일반 패시브에 효과를 채우고 저장하면 빈 칸이 풀려서 배포에 들어가요 (그 전에는 배포에서 보류, 게임에 안 나옴).',
+        v.kind === 'signature' &&
+          (canGen
+            ? h('div', { class: 'row' }, h('button', { class: 'btn small primary', onclick: fillFromGenerator }, '생성기로 채우기'), h('span', { class: 'muted small' }, `${ownerChar.name}의 키트(${ownerChar.kitGen.archetype}) 전용 추억 변형`))
+            : h('p', { class: 'muted small' }, '주인 캐릭터의 키트(아키타입)를 캐릭터 전투 편집기에서 정하면 「생성기로 채우기」를 쓸 수 있어요. 지금은 아래에서 직접 채워 주세요.')),
+      );
+
     const imgBox = h('div', { class: 'mem-preview' }, v.image ? h('img', { src: wsImage(v.image), alt: '' }) : h('span', { class: 'muted' }, '그림 없음'));
     const extra = h('input', { placeholder: '추가 연출 (예: 노을 진 성벽 위, 바람에 날리는 망토)' });
     const img2img = h('input', { type: 'checkbox', checked: !!state.settings?.comfy?.memoryImg2img });
@@ -151,7 +204,7 @@ export function memoriesTab(root, { select } = {}) {
     const memInput = () => ({ memoryId: v.id, extra: extra.value, img2img: img2img.checked });
     const artStep = promptStep({ kind: 'memory', getInput: memInput, generateLabel: '카드 그림 뽑기', generate: (gen) => genArt(gen) });
     async function genArt(gen) {
-      if (dirty && !(await save())) return;
+      if ((dirty || !v.id) && !(await save())) return;
       const job = await tryApi(() => api.post('/api/memory/generate', { ...memInput(), ...gen }));
       if (!job) return;
       const panel = jobPanel(job, {
@@ -172,16 +225,35 @@ export function memoriesTab(root, { select } = {}) {
 
     async function save() {
       if (!v.name.trim()) return toast('이름을 입력해 주세요', 'error'), false;
-      const items = mems().map((m) => (m.id === v.id ? v : m));
+      if (v.kind === 'signature' && !v.signatureOf) return toast('전용 추억은 주인 캐릭터를 골라 주세요', 'error'), false;
+      if (v.kind === 'default' && !v.role) return toast('역할 기본 추억은 역할을 골라 주세요', 'error'), false;
+      const owner = v.kind === 'signature' && mems().find((m) => m.id !== v.id && m.signatureOf === v.signatureOf);
+      if (owner) return toast(`${charName(v.signatureOf)}의 전용 추억은 이미 있어요 (${owner.name} · ${owner.id})`, 'error'), false;
+      if (!(await ensureId())) return false;
+      v.addedAt = added.get() || nowIso();
+      const wasDraft = v.draft === true;
+      if (filled(v)) delete v.draft;
+      else v.draft = true;
+      const exists = mems().some((m) => m.id === v.id);
+      const items = exists ? mems().map((m) => (m.id === v.id ? v : m)) : [...mems(), v].sort((a, b) => a.id.localeCompare(b.id));
       const ok = await tryApi(() => api.put('/api/list/memories', items));
       if (ok === null) return false;
       await reloadData();
       dirty = false;
+      selectedId = v.id;
       renderList();
-      toast('추억을 저장했어요 (작업 공간)', 'success');
+      if (v.draft) toast('저장했어요 — 아직 빈 칸이에요 (일반 패시브에 효과를 넣으면 배포에 들어가요)', 'success');
+      else toast(wasDraft ? '저장했어요 — 빈 칸이 풀렸어요' : '추억을 저장했어요 (작업 공간)', 'success');
+      if (wasDraft !== (v.draft === true) || !exists) edit(mems().find((m) => m.id === v.id));
       return true;
     }
     async function remove() {
+      if (!v.id || !mems().some((m) => m.id === v.id)) {
+        dirty = false;
+        selectedId = null;
+        editor.replaceChildren(h('div', { class: 'empty' }, '만들기를 취소했어요'));
+        return renderList();
+      }
       const used = state.data.banners.filter((b) => (b.pickupIds || []).includes(v.id)).map((b) => b.title);
       const msg = `${used.length ? `이 추억을 픽업하는 배너: ${used.join(', ')} — 배포 검사에서 오류가 나요.\n` : ''}플레이어가 이미 가진 카드는 세이브에 남지만 화면에서 안 보여요. 보통은 은퇴(retired)를 권장해요.`;
       if (!(await confirmBox(`「${v.name}」 삭제`, msg, { ok: '삭제', danger: true }))) return;
@@ -198,7 +270,8 @@ export function memoriesTab(root, { select } = {}) {
       h(
         'section',
         { class: 'card' },
-        h('h2', {}, `추억 편집 — ${v.id}`),
+        h('h2', {}, isNew ? '새 추억' : `추억 편집 — ${v.id}`),
+        draftNote,
         h(
           'div',
           { class: 'row', style: { gap: '16px', alignItems: 'flex-start' } },
@@ -206,11 +279,12 @@ export function memoriesTab(root, { select } = {}) {
           h(
             'div',
             { class: 'grow' },
-            h('div', { class: 'grid2' }, field('id (자동)', h('div', {}, idBadge(v.id))), field('이름', name)),
+            h('div', { class: 'grid2' }, field('id (자동)', idEl), field('이름', name)),
             h('div', { class: 'grid2' }, field('희귀도', rarity), field('종류', kind)),
             h('div', { class: 'grid2' }, field('역할 기본 (kind: 역할 기본)', role), field('전용 주인 (5★, owner 보너스)', owner)),
             h('div', { class: 'grid2' }, field('그림에 나오는 캐릭터', featured), field('부옵션 능력치 (값은 balance.memory)', sec)),
             field('장면 태그', theme),
+            added.el,
             h('label', { class: 'inline' }, retired, '은퇴 (뽑기에서 빠짐, 가진 카드는 계속 씀)'),
             v.genKey && h('p', { class: 'muted small' }, `생성기 항목 (${v.genKey}) — '생성기로 다시 만들기'를 누르면 수치가 생성기 값으로 돌아가요`),
           ),
@@ -224,7 +298,7 @@ export function memoriesTab(root, { select } = {}) {
         h('div', { class: 'row wrap' }, extra, h('label', { class: 'inline', title: '승인한 컷아웃을 대충 그린 배경에 합성해서 시작 (denoise는 설정 탭)' }, img2img, '컷아웃으로 시작 (img2img)')),
         artStep.el,
         jobArea,
-        h('div', { class: 'row wrap sticky-actions' }, h('button', { class: 'btn primary', onclick: save }, '저장'), h('button', { class: 'btn danger-outline', onclick: remove }, '삭제')),
+        h('div', { class: 'row wrap sticky-actions' }, h('button', { class: 'btn primary', onclick: save }, '저장'), h('button', { class: 'btn danger-outline', onclick: remove }, isNew ? '취소' : '삭제')),
       ),
     );
     showBudget();

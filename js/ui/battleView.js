@@ -92,6 +92,7 @@ export function mountBattle(host, { ctx, stage, team, story = null, onResult, re
         reward?.rewards && rewardLine(reward.rewards) && h('div', { class: 'result-reward' }, '클리어 보상 ', h('b', {}, rewardLine(reward.rewards))),
         reward?.stars != null && h('div', { class: 'result-stars', title: '★1 승리 · ★2 쓰러진 아군 없음 · ★3 빠른 클리어 (★3이면 소탕 가능)' }, '★'.repeat(reward.stars) + '☆'.repeat(3 - reward.stars)),
         reward?.drops && h('div', { class: 'result-reward' }, '장비 ', h('b', {}, dropLine(reward.drops))),
+        reward?.capRaised && h('div', { class: 'result-reward first' }, '캐릭터 최대 레벨이 ', h('b', {}, `Lv.${reward.capRaised}`), '(으)로 올랐어요'),
         h(
           'table',
           { class: 'result-table' },

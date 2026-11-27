@@ -1,0 +1,249 @@
+{
+  "id": "story_0041",
+  "title": "부러진 성표",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0017.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "천장이 뚫린 폐예배당 바닥으로 빗물이 고였다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "아이를 지키겠다고? 심문관이 배교자 흉내를 내시겠다?",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "흉내가 아니다. 교단은 그 아이를 산 채로 가르려 했다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……해부."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "성물의 핵을 꺼내 병기로 쓰겠다고 하더군."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "신의 뜻이라 부르기엔 역겨운 도살질이었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "클레어가 가슴팍의 은 성표를 거칠게 뜯어냈다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "두 동강 난 은조각이 진흙 웅덩이로 떨어졌다."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "날 거둬라, 용병단장. 밥값은 칼로 치르겠다."
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0017.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "기둥 뒤에서 술부대를 흔들던 발레리아가 걸어 나왔다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "크하하! 꼴좋네. 심문관 나으리가 신을 버렸어?"
+        },
+        {
+          "speaker": "char_0003",
+          "text": "히익! 발레리아, 비 피하러 왔다가 말려든 겁니까요?"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "조용히 술 좀 마시려는데 피비린내가 진동하잖아."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "……파문당한 성기사로군. 소문은 들었다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "반갑다, 후배님. 시궁창에 온 걸 환영한다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "교단에 쫓기는 몸뚱이를 식구로 들이는 건 셈이 안 맞는데.",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "은 성표값이나 먼저 주워 담아라.",
+              "goto": "s2_1"
+            },
+            {
+              "text": "공짜 칼잡이라면 굳이 마다할 이유는 없지.",
+              "goto": "s2_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0017.jpg",
+        "color": "#33264f"
+      },
+      "next": "s3",
+      "lines": [
+        {
+          "speaker": "char_0001",
+          "text": "……내가 주웠어. 은화 세 닢짜리야."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "은화 몇 닢보다 내 칼이 더 값나갈 거다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "그건 써보고 판단하지.",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "s2_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0017.jpg",
+        "color": "#24304a"
+      },
+      "next": "s3",
+      "lines": [
+        {
+          "speaker": "char_0002",
+          "text": "단장 놈, 또 어설프게 인심 쓰는 척하네."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……티르 지키려고 들이는 거 다 알아."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……시끄러워. 밥 한 톨이라도 축내면 바로 내쫓는다.",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0017.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "예배당 입구에서 젖은 쇠사슬 끄는 소리가 울렸다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……일곱 명. 가시 박힌 채찍을 들었어."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "고행의 채찍수들이다. 수석 심문관 말라코르의 개들이지."
+        },
+        {
+          "speaker": "narrator",
+          "text": "배교자의 피로 바닥을 적셔 죄를 씻어라!",
+          "name": "고행의 채찍수"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "지긋지긋하네. 술병 깨지기 전에 모가지부터 썰자!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "새 식구 솜씨 좀 보자고. 칼 뽑아라!",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0041",
+      "next": "s4"
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0017.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "바닥에 쓰러진 채찍수가 가쁜 숨을 몰아쉬다 멎었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 칼끝의 피를 털어내며 시체를 발로 밀어냈다."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "아이고 단장님, 채찍에 스쳤으면 가죽 다 벗겨질 뻔했습니다요!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……조용히 해. 빗물에 피 섞여서 발 미끄러워."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "크하하! 칼질 안 녹슬었네, 심문관 후배님?"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "웃을 때가 아니다. 수석 심문관 말라코르가 영지 외곽에 왔다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "말라코르? 그 노인네가 직접 행차하셨다고?",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "그는 자비가 없다. 티르를 내놓지 않으면……."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "너희 용병단 회관째로 잿더미로 만들 거다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……새로 맞춘 참나무 문짝 값도 아직 못 뽑았는데.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "내 밥상에 불지를 생각이면 목숨값부터 챙겨 와야지.",
+          "name": "단장"
+        }
+      ]
+    }
+  ]
+}

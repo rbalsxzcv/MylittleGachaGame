@@ -1,0 +1,177 @@
+{
+  "id": "story_0046",
+  "title": "끊어진 쇠사슬",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0018.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "복도 끝 무거운 철문 너머로 역한 약물 냄새가 번졌다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 저기, 안쪽 제단."
+        },
+        {
+          "speaker": "narrator",
+          "text": "돌벽에 박힌 네 가닥의 쇠사슬이 어린아이의 팔다리를 짓누르고 있었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "티르의 굳은 팔뚝에 박힌 굵은 바늘을 타고 검붉은 피가 병으로 떨어졌다."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "히익……! 저놈들, 사람 피를 기름 짜듯이 받고 있잖아요!"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "성혈 정제 의식이다. 저 피를 보라색 비약과 섞어 병사들에게 먹이려는 거야."
+        },
+        {
+          "speaker": "narrator",
+          "text": "침입자들이다! 정화의식을 방해하지 못하게 목을 쳐라!",
+          "name": "심문관 서기"
+        },
+        {
+          "speaker": "narrator",
+          "text": "입 다물어. 내 짐꾼한테 꽂은 바늘, 네놈들 눈깔에 박아줄 테니까."
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0046",
+      "next": "s2"
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0018.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "제단 바닥 위로 서기들의 로브가 붉게 젖어 들어갔다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "크하하! 먹물이나 튀기던 놈들이라 뼈가 두부처럼 썰리네!"
+        },
+        {
+          "speaker": "char_0018",
+          "text": "비켜들 보쇼! 이런 룬 족쇄는 핀으로 내부 걸쇠만 건드리면……."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "……으응. 냄새…… 고기 냄새……."
+        },
+        {
+          "speaker": "narrator",
+          "text": "늘어져 있던 티르가 눈꺼풀을 파르르 떨었다."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "아빠……? 아빠다!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "티르가 두 팔을 번쩍 들자, 암벽에 박혀 있던 쇠말뚝이 돌가루와 함께 뜯겨 나갔다."
+        },
+        {
+          "speaker": "char_0018",
+          "text": "아이고 내 눈이야! 저 굵은 강철 쐐기를 그냥 뽑아버려?!"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0018.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "티르가 쇠사슬을 매단 채 달려와 단장의 허리를 들이받았다. 묵직한 충격이 명치를 찔렀다."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "아빠, 티르 안 울었어! 나쁜 아저씨들이 피 빼가도 꾹 참았어……!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "아이의 소매는 찢겨 있었고, 등 뒤의 각인은 불붙은 듯 시뻘겋게 부풀어 있었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 말없이 허리춤의 가죽 외투를 벗어 티르의 머리 위로 푹 뒤집어씌웠다."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "우응…… 깜깜해. 근데 따뜻해."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……그 외투, 지난달에 은화 세 닢 주고 산 거잖아."
+        },
+        {
+          "speaker": "narrator",
+          "text": "피 묻은 꼬락서니 보기 흉해서 덮은 거다. 쟤 아직 문짝 값도 안 갚았어."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "핑계는 여전하네. 귀까지 빨개졌으면서."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……시끄러."
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0018.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "단장은 주머니 속 죽은 단원의 주사위를 만지작거렸다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "떼먹힌 몫은 끝까지 받아낸다. 우리 물건 손댄 놈들은 곱게 못 가."
+        },
+        {
+          "speaker": "char_0008",
+          "text": "하아암…… 입만 열면 장사꾼 행세는. 그래서, 저 위의 수석 심문관 몫도 셈에 넣었어?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "머리 위 성당 쪽에서 육중한 나팔 소리와 쇠북 소리가 울려 퍼졌다."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "화형대 준비가 끝난 신호다. 말라코르가 안마당에 교단 기사들을 깔아뒀어."
+        },
+        {
+          "speaker": "narrator",
+          "text": "불구경하러 가야지. 장작더미 위에 그 심문관 놈 멱살부터 던져 넣는다."
+        }
+      ]
+    }
+  ]
+}

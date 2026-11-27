@@ -27,7 +27,7 @@ export function estimateDamage(b, src, tgt, skill) {
     const D = b.stat(tgt, 'def');
     const dealt = Math.max(0, 1 + b.stat(src, 'dmgDealt'));
     const taken = Math.max(0, 1 + b.stat(tgt, 'dmgTaken'));
-    sum += Math.max(1, Math.floor(S * e.mult * (100 / (100 + D)) * dealt * taken)) * (e.hits || 1);
+    sum += Math.max(1, Math.floor(S * e.mult * b.mitigation(src, D) * dealt * taken)) * (e.hits || 1);
   }
   return sum;
 }

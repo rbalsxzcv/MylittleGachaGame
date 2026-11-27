@@ -1,0 +1,198 @@
+{
+  "id": "story_0047",
+  "title": "화형대 아래의 사냥꾼들",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0018.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "지하 계단 끝에서 메케한 숯 냄새와 기름 냄새가 흘러내렸다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 위에 장작 타는 냄새. 꽤 많아."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "아빠 외투에서 쇠 냄새 나. 근데 따뜻해서 좋아."
+        },
+        {
+          "speaker": "narrator",
+          "text": "말하지 말고 뒤에 붙어 있어라. 혓바닥 씹는다."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "문을 열면 바로 안마당이다. 말라코르가 기다리고 있을 거다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "기다리라지. 혓바닥 긴 놈 모가지 따는 건 내 전문이니까."
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 삐걱거리는 참나무 문을 어깨로 밀어젖혔다."
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0019.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "새벽안개 낀 안마당 한가운데, 집채만 한 화형대가 솟아 있었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "백색 법의를 입은 사제들과 철갑을 두른 심문관들이 도열해 있었다."
+        },
+        {
+          "speaker": "char_0019",
+          "text": "쥐새끼처럼 땅 밑을 기어 다니다 마침내 빛 아래로 나왔군요."
+        },
+        {
+          "speaker": "narrator",
+          "text": "은제 향로를 손가락에 감은 말라코르가 자애로운 낯으로 웃었다."
+        },
+        {
+          "speaker": "char_0019",
+          "text": "용병단장. 그 불경한 괴물과 배교자 클레어를 두고 물러나시오."
+        },
+        {
+          "speaker": "char_0019",
+          "text": "빛은 자비로우니, 헛된 피를 흘린 죄는 묻지 않겠습니다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "자비는 됐고. 잿더미가 된 내 회관 문짝 값부터 내놓으시지."
+        },
+        {
+          "speaker": "char_0019",
+          "text": "하찮은 나무 판자 따위에 영혼의 구원을 저버리겠다는 겁니까?"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "크하하! 저 주둥이는 몇 년이 지나도 쉰내가 풀풀 나는군."
+        },
+        {
+          "speaker": "narrator",
+          "text": "발레리아가 대검으로 자기 어깨를 툭툭 치며 앞으로 걸어 나왔다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "성수 대신 독주나 마셔라, 말라코르. 네놈 설교는 진저리가 나."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "……말라코르. 그 입으로 신의 이름을 팔지 마라."
+        },
+        {
+          "speaker": "narrator",
+          "text": "클레어는 품에서 부러진 성표 조각을 꺼내 진흙 바닥에 던졌다."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "아이의 피를 뽑아 약을 만드는 게 너희가 말하는 구원인가?"
+        },
+        {
+          "speaker": "char_0019",
+          "text": "타락한 양이 목자의 손길을 거부하는군요. 정화뿐입니다."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "아이고 단장님! 저 사냥꾼들 석궁 살벌하게 당기고 있는데요?!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "가린. 헛소리할 입으로 쏴라."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "……화살값은 단장님이 다 물어내셔야 합니다요!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "가린의 석궁 시위가 튕기며 맨 앞줄 사제의 목덜미에 박혔다."
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0047",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0019.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "화형대 주변의 진흙이 핏물로 질척였다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "말라코르의 정예 광신도들이 하나둘 바닥으로 쓰러졌다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 여섯 벴어. 장화 가죽이 꽤 질겨."
+        },
+        {
+          "speaker": "char_0008",
+          "text": "하아암…… 불장난치고는 시끄럽네. 뭘 봐? 포도주 튄 거야."
+        },
+        {
+          "speaker": "narrator",
+          "text": "이레나가 비틀거리며 검게 그을린 소매로 코 밑을 훔쳤다."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "아빠! 저 아저씨들 티르가 쇠사슬로 뻥 차버렸어! 잘했지?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "잘하긴 뭘. 외투 찢어지면 네 밥값에서 깐다. 머리 박고 있어."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "칭찬하려다 또 딴소리하네."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……시끄러."
+        },
+        {
+          "speaker": "char_0019",
+          "text": "천한 칼잡이 놈들이…… 감히 성역의 안마당을 더럽히다니."
+        },
+        {
+          "speaker": "narrator",
+          "text": "홀로 남은 말라코르가 붉은 연기를 뿜는 철퇴를 꺼내 들었다."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "조심해라. 저 향로 철퇴의 연기를 마시면 살이 녹는다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "외투 빨 물도 없는데 독한 연기까지 피워 대네. 빚 받으러 가자."
+        }
+      ]
+    }
+  ]
+}

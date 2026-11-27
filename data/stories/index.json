@@ -406,5 +406,209 @@
     "reward": {
       "gems": 100
     }
+  },
+  {
+    "id": "story_0037",
+    "kind": "main",
+    "chapter": 25,
+    "arc": 3,
+    "arcTitle": "부서진 문짝과 대주교의 인장",
+    "title": "부서진 참나무 문짝",
+    "summary": "새 거처를 정리하던 용병단 앞에 문짝을 부수고 괴력의 아이가 들이닥친다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0038",
+    "kind": "main",
+    "chapter": 26,
+    "arc": 3,
+    "arcTitle": "부서진 문짝과 대주교의 인장",
+    "title": "족쇄와 고기 스튜",
+    "summary": "교단의 족쇄를 찬 괴력의 소녀와 사냥개 무리가 회관으로 들이닥친다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0039",
+    "kind": "main",
+    "chapter": 27,
+    "arc": 3,
+    "arcTitle": "부서진 문짝과 대주교의 인장",
+    "title": "금니 두 개짜리 왕진",
+    "summary": "각혈하는 이레나와 티르를 데리고 무면허 약제사를 찾아간다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0040",
+    "kind": "main",
+    "chapter": 28,
+    "arc": 3,
+    "arcTitle": "부서진 문짝과 대주교의 인장",
+    "title": "비 내리는 폐예배당",
+    "summary": "교단 심문관과의 밀회와 빗속의 기습",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0041",
+    "kind": "main",
+    "chapter": 29,
+    "arc": 3,
+    "arcTitle": "부서진 문짝과 대주교의 인장",
+    "title": "부러진 성표",
+    "summary": "심문관 클레어가 성표를 버리고 합류하자 채찍수들이 습격한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0042",
+    "kind": "main",
+    "chapter": 30,
+    "arc": 3,
+    "arcTitle": "부서진 문짝과 대주교의 인장",
+    "title": "알현실의 창문",
+    "summary": "교단의 위협 속에 영주관을 찾은 단장은 회관에 피어오른 연기를 목격한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0043",
+    "kind": "main",
+    "chapter": 31,
+    "arc": 3,
+    "arcTitle": "부서진 문짝과 대주교의 인장",
+    "title": "연기 나는 굴뚝",
+    "summary": "불타는 회관과 납치당한 티르",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0044",
+    "kind": "main",
+    "chapter": 32,
+    "arc": 3,
+    "arcTitle": "부서진 문짝과 대주교의 인장",
+    "title": "식어버린 냄비",
+    "summary": "타버린 회관의 전령을 심문하고 성당으로 향한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0045",
+    "kind": "main",
+    "chapter": 33,
+    "arc": 3,
+    "arcTitle": "부서진 문짝과 대주교의 인장",
+    "title": "쇠창살 너머의 향로",
+    "summary": "성당 지하 고문실에 잠입한 용병단은 제국의 비약 흔적을 발견한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0046",
+    "kind": "main",
+    "chapter": 34,
+    "arc": 3,
+    "arcTitle": "부서진 문짝과 대주교의 인장",
+    "title": "끊어진 쇠사슬",
+    "summary": "지하 감옥 깊은 곳에서 피를 뽑히던 티르를 찾아냅니다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0047",
+    "kind": "main",
+    "chapter": 35,
+    "arc": 3,
+    "arcTitle": "부서진 문짝과 대주교의 인장",
+    "title": "화형대 아래의 사냥꾼들",
+    "summary": "화형대 앞을 가로막은 심문관들을 도륙하고 말라코르를 궁지에 몬다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 50
+    }
+  },
+  {
+    "id": "story_0048",
+    "kind": "main",
+    "chapter": 36,
+    "arc": 3,
+    "arcTitle": "부서진 문짝과 대주교의 인장",
+    "title": "대주교의 직인",
+    "summary": "말라코르를 처단하고 배후의 대주교 직인을 확인한다.",
+    "unlock": [
+      {
+        "type": "prevChapter"
+      }
+    ],
+    "reward": {
+      "gems": 100
+    }
   }
 ]

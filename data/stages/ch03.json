@@ -1,0 +1,628 @@
+{
+  "chapter": "ch03",
+  "title": "챕터 3: 부서진 문짝과 대주교의 인장",
+  "stages": [
+    {
+      "id": "stage_0037",
+      "name": "새 회관의 불청객들",
+      "storyId": "story_0037",
+      "recommendedPower": 18143,
+      "waves": [
+        [
+          {
+            "enemyId": "enemy_0012",
+            "level": 55
+          },
+          {
+            "enemyId": "enemy_0012",
+            "level": 55
+          },
+          {
+            "enemyId": "enemy_0012",
+            "level": 55
+          }
+        ],
+        [
+          {
+            "enemyId": "enemy_0012",
+            "level": 55
+          },
+          {
+            "enemyId": "enemy_0012",
+            "level": 55
+          },
+          {
+            "enemyId": "enemy_0012",
+            "level": 55
+          }
+        ]
+      ],
+      "roundLimit": 8,
+      "rewards": {
+        "tickets": 100,
+        "gems": 0,
+        "gold": 1000
+      },
+      "firstClearRewards": {
+        "tickets": 160,
+        "gems": 50,
+        "gold": 1600
+      },
+      "stageType": "normal",
+      "difficulty": 16.562,
+      "hpScale": 0.149
+    },
+    {
+      "id": "stage_0038",
+      "name": "문 앞의 사냥개들",
+      "storyId": "story_0038",
+      "recommendedPower": 18633,
+      "waves": [
+        [
+          {
+            "enemyId": "enemy_0013",
+            "level": 56
+          },
+          {
+            "enemyId": "enemy_0002",
+            "level": 56
+          },
+          {
+            "enemyId": "enemy_0013",
+            "level": 56
+          }
+        ],
+        [
+          {
+            "enemyId": "enemy_0013",
+            "level": 56
+          },
+          {
+            "enemyId": "enemy_0013",
+            "level": 56
+          },
+          {
+            "enemyId": "enemy_0006",
+            "level": 56
+          }
+        ]
+      ],
+      "roundLimit": 8,
+      "rewards": {
+        "tickets": 105,
+        "gems": 0,
+        "gold": 1050
+      },
+      "firstClearRewards": {
+        "tickets": 170,
+        "gems": 50,
+        "gold": 1700
+      },
+      "stageType": "normal",
+      "difficulty": 1,
+      "hpScale": 0.778
+    },
+    {
+      "id": "stage_0039",
+      "name": "진료소 앞의 소란",
+      "storyId": "story_0039",
+      "recommendedPower": 19229,
+      "waves": [
+        [
+          {
+            "enemyId": "enemy_0001",
+            "level": 57
+          },
+          {
+            "enemyId": "enemy_0001",
+            "level": 57
+          },
+          {
+            "enemyId": "enemy_0001",
+            "level": 57
+          }
+        ],
+        [
+          {
+            "enemyId": "enemy_0006",
+            "level": 57
+          },
+          {
+            "enemyId": "enemy_0013",
+            "level": 57
+          },
+          {
+            "enemyId": "enemy_0006",
+            "level": 57
+          }
+        ]
+      ],
+      "roundLimit": 8,
+      "rewards": {
+        "tickets": 110,
+        "gems": 0,
+        "gold": 1100
+      },
+      "firstClearRewards": {
+        "tickets": 180,
+        "gems": 50,
+        "gold": 1800
+      },
+      "stageType": "normal",
+      "difficulty": 2.018,
+      "hpScale": 0.139
+    },
+    {
+      "id": "stage_0040",
+      "name": "빗속의 추격자들",
+      "storyId": "story_0040",
+      "recommendedPower": 19719,
+      "waves": [
+        [
+          {
+            "enemyId": "enemy_0006",
+            "level": 58
+          },
+          {
+            "enemyId": "enemy_0006",
+            "level": 58
+          },
+          {
+            "enemyId": "enemy_0006",
+            "level": 58
+          }
+        ],
+        [
+          {
+            "enemyId": "enemy_0014",
+            "level": 58
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 58
+          },
+          {
+            "enemyId": "enemy_0014",
+            "level": 58
+          }
+        ]
+      ],
+      "roundLimit": 8,
+      "rewards": {
+        "tickets": 115,
+        "gems": 0,
+        "gold": 1150
+      },
+      "firstClearRewards": {
+        "tickets": 190,
+        "gems": 50,
+        "gold": 1900
+      },
+      "stageType": "normal",
+      "difficulty": 0.52,
+      "hpScale": 1.143
+    },
+    {
+      "id": "stage_0041",
+      "name": "배교자의 대가",
+      "storyId": "story_0041",
+      "recommendedPower": 20257,
+      "waves": [
+        [
+          {
+            "enemyId": "enemy_0014",
+            "level": 59
+          },
+          {
+            "enemyId": "enemy_0013",
+            "level": 59
+          },
+          {
+            "enemyId": "enemy_0014",
+            "level": 59
+          }
+        ],
+        [
+          {
+            "enemyId": "enemy_0014",
+            "level": 59
+          },
+          {
+            "enemyId": "enemy_0014",
+            "level": 59
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 59
+          }
+        ]
+      ],
+      "roundLimit": 8,
+      "rewards": {
+        "tickets": 120,
+        "gems": 0,
+        "gold": 1200
+      },
+      "firstClearRewards": {
+        "tickets": 200,
+        "gems": 50,
+        "gold": 2000
+      },
+      "stageType": "normal",
+      "difficulty": 19.993,
+      "hpScale": 0.069
+    },
+    {
+      "id": "stage_0042",
+      "name": "골목길의 매복",
+      "storyId": "story_0042",
+      "recommendedPower": 20809,
+      "waves": [
+        [
+          {
+            "enemyId": "enemy_0007",
+            "level": 60
+          },
+          {
+            "enemyId": "enemy_0007",
+            "level": 60
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 60
+          }
+        ],
+        [
+          {
+            "enemyId": "enemy_0007",
+            "level": 60
+          },
+          {
+            "enemyId": "enemy_0014",
+            "level": 60
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 60
+          }
+        ]
+      ],
+      "roundLimit": 8,
+      "rewards": {
+        "tickets": 125,
+        "gems": 0,
+        "gold": 1250
+      },
+      "firstClearRewards": {
+        "tickets": 210,
+        "gems": 50,
+        "gold": 2100
+      },
+      "stageType": "normal",
+      "difficulty": 1.754,
+      "hpScale": 0.228
+    },
+    {
+      "id": "stage_0043",
+      "name": "불타는 회관 앞마당",
+      "storyId": "story_0043",
+      "recommendedPower": 21179,
+      "waves": [
+        [
+          {
+            "enemyId": "enemy_0013",
+            "level": 60
+          },
+          {
+            "enemyId": "enemy_0013",
+            "level": 60
+          },
+          {
+            "enemyId": "enemy_0006",
+            "level": 60
+          }
+        ],
+        [
+          {
+            "enemyId": "enemy_0014",
+            "level": 60
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 60
+          },
+          {
+            "enemyId": "enemy_0006",
+            "level": 60
+          }
+        ]
+      ],
+      "roundLimit": 8,
+      "rewards": {
+        "tickets": 130,
+        "gems": 0,
+        "gold": 1300
+      },
+      "firstClearRewards": {
+        "tickets": 220,
+        "gems": 50,
+        "gold": 2200
+      },
+      "stageType": "normal",
+      "difficulty": 1.454,
+      "hpScale": 0.457
+    },
+    {
+      "id": "stage_0044",
+      "name": "남겨진 교단 전위대",
+      "storyId": "story_0044",
+      "recommendedPower": 21764,
+      "waves": [
+        [
+          {
+            "enemyId": "enemy_0006",
+            "level": 61
+          },
+          {
+            "enemyId": "enemy_0006",
+            "level": 61
+          },
+          {
+            "enemyId": "enemy_0006",
+            "level": 61
+          }
+        ],
+        [
+          {
+            "enemyId": "enemy_0014",
+            "level": 61
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 61
+          },
+          {
+            "enemyId": "enemy_0014",
+            "level": 61
+          }
+        ]
+      ],
+      "roundLimit": 8,
+      "rewards": {
+        "tickets": 135,
+        "gems": 0,
+        "gold": 1350
+      },
+      "firstClearRewards": {
+        "tickets": 230,
+        "gems": 50,
+        "gold": 2300
+      },
+      "stageType": "normal",
+      "difficulty": 0.52,
+      "hpScale": 1.204
+    },
+    {
+      "id": "stage_0045",
+      "name": "지하 고문실의 파수꾼",
+      "storyId": "story_0045",
+      "recommendedPower": 22361,
+      "waves": [
+        [
+          {
+            "enemyId": "enemy_0013",
+            "level": 62
+          },
+          {
+            "enemyId": "enemy_0006",
+            "level": 62
+          },
+          {
+            "enemyId": "enemy_0013",
+            "level": 62
+          }
+        ],
+        [
+          {
+            "enemyId": "enemy_0014",
+            "level": 62
+          },
+          {
+            "enemyId": "enemy_0014",
+            "level": 62
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 62
+          }
+        ]
+      ],
+      "roundLimit": 8,
+      "rewards": {
+        "tickets": 140,
+        "gems": 0,
+        "gold": 1400
+      },
+      "firstClearRewards": {
+        "tickets": 240,
+        "gems": 50,
+        "gold": 2400
+      },
+      "stageType": "normal",
+      "difficulty": 1.454,
+      "hpScale": 0.688
+    },
+    {
+      "id": "stage_0046",
+      "name": "의식실의 심문관들",
+      "storyId": "story_0046",
+      "recommendedPower": 22945,
+      "waves": [
+        [
+          {
+            "enemyId": "enemy_0015",
+            "level": 63
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 63
+          },
+          {
+            "enemyId": "enemy_0006",
+            "level": 63
+          }
+        ],
+        [
+          {
+            "enemyId": "enemy_0014",
+            "level": 63
+          },
+          {
+            "enemyId": "enemy_0014",
+            "level": 63
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 63
+          }
+        ]
+      ],
+      "roundLimit": 8,
+      "rewards": {
+        "tickets": 145,
+        "gems": 0,
+        "gold": 1450
+      },
+      "firstClearRewards": {
+        "tickets": 250,
+        "gems": 50,
+        "gold": 2500
+      },
+      "stageType": "normal",
+      "difficulty": 1.206,
+      "hpScale": 0.829
+    },
+    {
+      "id": "stage_0047",
+      "name": "화형대 앞의 광신도들",
+      "storyId": "story_0047",
+      "recommendedPower": 23632,
+      "waves": [
+        [
+          {
+            "enemyId": "enemy_0013",
+            "level": 64
+          },
+          {
+            "enemyId": "enemy_0013",
+            "level": 64
+          },
+          {
+            "enemyId": "enemy_0014",
+            "level": 64
+          }
+        ],
+        [
+          {
+            "enemyId": "enemy_0014",
+            "level": 64
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 64
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 64
+          }
+        ],
+        [
+          {
+            "enemyId": "enemy_0014",
+            "level": 64
+          },
+          {
+            "enemyId": "enemy_0014",
+            "level": 64
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 64
+          }
+        ]
+      ],
+      "roundLimit": 8,
+      "rewards": {
+        "tickets": 150,
+        "gems": 0,
+        "gold": 1500
+      },
+      "firstClearRewards": {
+        "tickets": 260,
+        "gems": 50,
+        "gold": 2600
+      },
+      "stageType": "normal",
+      "difficulty": 1,
+      "hpScale": 1
+    },
+    {
+      "id": "stage_0048",
+      "name": "선혈의 수석 심문관",
+      "storyId": "story_0048",
+      "recommendedPower": 25143,
+      "waves": [
+        [
+          {
+            "enemyId": "enemy_0014",
+            "level": 65
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 65
+          },
+          {
+            "enemyId": "enemy_0014",
+            "level": 65
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 65
+          }
+        ],
+        [
+          {
+            "enemyId": "enemy_0016",
+            "level": 65
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 65
+          },
+          {
+            "enemyId": "enemy_0014",
+            "level": 65
+          },
+          {
+            "enemyId": "enemy_0015",
+            "level": 65
+          }
+        ]
+      ],
+      "roundLimit": 16,
+      "rewards": {
+        "tickets": 155,
+        "gems": 0,
+        "gold": 1550
+      },
+      "firstClearRewards": {
+        "tickets": 270,
+        "gems": 100,
+        "gold": 2700
+      },
+      "stageType": "boss",
+      "difficulty": 13.734,
+      "hpScale": 0.342
+    }
+  ]
+}

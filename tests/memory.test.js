@@ -8,6 +8,8 @@ import { buildPools, pullMany, rulesFor, pityKeyOf, isMemoryBanner, STANDARD_MEM
 import { activeBanners } from '../js/systems/banners.js';
 import { statsOf } from '../js/systems/progression.js';
 import { createBattle } from '../js/battle/engine.js';
+import { validateMemories } from '../js/core/data.js';
+import { memoryFields, mergeGenerated } from '../tools/memgen/generate.js';
 
 const data = await loadGameData();
 const B = data.balance;
@@ -119,6 +121,34 @@ describe('추억 뽑기', () => {
     expect(mb.pickupIds).toEqual([sig.id]);
     expect(list.some((b) => b.id === STANDARD_MEMORY_BANNER.id)).toBe(true);
     expect(list.filter((b) => !isMemoryBanner(b)).every((b) => list.indexOf(b) < list.indexOf(mb))).toBe(true); // 캐릭터 배너 먼저
+  });
+});
+
+describe('추억: 빈 칸(draft) · 생성기 합치기', () => {
+  it('draft: true 추억은 게임 데이터에서 빠짐 (개발 도구의 빈 칸)', () => {
+    const list = validateMemories([mem('memory_9001'), { ...mem('memory_9002'), draft: true, passive: {} }], data.vocab);
+    expect(list.map((m) => m.id)).toEqual(['memory_9001']);
+  });
+  it('생성 결과는 빈 칸 표시를 지우고 id · 그림 · 공개 시각을 유지', () => {
+    const prev = { id: 'memory_9003', genKey: 'signature:char_9001', draft: true, image: 'a.webp', thumb: 't.webp', addedAt: '2026-01-01T00:00:00+09:00', passive: {} };
+    const out = memoryFields({ genKey: 'signature:char_9001', name: '새 이름', passive: { generic: { name: 'x' } }, budget: {}, issues: [] }, prev);
+    expect(out.draft).toBe(undefined);
+    expect([out.id, out.image, out.thumb, out.addedAt, out.name]).toEqual(['memory_9003', 'a.webp', 't.webp', '2026-01-01T00:00:00+09:00', '새 이름']);
+  });
+  it('생성기가 이번에 안 만든 genKey 항목(키트 없는 5★의 빈 칸 등)은 지우지 않음', () => {
+    const existing = [
+      { id: 'memory_9001', genKey: 'generic:a', name: 'A' },
+      { id: 'memory_9002', genKey: 'signature:char_9002', name: '빈 칸', draft: true },
+      { id: 'memory_9003', name: '손으로 만든 카드' },
+    ];
+    const { entries, fresh, kept } = mergeGenerated(existing, [
+      { genKey: 'generic:a', name: 'A2', budget: {}, issues: [] },
+      { genKey: 'generic:b', name: 'B', budget: {}, issues: [] },
+    ]);
+    expect(entries.map((m) => m.id || m.genKey).sort()).toEqual(['generic:b', 'memory_9001', 'memory_9002', 'memory_9003']);
+    expect(entries.find((m) => m.id === 'memory_9001').name).toBe('A2');
+    expect(fresh.map((m) => m.genKey)).toEqual(['generic:b']);
+    expect(kept.map((m) => m.id)).toEqual(['memory_9002']);
   });
 });
 

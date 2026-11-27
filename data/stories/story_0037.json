@@ -1,0 +1,213 @@
+{
+  "id": "story_0037",
+  "title": "부서진 참나무 문짝",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "새로 받은 용병단 회관 안에는 거미줄과 쥐똥이 가득했다."
+        },
+        {
+          "speaker": "char_0007",
+          "text": "어머나, 영주님이 주신 건물이라더니 이건 그냥 돼지우리잖아요?"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "지붕만 안 새면 됐지. 구석에 술통 굴러다니는 건 없냐?"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 안쪽 방에 사람 숨소리. 다섯 명쯤 돼."
+        },
+        {
+          "speaker": "narrator",
+          "text": "어이, 웬 놈들이야! 여긴 우리가 먼저 차지한 곳이다!",
+          "name": "빈집털이 부랑자"
+        },
+        {
+          "speaker": "narrator",
+          "text": "녹슨 쇠몽둥이를 든 부랑자들이 방 안에서 몰려나왔다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "방세도 안 낸 쥐새끼들이 목소리는 크군.",
+          "name": "단장",
+          "choices": [
+            {
+              "text": "바닥 걸레질할 피가 모자랐는데 마침 잘 됐다. 쳐라.",
+              "goto": "s2_1"
+            },
+            {
+              "text": "문짝에 피 튀기지 말고 곱게 뼈만 추려 내쫓아.",
+              "goto": "s2_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2_1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#2a2152"
+      },
+      "next": "b1",
+      "lines": [
+        {
+          "speaker": "char_0002",
+          "text": "크하하! 몸 좀 풀자고!"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……부츠 성한 놈은 내 거."
+        }
+      ]
+    },
+    {
+      "id": "s2_2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#33264f"
+      },
+      "next": "b1",
+      "lines": [
+        {
+          "speaker": "char_0007",
+          "text": "맞아요, 판자 썩으면 대패질하는 데만 동화가 열 닢이라고요!"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "시끄럽고 대가리부터 깨 놓자!"
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0037",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#2b1f3a"
+      },
+      "next": "s4",
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "부랑자들이 피를 흘리며 깨진 창문 밖으로 굴러떨어졌다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……구리 동화 네 닢. 건질 것도 없어."
+        },
+        {
+          "speaker": "char_0007",
+          "text": "쯧, 빗자루 살 돈도 안 나오네요. 어서 지하실이나 확인하죠."
+        },
+        {
+          "speaker": "narrator",
+          "text": "계단 아래에서 외눈박이 노인이 쇠꼬챙이를 들고 올라왔다."
+        },
+        {
+          "speaker": "char_0018",
+          "text": "단장 양반, 지하에 처박힌 옛날 금고 말인데…… 자물쇠가 꽤 묵직하더군."
+        },
+        {
+          "speaker": "narrator",
+          "text": "열 수 있겠어? 빈 깡통이면 영감 몫도 없는 줄 알아.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0018",
+          "text": "이 마르텐 님의 손끝을 못 믿나. 기름칠만 하면 금방 열리지."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 밖에서 뭔가가 뛰어와. 아주 빨라."
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "두꺼운 참나무 정문이 산산조각 나며 안쪽으로 튕겨 나갔다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "자욱한 먼지 속에서 끊어진 쇠사슬을 손목에 단 그림자가 튀어나왔다."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "아빠!!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "소녀가 달려들어 단장의 허리를 들이받았다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "컥……! 뭐, 뭐야 이 쇳덩어리 같은 꼬맹이는!",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0015",
+          "text": "티르가 냄새 맡고 찾아왔어! 아빠, 티르 잘했지?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "소녀는 콧등에 맺힌 피를 소매로 쓱 훔치며 단장의 옷자락을 쥐었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "아빠는 얼어 죽을…… 루미, 저 참나무 문짝 새로 짜려면 은화 몇 닢이야?",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 문짝이 문제가 아니잖아."
+        },
+        {
+          "speaker": "narrator",
+          "text": "시논이 단검 손잡이를 만지작거리며 눈을 가늘게 떴다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……어디에 숨겨둔 자식까지 있었어?"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "크하하! 단장 놈, 평소에 얼마나 막 살았으면 애가 문짝을 깨고 들어오냐!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "……헛소리 마. 저런 괴물 꼬맹이를 내가 언제…….",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0015",
+          "text": "헤헤, 아빠 냄새 맞는데…… 티르 배고파! 고기 줘!"
+        }
+      ]
+    }
+  ]
+}

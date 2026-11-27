@@ -1,0 +1,170 @@
+{
+  "id": "story_0048",
+  "title": "대주교의 직인",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0019.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "말라코르가 쇠사슬을 당기자 향로 구멍에서 붉은 연기가 뿜어져 나왔다."
+        },
+        {
+          "speaker": "char_0019",
+          "text": "더러운 피를 흘려 성역을 정화하는 것, 이것이 자비입니다."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "히익! 저 연기 닿은 돌바닥이 거품 물고 녹아내리는데요?!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장: 가린, 머리통 날리기 싫으면 바람 등지고 쏴."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "사슬 사거리가 길다. 내가 정면을 가를 테니 틈을 노려라."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "아빠! 저 나쁜 아저씨 머리 티르가 납작하게 밟아줄까?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장: 한 번에 끝낸다. 놈의 철퇴에 바람구멍부터 내."
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0048",
+      "next": "s2"
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0019.jpg",
+        "color": "#33264f"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "티르가 내리찍은 쇠기둥에 향로 철퇴가 박살 났다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "말라코르가 비틀거리며 진흙 바닥으로 고꾸라졌다."
+        },
+        {
+          "speaker": "char_0019",
+          "text": "커헉…… 배교자 놈들이…… 신벌을…… 피할 수 있을 줄……."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "……신벌은 네가 지금 받는 거다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "클레어의 대검이 말라코르의 목덜미를 꿰뚫었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "안마당에 매캐한 바람만 지나갔다. 숨소리가 완전히 멎었다."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "설교 길게 하더니 갈 때는 조용하네."
+        },
+        {
+          "speaker": "narrator",
+          "text": "발레리아는 대검에 묻은 피를 털지도 않은 채 술부대를 흔들었다."
+        },
+        {
+          "speaker": "char_0015",
+          "text": "아빠, 티르 잘했어? 이제 고기 먹으러 가?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장: 잘하긴 뭘. 외투에 피 다 묻혔잖아. 밥값에서 깐다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……애한테 또 돈 핑계 대네."
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장: ……시끄러워. 코피나 닦아 줘."
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0019.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 시체 안주머니에 이거."
+        },
+        {
+          "speaker": "narrator",
+          "text": "시논이 피 묻은 가죽 주머니에서 묵직한 황금 인장과 양피지를 꺼냈다."
+        },
+        {
+          "speaker": "char_0004",
+          "text": "아이고, 어디 봅시다! 제발 금화 보증서여야 할 텐데요…… 히익?!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "바바루아가 인장을 들여다보다 말고 사시나무 떨듯 손을 떨었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장: 뭐야. 금이 아니라 돌멩이라도 박혔냐?"
+        },
+        {
+          "speaker": "char_0004",
+          "text": "나, 나리…… 이거 남작 놈 서재랑 발도르프 서신에 찍혀 있던 그 문양입니다요!"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "……태양을 삼키는 까마귀. 광명교단 대주교의 개인 직인이다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……심문관 뒤에 있던 게 그 대주교야?"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "말라코르는 사냥개에 불과했다. 줄을 쥔 주인은 성도에 있어."
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장: 남작에, 발도르프에, 이번엔 대주교인가."
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 품에서 낡은 주사위를 꺼내 손안에서 굴렸다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장: 내 단원들 고기방패로 던져 버리고, 회관 문짝까지 태워 먹은 삯."
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장: 성도 대성당이든 어디든, 은화 한 닢까지 몽땅 뜯으러 간다."
+        }
+      ]
+    }
+  ]
+}

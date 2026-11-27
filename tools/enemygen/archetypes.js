@@ -12,7 +12,7 @@ export const ENEMY_TEMPLATES = {
     slots: {
       basic: { default: single([dmg(1)]) },
       skill: { default: single([dmg(1.5)]), aoe: all([dmg(0.7)]) },
-      ultimate: { default: all([dmg(1.2)], { big: true }) },
+      ultimate: { default: all([dmg(1.3)], { big: true }) },
     },
     pattern: [{ action: 'basic' }, { action: 'basic' }, { action: 'skill' }],
   },
@@ -20,10 +20,10 @@ export const ENEMY_TEMPLATES = {
     label: '중장',
     slots: {
       basic: { default: single([dmg(1.25)]) },
-      skill: { default: single([dmg(2)], { big: true }), buff: { targeting: 'self', effects: [{ type: 'buff', stat: 'def', pct: 30, turns: 2 }, { type: 'taunt', turns: 1 }] } },
+      skill: { default: single([dmg(1.9)], { big: true }), buff: { targeting: 'self', effects: [{ type: 'buff', stat: 'def', pct: 30, turns: 2 }, { type: 'taunt', turns: 1 }] } },
       ultimate: { default: all([dmg(1.4)], { big: true }) },
     },
-    pattern: [{ action: 'skill' }, { action: 'basic' }, { action: 'basic' }],
+    pattern: [{ action: 'basic' }, { action: 'skill' }, { action: 'basic' }], // 첫 행동은 공격 (짧은 전투에서 강화부터 하면 한 번도 못 때림)
   },
   caster: {
     label: '술사',
@@ -33,7 +33,7 @@ export const ENEMY_TEMPLATES = {
         default: single([dmg(1.2), { type: 'debuff', stat: 'effectRes', pct: 15, turns: 2 }, { type: 'dot', mult: 0.35, turns: 2 }]),
         aoe: all([dmg(0.55), { type: 'dot', mult: 0.3, turns: 2 }]),
       },
-      ultimate: { default: all([dmg(1.1)], { big: true }) },
+      ultimate: { default: all([dmg(1.2)], { big: true }) },
     },
     pattern: [{ action: 'basic' }, { action: 'skill' }],
   },
@@ -50,17 +50,17 @@ export const ENEMY_TEMPLATES = {
     label: '방패병',
     slots: {
       basic: { default: single([dmg(0.9)]) },
-      skill: { default: { targeting: 'ally_all', effects: [{ type: 'shield', mult: 1.2, stat: 'def', turns: 2 }, { type: 'taunt', turns: 1, target: 'self' }] } },
-      ultimate: { default: all([dmg(1)], { big: true }) },
+      skill: { default: { targeting: 'ally_all', effects: [{ type: 'shield', mult: 0.6, stat: 'def', turns: 2 }, { type: 'taunt', turns: 1, target: 'self' }] } },
+      ultimate: { default: all([dmg(1.1)], { big: true }) },
     },
-    pattern: [{ action: 'skill' }, { action: 'basic' }, { action: 'basic' }],
+    pattern: [{ action: 'basic' }, { action: 'skill' }, { action: 'basic' }], // 첫 행동은 공격
   },
   assassin: {
     label: '암살자',
     slots: {
       basic: { default: single([dmg(0.6, { hits: 2 })]) },
       skill: { default: single([dmg(1.8)]), aoe: { targeting: 'enemy_random_n', count: 2, effects: [dmg(0.9)] } },
-      ultimate: { default: single([dmg(2.4)], { big: true }) },
+      ultimate: { default: single([dmg(2.1)], { big: true }) },
     },
     pattern: [
       { action: 'basic', target: 'lowest_hp' },
@@ -84,11 +84,12 @@ export const ENEMY_TEMPLATES = {
       basic: { default: single([dmg(1.1)]) },
       skill: { default: single([dmg(1.5), { type: 'debuff', stat: 'def', pct: 15, turns: 2 }]), aoe: all([dmg(0.8), { type: 'dot', mult: 0.3, turns: 2 }]) },
       // 큰 공격 = 차지: 예고(차단 가능) → 시전하면 반 턴 뒤 터지는 큰 차지 토큰(이것도 차단 가능)
-      ultimate: { default: { targeting: 'self', big: true, effects: [{ type: 'charge', delayPct: 50, big: 'big', targeting: 'enemy_all', effects: [dmg(1.8)] }] } },
+      ultimate: { default: { targeting: 'self', big: true, effects: [{ type: 'charge', delayPct: 50, big: 'big', targeting: 'enemy_all', effects: [dmg(1.7)] }] } },
     },
     pattern: [{ action: 'basic' }, { action: 'skill' }, { action: 'basic' }, { action: 'ultimate' }],
-    phases: [{ hpBelow: 50, pattern: [{ action: 'skill' }, { action: 'ultimate' }, { action: 'basic' }], enterEffects: [{ type: 'buff', stat: 'atk', pct: 20, turns: 3 }, { type: 'shield', mult: 2, stat: 'def', turns: 2 }] }],
-    enrage: { round: 15, effects: [{ type: 'buff', stat: 'atk', pct: 50, turns: 20 }] },
+    // 광폭화 11라운드 = 보스 '내가 잡는 턴' 목표 7~9(balance.tuner.killTurns.boss) 뒤 — 오래 끌면 아파짐
+    phases: [{ hpBelow: 50, pattern: [{ action: 'skill' }, { action: 'ultimate' }, { action: 'basic' }], enterEffects: [{ type: 'buff', stat: 'atk', pct: 20, turns: 3 }, { type: 'shield', mult: 1, stat: 'def', turns: 2 }] }],
+    enrage: { round: 11, effects: [{ type: 'buff', stat: 'atk', pct: 50, turns: 20 }] },
     passives: [{ name: '분노', trigger: 'onHpBelow', pct: 30, targeting: 'self', limit: 1, effects: [{ type: 'heal', mult: 0.08, stat: 'hp' }] }],
   },
 };

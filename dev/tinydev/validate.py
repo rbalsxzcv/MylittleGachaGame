@@ -288,7 +288,7 @@ def validate(content, asset_exists, held=None):
         _check_asset(r, where, "image", e.get("image") or linked_image, asset_exists)
         if vocab:
             kit.check_enemy_battle(r, where, e, vocab)
-    _check_memories(r, content, chars, npc_ids, asset_exists, vocab)
+    _check_memories(r, content, chars, npc_ids, asset_exists, vocab, held)
     stages = _check_ids(r, "stages", content.get("stages") or [])
     stage_ids = {s["id"] for s in stages}
     for st in stages:
@@ -297,6 +297,8 @@ def validate(content, asset_exists, held=None):
             r.warn(where, "이름(name)이 비어 있어요")
         if st.get("difficulty") is not None and (not kit._is_num(st["difficulty"]) or not 0.05 <= st["difficulty"] <= 20):
             r.error(where, f"difficulty(난이도 배율)는 0.05~20 숫자여야 해요: {st.get('difficulty')!r}")
+        if st.get("hpScale") is not None and (not kit._is_num(st["hpScale"]) or not 0.05 <= st["hpScale"] <= 20):
+            r.error(where, f"hpScale(적 HP 배율)은 0.05~20 숫자여야 해요: {st.get('hpScale')!r}")
         if st.get("stageType") not in (None, "normal", "elite", "boss"):
             r.error(where, f"stageType은 normal / elite / boss 중 하나: {st.get('stageType')!r}")
         waves = st.get("waves")
@@ -503,8 +505,12 @@ def validate(content, asset_exists, held=None):
                 elif not b.get("pickupIds"):
                     r.error(where, "추억 픽업 배너인데 픽업 추억도 pickupFrom도 없어요")
                 for mid in b.get("pickupIds") or []:
-                    if mid not in mem_ids:
+                    if mid in held.get("memories", ()):
+                        r.error(where, f"픽업 추억 '{mid}'는 이번 배포에서 보류됐어요 (빈 칸이거나 공개 전)")
+                    elif mid not in mem_ids:
                         r.error(where, f"픽업 추억이 없어요: {mid!r}")
+                    elif next((m for m in content.get("memories") or [] if isinstance(m, dict) and m.get("id") == mid and m.get("draft") is True), None):
+                        r.error(where, f"픽업 추억 '{mid}'가 아직 빈 칸이에요 (추억 탭에서 채우기)")
             if not mem_ids:
                 r.error(where, "추억 배너가 있는데 추억 데이터가 없어요")
             _check_asset(r, where, "bannerImage", b.get("bannerImage"), asset_exists)
@@ -607,14 +613,21 @@ def validate(content, asset_exists, held=None):
 MEMORY_KINDS = ("default", "generic", "signature")
 
 
-def _check_memories(r, content, chars, npc_ids, asset_exists, vocab):
+def _check_memories(r, content, chars, npc_ids, asset_exists, vocab, held=None):
     """추억 카드: 3~5★, 부옵션 능력치, 패시브(일반 + 주인 보너스), 5★ 캐릭터마다 전용 추억 정확히 1장"""
     mems = _check_ids(r, "memories", content.get("memories") or [])
     char_by = {c["id"]: c for c in chars}
     sig_of = {}
     defaults = {}
+    held_sig = set((held or {}).get("memoryOwners", ()))  # 배포에서 보류된 빈 전용 칸의 주인
     for m in mems:
         where = f"memories/{m['id']}"
+        if m.get("draft") is True:
+            # 빈 칸 (작업 공간 전용) — 배포에서는 보류되고 게임은 무시함
+            r.warn(where, "빈 추억 칸이에요 — 패시브를 채우기 전까지 배포에서 빠져요")
+            if m.get("kind") == "signature" and m.get("signatureOf"):
+                sig_of.setdefault(m["signatureOf"], []).append(m["id"])
+            continue
         if not str(m.get("name") or "").strip():
             r.error(where, "이름(name)이 비어 있어요")
         if m.get("rarity") not in (3, 4, 5):
@@ -662,7 +675,10 @@ def _check_memories(r, content, chars, npc_ids, asset_exists, vocab):
             r.error(f"memories", f"{cid}의 전용 추억이 {len(ids)}장이에요 ({', '.join(ids)}) — 5★ 캐릭터마다 정확히 1장")
     for c in chars:
         if c["id"] not in npc_ids and rarity.grade_of(c) == 5 and not c.get("retired") and c["id"] not in sig_of and mems:
-            r.warn(f"characters/{c['id']}", "5★인데 전용 추억이 없어요 (추억 탭 → 전용 추억 만들기)")
+            if c["id"] in held_sig:
+                r.warn(f"characters/{c['id']}", "5★ 전용 추억이 아직 빈 칸이에요 (추억 탭에서 채우기)")
+            else:
+                r.warn(f"characters/{c['id']}", "5★인데 전용 추억이 없어요 (추억 탭 → '빈 전용 칸 만들기' 또는 '+ 새 추억')")
     for role in kit.CHAR_ROLES:
         if mems and role not in defaults:
             r.warn("memories", f"역할 {role}의 기본 추억(kind: default)이 없어요 — 새 캐릭터에게 지급할 추억이 없음")

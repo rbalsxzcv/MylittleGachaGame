@@ -44,13 +44,13 @@
 gacha:   { rates:{1..5: %}, cost:{single, ten}, pity, tenGuaranteeMin, pickupShare }
 stats:   { growth, byRarity:{1..5:{atk,def,hp,spd}} (적/레거시 기본값), critRate, critDmg,
            rarityMul:{1..5}, roleTemplate:{attacker|defender|support|healer: {능력치 11개}}, tweakWarnPct }
-level:   { costBase, costExp, goldPerTicket }
+level:   { costBase, costExp, goldPerTicket, cap:{base, perChapter} }   // 레벨 상한 = base + perChapter × 모두 깬 챕터 수
 essence: { maxBreakthrough (≤ MAX_BREAKTHROUGH 6), overflowTickets:{1..5} }
 daily:   { tickets, gold }
 power:   { atk, def, hp, spd, critRate, critDmg, energyRegen(1 넘는 만큼), effectHit, effectRes, healBonus, shieldBonus }  // 전투력 가중치
 powerWarnPct                                           // 같은 희귀도 평균보다 이 % 넘으면 개발 도구 경고 (15)
-combat:  { avBase, roundAv, queuePreview, maxRounds,
-           energy:{max,basic,skill,hit,ultimateCost}, sp:{start,max,basicGain,skillCost},
+combat:  { avBase, roundAv, queuePreview, maxRounds, defK (피해 감쇠 상수),
+           energy:{max,basic,skill,hit,ultimateCost,start(아군 시작 기력)}, sp:{start,max,basicGain,skillCost},
            enemyLevel:{refPower, perLevel}, fx:{actionMs,cutinMs} }
 defaultKit: { basic, skill, ultimate }                  // 스킬이 없는 캐릭터용
 breakthrough: { statNodes:{역할: [{stat, pct} × 4] (돌파 1·3·4·5)}, lowRarityBoost:{1..5} }
@@ -59,11 +59,13 @@ memory:     { maxLevel, growth, atkBase:{3..5}, secondary:{3..5}, secGrowth, cos
 memoryGacha:{ rates:{3..5: %}, cost, pity, tenGuaranteeMin, pickupShare }
 gear:       { tiers, maxEnh, slotBase:{hp|def|crit|atk: {능력치: 값}}, tierMul, enhStep, enhCost, salvage, drop:{count, rates, matPerClear}, regionTier:{챕터: 티어} }
 stars: { star3Ratio }   repeat: { maxRuns }
-enemy:      { base:{atk,def,hp,spd}, archetypes:{grunt|brute|caster|healer|shielder|assassin|elite|boss: 배율} }
-expected:   { levelStart, levelPerStage, breakthrough:{1..5}, memory:{rarity,levelRatio,refine}, gearEnhPerStage }
-tuner:      { targetWinRate:{normal,elite,boss}, runs, tolerance, difficulty:{min,max}, maxIter }
+enemy:      { base:{atk,def,hp,spd}, critRate, critDmg, waveSize:{normal,elite,boss}(웨이브 최소 인원), archetypes:{grunt|brute|caster|healer|shielder|assassin|elite|boss: 배율} }
+expected:   { levelStart, levelPerStage(예비), capGap, repeatsPerStage, daysPerChapter, sawtooth:{start,end,boss}, breakthrough:{1..5}, breakthroughRamp, memory:{rarity,levelRatio,refine}, gearEnhPerStage, maxRarityByChapter[], gearFromPosition }
+tuner:      { killTurns:{normal|elite|boss:{myMin,myMax,enemyMin,enemyMax}}, powerCheck:{r80|r90|r100|r120|r150:{ratio,minWin,maxWin}}, hpLeft:{min,max},
+              maxTimeoutRate, roundLimit:{…}, runs, difficulty:{min,max}, hpScale:{min,max}, maxIter, passes }
 ```
 - `loadConfig`의 새 묶음은 `like()`(기본값 모양만 남김, 숫자 0 이상)로 정리. 개발 도구 밸런스 탭은 이 묶음들을 JSON으로 편집.
+- DEFAULTS는 형식 + 파일이 없을 때 값 (단위 테스트가 이 값으로 계산함 — `defK` 100 · `energy.start` 0 등 예전 동작). 실제 조정 수치는 balance.json에만 (2026-11-27 전투 템포 개편: atk/def ×2 · defK 200 · 치명 15%/100%(적 5%/50%) · 키트 상한 ×1.6 + 치유/보호막 점수 ×1.6 · 적 기본 atk 500 / hp 7200 · 레벨업 1 × lv).
 
 ### characters.json 항목
 ```
@@ -100,7 +102,7 @@ NPC 연결 적은 보통 `image`를 비워 둠(= NPC 그림, NPC를 다시 뽑�
 ```
 index.json: ["ch01", …]
 ch01.json:  { chapter: "ch01", title, stages: [ { id, name, storyId, recommendedPower,
-              waves: [[{ enemyId, level? }]], roundLimit?, rewards{tickets,gems,gold,scrolls}, firstClearRewards, retired? } ] }
+              waves: [[{ enemyId, level? }]], roundLimit?, stageType?, difficulty?, hpScale?, rewards{tickets,gems,gold,scrolls}, firstClearRewards, retired? } ] }
 ```
 - **스테이지 1개 = 메인 스토리 1개(storyId) = 그 스토리 안의 전투 장면 `{type:"battle", stageId}` 1개.** 메인 스토리마다 전투 장면은 정확히 1개. 선택지가 전투 장면을 건너뛰면 안 됨. (`js/systems/adventure.js adventureIssues`, `dev/tinydev/validate.py _check_adventure`, `tests/data.test.js`)
 - 챕터 제목: 스토리 목록의 `arcTitle`은 제목만 (게임이 "챕터 N · "을 붙임, `store.strip_chapter_prefix`), 챕터 파일 `title`은 "챕터 N: 제목" (`store.chapter_title` — "챕터 ch02" 같은 임시 제목은 없는 것으로 봄).
@@ -114,15 +116,22 @@ ch01.json:  { chapter: "ch01", title, stages: [ { id, name, storyId, recommended
 ```
 id (memory_0001), name, rarity 3–5, kind: default(역할 기본) | generic | signature(5★ 전용), role?(default), signatureOf?, featuredCharacterId?,
 baseAtk?(없으면 balance.memory.atkBase), secondary { stat }, passive { generic, owner? }, image(.webp 카드), thumb, addedAt, retired?,
-genKey (생성기 항목: generic:<key> | signature:<캐릭터 id>), theme[] (그림 장면 태그, 개발 도구 전용 — 배포 때 빠짐)
+genKey (생성기 항목: generic:<key> | signature:<캐릭터 id>), theme[] (그림 장면 태그, 개발 도구 전용 — 배포 때 빠짐),
+draft (true = 빈 칸, 작업 공간 전용 — 배포 보류 · 검사는 경고만 · 게임 validateMemories가 무시)
 ```
+- 빈 칸: 5★(NPC · 은퇴 제외) 캐릭터가 생기면 전용 추억 빈 칸을 자동으로 만듦 — `dev/tinydev/memslots.py ensure_signature_slots`
+  (부르는 곳: `api.char_approve` · `api.char_update`(등급 5★로) · `pack._run` 캐릭터 단계 · `POST /api/memories/slots` = 추억 탭 '빈 전용 칸 만들기').
+  genKey `signature:<id>`라서 키트(아키타입)를 정하고 다시 만들면 같은 id에 채워짐. 추억 탭 '+ 새 추억'도 빈 칸으로 시작.
+  일반 패시브에 효과/수정자가 생기면 저장할 때 `draft`가 풀림. 추억 배너가 빈 칸을 픽업하면 배포 검사 오류.
 - 생성: `node tools/memgen/cli.js [--apply]` 또는 개발 도구 추억 탭 '생성기로 다시 만들기' (일반 라이브러리 `tools/memgen/library.js` + 5★마다 아키타입 signature 변형).
-  genKey가 같으면 id · 그림 · 공개 시각 유지. id는 `dev/ids.json` memory 카운터.
+  합치기 `mergeGenerated`: genKey가 같으면 id · 그림 · 공개 시각 유지(빈 칸 표시는 지움), 생성기가 이번에 안 만든 genKey 항목은 지우지 않고 그대로. id는 `dev/ids.json` memory 카운터.
 - 규칙(`js/systems/memories.js`): 역할 기본 추억 캐릭터당 1장(`memGranted`, `ctx.commit`마다 확인), 중복 → 재련 +1(레벨 높은 카드) → R5면 추억 재료,
   레벨업 티켓(재료 1 = materialTickets 티켓 먼저), 재련 = 패시브 숫자 × refineScale, owner 패시브는 장착자 = signatureOf일 때만.
   능력치: 기본 공격력은 레벨 기본값에 더하고 부옵션은 %. `teams.extrasOf(ctx, id)` → 멤버 `extras` → statsOf/charPower/createBattle.
 - 추억 뽑기: 배너 `category: 'memory'`, `gacha.rulesFor`(balance.memoryGacha, 1·2★ 0%), 천장 키 memory / memoryPickup, `pickupFrom`(캐릭터 픽업 배너 → 그 픽업의 전용 추억),
   진행 중인 추억 상시 배너가 없으면 `STANDARD_MEMORY_BANNER`. 뽑기 화면 캐릭터/추억 탭.
+  개발 도구 배너 탭: '+ 추억 배너', 캐릭터 픽업 배너의 '이 배너의 추억 배너 만들기'(pickupFrom = 그 배너).
+  배너 그림(`batch.banner_input`, 웹 · 일괄 생성 공용): 추억 배너는 픽업 추억(또는 pickupFrom 배너 픽업의 전용 추억)의 주인/등장 캐릭터 + 추억 이름 · 장면 태그.
 - 그림: 개발 도구 job 종류 `memory` — 등장 캐릭터 외형 슬롯(`characters.appearance {body, hair, eyes, outfit, props}`, 승인할 때 저장 / 없으면 승인 그림 프롬프트에서 한 번 만듦)
   을 프롬프트 맨 앞에 그대로 + AI(또는 theme 태그 템플릿)는 장면만 → 832×1216(1차만) → 카드 WebP 높이 1024 + 썸네일 256.
   하이레스는 선택: 검토 패널 '하이레스로 다듬기' = 그 시도 원본을 `comfy.memoryHires`(1.25× · 13스텝 · denoise 0.4)로 img2img 한 번 → 새 시도 (`imaging.hires_attempt`, `POST /api/jobs/<id>/hires`). 선택 img2img(컷아웃 합성).
@@ -166,18 +175,23 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
 - 능력치 11개: atk, def, hp, spd, critRate, critDmg, energyRegen(기본 1), effectHit, effectRes, healBonus, shieldBonus.
 - 기본: 캐릭터에 `role`이 있고 절대값 `stats`가 없으면 `round(rarityMul[희귀도] × roleTemplate[역할][능력치] × (1 + statTweak%))` (희귀도 배율은 atk/def/hp만).
   절대값 `stats`가 있으면 그 값(적, 예전 데이터, 테스트), 빠진 칸은 `byRarity` / 기본값.
-- 최종 = floor((floor(기본 × (1 + 0.08 × (lv − 1))) + 추억 공격력) × (1 + Σ%)) + Σ장비. Σ% = 돌파 1·3·4·5 노드 + `stat_bonus` + 추억 부옵션.
+- 최종 = floor((floor(기본 × (1 + growth × (lv − 1))) + 추억 공격력) × (1 + Σ%)) + Σ장비. Σ% = 돌파 1·3·4·5 노드 + `stat_bonus` + 추억 부옵션.
   비율 능력치는 % 포인트(+6 → +0.06), spd/비율 능력치는 레벨과 무관.
 - 상시 능력(`activePassives`): 적 = passives / 캐릭터 = talents + bt2(돌파 2+) + bt6(돌파 6) + 예전 breakthroughs[0..돌파−1] + 바깥(추억).
-- 레벨업 lv→lv+1: 티켓 ceil(10 × lv^1.25), 골드 = 티켓 × 10. 전투력 = floor(2·atk + 1.5·def + 0.2·hp + 2·spd + 300·critRate + 100·critDmg). 큰 숫자 `formatBig` (1.2만, 3.4억).
+- 레벨업 lv→lv+1: 티켓 ceil(costBase × lv^costExp) (지금 1 × lv), 골드 = 티켓 × goldPerTicket. 전투력 = balance.power 가중합 (지금 atk 1 · def 0.75 · hp 0.2 · spd 2 · 치명 300/100 …). 큰 숫자 `formatBig` (1.2만, 3.4억).
+- **레벨 상한** = `level.cap.base`(50) + `perChapter`(10) × 모두 깬 챕터 수 (`stageProgress.clearedChapterCount` — 은퇴 아닌 스테이지가 1개 이상이고 전부 클리어, `levelCapOf(ctx)`).
+  세이브 필드 없음(클리어 기록에서 계산), 상한을 넘긴 예전 캐릭터는 깎지 않고 더 못 올림. `levelUp(save, id, n, balance, cap)`이 자름, 육성 화면 `Lv.x / 상한` + '최대 레벨',
+  챕터를 다 깨서 상한이 오르면 `farming.clearStage` → `capRaised` → 전투 결과에 "최대 레벨이 Lv.N으로". 미리보기 `&lv=N`(상한 무시).
 
 ### 전투 (`js/battle/engine.js`, 순수 · 시드 · 결정론)
 - 타임라인: av = avBase(10000) ÷ 속도. 가장 작은 av가 행동 → 모두 그만큼 차감 → 행동한 유닛은 다시 한 턴. 동점은 아군 → 적, 칸 순.
   속도 강화/약화가 바뀌면 남은 av × (이전 속도 ÷ 새 속도). advance/delay_action(p%) = 한 턴 길이의 p%만큼 당김/밈 (행동 중인 유닛이면 다음 턴에 반영).
 - 라운드 = 흐른 av ÷ roundAv(100) 올림. roundLimit 초과 → 패배(timeout). maxRounds 안전장치.
 - 팀 SP: 시작 3, 최대 5. 기본 공격 +1, 스킬 −1(+ `sp_cost` 수정자), SP 부족하면 스킬 불가(기본 공격으로).
-- 기력: 기본 +20, 스킬 +30, 피격 +10, 최대 100. 궁극기 = 기력 ≥ 비용이면 아군 입력 중 아무 때나, 턴을 쓰지 않음.
-- 피해 = floor(S × 배율 × 100/(100+방어) × (치명 ? 1+critDmg : 1) × (1+주는 피해) × (1+받는 피해)), 최소 1, 타마다 치명 판정, 보호막이 먼저 흡수.
+- 기력: 아군은 `energy.start`(25)로 시작, 기본 +20, 스킬 +30, 피격 +10, 최대 100. 궁극기 = 기력 ≥ 비용이면 아군 입력 중 아무 때나, 턴을 쓰지 않음.
+- 피해 = floor(S × 배율 × K/(K+방어) × (치명 ? 1+critDmg : 1) × (1+주는 피해) × (1+받는 피해)), 최소 1, 타마다 치명 판정, 보호막이 먼저 흡수.
+  K = `combat.defK` × (1 + growth × (공격자 레벨 − 1)) (`b.mitigation`, AI 예상 피해도 같음) → 같은 레벨끼리는 레벨과 무관하게 같은 감쇠율.
+  유닛 `stats`에 1타 기록(hits · hitPct · maxHitPct / hitsTaken · takenPct · maxTakenPct · cappedTaken · maxTakenRawPct(상한 전), 대상 최대 HP 대비), `summary().minTeamHp` = 아군 팀 HP 최저점 — 결과에는 영향 없음, 밸런스 보고서용.
 - 지속 시간은 가진 유닛의 턴 끝에 −1 (자기 턴에 받은 건 그 턴엔 안 줄어듦). 지속 피해는 턴 시작에.
 - 적: 패턴 칸을 예고(intent: 이름 · 아이콘 · big · 대상 칸 / 광역) → 자기 차례에 실행 → 다음 칸 예고. 도발 아군이 있으면 대상이 그쪽.
   `interrupt`는 예고된 big만 취소 → 그 차례 '흐트러짐'. `api.intents()`의 `eta` = 그 적보다 먼저 행동하는 횟수(0 = 다음).
@@ -195,7 +209,7 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
 - 토큰(charge/summon): `state.tokens`, 유닛처럼 av가 줄어 차례가 되면 주인 능력치로 효과 실행. 같은 av면 유닛 먼저.
   차지 = 주인 한 턴 × delayPct%, 1번 (big이면 interrupt로 끊김). 소환 = 자기 속도로 actions번. 주인이 쓰러지면 사라짐. `api.queueItems()` = 유닛 + 토큰.
 - AUTO: 스킬/궁극기에 `useIf [조건]`이 있으면 그 조건일 때 사용 (스킬은 SP가 가득이면 조건과 상관없이).
-- 적: 스테이지 `difficulty` 배율 → 적 atk/hp × difficulty (buildUnit).
+- 적: 스테이지 `difficulty` 배율 → 적 atk/hp × difficulty, `hpScale` → 적 hp만 한 번 더 × (buildUnit).
 
 ### 연출 (`js/fx/`)
 - `phaserHost.js`: Phaser.Game 하나(1280×720 FIT, `#fx-layer` — CSS 확대되는 #stage 밖), 글꼴 Pretendard(FontFace)를 먼저 불러옴, 끝나면 레이어 숨기고 루프 재움. 레이어가 떠 있으면 `main.js` 키 처리는 Phaser에 양보.
@@ -230,17 +244,27 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
 
 ## 적 아키타입 · 밸런스 툴킷 (`tools/enemygen/`, `tools/balance/`, AI 없음)
 - 적 아키타입 8종(grunt · brute · caster · healer · shielder · assassin · elite · boss): 능력치 = `balance.enemy.base × archetypes[아키타입]`,
-  행동은 칸(basic/skill/ultimate) × 기존 아이콘별 템플릿 → **행동 id · 이름 · 아이콘 · 페이즈 이름 · 웨이브 구성은 그대로**, 효과/패턴/페이즈/광폭화/패시브만 새로.
+  행동은 칸(basic/skill/ultimate) × 기존 아이콘별 템플릿 → **행동 id · 이름 · 아이콘 · 페이즈 이름은 그대로**, 효과/패턴/페이즈/광폭화/패시브만 새로.
   보스 큰 공격 = 차지(예고 big → 반 턴 뒤 터지는 big 토큰, 둘 다 차단 가능). 배정 `ENEMY_BOOTSTRAP`, 개발 도구 적 탭 '아키타입으로 수치 다시 계산'.
-- 스테이지: 적 레벨 = 기대 레벨(`expected.levelStart + levelPerStage × 전체 순서`), `stageType`(보스/정예 적 → boss/elite), `difficulty`(튜너), `recommendedPower` = 기대 전투력.
+- 스테이지: 적 레벨 = 기대 레벨(아래), `stageType`(보스/정예 적 → boss/elite), `roundLimit` = `tuner.roundLimit[종류]`, `difficulty` · `hpScale`(튜너), `recommendedPower` = 기대 전투력.
   `node tools/enemygen/cli.js --apply` (작업 공간 · data/ 각각 — 공개 안 한 그림이 공개 파일로 안 넘어감).
+- **기대 레벨 = 레벨 상한 기준 경사** (`enemygen/generate.js expectedLevelOf`): 챕터 c(0부터)를 하는 동안 상한 = `levelCapFor(c)`.
+  챕터 시작 = 첫 챕터면 `levelStart`, 아니면 이전 상한 − `capGap` → 챕터 마지막 스테이지 = 이 챕터 상한 − `capGap`, 사이 선형(은퇴 스테이지는 안 셈). 지금 ch01 1→45, ch02 45→55, ch03 55→65.
 - 기대 성장(`expected.js`): 스테이지마다 레벨 · 돌파(희귀도별 × 0→`breakthroughRamp` 스테이지에 걸쳐) · 추억(역할 기본, 레벨 × levelRatio) ·
   장비(지역 안 `gearFromPosition`번째부터 지역 티어, 그 전은 이전 지역 티어 / 첫 지역 초반은 없음). 기준 팀 = NPC·은퇴 제외, 챕터별 최고 희귀도(`maxRarityByChapter`),
   3★+ 탱커 1 · 치유/지원 1 → 나머지 기대 전투력 순.
-- 튜너(`tuner.js`): 기준 팀 × 시드 1..runs AUTO → difficulty 로그 이분 탐색(min~max, maxIter) → 목표 승률 ±tolerance. `node tools/balance/cli.js tune [--apply] [--runs N]`.
+- 웨이브 최소 인원: 적 생성기가 웨이브를 `enemy.waveSize[종류]`(일반 3 · 정예 4 · 보스 4)명까지 그 웨이브의 보스 아닌 적으로 돌아가며 채움(`padWave`, 빼지 않음, 최대 6).
+- **기준 = 전투력.** 권장 전투력 = 기대 전투력 ÷ 톱니 비율(`expected.recommendedPower`, `sawtoothRatio`): 챕터 첫 스테이지 `sawtooth.start`(1.15) → 보스 앞 `end`(1.0) → 챕터 마지막(보스) `boss`(0.95),
+  다음 챕터 첫 스테이지에서 다시 start (톱니). 기대 성장대로 온 플레이어는 챕터 초반 권장의 115%(여유) → 보스 95%(긴장). 스테이지 `recommendedPower`에 이 값(적 생성기가 씀).
+  `teamAtPower(stage, data, 전투력)` = 레벨만 바꿔서 그 전투력에 가장 가까운 기준 팀(돌파 · 추억 · 장비는 기대 상태, 레벨 1 아래로는 못 내림). 적 파티 전투력 = `tuner.enemyParty`(모든 웨이브, 같은 powerOf 공식).
+- 튜너(`tuner.js`): **권장 전투력 팀** × 시드 1..runs AUTO → 처치 턴 수(1턴 = 1라운드)를 `killTurns[종류]`에 맞춤 — 일반 내가 3~4 / 적이 10~14, 정예 5~6 / 7~9, 보스 7~9 / 6~8.
+  내가 잡는 턴 = 적 HP 합 ÷ 아군 라운드당 피해 ← `hpScale`, 적이 잡는 턴 = 아군 HP 합 ÷ 적 라운드당 피해(보호막 · 치유 전, 유닛 `takenRaw`) ← `difficulty`(이때 difficulty × hpScale = 적 실제 HP 고정 → 공격력만).
+  두 손잡이를 `passes`번 번갈아. 그다음 **전투력 검사** `powerCheck`: 권장의 80 · 90 · 100 · 120 · 150% 팀 AUTO 승률이 표(≤20% · 30~85% · ≥85% · ≥98% · 100%) 안인지 — 정예 · 보스는 전부, 일반은 100% 이상만(일반은 처치 턴 표가 우선이라 80%로도 이김).
+  보고서: 톱니 · 권장 / 적 전투력 · 100% 팀 레벨 · 배율 · 처치 턴 · 승률 · 남은 HP · 쓰러진 아군 · 1타 비율 · 전투력별 승률 · 상한 레벨 검사 + **경제 표**(`economy.js`: 기준 팀 5명을 기대 레벨까지 올리는 누적 티켓 · 골드 vs 첫 클리어 + 반복 `repeatsPerStage`회 + 일일 `daysPerChapter`일).
+  `node tools/balance/cli.js tune [--apply] [--runs N] [--only id,…]`, 튜닝 없이 지금 배율 그대로 표만: `cli.js pace [--runs N]`.
 - 평가(`evaluate.js`): 캐릭터 교체 테스트(돌0/돌6/전용 추억 → 티어), 추억 교체, 장비 곡선(4칸 교체 기대 판 수), 조합 몬테카를로 상위 1%. `cli.js eval`.
   보고서 `reports/tune-*.md|json`, `reports/eval-*.md|json` (밸런스 탭 '자동 튜너 · 평가'에서도 돌리고 저장 → `POST /api/reports`).
-- 전투 결과가 바뀌는 수치(적 · 기대 성장 · 키트)를 고치면: enemygen(추천 전투력) → tune --apply → 스냅샷 차이 확인 → `node tests/run.js --update`.
+- 전투 결과가 바뀌는 수치(적 · 기대 성장 · 키트)를 고치면: (키트 예산이면 `kitgen bootstrap --force --apply`(kitGen의 아키타입 · 변형 · 시드 그대로 숫자만) → `memgen --apply`) → enemygen(레벨 · 추천 전투력 · 라운드 제한) → tune --apply → 스냅샷 차이 확인 → `node tests/run.js --update`.
 
 ## 개발 도구 (dev/)
 - 희귀도 `tinydev/rarity.py`, 전투 검사 `tinydev/kit.py`(vocab 기반, 적 actions/pattern/phases/enrage), 콘텐츠 검사 `tinydev/validate.py`(모험 규칙 포함), 배포 `publish.py`(스테이지 챕터 파일, 밸런스 변경 요약 패치노트).
@@ -299,7 +323,12 @@ equips { 캐릭터 id: { m: 추억 u | null, g: { hp|def|crit|atk: '<티어>.<�
 - 1★/2★ 캐릭터가 아직 없음 → 그 확률은 3★로 대체됨. (1★ 뜨내기 용병은 있음)
 - 추억 카드 그림이 아직 없음 (게임은 이름 카드로 보여 줌) → 개발 도구 추억 탭 / 일괄 생성 '추억 카드'로 그리기.
 - 새 캐릭터 AI 문구 다듬기(이름/설명) 버튼은 아직 없음 — 키트 생성기 이름 후보 + 한 줄 설명 템플릿을 씀 (AI로 다시 쓰기는 전투 편집기에 있음).
-- 스테이지 난이도는 자동 튜너로 맞춤 (reports/의 마지막 tune/eval 보고서 참고). 평가에서 안나(치유) 돌파 효과가 작고, 1★ 탱커는 보스 칸에서 약함.
+- 스테이지 난이도는 자동 튜너로 맞춤 (reports/의 마지막 tune/eval 보고서 참고 — 2026-11-27 전투 템포 개편 뒤 eval은 아직 안 돌림).
+  공개 데이터, 권장 전투력 팀 기준(2026-11-27): 일반 내가 4.8턴 · 적이 11.6턴 · 승 96% · 남은 HP 90%, 정예 5.5 / 8.3 · 승 100%, 보스 9.4 / 7.0 · 승 83% · 남은 HP 67% · 1.1명 쓰러짐.
+  보스 전투력별 승률 80% 1~9% · 90% 25~30% · 100% 84~87% · 120%+ 100%. 보스 100%의 남은 HP는 62~72%로 표(30~50%)보다 여유 있음.
+  튜너는 작업 공간 데이터로 맞추는데, 작업 공간 기준 팀에 키트 없는 char_0017(4★)이 들어가서 ch01은 공개 데이터로 재면 1~2턴 길고 stage_0017은 승 56% → char_0017 키트를 정하면 다시 tune.
+  적 1타는 상한이 없음(보스 큰 공격은 아군 HP의 2~3배까지) — 위협은 처치 턴(적 라운드당 피해)으로만 맞춤. stage_0031(방패병 3웨이브)은 HP 배율이 아주 낮게 내려감 — 구성을 바꾸는 게 나음.
+  작업 공간 ch03의 적 중 archetype이 없는 것(enemy_0012~)은 적 생성기가 건드리지 않음 → 적 탭에서 아키타입을 정하고 enemygen → tune. stage_0037 · 0041 · 0047 · 0048은 적이 거의 못 때림(손실 0%).
 - `enemy_0006`(광휘교단 이단 사냥꾼, 1-7 적) 그림은 작업 공간에만 있음 → 배포하면 공개됨.
 - 전투 기본 배경(선술집 테이블)은 작업 공간에만 있음 → 배포하면 공개됨. 스테이지 전용 전투 배경은 칸만 있고 그림은 아직 없음 → 개발 도구 스테이지 탭 / 일괄 생성으로 뽑기.
 - 1-1/1-2/1-3/1-5/1-7 스토리의 전투 장면과 도입 대사(b0)는 초안 — 스토리 탭에서 다듬기.

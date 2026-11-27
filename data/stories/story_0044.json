@@ -1,0 +1,201 @@
+{
+  "id": "story_0044",
+  "title": "식어버린 냄비",
+  "scenes": [
+    {
+      "id": "s1",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#1b1440"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "검게 그을린 대들보에서 잿물이 뚝뚝 떨어졌다."
+        },
+        {
+          "speaker": "char_0007",
+          "text": "참나무 식탁 은화 여덟 닢, 지붕 수리비 백은화 세 닢……."
+        },
+        {
+          "speaker": "narrator",
+          "text": "루미가 그을음 묻은 깃펜으로 장부를 꾹꾹 눌러썼다."
+        },
+        {
+          "speaker": "char_0006",
+          "text": "……스튜가 다 식어버렸네요."
+        },
+        {
+          "speaker": "narrator",
+          "text": "안나가 재투성이가 된 바닥에서 찌그러진 쇠 냄비를 주워 올렸다."
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……고기 건더기, 아직 반이나 남았는데."
+        },
+        {
+          "speaker": "char_0016",
+          "text": "말라코르는 지체하지 않는다. 성당으로 끌려갔다면 이미 갇혔을 거다."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "아이고 단장님! 심문관 놈들 소굴까지 가자고요? 화살값도 안 나옵니다요!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "크큭…… 배교자들과 시궁창 쥐새끼들이 아직 숨이 붙어 있군.",
+          "name": "교단 전령"
+        },
+        {
+          "speaker": "narrator",
+          "text": "부서진 담벼락 그늘에서 은빛 갑옷을 입은 전위대 셋이 칼을 뽑았다."
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#2a2152"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "말라코르 님께서 남겨두신 선물이다. 성물을 건드린 벌을 받아라!",
+          "name": "교단 전령"
+        },
+        {
+          "speaker": "narrator",
+          "text": "집 다 태워먹고 잔돈 털러 오셨나.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0002",
+          "text": "크하하! 마침 술도 깼는데 잘 걸렸다. 대가리부터 쪼개 주마!"
+        },
+        {
+          "speaker": "narrator",
+          "text": "숨통 끊지 말고 하나는 남겨 둬. 물어볼 게 있으니까.",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "b1",
+      "type": "battle",
+      "stageId": "stage_0044",
+      "next": "s3"
+    },
+    {
+      "id": "s3",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#24304a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "바닥에 처박힌 전위대 둘은 이미 숨이 끊겨 있었다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "큭, 커헉……! 더러운 칼질이나 하는 용병 놈들이…….",
+          "name": "교단 전령"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "말해라. 말라코르는 아이를 어디로 데려갔지?"
+        },
+        {
+          "speaker": "narrator",
+          "text": "외곽 성당이다…… 내일 새벽, 성소의 제단에서 피를 정화할 것이다!",
+          "name": "교단 전령"
+        },
+        {
+          "speaker": "narrator",
+          "text": "너희가 가 봐야 불타는 재만 주워 담게 될 거다…… 컥!",
+          "name": "교단 전령"
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장의 부츠가 전령의 무릎뼈를 단단히 짓이겼다."
+        },
+        {
+          "speaker": "narrator",
+          "text": "아아악! 내, 내 다리……!",
+          "name": "교단 전령"
+        },
+        {
+          "speaker": "narrator",
+          "text": "새벽까지 기다릴 생각 없다. 오늘 밤에 간다.",
+          "name": "단장"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "background": {
+        "type": "image",
+        "value": "assets/bg/bg_0015.jpg",
+        "color": "#2b1f3a"
+      },
+      "lines": [
+        {
+          "speaker": "narrator",
+          "text": "단장은 피 묻은 칼을 칼집에 그대로 꽂아 넣었다."
+        },
+        {
+          "speaker": "char_0003",
+          "text": "단장님, 진짜로 교단 본거지를 털러 가실 겁니까요? 화살이 모자란데……."
+        },
+        {
+          "speaker": "narrator",
+          "text": "그 꼬맹이가 먹다 만 고기 스튜가 동화 스무 닢짜리다.",
+          "name": "단장"
+        },
+        {
+          "speaker": "narrator",
+          "text": "밥값도 안 치르고 남의 손에 죽는 꼴은 못 보지. 떼먹힌 빚이 얼마인데.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "……단장. 핑계가 너무 길어."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……뭐?",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0001",
+          "text": "그냥 데리러 간다고 하면 되잖아. 늘 그러면서."
+        },
+        {
+          "speaker": "narrator",
+          "text": "……시끄러워. 짐이나 챙겨.",
+          "name": "단장"
+        },
+        {
+          "speaker": "char_0006",
+          "text": "식칼 갈아둘게요. 따뜻한 스튜를 다시 끓여야 하니까요."
+        },
+        {
+          "speaker": "char_0002",
+          "text": "크하하! 성당 지하에 포도주 통이나 넉넉히 있었으면 좋겠네!"
+        },
+        {
+          "speaker": "char_0016",
+          "text": "……외곽 성당 지하로 이어지는 배수로가 있다. 정면을 피해 침투하지."
+        },
+        {
+          "speaker": "narrator",
+          "text": "단장은 주머니 속 주사위를 굴리며 타버린 회관 문턱을 넘었다."
+        }
+      ]
+    }
+  ]
+}
